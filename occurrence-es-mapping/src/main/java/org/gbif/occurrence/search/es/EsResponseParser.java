@@ -16,7 +16,7 @@ package org.gbif.occurrence.search.es;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
-import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 
@@ -27,13 +27,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.elasticsearch.common.text.Text;
+import org.elasticsearch.join.aggregations.ParsedChildren;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.bucket.SingleBucketAggregation;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
+import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
 
-public class EsResponseParser<T extends Occurrence> {
+public class EsResponseParser<T extends VerbatimOccurrence> {
 
   // defaults
   private static final int DEFAULT_FACET_OFFSET = 0;
@@ -85,15 +88,26 @@ public class EsResponseParser<T extends Occurrence> {
     if (aggregation instanceof Terms) {
       return ((Terms) aggregation).getBuckets();
     } else if (aggregation instanceof Filter) {
-      return
-        ((Filter) aggregation)
-          .getAggregations().asList()
-            .stream()
-            .flatMap(agg -> ((Terms) agg).getBuckets().stream())
-            .collect(Collectors.toList());
+      return toBucketList((Filter) aggregation);
+    } else if (aggregation instanceof ParsedChildren) {
+      return toBucketList((ParsedChildren) aggregation);
     } else {
       throw new IllegalArgumentException(aggregation.getClass() + " aggregation not supported");
     }
+  }
+
+  /** Extract the bucket list of a simple aggregation.*/
+  private static List<? extends Terms.Bucket> toBucketList(SingleBucketAggregation aggregation) {
+    return aggregation.getAggregations()
+                      .asList()
+                      .stream()
+                      .flatMap(agg -> {
+                        if (agg instanceof ParsedFilter) {
+                          return toBucketList((ParsedFilter)agg).stream();
+                        }
+                        return  ((Terms) agg).getBuckets().stream();
+                      })
+                      .collect(Collectors.toList());
   }
 
   private Optional<List<Facet<OccurrenceSearchParameter>>> parseFacets(

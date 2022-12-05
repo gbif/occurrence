@@ -64,6 +64,11 @@
       <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.elasticsearch.plugin</groupId>
+      <artifactId>parent-join-client</artifactId>
+      <version>${elasticsearch.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>com.google.guava</groupId>

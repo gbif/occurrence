@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.file.dwca.akka;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.Term;
@@ -71,7 +72,7 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  */
 @Slf4j
 @AllArgsConstructor
-public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
+public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActor {
 
   private final SearchQueryProcessor<T> searchQueryProcessor;
 
@@ -139,7 +140,7 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
    * Writes the multimedia objects into the file referenced by multimediaCsvWriter.
    */
   private void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, T record) throws IOException {
-    List<MediaObject> multimedia = record.getMedia();
+    List<MediaObject> multimedia = getMedia(record);
     if (multimedia != null) {
       for (MediaObject mediaObject : multimedia) {
         multimediaCsvWriter.write(new InnerMediaObject(mediaObject, getRecordKey(record)),
@@ -147,6 +148,19 @@ public class DownloadDwcaActor<T extends Occurrence> extends UntypedActor {
                                   MEDIA_CELL_PROCESSORS);
       }
     }
+  }
+
+  /**
+   * Extracts media objects from known types.
+   */
+  private List<MediaObject> getMedia(T record) {
+    if (record instanceof Event) {
+      return ((Event)record).getMedia();
+    }
+    if (record instanceof Occurrence) {
+      return ((Occurrence)record).getMedia();
+    }
+    return null;
   }
 
   /**
