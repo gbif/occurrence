@@ -108,8 +108,8 @@ public enum OccurrenceEsField implements EsField {
   REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
   //Taxonomic classification
-  TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
   USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
+  TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
   TAXON_RANK(new BaseEsField("gbifClassification.usage.rank", DwcTerm.taxonRank)),
   ACCEPTED_TAXON_KEY(new BaseEsField("gbifClassification.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
   ACCEPTED_SCIENTIFIC_NAME(new BaseEsField("gbifClassification.acceptedUsage.name", GbifTerm.acceptedScientificName)),

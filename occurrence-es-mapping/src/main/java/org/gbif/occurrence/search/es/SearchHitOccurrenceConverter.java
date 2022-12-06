@@ -160,7 +160,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setIdentifier(hit, vOcc);
 
     // add verbatim fields
-    getMapValue(hit, occurrenceBaseEsFieldMapper.getEsField(UnknownTerm.build("multimediaItems")).getValueFieldName()).ifPresent(verbatimData -> {
+    getMapValue(hit, occurrenceBaseEsFieldMapper.getEsField(EsField.VERBATIM).getValueFieldName()).ifPresent(verbatimData -> {
       vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
       if (verbatimData.containsKey("extensions" )) {
         vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
