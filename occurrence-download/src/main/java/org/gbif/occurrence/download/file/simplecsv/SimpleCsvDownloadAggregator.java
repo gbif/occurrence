@@ -109,6 +109,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
         datasetUsagesCollector.mergeLicenses(result.getDatasetLicenses());
         DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName(), outputFileWriter);
       }
+      LOG.debug("Create usage for download key: {}", configuration.getDownloadKey());
       occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
       persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
     } catch (Exception e) {

@@ -116,6 +116,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       speciesResult.getDistinctSpecies().iterator().forEachRemaining(speciesListCollector::collect);
     }
     exportToFile(outputFileName, speciesListCollector);
+    LOG.debug("Create usage for download key: {}", configuration.getDownloadKey());
     occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
     persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
     DownloadCount.persist(configuration.getDownloadKey(), speciesListCollector.getDistinctSpecies().size(), occurrenceDownloadService);
@@ -138,7 +139,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       throw Throwables.propagate(e);
     }
   }
-  
+
   /**
    * Persist download license that was assigned to the occurrence download.
    */

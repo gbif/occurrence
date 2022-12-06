@@ -31,6 +31,7 @@ public class DownloadUsagesPersist {
 
   public void persistUsages(String downloadKey, Map<UUID,Long> datasetUsages) {
     try {
+      log.debug("Create usage for download key: {}", downloadKey);
       occurrenceDownloadService.createUsages(downloadKey, datasetUsages);
     } catch(Exception e) {
       log.error("Error persisting dataset usage information, downloadKey: {} for large download", downloadKey, e);
