@@ -63,14 +63,14 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testStartDownload() {
     prepareMocks(USER);
-    ResponseEntity<String> response = resource.startDownload(dl,null,  principal, null);
+    ResponseEntity<String> response = resource.startDownload(dl,null,  principal, null, false);
     assertThat(response.getBody(), equalTo(JOB_ID));
   }
 
   @Test
   public void testStartDownloadNotAuthenticated() {
     prepareMocks("foo");
-    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null, false);
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
