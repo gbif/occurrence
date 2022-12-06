@@ -65,7 +65,6 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMo
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 @Validated
-@RefreshScope
 public class DownloadResource {
 
   private static final String USER_ROLE = "USER";
@@ -101,7 +100,7 @@ public class DownloadResource {
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadType downloadType,
-      @Value("${occurrence.download.disabled}") Boolean downloadsDisabled) {
+      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
