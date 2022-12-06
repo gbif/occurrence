@@ -25,20 +25,25 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
-
 @RestController
 @Validated
-@RequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE,
-  "application/x-javascript"}, value = "occurrence/download/request")
+@RequestMapping(
+    produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"},
+    value = "occurrence/download/request")
 public class OccurrenceDownloadResource extends DownloadResource {
 
   public OccurrenceDownloadResource(
-    @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
-    DownloadRequestService service,
-    CallbackService callbackService,
-    OccurrenceDownloadService occurrenceDownloadService
-  ) {
-    super(archiveServerUrl, service, callbackService, occurrenceDownloadService, DownloadType.OCCURRENCE);
+      @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
+      DownloadRequestService service,
+      CallbackService callbackService,
+      OccurrenceDownloadService occurrenceDownloadService,
+      @Value("${occurrence.download.disabled}") Boolean downloadsDisabled) {
+    super(
+        archiveServerUrl,
+        service,
+        callbackService,
+        occurrenceDownloadService,
+        DownloadType.OCCURRENCE,
+        downloadsDisabled);
   }
 }
