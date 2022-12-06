@@ -92,18 +92,22 @@ public class DownloadResource {
 
   private final DownloadType downloadType;
 
+  private final Boolean downloadsDisabled;
+
   @Autowired
   public DownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
       DownloadRequestService service,
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
-      DownloadType downloadType) {
+      DownloadType downloadType,
+      @Value("${occurrence.download.disabled}") Boolean downloadsDisabled) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadType = downloadType;
+    this.downloadsDisabled = downloadsDisabled;
   }
 
   private void assertDownloadType(Download download) {
@@ -186,9 +190,8 @@ public class DownloadResource {
       @NotNull @Valid @RequestBody PredicateDownloadRequest request,
       @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
-      @RequestHeader(value = "User-Agent") String userAgent,
-      @Value("${occurrence.download.disabled}") boolean downloadsDisabled) {
-    if (downloadsDisabled) {
+      @RequestHeader(value = "User-Agent") String userAgent) {
+    if (Boolean.TRUE.equals(downloadsDisabled)) {
       return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
           .body("Service disabled for maintenance reasons");
     }

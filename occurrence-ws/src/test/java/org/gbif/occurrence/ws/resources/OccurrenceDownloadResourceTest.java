@@ -63,14 +63,14 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testStartDownload() {
     prepareMocks(USER);
-    ResponseEntity<String> response = resource.startDownload(dl,null,  principal, null, false);
+    ResponseEntity<String> response = resource.startDownload(dl,null,  principal, null);
     assertThat(response.getBody(), equalTo(JOB_ID));
   }
 
   @Test
   public void testStartDownloadNotAuthenticated() {
     prepareMocks("foo");
-    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null, false);
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
@@ -87,7 +87,7 @@ public class OccurrenceDownloadResourceTest {
     Authentication auth = mock(Authentication.class);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    resource = new OccurrenceDownloadResource(archiveServerUrl, service, callbackService, downloadService);
+    resource = new OccurrenceDownloadResource(archiveServerUrl, service, callbackService, downloadService, false);
     dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false), USER, null, true,
                                       DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
 

@@ -27,17 +27,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Validated
-@RequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE,
-  "application/x-javascript"}, value = "event/download/request")
+@RequestMapping(
+    produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"},
+    value = "event/download/request")
 public class EventDownloadResource extends DownloadResource {
 
   public EventDownloadResource(
-    @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
-    DownloadRequestService service,
-    CallbackService callbackService,
-    OccurrenceDownloadService occurrenceDownloadService
-  ) {
-    super(archiveServerUrl, service, callbackService, occurrenceDownloadService, DownloadType.EVENT);
+      @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
+      DownloadRequestService service,
+      CallbackService callbackService,
+      OccurrenceDownloadService occurrenceDownloadService,
+      @Value("${occurrence.download.disabled}") Boolean downloadsDisabled) {
+    super(
+        archiveServerUrl,
+        service,
+        callbackService,
+        occurrenceDownloadService,
+        DownloadType.EVENT,
+        downloadsDisabled);
   }
-
 }
