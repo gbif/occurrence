@@ -25,7 +25,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
-import org.gbif.occurrence.search.es.EsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -50,7 +50,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,7 +121,7 @@ public class  DownloadPrepareAction implements Closeable {
 
   private final String esIndex;
 
-  private final EsFieldMapper esFieldMapper;
+  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
 
   // Holds the value of the maximum number of records that a small download can have.
   private final int smallDownloadLimit;
@@ -134,6 +133,8 @@ public class  DownloadPrepareAction implements Closeable {
   private final DwcTerm coreTerm;
 
   private final String wfPath;
+
+  private final OccurrenceBaseEsFieldMapper esFieldMapper;
 
   /**
    * Entry point: receives as argument the predicate filter and the Oozie workflow id.
@@ -205,20 +206,17 @@ public class  DownloadPrepareAction implements Closeable {
 
   @SneakyThrows
   private String searchQuery(Predicate predicate) {
-    Optional<QueryBuilder> queryBuilder = QueryVisitorsFactory.createEsQueryVisitor(workflowConfiguration.getEsIndexType(),
-                                                                                    workflowConfiguration.isEsNestedIndex())
+    Optional<QueryBuilder> queryBuilder = QueryVisitorsFactory.createEsQueryVisitor(esFieldMapper)
                                             .getQueryBuilder(predicate);
-    if (workflowConfiguration.isEsNestedIndex()) {
-      TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery("type", workflowConfiguration.getEsIndexType().getObjectName());
+    return esFieldMapper.getDefaultFilter().map(df -> {
       if (queryBuilder.isPresent()) {
         BoolQueryBuilder query = (BoolQueryBuilder)queryBuilder.get();
-        query.filter().add(termQueryBuilder);
-        return query.toString();
+        query.filter().add(df);
+        return query;
       } else {
-        return termQueryBuilder.toString();
+        return queryBuilder;
       }
-    }
-    return queryBuilder.orElse(QueryBuilders.matchAllQuery()).toString();
+    }).orElse(QueryBuilders.matchAllQuery()).toString();
   }
 
   /**

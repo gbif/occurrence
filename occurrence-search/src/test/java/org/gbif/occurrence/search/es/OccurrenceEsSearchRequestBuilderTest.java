@@ -43,10 +43,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
 
-  private final EsSearchRequestBuilder esSearchRequestBuilder = new EsSearchRequestBuilder(EsFieldMapper.builder()
-                                                                                             .nestedIndex(false)
-                                                                                             .searchType(EsFieldMapper.SearchType.OCCURRENCE)
-                                                                                             .build());
+  private final EsSearchRequestBuilder esSearchRequestBuilder = new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper());
 
   @Test
   public void termQueryTest() throws IOException {
@@ -717,15 +714,17 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    assertEquals(
-      EsFieldMapper.SEARCH_TO_ES_MAPPING.get(param).getSearchFieldName(),
-      jsonQuery.path("_source").path("includes").get(0).asText());
-    JsonNode suggestNode =
-        jsonQuery.path(SUGGEST).path(EsFieldMapper.SEARCH_TO_ES_MAPPING.get(param).getSearchFieldName());
+    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
+    EsField esField = esFieldMapper.getEsField(param);
+
+    assertEquals(esField.getSearchFieldName(), jsonQuery.path("_source").path("includes").get(0).asText());
+
+    JsonNode suggestNode = jsonQuery.path(SUGGEST).path(esField.getSearchFieldName());
     assertEquals(prefix, suggestNode.path("prefix").asText());
-    assertEquals(
-      EsFieldMapper.SEARCH_TO_ES_MAPPING.get(param).getSearchFieldName() + ".suggest",
-      suggestNode.path("completion").path("field").asText());
+
+    assertEquals(esField.getSearchFieldName() + ".suggest",
+                 suggestNode.path("completion").path("field").asText());
+
     assertEquals(size, suggestNode.path("completion").path("size").asInt());
   }
 }

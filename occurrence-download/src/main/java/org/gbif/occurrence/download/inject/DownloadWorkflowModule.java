@@ -19,6 +19,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.event.search.es.EventEsField;
 import org.gbif.event.search.es.SearchHitEventConverter;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
@@ -30,7 +31,8 @@ import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.download.oozie.DownloadPrepareAction;
 import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.occurrence.search.es.EsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 import org.gbif.registry.ws.client.EventDownloadClient;
@@ -97,11 +99,14 @@ public class DownloadWorkflowModule  {
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
             .occurrenceDownloadService(downloadServiceClient(dwcTerm))
-            .esFieldMapper(EsFieldMapper.builder().nestedIndex(workflowConfiguration.isEsNestedIndex())
-                             .searchType(workflowConfiguration.getEsIndexType()).build())
+            .occurrenceBaseEsFieldMapper(fieldMapper())
             .coreTerm(dwcTerm)
             .wfPath(wfPath)
             .build();
+  }
+
+  private OccurrenceBaseEsFieldMapper fieldMapper() {
+    return WorkflowConfiguration.SearchType.OCCURRENCE == workflowConfiguration.getEsIndexType()? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
   }
 
   /**
@@ -208,11 +213,8 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
-  public EsFieldMapper esFieldMapper() {
-    return EsFieldMapper.builder()
-      .nestedIndex(workflowConfiguration.isEsNestedIndex())
-      .searchType(workflowConfiguration.getEsIndexType())
-      .build();
+  public OccurrenceBaseEsFieldMapper esFieldMapper() {
+    return WorkflowConfiguration.SearchType.EVENT == workflowConfiguration.getEsIndexType()? EventEsField.buildFieldMapper() : OccurrenceEsField.buildFieldMapper();
   }
 
   /**
@@ -228,8 +230,8 @@ public class DownloadWorkflowModule  {
   }
 
   private <T extends VerbatimOccurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
-    if (workflowConfiguration.getEsIndexType() == EsFieldMapper.SearchType.EVENT) {
-      return (S) new SearchHitEventConverter(esFieldMapper());
+    if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
+      return (S) new SearchHitEventConverter(esFieldMapper(), false);
     }
     return (S) new SearchHitOccurrenceConverter(esFieldMapper(), false);
   }
@@ -239,7 +241,7 @@ public class DownloadWorkflowModule  {
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> interpreterMapper() {
-    if (workflowConfiguration.getEsIndexType() == EsFieldMapper.SearchType.EVENT) {
+    if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
       return (T record) -> OccurrenceMapReader.buildInterpretedEventMap((Event)record);
     }
     return  (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record);

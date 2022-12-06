@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.join.aggregations.ParsedChildren;
+import org.elasticsearch.join.aggregations.ParsedParent;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.SingleBucketAggregation;
@@ -42,14 +43,14 @@ public class EsResponseParser<T extends VerbatimOccurrence> {
   private static final int DEFAULT_FACET_OFFSET = 0;
   private static final int DEFAULT_FACET_LIMIT = 10;
 
-  private final EsFieldMapper esFieldMapper;
+  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final Function<SearchHit,T> hitMapper;
 
   /**
    * Private constructor.
    */
-  public EsResponseParser(EsFieldMapper esFieldMapper, Function<SearchHit,T> hitMapper) {
-    this.esFieldMapper = esFieldMapper;
+  public EsResponseParser(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, Function<SearchHit,T> hitMapper) {
+    this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
     this.hitMapper = hitMapper;
   }
 
@@ -72,7 +73,7 @@ public class EsResponseParser<T extends VerbatimOccurrence> {
   public List<String> buildSuggestResponse(org.elasticsearch.action.search.SearchResponse esResponse,
                                                   OccurrenceSearchParameter parameter) {
 
-    String fieldName = esFieldMapper.getValueFieldName(parameter);
+    String fieldName = occurrenceBaseEsFieldMapper.getValueFieldName(parameter);
 
     return esResponse.getSuggest().getSuggestion(fieldName).getEntries().stream()
         .flatMap(e -> ((CompletionSuggestion.Entry) e).getOptions().stream())
@@ -91,6 +92,8 @@ public class EsResponseParser<T extends VerbatimOccurrence> {
       return toBucketList((Filter) aggregation);
     } else if (aggregation instanceof ParsedChildren) {
       return toBucketList((ParsedChildren) aggregation);
+    } else if (aggregation instanceof ParsedParent) {
+      return toBucketList((ParsedParent) aggregation);
     } else {
       throw new IllegalArgumentException(aggregation.getClass() + " aggregation not supported");
     }
@@ -118,7 +121,7 @@ public class EsResponseParser<T extends VerbatimOccurrence> {
       List<? extends Terms.Bucket> buckets = getBuckets(aggs);
 
       // get facet of the agg
-      OccurrenceSearchParameter facet =  esFieldMapper.getSearchParameter(aggs.getName());
+      OccurrenceSearchParameter facet =  occurrenceBaseEsFieldMapper.getSearchParameter(aggs.getName());
 
       // check for paging in facets
       long facetOffset = extractFacetOffset(request, facet);

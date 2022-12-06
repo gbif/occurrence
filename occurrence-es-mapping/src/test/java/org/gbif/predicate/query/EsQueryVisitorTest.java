@@ -30,10 +30,10 @@ import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.query.QueryBuildingException;
-import org.gbif.occurrence.search.predicate.OccurrenceEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -47,8 +47,7 @@ public class EsQueryVisitorTest {
   private static final OccurrenceSearchParameter PARAM2 =
       OccurrenceSearchParameter.INSTITUTION_CODE;
 
-  private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper =
-      new OccurrenceEsFieldMapper();
+  private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper = OccurrenceEsField.buildFieldMapper();
   private final EsQueryVisitor<OccurrenceSearchParameter> visitor =
       new EsQueryVisitor<>(occurrenceEsFieldMapper);
 
@@ -1466,13 +1465,9 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testVocabularyEqualsPredicate() {
+    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     Arrays.stream(OccurrenceSearchParameter.values())
-        .filter(
-            p ->
-                Optional.ofNullable(
-                        org.gbif.occurrence.search.es.EsFieldMapper.SEARCH_TO_ES_MAPPING.get(p))
-                    .map(org.gbif.occurrence.search.es.EsFieldMapper::isVocabulary)
-                    .orElse(false))
+        .filter(esFieldMapper::isVocabulary)
         .forEach(
             param -> {
               try {

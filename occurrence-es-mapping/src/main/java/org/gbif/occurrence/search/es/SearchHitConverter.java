@@ -57,7 +57,7 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
       + "[yyyy-MM-dd'T'HH:mm:ss][yyyy-MM-dd'T'HH:mm:ss XXX][yyyy-MM-dd'T'HH:mm:ssXXX][yyyy-MM-dd'T'HH:mm:ss]"
       + "[yyyy-MM-dd'T'HH:mm][yyyy-MM-dd][yyyy-MM][yyyy]");
 
-  static final Function<String, Date> STRING_TO_DATE =
+  protected static final Function<String, Date> STRING_TO_DATE =
     dateAsString -> {
       if (Strings.isNullOrEmpty(dateAsString)) {
         return null;
@@ -82,11 +82,11 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
       } else if (temporalAccessor instanceof LocalDateTime) {
         dateParsed = Date.from(((LocalDateTime)temporalAccessor).toInstant(ZoneOffset.UTC));
       } else if (temporalAccessor instanceof LocalDate) {
-        dateParsed = Date.from((((LocalDate)temporalAccessor).atStartOfDay()).toInstant(ZoneOffset.UTC));
+        dateParsed = Date.from(((LocalDate)temporalAccessor).atStartOfDay().toInstant(ZoneOffset.UTC));
       } else if (temporalAccessor instanceof YearMonth) {
-        dateParsed = Date.from((((YearMonth)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
+        dateParsed = Date.from(((YearMonth)temporalAccessor).atDay(1).atStartOfDay().toInstant(ZoneOffset.UTC));
       } else if (temporalAccessor instanceof Year) {
-        dateParsed = Date.from((((Year)temporalAccessor).atDay(1)).atStartOfDay().toInstant(ZoneOffset.UTC));
+        dateParsed = Date.from(((Year)temporalAccessor).atDay(1).atStartOfDay().toInstant(ZoneOffset.UTC));
       }
 
       if (dateParsed != null && firstYear) {
@@ -99,55 +99,71 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
       return dateParsed;
     };
 
-  protected final EsFieldMapper esFieldMapper;
+  protected final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
 
-  protected Optional<String> getStringValue(SearchHit hit, OccurrenceEsField esField) {
+  protected Optional<String> getStringValue(SearchHit hit, EsField esField) {
     return getValue(hit, esField, Function.identity());
   }
 
-  protected Optional<Integer> getIntValue(SearchHit hit, OccurrenceEsField esField) {
+  protected Optional<Integer> getIntValue(SearchHit hit, EsField esField) {
     return getValue(hit, esField, Integer::valueOf);
   }
 
-  protected Optional<Double> getDoubleValue(SearchHit hit, OccurrenceEsField esField) {
+  protected Optional<Double> getDoubleValue(SearchHit hit, EsField esField) {
     return getValue(hit, esField, Double::valueOf);
   }
 
-  protected Optional<Date> getDateValue(SearchHit hit, OccurrenceEsField esField) {
+  protected Optional<Date> getDateValue(SearchHit hit, EsField esField) {
     return getValue(hit, esField, STRING_TO_DATE);
   }
 
-  protected Optional<Boolean> getBooleanValue(SearchHit hit, OccurrenceEsField esField) {
+  protected Optional<Boolean> getBooleanValue(SearchHit hit, EsField esField) {
     return getValue(hit, esField, Boolean::valueOf);
   }
 
-  public String getValueFieldName(OccurrenceEsField occurrenceEsField) {
-    return esFieldMapper.getFieldName(occurrenceEsField, occurrenceEsField.getValueFieldName());
+  public String getValueFieldName(EsField occurrenceEsField) {
+    return occurrenceEsField.getValueFieldName();
   }
 
-  protected Optional<List<String>> getListValue(SearchHit hit, OccurrenceEsField esField) {
-    return getComplexValue(hit, esField,v -> {
+  protected Optional<List<String>> getListValue(SearchHit hit, EsField esField) {
+    return getListValue(hit, getValueFieldName(esField));
+  }
+
+  protected Optional<List<String>> getListValue(SearchHit hit, String fieldName) {
+    return getComplexValue(hit, fieldName,v -> {
       List<String> value = (List<String>) v;
       return value.isEmpty()? null : value;
     });
   }
 
-  protected Optional<String> getListValueAsString(SearchHit hit, OccurrenceEsField esField) {
-    return getComplexValue(hit, esField,v -> {
+  protected Optional<String> getListValueAsString(SearchHit hit, EsField esField) {
+    return getListValueAsString(hit, getValueFieldName(esField));
+  }
+
+  protected Optional<String> getListValueAsString(SearchHit hit, String fieldName) {
+    return getComplexValue(hit, fieldName,v -> {
       List<String> value = (List<String>) v;
       return value.isEmpty()? null : String.join("|", value);
     });
   }
 
-  protected Optional<Map<String,Object>> getMapValue(SearchHit hit, OccurrenceEsField esField) {
-    return getComplexValue(hit, esField,v -> {
+  protected Optional<Map<String,Object>> getMapValue(SearchHit hit, EsField esField) {
+    return getMapValue(hit, getValueFieldName(esField));
+  }
+
+  protected Optional<Map<String,Object>> getMapValue(SearchHit hit, String fieldName) {
+    return getComplexValue(hit, fieldName,v -> {
                             Map<String,Object> value = (Map<String,Object>) v;
                             return value.keySet().isEmpty()? null : value;
                            });
   }
 
-  protected Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, OccurrenceEsField esField) {
-    return getComplexValue(hit, esField,
+  protected Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, EsField esField) {
+    return getObjectsListValue(hit, getValueFieldName(esField));
+  }
+
+  protected Optional<List<Map<String, Object>>> getObjectsListValue(SearchHit hit, String fieldName) {
+    return getComplexValue(hit, fieldName,
                            v -> {
                              List<Map<String, Object>> value = (List<Map<String, Object>>) v;
                              return value.isEmpty()? null : value;
@@ -174,8 +190,7 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
   }
 
 
-  protected <T> Optional<T> getComplexValue(SearchHit hit, OccurrenceEsField esField, Function<Object, T> mapper) {
-    String fieldName =  getValueFieldName(esField);
+  protected <T> Optional<T> getComplexValue(SearchHit hit, String fieldName, Function<Object, T> mapper) {
     Map<String, Object> fields = hit.getSourceAsMap();
     if (isNested(fieldName)) {
       fields = getNestedFieldValue(fields, fieldName);
@@ -184,7 +199,7 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
     return extractComplexValue(fields, fieldName, mapper);
   }
 
-  protected <T> Optional<T> getValue(SearchHit hit, OccurrenceEsField esField, Function<String, T> mapper) {
+  protected <T> Optional<T> getValue(SearchHit hit, EsField esField, Function<String, T> mapper) {
     String fieldName =  getValueFieldName(esField);
     Map<String, Object> fields = hit.getSourceAsMap();
     if (isNested(fieldName)) {

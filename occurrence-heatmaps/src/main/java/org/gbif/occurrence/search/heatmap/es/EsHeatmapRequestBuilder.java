@@ -14,9 +14,8 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.search.es.EsFieldMapper;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
 import org.elasticsearch.action.search.SearchRequest;
@@ -39,12 +38,12 @@ class EsHeatmapRequestBuilder {
   //Mapping of predefined zoom levels
   private static final int[] PRECISION_LOOKUP = new int[]{2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
 
-  private final EsFieldMapper esFieldMapper;
+  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
 
-  EsHeatmapRequestBuilder(EsFieldMapper esFieldMapper) {
-    this.esFieldMapper = esFieldMapper;
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper);
+  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper) {
+    this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper);
   }
 
   @VisibleForTesting
@@ -68,10 +67,10 @@ class EsHeatmapRequestBuilder {
     double right = Double.parseDouble(coords[2]);
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT))
+    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(occurrenceBaseEsFieldMapper.getGeoDistanceField())
       .setCorners(top, left, bottom, right));
     bool.filter().add(QueryBuilders.termQuery(
-      esFieldMapper.getSearchFieldName(OccurrenceSearchParameter.HAS_COORDINATE), true));
+      occurrenceBaseEsFieldMapper.getSearchFieldName(OccurrenceSearchParameter.HAS_COORDINATE), true));
 
     // add query
     if (request.getPredicate() != null) { //is a predicate search
@@ -91,19 +90,20 @@ class EsHeatmapRequestBuilder {
   }
 
   private AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
+    String geoDistanceField = occurrenceBaseEsFieldMapper.getGeoDistanceField();
     GeoGridAggregationBuilder geoGridAggs =
         AggregationBuilders.geohashGrid(HEATMAP_AGGS)
-            .field(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT))
+            .field(geoDistanceField)
             .precision(PRECISION_LOOKUP[Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)])
             .size(Math.max(request.getBucketLimit(), 50000));
 
     if (OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()) {
       GeoCentroidAggregationBuilder geoCentroidAggs = AggregationBuilders.geoCentroid(CELL_AGGS)
-                                                        .field(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT));
+                                                        .field(geoDistanceField);
       geoGridAggs.subAggregation(geoCentroidAggs);
     } else {
       GeoBoundsAggregationBuilder geoBoundsAggs = AggregationBuilders.geoBounds(CELL_AGGS)
-                                                    .field(esFieldMapper.getSearchFieldName(OccurrenceEsField.COORDINATE_POINT));
+                                                    .field(geoDistanceField);
       geoGridAggs.subAggregation(geoBoundsAggs);
     }
 
