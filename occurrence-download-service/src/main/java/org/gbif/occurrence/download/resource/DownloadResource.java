@@ -32,16 +32,20 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -53,11 +57,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-
 import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
 import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
 import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
@@ -66,6 +65,7 @@ import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMo
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 
 @Validated
+@RefreshScope
 public class DownloadResource {
 
   private static final String USER_ROLE = "USER";
@@ -186,7 +186,13 @@ public class DownloadResource {
       @NotNull @Valid @RequestBody PredicateDownloadRequest request,
       @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
-      @RequestHeader(value = "User-Agent") String userAgent) {
+      @RequestHeader(value = "User-Agent") String userAgent,
+      @Value("${occurrence.download.disabled}") boolean downloadsDisabled) {
+    if (downloadsDisabled) {
+      return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+          .body("Service disabled for maintenance reasons");
+    }
+
     try {
       request.setType(downloadType);
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
