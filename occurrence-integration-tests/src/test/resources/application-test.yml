@@ -2,6 +2,7 @@ appkeys:
   file: @appkeys.testfile@
 occurrence:
   download:
+    disabled: false
     downloads_hard_limit: 1,1000
     downloads_max_points: 5000
     downloads_max_predicates: 101000
