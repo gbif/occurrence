@@ -1,0 +1,21 @@
+{
+  "creator": "",
+  "sendNotification": true,
+  "notification_addresses": [""],
+  "format": "MAP_OF_LIFE",
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "COUNTRY",
+        "value": "GB"
+      },
+      {
+        "type": "equals",
+        "key": "YEAR",
+        "value": "2000"
+      }
+    ]
+  }
+}
