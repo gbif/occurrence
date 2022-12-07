@@ -189,7 +189,7 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     """ All requested extensions exists in the meta.xml file?
     """
     meta_xml = etree.parse(self.meta_xml_file)
-    for extension in self.download.get('extensions', []):
+    for extension in self.download.get('verbatimExtensions', []):
       self.assertEquals(1, len(meta_xml.xpath('/xmlns:archive/xmlns:extension[@rowType="' + extension + '"]/xmlns:files/xmlns:location/text()', namespaces={'xmlns': 'http://rs.tdwg.org/dwc/text/'})),
                         'Requested extension no present in meta.xml')
 

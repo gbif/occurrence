@@ -40,20 +40,20 @@
       <param>multimediaTable=${download_table_name}_multimedia</param>
       <param>whereClause=${hive_query}</param>
     </hive>
-    <ok to="extensions_decision"/>
+    <ok to="verbatim_extensions_decision"/>
     <error to="failure_drop_table"/>
   </action>
 
-  <decision name="extensions_decision">
+  <decision name="verbatim_extensions_decision">
     <switch>
-      <case to="extensions">
-        ${has_extensions}
+      <case to="verbatim_extensions">
+        ${has_verbatim_extensions}
       </case>
       <default to="copy_and_zip"/>
     </switch>
   </decision>
 
-  <action name="extensions">
+  <action name="verbatim_extensions">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
       <configuration>

@@ -87,7 +87,7 @@
       <arg>${wf:actionData('download_prepare')['download_table_name']}</arg>
       <arg>${gbif_user}</arg>
       <arg>${core_term_name}</arg>
-      <arg>${wf:actionData('download_prepare')['request_extensions']}</arg>
+      <arg>${wf:actionData('download_prepare')['verbatim_extensions']}</arg>
     </java>
 
     <ok to="end"/>
@@ -128,8 +128,8 @@
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -171,8 +171,8 @@
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -214,8 +214,8 @@
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -257,8 +257,8 @@
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -300,8 +300,8 @@
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -343,8 +343,8 @@
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -386,8 +386,8 @@
           <value>${wf:actionData('download_prepare')['hive_db']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
       </configuration>
     </sub-workflow>
@@ -421,12 +421,12 @@
           <value>${wf:actionData('download_prepare')['table_name']}</value>
         </property>
         <property>
-          <name>request_extensions</name>
-          <value>${wf:actionData('download_prepare')['request_extensions']}</value>
+          <name>verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['verbatim_extensions']}</value>
         </property>
         <property>
-          <name>has_extensions</name>
-          <value>${wf:actionData('download_prepare')['has_extensions']}</value>
+          <name>has_verbatim_extensions</name>
+          <value>${wf:actionData('download_prepare')['has_verbatim_extensions']}</value>
         </property>
         <property>
           <name>hive_query</name>

@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -61,7 +62,7 @@ public class ExtensionsQuery {
    */
   @SneakyThrows
   private Template template() {
-    return new Template("extensions",
+    return new Template("verbatim_extensions",
                         new StringReader(readTemplateFileToString()),
                         new Configuration(Configuration.getVersion()));
   }
@@ -72,9 +73,12 @@ public class ExtensionsQuery {
   private Map<String,Object> templateVariables(Download download) {
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String,Object> variables = new HashMap<>();
-
-    variables.put("extensions", download.getRequest().getExtensions().stream().map(ExtensionTable::new)
-                                  .collect(Collectors.toList()));
+    Optional.ofNullable(download.getRequest().getVerbatimExtensions())
+      .ifPresent(verbatimExtensions ->
+                   variables.put("verbatim_extensions", verbatimExtensions.stream()
+                                                 .map(ExtensionTable::new)
+                                                 .collect(Collectors.toList()))
+    );
     variables.put("downloadTableName", downloadTableName);
     variables.put("interpretedTable", downloadTableName + "_interpreted");
     variables.put("tableName", download.getRequest().getType().toString().toLowerCase());

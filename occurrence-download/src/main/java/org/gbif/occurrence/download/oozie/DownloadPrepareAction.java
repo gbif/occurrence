@@ -115,7 +115,7 @@ public class  DownloadPrepareAction implements Closeable {
 
   private static final String SOURCE_TABLE = "table_name";
 
-  private static final String REQUEST_EXTENSIONS = "request_extensions";
+  private static final String VERBATIM_EXTENSIONS = "verbatim_extensions";
 
   private final RestHighLevelClient esClient;
 
@@ -248,11 +248,11 @@ public class  DownloadPrepareAction implements Closeable {
    * Sets the extensions parameter.
    */
   private void setRequestExtensionsParam(Download download, Properties props) {
-    if (download != null && download.getRequest().getExtensions() != null && !download.getRequest().getExtensions().isEmpty()) {
-      String requestExtensions = Optional.ofNullable(download.getRequest().getExtensions())
-        .map(extensions -> extensions.stream().map(Enum::name).collect(Collectors.joining(",")))
+    if (download != null && download.getRequest().getVerbatimExtensions() != null && !download.getRequest().getVerbatimExtensions().isEmpty()) {
+      String requestExtensions = Optional.ofNullable(download.getRequest().getVerbatimExtensions())
+        .map(verbatimExtensions -> verbatimExtensions.stream().map(Enum::name).collect(Collectors.joining(",")))
         .orElse("");
-      props.setProperty(REQUEST_EXTENSIONS, requestExtensions);
+      props.setProperty(VERBATIM_EXTENSIONS, requestExtensions);
       props.setProperty(HAS_EXTENSIONS, Boolean.TRUE.toString());
       generateExtensionQueryFile(download);
     } else {

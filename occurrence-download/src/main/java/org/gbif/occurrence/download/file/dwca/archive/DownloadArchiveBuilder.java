@@ -76,9 +76,9 @@ public class DownloadArchiveBuilder {
    */
   private void createDescriptor() {
     if (DwcTerm.Event == configuration.getCoreTerm()) {
-      DwcArchiveUtils.createEventArchiveDescriptor(archiveDir, download.getRequest().getExtensions());
+      DwcArchiveUtils.createEventArchiveDescriptor(archiveDir, download.getRequest().getVerbatimExtensions());
     } else {
-      DwcArchiveUtils.createOccurrenceArchiveDescriptor(archiveDir, download.getRequest().getExtensions());
+      DwcArchiveUtils.createOccurrenceArchiveDescriptor(archiveDir, download.getRequest().getVerbatimExtensions());
     }
   }
 
@@ -158,8 +158,8 @@ public class DownloadArchiveBuilder {
   }
 
   private void appendExtensionFiles(ModalZipOutputStream out) throws IOException {
-    if (download.getRequest().getExtensions() != null) {
-      for (Extension extension : download.getRequest().getExtensions()) {
+    if (download.getRequest().getVerbatimExtensions() != null) {
+      for (Extension extension : download.getRequest().getVerbatimExtensions()) {
         ExtensionTable extensionTable = new ExtensionTable(extension);
         appendPreCompressedFile(out,
                                 new Path(configuration.getExtensionDataFileName(extensionTable)),
