@@ -20,6 +20,7 @@ import org.gbif.occurrence.download.resource.DownloadResource;
 import org.gbif.occurrence.download.service.CallbackService;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(
     produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"},
     value = "occurrence/download/request")
+@RefreshScope
 public class OccurrenceDownloadResource extends DownloadResource {
 
   public OccurrenceDownloadResource(
@@ -37,7 +39,7 @@ public class OccurrenceDownloadResource extends DownloadResource {
       DownloadRequestService service,
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
-      @Value("${occurrence.download.disabled}") Boolean downloadsDisabled) {
+      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
     super(
         archiveServerUrl,
         service,

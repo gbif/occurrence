@@ -44,7 +44,7 @@ def download_request(file, username, email):
   f = open(file)
   download_request = json.load(f)
   download_request['creator'] = username
-  download_request['notificationAddress'] = [email]
+  download_request['notificationAddresses'] = [email]
   f.close()
   return download_request
 
