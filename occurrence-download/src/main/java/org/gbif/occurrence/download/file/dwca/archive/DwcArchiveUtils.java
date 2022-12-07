@@ -134,11 +134,11 @@ public class DwcArchiveUtils {
   /**
    * Creates a meta.xml event descriptor file in the directory parameter.
    */
-  public static void createEventArchiveDescriptor(File directory, Set<Extension> extensions) {
-    createArchiveDescriptor(directory, EVENT_INTERPRETED_FILENAME, DwcTerm.Event, extensions);
+  public static void createEventArchiveDescriptor(File directory, Set<Extension> verbatimExtensions) {
+    createArchiveDescriptor(directory, EVENT_INTERPRETED_FILENAME, DwcTerm.Event, verbatimExtensions);
   }
 
-  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm, Set<Extension> extensions) {
+  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm, Set<Extension> verbatimExtensions) {
     log.info("Creating archive meta.xml descriptor");
 
     Archive downloadArchive = new Archive();
@@ -152,7 +152,7 @@ public class DwcArchiveUtils {
     ArchiveFile multimedia = createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
     downloadArchive.addExtension(multimedia);
 
-    addExtensionFiles(extensions, downloadArchive);
+    addVerbatimExtensionsFiles(verbatimExtensions, downloadArchive);
 
     addMetaFile(directory, downloadArchive);
   }
@@ -170,9 +170,9 @@ public class DwcArchiveUtils {
   /**
    * Adds all the requested extensions.
    */
-  private void addExtensionFiles(Set<Extension> extensions, Archive downloadArchive) {
-    if (extensions != null) {
-      extensions.forEach(extension -> downloadArchive.addExtension(createExtensionArchiveFile(extension)));
+  private void addVerbatimExtensionsFiles(Set<Extension> verbatimExtensions, Archive downloadArchive) {
+    if (verbatimExtensions != null) {
+      verbatimExtensions.forEach(extension -> downloadArchive.addExtension(createExtensionArchiveFile(extension)));
     }
   }
 

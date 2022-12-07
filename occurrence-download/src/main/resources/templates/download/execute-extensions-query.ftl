@@ -19,12 +19,12 @@ SET hive.merge.mapredfiles=false;
 
 
 -- Extension Tables
-<#list extensions as extension>
+<#list verbatim_extensions as verbatim_extension>
 
--- ${extension.extension} extension
-CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${extension.hiveTableName}
+-- ${verbatim_extension.extension} extension
+CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
-AS SELECT ext.${extension.interpretedFields?join(", ext.")}
-FROM ${tableName}_ext_${extension.hiveTableName} ext
+AS SELECT ext.${verbatim_extension.interpretedFields?join(", ext.")}
+FROM ${tableName}_ext_${verbatim_extension.hiveTableName} ext
 JOIN ${interpretedTable} ON ${interpretedTable}.gbifid = ext.gbifid;
 </#list>

@@ -53,10 +53,14 @@ public class DownloadRequestsValidator {
     JsonNode schemaNode = schemaGen.generateJsonSchema(PredicateDownloadRequest.class);
 
     JSONObject rawSchema = new JSONObject(new JSONTokener(mapper.writeValueAsString(schemaNode)));
+
+    JSONObject notificationAddresses = rawSchema.getJSONObject("properties").getJSONObject("notificationAddresses");
     //Adding 2 artificial fields to allow snake and camel case format in some properties
     rawSchema.getJSONObject("properties")
       .put("send_notification", rawSchema.getJSONObject("properties").getJSONObject("sendNotification"))
-      .put("notification_addresses", rawSchema.getJSONObject("properties").getJSONObject("notificationAddresses"));
+      .put("notification_addresses", notificationAddresses)
+      .put("notificationAddress", notificationAddresses)
+      .put("notification_address", notificationAddresses);
 
     log.info("Download requests will be validated against schema {}", rawSchema);
     return SchemaLoader.load(rawSchema);
