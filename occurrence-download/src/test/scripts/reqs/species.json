@@ -3,7 +3,7 @@
   "notification_addresses": [""],
   "send_notification":"true",
   "format": "SPECIES_LIST",
-  "extensions": ["http://rs.gbif.org/terms/1.0/Multimedia"],
+  "verbatimExtensions": ["http://rs.gbif.org/terms/1.0/Multimedia"],
   "predicate": {
     "type": "equals",
     "key": "DATASET_KEY",
