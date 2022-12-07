@@ -1,7 +1,7 @@
 {
   "creator":"",
   "notification_addresses": [""],
-  "send_notification":"true",
+  "send_notification": true,
   "format": "DWCA",
   "extensions": ["http://rs.gbif.org/terms/1.0/Multimedia"],
   "predicate":{
