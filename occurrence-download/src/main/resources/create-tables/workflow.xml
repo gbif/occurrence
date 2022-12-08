@@ -49,6 +49,7 @@
       <param>snapshot=${wf:id()}</param>
       <param>sourceDataDir=${source_data_dir}${table_name}</param>
       <param>tableName=${schema_change ? 'new_' : ''}${table_name}</param>
+      <param>tableSourceDir=${table_name}</param>
       <param>wfPath=${wf:appPath()}</param>
     </hive>
     <ok to="delete-snapshot"/>
