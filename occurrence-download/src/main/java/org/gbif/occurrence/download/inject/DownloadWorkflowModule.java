@@ -99,7 +99,7 @@ public class DownloadWorkflowModule  {
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
             .occurrenceDownloadService(downloadServiceClient(dwcTerm))
-            .occurrenceBaseEsFieldMapper(esFieldMapper())
+            .occurrenceBaseEsFieldMapper(esFieldMapper(workflowConfiguration.getEsIndexType()))
             .coreTerm(dwcTerm)
             .wfPath(wfPath)
             .build();
@@ -209,8 +209,8 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
-  public OccurrenceBaseEsFieldMapper esFieldMapper() {
-    return WorkflowConfiguration.SearchType.OCCURRENCE == workflowConfiguration.getEsIndexType()? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
+  public OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType) {
+    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
   }
 
   /**
@@ -227,9 +227,9 @@ public class DownloadWorkflowModule  {
 
   private <T extends VerbatimOccurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
-      return (S) new SearchHitEventConverter(esFieldMapper(), false);
+      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType()), false);
     }
-    return (S) new SearchHitOccurrenceConverter(esFieldMapper(), false);
+    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType()), false);
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){

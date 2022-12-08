@@ -112,7 +112,7 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
-    occurrenceBaseEsFieldMapper = downloadWorkflowModule.esFieldMapper();
+    occurrenceBaseEsFieldMapper = downloadWorkflowModule.esFieldMapper(workflowConfiguration.getEsIndexType());
     this.interpretedMapper =interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;
