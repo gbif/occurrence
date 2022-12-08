@@ -96,7 +96,7 @@ public class  DownloadPrepareAction implements Closeable {
 
   private static final String IS_SMALL_DOWNLOAD = "is_small_download";
 
-  private static final String HAS_EXTENSIONS = "has_extensions";
+  private static final String HAS_VERBATIM_EXTENSIONS = "has_verbatim_extensions";
 
   private static final String SEARCH_QUERY = "search_query";
 
@@ -251,10 +251,10 @@ public class  DownloadPrepareAction implements Closeable {
         .map(verbatimExtensions -> verbatimExtensions.stream().map(Enum::name).collect(Collectors.joining(",")))
         .orElse("");
       props.setProperty(VERBATIM_EXTENSIONS, requestExtensions);
-      props.setProperty(HAS_EXTENSIONS, Boolean.TRUE.toString());
+      props.setProperty(HAS_VERBATIM_EXTENSIONS, Boolean.TRUE.toString());
       generateExtensionQueryFile(download);
     } else {
-      props.setProperty(HAS_EXTENSIONS, Boolean.FALSE.toString());
+      props.setProperty(HAS_VERBATIM_EXTENSIONS, Boolean.FALSE.toString());
     }
   }
 
