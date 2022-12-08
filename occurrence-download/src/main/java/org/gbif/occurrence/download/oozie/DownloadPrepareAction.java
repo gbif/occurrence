@@ -121,8 +121,6 @@ public class  DownloadPrepareAction implements Closeable {
 
   private final String esIndex;
 
-  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
-
   // Holds the value of the maximum number of records that a small download can have.
   private final int smallDownloadLimit;
 

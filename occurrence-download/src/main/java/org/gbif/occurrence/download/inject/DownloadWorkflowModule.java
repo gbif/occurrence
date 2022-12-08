@@ -99,7 +99,7 @@ public class DownloadWorkflowModule  {
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
             .occurrenceDownloadService(downloadServiceClient(dwcTerm))
-            .occurrenceBaseEsFieldMapper(esFieldMapper(workflowConfiguration.getEsIndexType()))
+            .esFieldMapper(esFieldMapper(workflowConfiguration.getEsIndexType()))
             .coreTerm(dwcTerm)
             .wfPath(wfPath)
             .build();
