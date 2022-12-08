@@ -99,14 +99,10 @@ public class DownloadWorkflowModule  {
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
             .occurrenceDownloadService(downloadServiceClient(dwcTerm))
-            .occurrenceBaseEsFieldMapper(fieldMapper())
+            .occurrenceBaseEsFieldMapper(esFieldMapper())
             .coreTerm(dwcTerm)
             .wfPath(wfPath)
             .build();
-  }
-
-  private OccurrenceBaseEsFieldMapper fieldMapper() {
-    return WorkflowConfiguration.SearchType.OCCURRENCE == workflowConfiguration.getEsIndexType()? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
   }
 
   /**
@@ -214,7 +210,7 @@ public class DownloadWorkflowModule  {
   }
 
   public OccurrenceBaseEsFieldMapper esFieldMapper() {
-    return WorkflowConfiguration.SearchType.EVENT == workflowConfiguration.getEsIndexType()? EventEsField.buildFieldMapper() : OccurrenceEsField.buildFieldMapper();
+    return WorkflowConfiguration.SearchType.OCCURRENCE == workflowConfiguration.getEsIndexType()? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
   }
 
   /**
