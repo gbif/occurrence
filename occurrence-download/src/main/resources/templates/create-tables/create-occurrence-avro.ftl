@@ -93,5 +93,5 @@ CREATE EXTERNAL TABLE ${r"${tableName}"}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${r"${tableName}"}'
+LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${r"${tableSourceDir}"}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');

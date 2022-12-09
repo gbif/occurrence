@@ -206,15 +206,12 @@ public class  DownloadPrepareAction implements Closeable {
   private String searchQuery(Predicate predicate) {
     Optional<QueryBuilder> queryBuilder = QueryVisitorsFactory.createEsQueryVisitor(esFieldMapper)
                                             .getQueryBuilder(predicate);
-    return esFieldMapper.getDefaultFilter().map(df -> {
-      if (queryBuilder.isPresent()) {
-        BoolQueryBuilder query = (BoolQueryBuilder)queryBuilder.get();
-        query.filter().add(df);
-        return query;
-      } else {
-        return queryBuilder;
-      }
-    }).orElse(QueryBuilders.matchAllQuery()).toString();
+    if (queryBuilder.isPresent()) {
+      BoolQueryBuilder query = (BoolQueryBuilder) queryBuilder.get();
+      esFieldMapper.getDefaultFilter().ifPresent(df -> query.filter().add(df));
+      return query.toString();
+    }
+    return esFieldMapper.getDefaultFilter().orElse(QueryBuilders.matchAllQuery()).toString();
   }
 
   /**
