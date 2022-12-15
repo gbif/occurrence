@@ -246,8 +246,8 @@
       <artifactId>gbif-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gbif.registry</groupId>
-      <artifactId>registry-metadata</artifactId>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-metadata-profile-eml</artifactId>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>

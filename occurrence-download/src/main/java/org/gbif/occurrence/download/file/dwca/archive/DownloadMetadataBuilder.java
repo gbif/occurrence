@@ -24,9 +24,9 @@ import org.gbif.api.vocabulary.ContactType;
 import org.gbif.api.vocabulary.DatasetType;
 import org.gbif.api.vocabulary.IdentifierType;
 import org.gbif.api.vocabulary.Language;
+import org.gbif.metadata.eml.EMLWriter;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
-import org.gbif.registry.metadata.EMLWriter;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
