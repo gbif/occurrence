@@ -29,6 +29,7 @@ import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import java.util.Optional;
 import java.util.Set;
 
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 
@@ -304,7 +305,7 @@ public enum EventEsField implements EsField {
       .geoShapeField(COORDINATE_SHAPE)
       .geoDistanceField(COORDINATE_POINT)
       .uniqueIdField(ID)
-      .defaultFilter(Optional.empty())
+      .defaultFilter(Optional.of(QueryBuilders.termQuery("type","event")))
       .defaultSort(ImmutableList.of(SortBuilders.fieldSort(YEAR.getSearchFieldName()).order(SortOrder.DESC),
                                     SortBuilders.fieldSort(MONTH.getSearchFieldName()).order(SortOrder.ASC),
                                     SortBuilders.fieldSort(ID.getSearchFieldName()).order(SortOrder.ASC)))
