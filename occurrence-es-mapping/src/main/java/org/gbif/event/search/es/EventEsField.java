@@ -148,8 +148,8 @@ public enum EventEsField implements EsField {
   INSTITUTION_KEY(new BaseEsField("event.institutionKey", GbifInternalTerm.institutionKey)),
 
   //Sampling
-  EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true)),
-  PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true)),
+  EVENT_ID(new BaseEsField("event.eventId", DwcTerm.eventID, true)),
+  PARENT_EVENT_ID(new BaseEsField("event.parentEventId", DwcTerm.parentEventID, true)),
   SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true)),
   LIFE_STAGE(new BaseEsField("event.lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("event.dateIdentified", DwcTerm.dateIdentified)),

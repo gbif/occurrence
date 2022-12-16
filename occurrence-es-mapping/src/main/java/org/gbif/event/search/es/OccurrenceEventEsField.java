@@ -147,8 +147,8 @@ public enum OccurrenceEventEsField implements EsField {
   INSTITUTION_KEY(new BaseEsField("occurrence.institutionKey", GbifInternalTerm.institutionKey)),
 
   //Sampling
-  EVENT_ID(new BaseEsField("occurrence.eventID", DwcTerm.eventID, true)),
-  PARENT_EVENT_ID(new BaseEsField("occurrence.parentEventID", DwcTerm.parentEventID, true)),
+  EVENT_ID(new BaseEsField("occurrence.eventId", DwcTerm.eventID, true)),
+  PARENT_EVENT_ID(new BaseEsField("occurrence.parentEventId", DwcTerm.parentEventID, true)),
   SAMPLING_PROTOCOL(new BaseEsField("occurrence.samplingProtocol", DwcTerm.samplingProtocol, true)),
   LIFE_STAGE(new BaseEsField("occurrence.lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("occurrence.dateIdentified", DwcTerm.dateIdentified)),
