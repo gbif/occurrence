@@ -97,6 +97,7 @@ public enum EventEsField implements EsField {
   LOCALITY(new BaseEsField("event.locality", DwcTerm.locality, true)),
   COORDINATE_PRECISION(new BaseEsField("event.coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("event.coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
+  DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
   GADM_GID(new BaseEsField("event.gadm.gids", null)),
   GADM_LEVEL_0_GID(new BaseEsField("event.gadm.level0Gid", GadmTerm.level0Gid)),
   GADM_LEVEL_0_NAME(new BaseEsField("event.gadm.level0Name", GadmTerm.level0Name)),

@@ -96,6 +96,7 @@ public enum OccurrenceEventEsField implements EsField {
   LOCALITY(new BaseEsField("occurrence.locality", DwcTerm.locality, true)),
   COORDINATE_PRECISION(new BaseEsField("occurrence.coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("occurrence.coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
+  DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
   GADM_GID(new BaseEsField("occurrence.gadm.gids", null)),
   GADM_LEVEL_0_GID(new BaseEsField("occurrence.gadm.level0Gid", GadmTerm.level0Gid)),
   GADM_LEVEL_0_NAME(new BaseEsField("occurrence.gadm.level0Name", GadmTerm.level0Name)),
