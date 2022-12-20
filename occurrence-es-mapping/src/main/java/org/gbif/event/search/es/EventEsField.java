@@ -295,6 +295,7 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.DATASET_NAME, DATASET_NAME)
       .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
       .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
+      .put(OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS, DISTANCE_FROM_CENTROID_IN_METERS)
       .build();
 
   private static final Set<EsField> DATE_FIELDS =

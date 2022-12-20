@@ -485,7 +485,12 @@ public class EsSearchRequestBuilder {
     List<String> parsedValues = new ArrayList<>();
     for (String value : values) {
       if (isRange(value)) {
-        queries.add(buildRangeQuery(esField, value));
+        RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
+        if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
+          queries.add(QueryBuilders.boolQuery().should(buildRangeQuery(esField, value)).should(QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
+        } else {
+          queries.add(buildRangeQuery(esField, value));
+        }
         continue;
       }
 

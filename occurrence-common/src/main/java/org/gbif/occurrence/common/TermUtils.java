@@ -228,6 +228,7 @@ public class TermUtils {
                                                                                 GbifTerm.elevationAccuracy,
                                                                                 GbifTerm.depth,
                                                                                 GbifTerm.depthAccuracy,
+                                                                                GbifTerm.distanceFromCentroidInMeters,
                                                                                 DwcTerm.coordinateUncertaintyInMeters,
                                                                                 DwcTerm.coordinatePrecision);
 
@@ -293,6 +294,7 @@ public class TermUtils {
       DwcTerm.coordinatePrecision,
       GbifTerm.elevation,
       GbifTerm.elevationAccuracy,
+      GbifTerm.distanceFromCentroidInMeters,
       GbifTerm.depth,
       GbifTerm.depthAccuracy,
       GadmTerm.level0Gid,

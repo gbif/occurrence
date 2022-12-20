@@ -29,7 +29,7 @@
       </testResource>
       <testResource>
         <directory>src/test/resources</directory>
-        <filtering>false</filtering>
+        <filtering>false</filtering
       </testResource>
     </testResources>
   </build>

@@ -14,17 +14,21 @@
 package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
+import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.dwc.terms.Term;
 import org.gbif.predicate.query.EsFieldMapper;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 
 import lombok.Builder;
@@ -142,6 +146,16 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   @Override
   public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
     return Optional.ofNullable(searchToEsMapping.get(searchParameter)).map(EsField::isVocabulary).orElse(false);
+  }
+
+  @Override
+  public boolean includeNullInPredicate(SimplePredicate<OccurrenceSearchParameter> predicate) {
+    return OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == predicate.getKey() && predicate instanceof GreaterThanOrEqualsPredicate;
+  }
+
+  @Override
+  public boolean includeNullInRange(OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+    return OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == param && Objects.isNull(rangeQueryBuilder.to());
   }
 
   public boolean isDateField(OccurrenceSearchParameter searchParameter) {
