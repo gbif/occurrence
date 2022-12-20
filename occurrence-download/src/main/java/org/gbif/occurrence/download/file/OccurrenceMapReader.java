@@ -162,6 +162,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.elevationAccuracy.simpleName(), getSimpleValue(occurrence.getElevationAccuracy()));
     interpretedOccurrence.put(DwcTerm.stateProvince.simpleName(), occurrence.getStateProvince());
     interpretedOccurrence.put(DwcTerm.waterBody.simpleName(), occurrence.getWaterBody());
+    interpretedOccurrence.put(GbifTerm.distanceFromCentroidInMeters.simpleName(), getSimpleValue(occurrence.getDistanceFromCentroidInMeters()));
     interpretedOccurrence.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(occurrence.hasSpatialIssue()));
     interpretedOccurrence.put(GbifTerm.hasCoordinate.simpleName(), Boolean.toString(occurrence.getDecimalLatitude() != null && occurrence.getDecimalLongitude() != null));
     interpretedOccurrence.put(GbifTerm.coordinateAccuracy.simpleName(), getSimpleValue(occurrence.getCoordinateAccuracy()));

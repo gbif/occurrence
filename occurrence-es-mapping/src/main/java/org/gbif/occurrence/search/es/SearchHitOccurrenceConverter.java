@@ -316,6 +316,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.elevation)).ifPresent(occ::setElevation);
     getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.elevationAccuracy)).ifPresent(occ::setElevationAccuracy);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.waterBody)).ifPresent(occ::setWaterBody);
+    getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.distanceFromCentroidInMeters)).ifPresent(occ::setDistanceFromCentroidInMeters);
 
     Gadm g = new Gadm();
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level0Gid)).ifPresent(gid -> {

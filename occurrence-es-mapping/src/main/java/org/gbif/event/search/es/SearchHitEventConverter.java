@@ -323,6 +323,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getDoubleValue(hit, ELEVATION).ifPresent(event::setElevation);
     getDoubleValue(hit, ELEVATION_ACCURACY).ifPresent(event::setElevationAccuracy);
     getStringValue(hit, WATER_BODY).ifPresent(event::setWaterBody);
+    getDoubleValue(hit, DISTANCE_FROM_CENTROID_IN_METERS).ifPresent(event::setDistanceFromCentroidInMeters);
 
     Gadm g = new Gadm();
     getStringValue(hit, GADM_LEVEL_0_GID).ifPresent(gid -> {
