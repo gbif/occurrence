@@ -14,7 +14,6 @@
 package org.gbif.occurrence.common;
 
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GadmTerm;
@@ -22,10 +21,8 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
-import org.gbif.dwc.terms.Vocabulary;
+import org.gbif.predicate.query.SQLColumnsUtils;
 
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -173,64 +170,6 @@ public class TermUtils {
     return Arrays.stream(DwcTerm.values()).filter(t ->   !t.isClass() && !exclusions.contains(t))
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
-
-  private static final Set<? extends Term> EXTENSION_TERMS = Arrays.stream(Extension.values())
-    .map(ext -> TermFactory.instance().findTerm(ext.getRowType())).collect(Collectors.toSet());
-
-  private static final Set<? extends Term> INTERPRETED_LOCAL_DATES = ImmutableSet.of(DwcTerm.eventDate,
-                                                                                     DwcTerm.dateIdentified);
-
-  private static final Set<? extends Term> INTERPRETED_UTC_DATES = ImmutableSet.of(GbifTerm.lastInterpreted,
-                                                                                   GbifTerm.lastParsed,
-                                                                                   GbifTerm.lastCrawled,
-                                                                                   DcTerm.modified,
-                                                                                   GbifInternalTerm.fragmentCreated);
-
-  private static final Set<? extends Term> INTERPRETED_NUM = ImmutableSet.of(DwcTerm.year,
-                                                                             DwcTerm.month,
-                                                                             DwcTerm.day,
-                                                                             DwcTerm.individualCount,
-                                                                             GbifTerm.taxonKey,
-                                                                             GbifTerm.kingdomKey,
-                                                                             GbifTerm.phylumKey,
-                                                                             GbifTerm.classKey,
-                                                                             GbifTerm.orderKey,
-                                                                             GbifTerm.familyKey,
-                                                                             GbifTerm.genusKey,
-                                                                             GbifTerm.subgenusKey,
-                                                                             GbifTerm.speciesKey,
-                                                                             GbifTerm.acceptedTaxonKey,
-                                                                             GbifInternalTerm.crawlId,
-                                                                             GbifInternalTerm.identifierCount);
-
-  private static final Set<? extends Term> INTERPRETED_BOOLEAN =
-    ImmutableSet.of(GbifTerm.hasCoordinate, GbifTerm.hasGeospatialIssues);
-
-  private static final Set<? extends Term> COMPLEX_TYPE = ImmutableSet.of(GbifTerm.mediaType,
-                                                                          GbifTerm.issue,
-                                                                          GbifInternalTerm.networkKey,
-                                                                          DwcTerm.identifiedByID,
-                                                                          DwcTerm.recordedByID,
-                                                                          GbifInternalTerm.dwcaExtension,
-                                                                          DwcTerm.datasetName,
-                                                                          DwcTerm.datasetID,
-                                                                          DwcTerm.typeStatus,
-                                                                          DwcTerm.otherCatalogNumbers,
-                                                                          DwcTerm.recordedBy,
-                                                                          DwcTerm.identifiedBy,
-                                                                          DwcTerm.preparations,
-                                                                          DwcTerm.samplingProtocol);
-
-  private static final Set<? extends Term> INTERPRETED_DOUBLE = ImmutableSet.of(DwcTerm.decimalLatitude,
-                                                                                DwcTerm.decimalLongitude,
-                                                                                GbifTerm.coordinateAccuracy,
-                                                                                GbifTerm.elevation,
-                                                                                GbifTerm.elevationAccuracy,
-                                                                                GbifTerm.depth,
-                                                                                GbifTerm.depthAccuracy,
-                                                                                GbifTerm.distanceFromCentroidInMeters,
-                                                                                DwcTerm.coordinateUncertaintyInMeters,
-                                                                                DwcTerm.coordinatePrecision);
 
   /**
    * Lists all the terms which are populated on the occurrence object by interpretation, explicit processing or are
@@ -505,61 +444,53 @@ public class TermUtils {
    * @return true if the term is an interpreted local date (timezone not relevant)
    */
   public static boolean isInterpretedLocalDate(Term term) {
-    return INTERPRETED_LOCAL_DATES.contains(term);
+    return SQLColumnsUtils.isInterpretedLocalDate(term);
   }
 
   /**
    * @return true if the term is an interpreted UTC date with
    */
   public static boolean isInterpretedUtcDate(Term term) {
-    return INTERPRETED_UTC_DATES.contains(term);
+    return SQLColumnsUtils.isInterpretedUtcDate(term);
   }
 
   /**
    * @return true if the term is an interpreted numerical
    */
   public static boolean isInterpretedNumerical(Term term) {
-    return INTERPRETED_NUM.contains(term);
+    return SQLColumnsUtils.isInterpretedNumerical(term);
   }
 
   /**
    * @return true if the term is an interpreted double
    */
   public static boolean isInterpretedDouble(Term term) {
-    return INTERPRETED_DOUBLE.contains(term);
+    return SQLColumnsUtils.isInterpretedDouble(term);
   }
 
   /**
    * @return true if the term is an interpreted boolean
    */
   public static boolean isInterpretedBoolean(Term term) {
-    return INTERPRETED_BOOLEAN.contains(term);
+    return SQLColumnsUtils.isInterpretedBoolean(term);
   }
 
   /**
    * @return true if the term is a complex type in Hive: array, struct, json, etc.
    */
   public static boolean isComplexType(Term term) {
-    return COMPLEX_TYPE.contains(term);
+    return SQLColumnsUtils.isComplexType(term);
   }
 
   public static boolean isExtensionTerm(Term term) {
-    return EXTENSION_TERMS.contains(term);
+    return SQLColumnsUtils.isExtensionTerm(term);
   }
 
   /**
    * @return true if the term is a handled/annotated as Vocabulary.
    */
   public static boolean isVocabulary(Term term) {
-    return term instanceof Enum && hasTermAnnotation(term, Vocabulary.class);
-  }
-
-  private static boolean hasTermAnnotation(Term term, Class<? extends Annotation> annotation) {
-    try {
-      return term.getClass().getField(((Enum<?>) term).name()).isAnnotationPresent(annotation);
-    } catch (NoSuchFieldException ex) {
-      throw new IllegalArgumentException(ex);
-    }
+    return SQLColumnsUtils.isVocabulary(term);
   }
 
 }
