@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.query;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
@@ -21,6 +22,7 @@ import org.gbif.predicate.query.SQLQueryVisitor;
 import org.gbif.predicate.query.occurrence.OccurrenceTermsMapper;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 
 public class QueryVisitorsFactory {
 
@@ -57,6 +59,16 @@ public class QueryVisitorsFactory {
       @Override
       public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
         return fieldMapper.isVocabulary(searchParameter);
+      }
+
+      @Override
+      public boolean includeNullInPredicate(SimplePredicate<OccurrenceSearchParameter> predicate) {
+        return fieldMapper.includeNullInPredicate(predicate);
+      }
+
+      @Override
+      public boolean includeNullInRange(OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+        return fieldMapper.includeNullInRange(param, rangeQueryBuilder);
       }
     });
   }
