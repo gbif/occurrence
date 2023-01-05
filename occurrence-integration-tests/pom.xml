@@ -12,7 +12,6 @@
 
   <properties>
     <main.basedir>${project.parent.basedir}</main.basedir>
-    <netty.version>4.1.48.Final</netty.version>
   </properties>
 
   <dependencies>
@@ -177,7 +176,10 @@
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>${netty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
