@@ -21,9 +21,9 @@ import org.gbif.dwc.terms.TermFactory;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.utils.file.FileUtils;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -49,8 +49,9 @@ public class OccurrenceDwcXMLConverterTest {
     Term customTerm = TermFactory.instance().findTerm("MyTerm");
     occ.setVerbatimField(customTerm, "MyTerm value");
 
-    String expectedContent = IOUtils.toString(new FileInputStream(FileUtils.getClasspathFile("dwc_xml/occurrence.xml")));
-    assertEquals(CharMatcher.WHITESPACE.removeFrom(expectedContent),
-        CharMatcher.WHITESPACE.removeFrom(OccurrenceDwcXMLConverter.occurrenceXMLAsString(occ)));
+    String expectedContent = IOUtils.toString(Files.newInputStream(FileUtils.getClasspathFile("dwc_xml/occurrence.xml")
+                                                                     .toPath()));
+    assertEquals(CharMatcher.whitespace().removeFrom(expectedContent),
+        CharMatcher.whitespace().removeFrom(OccurrenceDwcXMLConverter.occurrenceXMLAsString(occ)));
   }
 }

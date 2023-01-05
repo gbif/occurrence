@@ -18,6 +18,7 @@ import org.gbif.wrangler.lock.Lock;
 
 import java.util.Set;
 
+import com.google.common.base.MoreObjects;
 import org.elasticsearch.client.RestHighLevelClient;
 
 import com.google.common.base.Objects;
@@ -175,7 +176,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
       .add("from", from)
       .add("to", to)
       .add("baseDataFileName", baseDataFileName)

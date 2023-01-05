@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.188-SNAPSHOT</version>
+    <version>0.188-hadoop3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -85,7 +85,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava-cdh.version}</version>
+      <version>${guava.version}</version>
     </dependency>
 
     <dependency>
