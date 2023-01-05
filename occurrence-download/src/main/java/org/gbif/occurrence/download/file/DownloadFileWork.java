@@ -18,9 +18,9 @@ import org.gbif.wrangler.lock.Lock;
 
 import java.util.Set;
 
-import com.google.common.base.MoreObjects;
 import org.elasticsearch.client.RestHighLevelClient;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
 

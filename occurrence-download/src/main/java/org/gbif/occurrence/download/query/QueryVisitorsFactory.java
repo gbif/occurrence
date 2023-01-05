@@ -21,8 +21,9 @@ import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.predicate.query.SQLQueryVisitor;
 import org.gbif.predicate.query.occurrence.OccurrenceTermsMapper;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 public class QueryVisitorsFactory {
 
