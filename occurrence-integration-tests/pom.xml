@@ -14,6 +14,7 @@
     <main.basedir>${project.parent.basedir}</main.basedir>
     <hadoop.version>2.10.0</hadoop.version>
     <guava.version>11.0.2</guava.version>
+    <jersey-servlet.version>1.10</jersey-servlet.version>
   </properties>
 
 
@@ -170,7 +171,7 @@
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-servlet</artifactId>
-      <version>1.10</version>
+      <version>${jersey-servlet.version}</version>
     </dependency>
   </dependencies>
 
