@@ -179,10 +179,6 @@
       <artifactId>occurrence-persistence</artifactId>
       <exclusions>
         <exclusion>
-          <artifactId>org.slf4j</artifactId>
-          <groupId>slf4j-log4j12</groupId>
-        </exclusion>
-        <exclusion>
           <artifactId>log4j</artifactId>
           <groupId>log4j</groupId>
         </exclusion>
@@ -406,6 +402,14 @@
         <exclusion>
         	<groupId>org.mortbay.jetty</groupId>
         	<artifactId>jetty-util</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>reload4j</artifactId>
+          <groupId>ch.qos.reload4j</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
