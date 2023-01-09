@@ -116,7 +116,8 @@ public class HiveColumnsUtils {
         || DwcTerm.recordedBy == term
         || DwcTerm.identifiedBy == term
         || DwcTerm.preparations == term
-        || DwcTerm.samplingProtocol == term;
+        || DwcTerm.samplingProtocol == term
+        || GbifTerm.projectId == term;
   }
 
   /**
