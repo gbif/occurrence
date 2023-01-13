@@ -112,7 +112,7 @@ public class TableBackfill {
                          configuration.getTableName(),
                          extensionTable.getHiveTableName(),
                          configuration.getSourceDirectory() + '/' + extensionTable.getDirectoryTableName(),
-                         extensionTable.getSchema().toString(true));
+                         extensionTable.getSchema().toString(false));
   }
 
   private String createExtensionTableFromAvro(ExtensionTable extensionTable) {
@@ -161,7 +161,7 @@ public class TableBackfill {
                        + "TBLPROPERTIES ('avro.schema.literal'='%s')",
                          configuration.getTableName(),
                          configuration.getSourceDirectory(),
-                         OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(true));
+                         OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(false));
   }
 
   private String selectFromAvroQuery() {
