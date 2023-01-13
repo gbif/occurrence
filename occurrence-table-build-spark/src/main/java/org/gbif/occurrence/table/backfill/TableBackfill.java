@@ -121,7 +121,7 @@ public class TableBackfill {
                          + "AS\n"
                          + "SELECT\n"
                          + String.join(",\n", extensionTable.getFields())
-                         + "\nFROM $%1$s_ext%2$s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
+                         + "\nFROM %1$s_ext_%2$s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
   }
 
   public String createIfNotExistsGbifMultimedia() {
