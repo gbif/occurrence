@@ -59,10 +59,10 @@ public class TableBackfill {
                           .getOrCreate();
     spark.sql("USE " + configuration.getHiveDatabase());
     registerUdfs().forEach(spark::sql);
-    spark.sql(createTableIfNotExists());
+    /*spark.sql(createTableIfNotExists());
     spark.sql(dropAvroTableIfExists());
     spark.sql(createAvroTempTable());
-    spark.sql(insertOverwriteTable());
+    spark.sql(insertOverwriteTable());*/
 
     //GBIF Create Extension Tables
     createExtensionTables(spark);
@@ -99,7 +99,7 @@ public class TableBackfill {
   }
 
   private String deleteAvroExtensionTable(ExtensionTable extensionTable) {
-    return String.format("DROP TABLE IF EXISTS %s_ext_%s}_avro", configuration.getTableName(), extensionTable.getHiveTableName());
+    return String.format("DROP TABLE IF EXISTS %s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
   }
 
   private String createAvroExtensionTable(ExtensionTable extensionTable) {
