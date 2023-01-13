@@ -41,24 +41,39 @@ public class TableBackfill {
                           .getOrCreate();
     spark.sql("USE " + configuration.getHiveDatabase());
     registerUdfs().forEach(spark::sql);
-    spark.sql(createTableIfNotExists(configuration.getTableName()));
+    spark.sql(createTableIfNotExists());
     spark.sql(createAvroTempTable());
     spark.sql(insertOverwriteTable());
 
+    //GBIF Multimedia table
+    spark.sql(createIfNotExistsGbifMultimedia());
+    spark.sql(insertOverwriteMultimediaTable());
+
+  }
+
+  public String createIfNotExistsGbifMultimedia() {
+    return String.format("CREATE TABLE IF NOT EXISTS %s_multimedia\n"
+                         + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
+                         + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
+                         + "publisher STRING,license STRING, rightsHolder STRING)\n"
+                         + "STORED AS PARQUET", configuration.getTableName());
+  }
+
+  public String insertOverwriteMultimediaTable() {
+    return String.format("INSERT OVERWRITE TABLE %1$s_multimedia\n"
+                         + "SELECT gbifid, cleanDelimiters(mm_record['type']), cleanDelimiters(mm_record['format']), cleanDelimiters(mm_record['identifier']), cleanDelimiters(mm_record['references']), cleanDelimiters(mm_record['title']), cleanDelimiters(mm_record['description']), cleanDelimiters(mm_record['source']), cleanDelimiters(mm_record['audience']), mm_record['created'], cleanDelimiters(mm_record['creator']), cleanDelimiters(mm_record['contributor']), cleanDelimiters(mm_record['publisher']), cleanDelimiters(mm_record['license']), cleanDelimiters(mm_record['rightsHolder'])\n"
+                         + "FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM %1$s occ)\n"
+                         + "occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;", configuration.getTableName());
   }
 
 
-  private String createTableIfNotExists(String tableName) {
+  private String createTableIfNotExists() {
     return String.format("CREATE TABLE IF NOT EXISTS %s (\n"
                          + OccurrenceHDFSTableDefinition.definition().stream()
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                            .collect(Collectors.joining(", \n"))
                          + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
-                         tableName);
-  }
-
-  private String addTableDefaultPartition(String tableName) {
-    return String.format("ALTER TABLE %s ADD PARTITION (executionid=1)", tableName);
+                         configuration.getTableName());
   }
 
   private String createAvroTempTable() {
