@@ -42,6 +42,7 @@ public class TableBackfill {
     spark.sql("USE " + configuration.getHiveDatabase());
     registerUdfs().forEach(spark::sql);
     spark.sql(createTableIfNotExists());
+    spark.sql(dropAvroTableIfExists());
     spark.sql(createAvroTempTable());
     spark.sql(insertOverwriteTable());
 
@@ -67,6 +68,9 @@ public class TableBackfill {
   }
 
 
+  private String dropAvroTableIfExists() {
+    return String.format("DROP TABLE IF EXISTS %s_avro", configuration.getTableName());
+  }
   private String createTableIfNotExists() {
     return String.format("CREATE TABLE IF NOT EXISTS %s (\n"
                          + OccurrenceHDFSTableDefinition.definition().stream()
