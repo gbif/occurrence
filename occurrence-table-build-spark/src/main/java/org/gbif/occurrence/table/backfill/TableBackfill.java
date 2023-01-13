@@ -1,5 +1,19 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.occurrence.table.backfill;
 
+import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.InitializableField;
 import org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
@@ -7,10 +21,17 @@ import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+
+import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class TableBackfill {
@@ -52,6 +73,46 @@ public class TableBackfill {
 
   }
 
+  public void createExtensionTables(SparkSession spark) {
+    List<ExtensionTable> extensions = ExtensionTable.tableExtensions();
+    ExecutorService executorService = Executors.newFixedThreadPool(extensions.size());
+    List<Future<Dataset<Row>>> futures = executorService.invokeAll(
+      extensions.stream().map(extensionTable -> (Callable<Dataset<Row>>) () -> createExtensionTable(spark, extensionTable))
+      .collect(Collectors.toList()));
+  }
+
+  private Dataset<Row> createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
+    spark.sql(deleteAvroExtensionTable(extensionTable));
+    spark.sql(createAvroExtensionTable(extensionTable));
+    return spark.sql(createExtensionTableFromAvro(extensionTable));
+  }
+
+  private String deleteAvroExtensionTable(ExtensionTable extensionTable) {
+    return String.format("DROP TABLE IF EXISTS %s_ext_%s}_avro", configuration.getTableName(), extensionTable.getHiveTableName());
+  }
+
+  private String createAvroExtensionTable(ExtensionTable extensionTable) {
+    return String.format("CREATE EXTERNAL TABLE %s_ext_%s_avro\n"
+                         + "ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'\n"
+                         + "STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'\n"
+                         + "OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'\n"
+                         + "LOCATION '%s'\n"
+                         + "TBLPROPERTIES ('avro.schema.literal'='%s')",
+                         configuration.getTableName(),
+                         extensionTable.getHiveTableName(),
+                         configuration.getSourceDirectory() + '/' + extensionTable.getDirectoryTableName(),
+                         extensionTable.getSchema().toString(true));
+  }
+
+  private String createExtensionTableFromAvro(ExtensionTable extensionTable) {
+    return String.format("CREATE TABLE IF NOT EXISTS %1$s_ext%2$s\n"
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n"
+                         + "AS\n"
+                         + "SELECT\n"
+                         + String.join(",\n", extensionTable.getFields())
+                         + "\nFROM $%1$s_ext%2$s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
+  }
+
   public String createIfNotExistsGbifMultimedia() {
     return String.format("CREATE TABLE IF NOT EXISTS %s_multimedia\n"
                          + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
@@ -64,7 +125,7 @@ public class TableBackfill {
     return String.format("INSERT OVERWRITE TABLE %1$s_multimedia\n"
                          + "SELECT gbifid, cleanDelimiters(mm_record['type']), cleanDelimiters(mm_record['format']), cleanDelimiters(mm_record['identifier']), cleanDelimiters(mm_record['references']), cleanDelimiters(mm_record['title']), cleanDelimiters(mm_record['description']), cleanDelimiters(mm_record['source']), cleanDelimiters(mm_record['audience']), mm_record['created'], cleanDelimiters(mm_record['creator']), cleanDelimiters(mm_record['contributor']), cleanDelimiters(mm_record['publisher']), cleanDelimiters(mm_record['license']), cleanDelimiters(mm_record['rightsHolder'])\n"
                          + "FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM %1$s occ)\n"
-                         + "occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record;", configuration.getTableName());
+                         + "occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record", configuration.getTableName());
   }
 
 
