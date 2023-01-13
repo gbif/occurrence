@@ -64,6 +64,9 @@ public class TableBackfill {
     spark.sql(createAvroTempTable());
     spark.sql(insertOverwriteTable());
 
+    //GBIF Create Extension Tables
+    createExtensionTables(spark);
+
     //GBIF Multimedia table
     spark.sql(createIfNotExistsGbifMultimedia());
     spark.sql(insertOverwriteMultimediaTable());
