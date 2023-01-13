@@ -94,6 +94,7 @@
     <module>occurrence-es-mapping</module>
     <module>event-ws</module>
     <module>occurrence-download-service</module>
+    <module>occurrence-table-build-spark</module>
   </modules>
 
   <properties>
