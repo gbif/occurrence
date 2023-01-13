@@ -74,12 +74,13 @@ public class TableBackfill {
   }
 
   public void createExtensionTables(SparkSession spark) {
-    List<ExtensionTable> extensions = ExtensionTable.tableExtensions();
+    ExtensionTable.tableExtensions().forEach(extensionTable ->  createExtensionTable(spark, extensionTable));
+  }
 
-    List<CompletableFuture<Dataset<Row>>> futures = extensions.stream()
+  public void createExtensionTablesParallel(SparkSession spark) {
+   List<CompletableFuture<Dataset<Row>>> futures = ExtensionTable.tableExtensions().stream()
       .map(extensionTable -> CompletableFuture.supplyAsync(() -> createExtensionTable(spark, extensionTable))).collect(Collectors.toList());
     wait(futures);
-
   }
 
 
@@ -133,9 +134,9 @@ public class TableBackfill {
 
   public String insertOverwriteMultimediaTable() {
     return String.format("INSERT OVERWRITE TABLE %1$s_multimedia\n"
-                         + "SELECT gbifid, cleanDelimiters(mm_record['type']), cleanDelimiters(mm_record['format']), cleanDelimiters(mm_record['identifier']), cleanDelimiters(mm_record['references']), cleanDelimiters(mm_record['title']), cleanDelimiters(mm_record['description']), cleanDelimiters(mm_record['source']), cleanDelimiters(mm_record['audience']), mm_record['created'], cleanDelimiters(mm_record['creator']), cleanDelimiters(mm_record['contributor']), cleanDelimiters(mm_record['publisher']), cleanDelimiters(mm_record['license']), cleanDelimiters(mm_record['rightsHolder'])\n"
+                         + "SELECT gbifid, cleanDelimiters(mm_record.type), cleanDelimiters(mm_record.format), cleanDelimiters(mm_record.identifier), cleanDelimiters(mm_record.references), cleanDelimiters(mm_record.title), cleanDelimiters(mm_record.description), cleanDelimiters(mm_record.source), cleanDelimiters(mm_record.audience), mm_record.created, cleanDelimiters(mm_record.creator), cleanDelimiters(mm_record.contributor), cleanDelimiters(mm_record.publisher), cleanDelimiters(mm_record.license), cleanDelimiters(mm_record.rightsHolder)\n"
                          + "FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM %1$s occ)\n"
-                         + "occ_mm LATERAL VIEW explode(from_json(occ_mm.ext_multimedia, 'array<map<string,string>>')) x AS mm_record", configuration.getTableName());
+                         + "occ_mm LATERAL VIEW explode(json_tuple(occ_mm.ext_multimedia)) x AS mm_record", configuration.getTableName());
   }
 
 
@@ -182,7 +183,6 @@ public class TableBackfill {
     , "CREATE TEMPORARY FUNCTION cleanDelimitersArray AS 'org.gbif.occurrence.hive.udf.CleanDelimiterArraysUDF'"
     , "CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF'"
     , "CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF'"
-    //+ "CREATE TEMPORARY FUNCTION from_json AS 'brickhouse.udf.json.FromJsonUDF';\n"
     , "CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF'");
   }
 
