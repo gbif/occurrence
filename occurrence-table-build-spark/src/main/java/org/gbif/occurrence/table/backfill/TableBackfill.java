@@ -136,7 +136,7 @@ public class TableBackfill {
     return String.format("INSERT OVERWRITE TABLE %1$s_multimedia\n"
                          + "SELECT gbifid, cleanDelimiters(mm_record.type), cleanDelimiters(mm_record.format), cleanDelimiters(mm_record.identifier), cleanDelimiters(mm_record.references), cleanDelimiters(mm_record.title), cleanDelimiters(mm_record.description), cleanDelimiters(mm_record.source), cleanDelimiters(mm_record.audience), mm_record.created, cleanDelimiters(mm_record.creator), cleanDelimiters(mm_record.contributor), cleanDelimiters(mm_record.publisher), cleanDelimiters(mm_record.license), cleanDelimiters(mm_record.rightsHolder)\n"
                          + "FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM %1$s occ \n"
-                         + "LATERAL VIEW EXPLODE(json_tuple(occ.ext_multimedia, 'type', 'format', 'identifier', 'references', 'title', 'description', 'source', 'audience', mm_record.created, 'creator', 'contributor', 'publisher', 'license', 'rightsHolder')) AS mm_record)", configuration.getTableName());
+                         + "LATERAL VIEW EXPLODE(json_tuple(occ.ext_multimedia, 'type', 'format', 'identifier', 'references', 'title', 'description', 'source', 'audience', mm_record.created, 'creator', 'contributor', 'publisher', 'license', 'rightsHolder')) x AS mm_record)", configuration.getTableName());
   }
 
 
