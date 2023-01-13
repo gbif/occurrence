@@ -21,10 +21,7 @@ import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Dataset;
@@ -75,10 +72,20 @@ public class TableBackfill {
 
   public void createExtensionTables(SparkSession spark) {
     List<ExtensionTable> extensions = ExtensionTable.tableExtensions();
-    ExecutorService executorService = Executors.newFixedThreadPool(extensions.size());
-    List<Future<Dataset<Row>>> futures = executorService.invokeAll(
-      extensions.stream().map(extensionTable -> (Callable<Dataset<Row>>) () -> createExtensionTable(spark, extensionTable))
-      .collect(Collectors.toList()));
+
+    List<CompletableFuture<Dataset<Row>>> futures = extensions.stream()
+      .map(extensionTable -> CompletableFuture.supplyAsync(() -> createExtensionTable(spark, extensionTable))).collect(Collectors.toList());
+    wait(futures);
+
+  }
+
+
+  public static CompletableFuture<List<Dataset<Row>>> wait(List<CompletableFuture<Dataset<Row>>> futures) {
+    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+      .thenApply(ignored -> futures.stream()
+        .map(CompletableFuture::join)
+        .collect(Collectors.toList())
+      );
   }
 
   private Dataset<Row> createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
