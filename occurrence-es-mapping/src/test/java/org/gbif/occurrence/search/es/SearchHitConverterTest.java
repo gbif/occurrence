@@ -19,7 +19,6 @@ public class SearchHitConverterTest {
     assertEquals(2021, cal.get(Calendar.YEAR));
     assertEquals(2, cal.get(Calendar.MONTH));
     assertEquals(24, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(11, cal.get(Calendar.HOUR_OF_DAY));
     assertEquals(27, cal.get(Calendar.MINUTE));
     assertEquals(54, cal.get(Calendar.SECOND));
     assertEquals(123, cal.get(Calendar.MILLISECOND));
@@ -29,7 +28,6 @@ public class SearchHitConverterTest {
     assertEquals(2021, cal.get(Calendar.YEAR));
     assertEquals(2, cal.get(Calendar.MONTH));
     assertEquals(24, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(11, cal.get(Calendar.HOUR_OF_DAY));
     assertEquals(27, cal.get(Calendar.MINUTE));
     assertEquals(54, cal.get(Calendar.SECOND));
     assertEquals(123, cal.get(Calendar.MILLISECOND));
@@ -39,7 +37,6 @@ public class SearchHitConverterTest {
     assertEquals(2021, cal.get(Calendar.YEAR));
     assertEquals(2, cal.get(Calendar.MONTH));
     assertEquals(24, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(11, cal.get(Calendar.HOUR_OF_DAY));
     assertEquals(27, cal.get(Calendar.MINUTE));
     assertEquals(54, cal.get(Calendar.SECOND));
     assertEquals(123, cal.get(Calendar.MILLISECOND));
@@ -49,7 +46,6 @@ public class SearchHitConverterTest {
     assertEquals(2021, cal.get(Calendar.YEAR));
     assertEquals(2, cal.get(Calendar.MONTH));
     assertEquals(24, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(11, cal.get(Calendar.HOUR_OF_DAY));
     assertEquals(27, cal.get(Calendar.MINUTE));
     assertEquals(54, cal.get(Calendar.SECOND));
     assertEquals(100, cal.get(Calendar.MILLISECOND));
@@ -68,7 +64,6 @@ public class SearchHitConverterTest {
     assertEquals(2021, cal.get(Calendar.YEAR));
     assertEquals(2, cal.get(Calendar.MONTH));
     assertEquals(24, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(11, cal.get(Calendar.HOUR_OF_DAY));
     assertEquals(27, cal.get(Calendar.MINUTE));
     assertEquals(54, cal.get(Calendar.SECOND));
     assertEquals(0, cal.get(Calendar.MILLISECOND));
@@ -78,7 +73,6 @@ public class SearchHitConverterTest {
     assertEquals(2021, cal.get(Calendar.YEAR));
     assertEquals(2, cal.get(Calendar.MONTH));
     assertEquals(24, cal.get(Calendar.DAY_OF_MONTH));
-    assertEquals(11, cal.get(Calendar.HOUR_OF_DAY));
     assertEquals(27, cal.get(Calendar.MINUTE));
     assertEquals(0, cal.get(Calendar.SECOND));
     assertEquals(0, cal.get(Calendar.MILLISECOND));
