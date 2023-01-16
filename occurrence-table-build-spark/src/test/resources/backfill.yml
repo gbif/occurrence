@@ -1,0 +1,19 @@
+hdfsLock:
+  zkConnectionString:
+  namespace:
+  path:
+  name:
+  connectionSleepTimeMs:
+  connectionMaxRetries:
+
+hiveDatabase:
+
+hdfsConfigFile:
+
+tablePartitions:
+
+sourceDirectory:
+
+tableName:
+
+warehouseLocation:
