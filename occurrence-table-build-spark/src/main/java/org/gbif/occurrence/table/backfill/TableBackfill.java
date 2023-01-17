@@ -20,23 +20,56 @@ import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.StructType;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import static org.apache.spark.sql.functions.callUDF;
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.explode;
+import static org.apache.spark.sql.functions.from_json;
 
 @AllArgsConstructor
+@Slf4j
 public class TableBackfill {
  private final TableBackfillConfiguration configuration;
+
+
+ public enum Option {
+   TABLE, EXTENSIONS, MULTIMEDIA, ALL;
+ }
+
+
+  public enum Action {
+    CREATE, DELETE;
+  }
+
+  @Data
+  @Builder
+  public static class Command {
+   private final Action action;
+   private final Set<Option> options;
+  }
+
 
   public static void main(String[] args) {
     //Read config file
     TableBackfillConfiguration tableBackfillConfiguration = TableBackfillConfiguration.loadFromFile(args[0]);
+
+    Action action = Action.valueOf(args[1].toUpperCase());
+    Set<Option> options = Arrays.stream(args[2].split(",")).map(opt -> Option.valueOf(opt.toUpperCase())).collect(Collectors.toSet());
 
     //Execution unique identifier
     String wfId = UUID.randomUUID().toString();
@@ -45,32 +78,54 @@ public class TableBackfill {
     //snapshotAction.createHdfsSnapshot(wfId);
 
     TableBackfill backfill = new TableBackfill(tableBackfillConfiguration);
-    backfill.createTable();
+    backfill.run(Command.builder().action(action).options(options).build());
 
     //snapshotAction.deleteHdfsSnapshot(wfId);
   }
 
-  public void createTable() {
 
+  public void run(Command command) {
     SparkSession spark = SparkSession.builder()
-                          .appName(configuration.getTableName() + " table build")
-                          .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
-                          .enableHiveSupport()
-                          .getOrCreate();
+      .appName(configuration.getTableName() + " table build")
+      .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+      .enableHiveSupport()
+      .getOrCreate();
     spark.sql("USE " + configuration.getHiveDatabase());
-    registerUdfs().forEach(spark::sql);
-    /*spark.sql(createTableIfNotExists());
-    spark.sql(dropAvroTableIfExists());
-    spark.sql(createAvroTempTable());
-    spark.sql(insertOverwriteTable());*/
+   if (Action.CREATE == command.getAction()) {
+     registerUdfs().forEach(spark::sql);
+     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
+       spark.sql(createTableIfNotExists());
+       spark.sql(dropAvroTableIfExists());
+       spark.sql(createAvroTempTable());
+       spark.sql(insertOverwriteTable());
+     }
 
-    //GBIF Create Extension Tables
-   // createExtensionTables(spark);
+     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
+       createExtensionTablesParallel(spark);
+     }
 
-    //GBIF Multimedia table
-    spark.sql(createIfNotExistsGbifMultimedia());
-    spark.sql(insertOverwriteMultimediaTable());
+     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
+       spark.sql(createIfNotExistsGbifMultimedia());
+       insertOverwriteMultimediaTable(spark);
+     }
+   }
 
+   if (Action.DELETE == command.getAction()) {
+     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
+       spark.sql(dropTable(configuration.getTableName()));
+       spark.sql(dropTable(configuration.getTableName() + "_avro"));
+     }
+     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
+       spark.sql(dropTable(configuration.getTableName() + "_multimedia"));
+     }
+     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
+       ExtensionTable.tableExtensions().forEach(extensionTable -> {
+         spark.sql(dropTable(String.format("%s_ext_%s", configuration.getTableName(), extensionTable.getHiveTableName())));
+         spark.sql(dropTable(String.format("%s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName())));
+       });
+
+     }
+   }
   }
 
   public void createExtensionTables(SparkSession spark) {
@@ -98,6 +153,11 @@ public class TableBackfill {
     return spark.sql(createExtensionTableFromAvro(extensionTable));
   }
 
+  private String dropTable(String tableName) {
+    String dropStatement = String.format("DROP TABLE IF EXISTS %s", tableName);
+    log.info("Deleting table: {}", dropStatement);
+    return dropStatement;
+  }
   private String deleteAvroExtensionTable(ExtensionTable extensionTable) {
     return String.format("DROP TABLE IF EXISTS %s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
   }
@@ -128,15 +188,51 @@ public class TableBackfill {
     return String.format("CREATE TABLE IF NOT EXISTS %s_multimedia\n"
                          + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
                          + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
-                         + "publisher STRING,license STRING, rightsHolder STRING)\n"
+                         + "publisher STRING, license STRING, rightsHolder STRING)\n"
                          + "STORED AS PARQUET", configuration.getTableName());
   }
 
-  public String insertOverwriteMultimediaTable() {
-    return String.format("INSERT OVERWRITE TABLE %1$s_multimedia\n"
-                         + "SELECT gbifid, cleanDelimiters(mm_record.type), cleanDelimiters(mm_record.format), cleanDelimiters(mm_record.identifier), cleanDelimiters(mm_record.references), cleanDelimiters(mm_record.title), cleanDelimiters(mm_record.description), cleanDelimiters(mm_record.source), cleanDelimiters(mm_record.audience), mm_record.created, cleanDelimiters(mm_record.creator), cleanDelimiters(mm_record.contributor), cleanDelimiters(mm_record.publisher), cleanDelimiters(mm_record.license), cleanDelimiters(mm_record.rightsHolder)\n"
-                         + "FROM (SELECT occ.gbifid, occ.ext_multimedia  FROM %1$s occ \n"
-                         + "LATERAL VIEW EXPLODE(json_tuple(occ.ext_multimedia, 'type', 'format', 'identifier', 'references', 'title', 'description', 'source', 'audience', 'created', 'creator', 'contributor', 'publisher', 'license', 'rightsHolder')) x AS mm_record)", configuration.getTableName());
+  public void insertOverwriteMultimediaTable(SparkSession spark) {
+    spark.table("occurrence").select(col("gbifid"),
+                                     from_json(col("ext_multimedia"),
+                                               new ArrayType(new StructType()
+                                                                .add("type", "string", false)
+                                                                .add("format", "string", false)
+                                                                .add("identifier", "string", false)
+                                                                .add("references", "string", false)
+                                                                .add("title", "string", false)
+                                                                .add("description", "string", false)
+                                                                .add("source", "string", false)
+                                                                .add("audience", "string", false)
+                                                                .add("created", "string", false)
+                                                                .add("creator", "string", false)
+                                                                .add("contributor", "string", false)
+                                                                .add("publisher", "string", false)
+                                                                .add("license", "string", false)
+                                                                .add("rightsHolder", "string", false),
+                                                             true))
+                                       .alias("mm_record"))
+      .select(col("gbifid"), explode(col("mm_record")).alias("mm_record"))
+      .select(col("gbifid"),
+              callUDF("cleanDelimiters", col("mm_record.type")).alias("type"),
+              callUDF("cleanDelimiters", col("mm_record.format")).alias("format"),
+              callUDF("cleanDelimiters",col("mm_record.identifier")).alias("identifier"),
+              callUDF("cleanDelimiters", col("mm_record.references")).alias("references"),
+              callUDF("cleanDelimiters",col("mm_record.title")).alias("title"),
+              callUDF("cleanDelimiters", col("mm_record.description")).alias("description"),
+              callUDF("cleanDelimiters",col("mm_record.source")).alias("source"),
+              callUDF("cleanDelimiters",col("mm_record.audience")).alias("audience"),
+              col("mm_record.created").alias("created"),
+              callUDF("cleanDelimiters", col("mm_record.creator")).alias("creator"),
+              callUDF("cleanDelimiters",col("mm_record.contributor")).alias("contributor"),
+              callUDF("cleanDelimiters",col("mm_record.publisher")).alias("publisher"),
+              callUDF("cleanDelimiters",col("mm_record.license")).alias("license"),
+              callUDF("cleanDelimiters",col("mm_record.rightsHolder")).alias("rightsHolder"))
+      .registerTempTable("mm_records");
+
+    spark.sql(String.format("INSERT OVERWRITE TABLE %1$s_multimedia \n"
+                           + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
+                            configuration.getTableName()));
   }
 
 
@@ -160,7 +256,7 @@ public class TableBackfill {
                        + "LOCATION '%s'\n"
                        + "TBLPROPERTIES ('avro.schema.literal'='%s')",
                          configuration.getTableName(),
-                         configuration.getSourceDirectory(),
+                         configuration.getSourceDirectory() + configuration.getCoreName().toLowerCase() + '/',
                          OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(false));
   }
 

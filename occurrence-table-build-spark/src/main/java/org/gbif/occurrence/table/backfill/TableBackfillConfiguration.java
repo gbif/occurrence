@@ -62,6 +62,8 @@ public class TableBackfillConfiguration {
 
   private final String sourceDirectory;
 
+  private final String coreName;
+
   private final String hiveDatabase;
 
   private final String tableName;
