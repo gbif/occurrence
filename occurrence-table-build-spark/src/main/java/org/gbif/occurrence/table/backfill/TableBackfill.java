@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -35,6 +35,9 @@ import org.apache.spark.sql.types.StructType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import scala.Function0;
+import scala.runtime.AbstractFunction0;
 
 import static org.apache.spark.sql.functions.callUDF;
 import static org.apache.spark.sql.functions.col;
@@ -45,6 +48,8 @@ import static org.apache.spark.sql.functions.from_json;
 @Slf4j
 public class TableBackfill {
  private final TableBackfillConfiguration configuration;
+
+ private final String snapshotId;
 
 
  public enum Option {
@@ -72,74 +77,97 @@ public class TableBackfill {
     Set<Option> options = Arrays.stream(args[2].split(",")).map(opt -> Option.valueOf(opt.toUpperCase())).collect(Collectors.toSet());
 
     //Execution unique identifier
-    String wfId = UUID.randomUUID().toString();
+    String snapshotId = UUID.randomUUID().toString();
 
     HdfsSnapshotAction snapshotAction = new HdfsSnapshotAction(tableBackfillConfiguration);
-    //snapshotAction.createHdfsSnapshot(wfId);
+    snapshotAction.createHdfsSnapshot(snapshotId);
 
-    TableBackfill backfill = new TableBackfill(tableBackfillConfiguration);
+    TableBackfill backfill = new TableBackfill(tableBackfillConfiguration, snapshotId);
     backfill.run(Command.builder().action(action).options(options).build());
 
-    //snapshotAction.deleteHdfsSnapshot(wfId);
+    snapshotAction.deleteHdfsSnapshot(snapshotId);
   }
 
+
+  private SparkSession createSparkSession() {
+   return SparkSession.builder()
+           .appName(configuration.getTableName() + " table build")
+           .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+           .enableHiveSupport()
+           .getOrCreate();
+  }
+
+  private void executeCreateAction(Command command, SparkSession spark) {
+    registerUdfs().forEach(spark::sql);
+    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
+      spark.logInfo(scalafy(() -> "Creating Avro and Parquet Table for " + configuration.getTableName()));
+      spark.sql(createTableIfNotExists());
+      spark.sql(dropAvroTableIfExists());
+      spark.sql(createAvroTempTable());
+      spark.sql(insertOverwriteTable());
+    }
+
+    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
+      spark.logInfo(scalafy(() -> "Creating Extension tables"));
+      createExtensionTablesParallel(spark);
+    }
+
+    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
+      spark.logInfo(scalafy(() -> "Creating Multimedia Table"));
+      spark.sql(createIfNotExistsGbifMultimedia());
+      insertOverwriteMultimediaTable(spark);
+    }
+  }
+
+  private void executeDeleteAction(Command command, SparkSession spark) {
+    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
+      spark.logInfo(scalafy(() -> "Deleting Table " +  configuration.getTableName()));
+      spark.sql(dropTable(configuration.getTableName()));
+      spark.sql(dropTable(configuration.getTableName() + "_avro"));
+    }
+    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
+      spark.logInfo(scalafy(() -> "Deleting Multimedia Table "));
+      spark.sql(dropTable(configuration.getTableName() + "_multimedia"));
+    }
+    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
+      spark.logInfo(scalafy(() -> "Deleting Extension Tables "));
+      ExtensionTable.tableExtensions().forEach(extensionTable -> {
+        spark.logInfo(scalafy(() -> "Deleting Extension Parquet and Avro Tables for " + extensionTable.getHiveTableName()));
+        spark.sql(dropTable(String.format("%s_ext_%s", configuration.getTableName(), extensionTable.getHiveTableName())));
+        spark.sql(dropTable(String.format("%s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName())));
+      });
+    }
+  }
+
+  private <T> Function0<T> scalafy(Supplier<T> supplier) {
+   return new AbstractFunction0<T>() {
+     @Override
+     public T apply() {
+       return supplier.get();
+     }
+   };
+  }
 
   public void run(Command command) {
-    SparkSession spark = SparkSession.builder()
-      .appName(configuration.getTableName() + " table build")
-      .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
-      .enableHiveSupport()
-      .getOrCreate();
-    spark.sql("USE " + configuration.getHiveDatabase());
-   if (Action.CREATE == command.getAction()) {
-     registerUdfs().forEach(spark::sql);
-     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
-       spark.sql(createTableIfNotExists());
-       spark.sql(dropAvroTableIfExists());
-       spark.sql(createAvroTempTable());
-       spark.sql(insertOverwriteTable());
-     }
-
-     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
-       createExtensionTablesParallel(spark);
-     }
-
-     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
-       spark.sql(createIfNotExistsGbifMultimedia());
-       insertOverwriteMultimediaTable(spark);
-     }
-   }
-
-   if (Action.DELETE == command.getAction()) {
-     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
-       spark.sql(dropTable(configuration.getTableName()));
-       spark.sql(dropTable(configuration.getTableName() + "_avro"));
-     }
-     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
-       spark.sql(dropTable(configuration.getTableName() + "_multimedia"));
-     }
-     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
-       ExtensionTable.tableExtensions().forEach(extensionTable -> {
-         spark.sql(dropTable(String.format("%s_ext_%s", configuration.getTableName(), extensionTable.getHiveTableName())));
-         spark.sql(dropTable(String.format("%s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName())));
-       });
-
+   try(SparkSession spark = createSparkSession()) {
+     spark.sql("USE " + configuration.getHiveDatabase());
+     spark.logInfo(scalafy(() -> "Running command " + command));
+     if (Action.CREATE == command.getAction()) {
+       executeCreateAction(command, spark);
+     } else if (Action.DELETE == command.getAction()) {
+        executeDeleteAction(command, spark);
      }
    }
   }
 
-  public void createExtensionTables(SparkSession spark) {
-    ExtensionTable.tableExtensions().forEach(extensionTable ->  createExtensionTable(spark, extensionTable));
-  }
-
-  public void createExtensionTablesParallel(SparkSession spark) {
+  private void createExtensionTablesParallel(SparkSession spark) {
    List<CompletableFuture<Dataset<Row>>> futures = ExtensionTable.tableExtensions().stream()
       .map(extensionTable -> CompletableFuture.supplyAsync(() -> createExtensionTable(spark, extensionTable))).collect(Collectors.toList());
     wait(futures);
   }
 
 
-  public static CompletableFuture<List<Dataset<Row>>> wait(List<CompletableFuture<Dataset<Row>>> futures) {
+  private static CompletableFuture<List<Dataset<Row>>> wait(List<CompletableFuture<Dataset<Row>>> futures) {
     return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
       .thenApply(ignored -> futures.stream()
         .map(CompletableFuture::join)
@@ -154,9 +182,7 @@ public class TableBackfill {
   }
 
   private String dropTable(String tableName) {
-    String dropStatement = String.format("DROP TABLE IF EXISTS %s", tableName);
-    log.info("Deleting table: {}", dropStatement);
-    return dropStatement;
+    return String.format("DROP TABLE IF EXISTS %s", tableName);
   }
   private String deleteAvroExtensionTable(ExtensionTable extensionTable) {
     return String.format("DROP TABLE IF EXISTS %s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
@@ -176,7 +202,7 @@ public class TableBackfill {
   }
 
   private String createExtensionTableFromAvro(ExtensionTable extensionTable) {
-    return String.format("CREATE TABLE IF NOT EXISTS %1$s_ext%2$s\n"
+    return String.format("CREATE TABLE IF NOT EXISTS %1$s_ext_%2$s\n"
                          + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n"
                          + "AS\n"
                          + "SELECT\n"
@@ -256,7 +282,7 @@ public class TableBackfill {
                        + "LOCATION '%s'\n"
                        + "TBLPROPERTIES ('avro.schema.literal'='%s')",
                          configuration.getTableName(),
-                         configuration.getSourceDirectory() + configuration.getCoreName().toLowerCase() + '/',
+                         configuration.getSourceDirectory() + '/' + snapshotId + '/' + configuration.getCoreName().toLowerCase() + '/',
                          OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(false));
   }
 
