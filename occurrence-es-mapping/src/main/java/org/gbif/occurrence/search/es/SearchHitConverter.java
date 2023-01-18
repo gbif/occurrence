@@ -26,10 +26,12 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.elasticsearch.search.SearchHit;
+
 import com.google.common.base.Strings;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.search.SearchHit;
 
 @Slf4j
 @Data
