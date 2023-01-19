@@ -13,6 +13,14 @@
  */
 package org.gbif.occurrence.download.resource;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.*;
@@ -25,6 +33,10 @@ import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 
 import java.io.File;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.net.URI;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
@@ -58,6 +70,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 
+import static java.lang.annotation.ElementType.*;
 import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
 import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
 import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
@@ -117,8 +130,29 @@ public class DownloadResource {
     }
   }
 
+  /**
+   * A download key (example is the oldest download).
+   */
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
+  @Parameter(
+    name = "key",
+    required = true,
+    description = "An identifier for a download.",
+    schema = @Schema(implementation = String.class, format = "NNNNNNN-NNNNNNNNNNNNNNN"),
+    example = "0001005-130906152512535",
+    in = ParameterIn.PATH)
+  @interface DownloadIdentifierPathParameter {}
+
+  @Operation(
+    operationId = "cancelDownload",
+    summary = "Cancel a running download",
+    description = "Cancel a running download",
+    responses = @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))))
   @DeleteMapping("{key}")
-  public void delDownload(@PathVariable("key") String jobId, @Autowired Principal principal) {
+  public void delDownload(@PathVariable("key") @DownloadIdentifierPathParameter String jobId,
+                          @Autowired Principal principal) {
     // service.get returns a download or throws NotFoundException
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Download download = occurrenceDownloadService.get(jobId);
@@ -137,6 +171,11 @@ public class DownloadResource {
    *
    * <p>(The commit introducing this comment removed an implementation of Range requests.)
    */
+  @Operation(
+    operationId = "retrieveDownload",
+    summary = "Retrieve the resulting download file",
+    description = "Retrieves the download file if it is available.",
+    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
   @GetMapping(
       value = "{key}",
       produces = {
@@ -144,7 +183,7 @@ public class DownloadResource {
         MediaType.APPLICATION_JSON_VALUE,
         "application/x-javascript"
       })
-  public ResponseEntity<String> getResult(@PathVariable("key") String downloadKey) {
+  public ResponseEntity<String> getResult(@PathVariable("key") @DownloadIdentifierPathParameter String downloadKey) {
 
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
@@ -172,6 +211,7 @@ public class DownloadResource {
         .body(location + "\n");
   }
 
+  @Hidden
   @GetMapping("callback")
   public ResponseEntity oozieCallback(
       @RequestParam("job_id") String jobId, @RequestParam("status") String status) {
@@ -181,6 +221,23 @@ public class DownloadResource {
   }
 
   /** Request a new predicate download (POST method, public API). */
+  @Operation(
+    operationId = "requestDownload",
+    summary = "Requests the creation of a download file.",
+    description = "Starts the process of creating a download file. See the predicates section to consult the requests accepted by this service and the limits section to refer for information of how this service is limited per user.",
+    responses = @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(hidden = true))))
+  @Parameters(
+    value = {
+      @Parameter(
+        name = "source",
+        hidden = true
+      ),
+      @Parameter(
+        name = "User-Agent",
+        in = ParameterIn.HEADER,
+        hidden = true
+      )
+    })
   @PostMapping(
       produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
@@ -273,6 +330,7 @@ public class DownloadResource {
   }
 
   /** Request a new download (GET method, internal API used by the portal). */
+  @Hidden
   @GetMapping(produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @Secured(USER_ROLE)
   @ResponseBody
