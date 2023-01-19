@@ -122,12 +122,15 @@ public class EsSearchRequestBuilder {
     }
 
     // sort
-    if (Boolean.TRUE.equals(searchRequest.isShuffle())) {
+    if (!Strings.isNullOrEmpty(searchRequest.getShuffle())) {
       // random score
       searchSourceBuilder.sort(
           SortBuilders.scriptSort(
               new Script(
-                  ScriptType.INLINE, "painless", getShuffleScript(searchRequest), new HashMap<>()),
+                  ScriptType.INLINE,
+                  "painless",
+                  "(doc['_id'].value + '" + searchRequest.getShuffle() + "').hashCode()",
+                  new HashMap<>()),
               ScriptSortBuilder.ScriptSortType.NUMBER));
     } else if (Strings.isNullOrEmpty(searchRequest.getQ())) {
       occurrenceBaseEsFieldMapper.getDefaultSort().forEach(searchSourceBuilder::sort);
@@ -144,14 +147,6 @@ public class EsSearchRequestBuilder {
         .ifPresent(searchSourceBuilder::postFilter);
 
     return esRequest;
-  }
-
-  private String getShuffleScript(OccurrenceSearchRequest searchRequest) {
-    if (searchRequest.getShuffleSeed() != null) {
-      return "(doc['_id'].value + '" + searchRequest.getShuffleSeed() + "').hashCode()";
-    } else {
-      return "Math.random()";
-    }
   }
 
   public Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
