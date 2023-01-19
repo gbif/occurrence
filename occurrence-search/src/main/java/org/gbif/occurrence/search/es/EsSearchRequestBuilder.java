@@ -122,7 +122,7 @@ public class EsSearchRequestBuilder {
     }
 
     // sort
-    if (searchRequest.getShuffle() != null) {
+    if (!Strings.isNullOrEmpty(searchRequest.getShuffle())) {
       // random score
       searchSourceBuilder.sort(
           SortBuilders.scriptSort(
