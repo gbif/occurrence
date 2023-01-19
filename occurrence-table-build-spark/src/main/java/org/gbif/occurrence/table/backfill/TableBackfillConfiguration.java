@@ -51,11 +51,7 @@ public class TableBackfillConfiguration {
       });
   }
 
-  private static final int DEFAULT_INDEXING_PARTITIONS = 80;
-
   private final HdfsLockConfiguration hdfsLock;
-
-  private final String hdfsConfigFile;
 
   @Builder.Default
   private int tablePartitions = 200;

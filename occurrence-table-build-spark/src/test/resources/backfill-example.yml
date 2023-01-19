@@ -8,11 +8,9 @@ hdfsLock:
 
 hiveDatabase: databaseName
 
-hdfsConfigFile:
-
 tablePartitions: 200
 
-sourceDirectory: hdfs://ha-nn/path_to_occurrence_avro_data/
+sourceDirectory: /path_to_occurrence_avro_data/
 
 coreName: occurrence
 

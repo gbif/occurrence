@@ -14,7 +14,6 @@
 package org.gbif.occurrence.table.backfill;
 
 
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
@@ -38,6 +37,8 @@ public class HdfsSnapshotAction {
 
   private final TableBackfillConfiguration configuration;
 
+  private final Configuration hadoopConfiguration;
+
   public static final String CONF_FILE = "download.yaml";
 
 
@@ -58,8 +59,8 @@ public class HdfsSnapshotAction {
    * @param snapshotName workflow Id, it is used as the snapshot name
    */
   public void createHdfsSnapshot(String snapshotName) {
-    try(CuratorFramework curator = curator();
-        FileSystem fs = FileSystem.get(getHadoopConf())) {
+    try(CuratorFramework curator = curator()) {
+      FileSystem fs = FileSystem.get(hadoopConfiguration);
       curator.start();
       String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
@@ -67,11 +68,13 @@ public class HdfsSnapshotAction {
       barrier.waitOnBarrier();
       log.info("Setting barrier {}", lockPath);
       barrier.setBarrier();
-      fs.createSnapshot(new Path(configuration.getSourceDirectory()), snapshotName);
+      Path snapshotPath = fs.createSnapshot(new Path(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase()), snapshotName);
+      log.info("Snapshot created {}", snapshotPath);
       log.info("Removing barrier {}", lockPath);
       barrier.removeBarrier();
     } catch (Exception ex) {
       log.error("Error handling barrier {}", configuration);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -83,26 +86,17 @@ public class HdfsSnapshotAction {
    * @param snapshotName workflow Id, it is used as the snapshot name
    */
   public void deleteHdfsSnapshot(String snapshotName) {
-    try(CuratorFramework curator = curator();
-        FileSystem fs = FileSystem.get(getHadoopConf())) {
+    try( CuratorFramework curator = curator()) {
+      FileSystem fs = FileSystem.get(hadoopConfiguration);
       curator.start();
       String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
       log.info("Removing barrier {}", lockPath);
       barrier.removeBarrier();
-      fs.deleteSnapshot(new Path(configuration.getSourceDirectory()), snapshotName);
+      fs.deleteSnapshot(new Path(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase()), snapshotName);
     } catch (Exception ex) {
       log.error("Error handling barrier {}", configuration);
+      throw new RuntimeException(ex);
     }
   }
-
-  /**
-   * Gets the Hadoop Configurations. File available with all Hadoop (hdfs and yarn) configs.
-   */
-  private Configuration getHadoopConf() {
-    Configuration actionConf = new Configuration(false);
-    actionConf.addResource(new Path(configuration.getHdfsConfigFile()));
-    return actionConf;
-  }
-
 }

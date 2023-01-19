@@ -18,12 +18,12 @@ import org.gbif.occurrence.download.hive.InitializableField;
 import org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.spark.sql.Dataset;
@@ -36,8 +36,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import scala.Function0;
-import scala.runtime.AbstractFunction0;
 
 import static org.apache.spark.sql.functions.callUDF;
 import static org.apache.spark.sql.functions.col;
@@ -49,7 +47,7 @@ import static org.apache.spark.sql.functions.from_json;
 public class TableBackfill {
  private final TableBackfillConfiguration configuration;
 
- private final String snapshotId;
+ private final String snapshotId = UUID.randomUUID().toString();
 
 
  public enum Option {
@@ -66,6 +64,12 @@ public class TableBackfill {
   public static class Command {
    private final Action action;
    private final Set<Option> options;
+
+    public static Command parse(String actionArg, String optionsArg) {
+      Action action = Action.valueOf(actionArg.toUpperCase());
+      Set<Option> options = Arrays.stream(optionsArg.split(",")).map(opt -> Option.valueOf(opt.toUpperCase())).collect(Collectors.toSet());
+      return Command.builder().action(action).options(options).build();
+    }
   }
 
 
@@ -73,21 +77,10 @@ public class TableBackfill {
     //Read config file
     TableBackfillConfiguration tableBackfillConfiguration = TableBackfillConfiguration.loadFromFile(args[0]);
 
-    Action action = Action.valueOf(args[1].toUpperCase());
-    Set<Option> options = Arrays.stream(args[2].split(",")).map(opt -> Option.valueOf(opt.toUpperCase())).collect(Collectors.toSet());
+    TableBackfill backfill = new TableBackfill(tableBackfillConfiguration);
 
-    //Execution unique identifier
-    String snapshotId = UUID.randomUUID().toString();
-
-    HdfsSnapshotAction snapshotAction = new HdfsSnapshotAction(tableBackfillConfiguration);
-    snapshotAction.createHdfsSnapshot(snapshotId);
-
-    TableBackfill backfill = new TableBackfill(tableBackfillConfiguration, snapshotId);
-    backfill.run(Command.builder().action(action).options(options).build());
-
-    snapshotAction.deleteHdfsSnapshot(snapshotId);
+    backfill.run(Command.parse(args[1], args[2]));
   }
-
 
   private SparkSession createSparkSession() {
    return SparkSession.builder()
@@ -98,60 +91,58 @@ public class TableBackfill {
   }
 
   private void executeCreateAction(Command command, SparkSession spark) {
-    registerUdfs().forEach(spark::sql);
-    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
-      spark.logInfo(scalafy(() -> "Creating Avro and Parquet Table for " + configuration.getTableName()));
-      spark.sql(createTableIfNotExists());
-      spark.sql(dropAvroTableIfExists());
-      spark.sql(createAvroTempTable());
-      spark.sql(insertOverwriteTable());
-    }
+    HdfsSnapshotAction snapshotAction = new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
+    try {
+      log.info("Using {} as snapshot name of source directory", snapshotId);
+      snapshotAction.createHdfsSnapshot(snapshotId);
+      registerUdfs().forEach(spark::sql);
+      if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
+        log.info("Creating Avro and Parquet Table for " + configuration.getTableName());
+        spark.sql(createTableIfNotExists());
+        spark.sql(dropAvroTableIfExists());
+        spark.sql(createAvroTempTable());
+        spark.sql(insertOverwriteTable());
+      }
 
-    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
-      spark.logInfo(scalafy(() -> "Creating Extension tables"));
-      createExtensionTablesParallel(spark);
-    }
+      if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
+        log.info("Creating Extension tables");
+        createExtensionTablesParallel(spark);
+      }
 
-    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
-      spark.logInfo(scalafy(() -> "Creating Multimedia Table"));
-      spark.sql(createIfNotExistsGbifMultimedia());
-      insertOverwriteMultimediaTable(spark);
+      if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
+        log.info("Creating Multimedia Table");
+        spark.sql(createIfNotExistsGbifMultimedia());
+        insertOverwriteMultimediaTable(spark);
+      }
+    } finally {
+      snapshotAction.deleteHdfsSnapshot(snapshotId);
+      log.info("Creation finished");
     }
   }
 
   private void executeDeleteAction(Command command, SparkSession spark) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
-      spark.logInfo(scalafy(() -> "Deleting Table " +  configuration.getTableName()));
+      log.info("Deleting Table " +  configuration.getTableName());
       spark.sql(dropTable(configuration.getTableName()));
       spark.sql(dropTable(configuration.getTableName() + "_avro"));
     }
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
-      spark.logInfo(scalafy(() -> "Deleting Multimedia Table "));
+      log.info("Deleting Multimedia Table ");
       spark.sql(dropTable(configuration.getTableName() + "_multimedia"));
     }
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
-      spark.logInfo(scalafy(() -> "Deleting Extension Tables "));
+      log.info("Deleting Extension Tables ");
       ExtensionTable.tableExtensions().forEach(extensionTable -> {
-        spark.logInfo(scalafy(() -> "Deleting Extension Parquet and Avro Tables for " + extensionTable.getHiveTableName()));
+        log.info("Deleting Extension Parquet and Avro Tables for " + extensionTable.getHiveTableName());
         spark.sql(dropTable(String.format("%s_ext_%s", configuration.getTableName(), extensionTable.getHiveTableName())));
         spark.sql(dropTable(String.format("%s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName())));
       });
     }
   }
-
-  private <T> Function0<T> scalafy(Supplier<T> supplier) {
-   return new AbstractFunction0<T>() {
-     @Override
-     public T apply() {
-       return supplier.get();
-     }
-   };
-  }
-
   public void run(Command command) {
    try(SparkSession spark = createSparkSession()) {
      spark.sql("USE " + configuration.getHiveDatabase());
-     spark.logInfo(scalafy(() -> "Running command " + command));
+     log.info("Running command " + command);
      if (Action.CREATE == command.getAction()) {
        executeCreateAction(command, spark);
      } else if (Action.DELETE == command.getAction()) {
@@ -188,6 +179,12 @@ public class TableBackfill {
     return String.format("DROP TABLE IF EXISTS %s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
   }
 
+  private String getSnapshotPath(String dataDirectory) {
+    String path = Paths.get(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase(), ".snapshot", snapshotId, dataDirectory.toLowerCase()).toString();
+    log.info("Snapshot path {}", path);
+    return path;
+  }
+
   private String createAvroExtensionTable(ExtensionTable extensionTable) {
     return String.format("CREATE EXTERNAL TABLE %s_ext_%s_avro\n"
                          + "ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'\n"
@@ -197,7 +194,7 @@ public class TableBackfill {
                          + "TBLPROPERTIES ('avro.schema.literal'='%s')",
                          configuration.getTableName(),
                          extensionTable.getHiveTableName(),
-                         configuration.getSourceDirectory() + '/' + extensionTable.getDirectoryTableName(),
+                         getSnapshotPath(extensionTable.getDirectoryTableName()),
                          extensionTable.getSchema().toString(false));
   }
 
@@ -282,7 +279,7 @@ public class TableBackfill {
                        + "LOCATION '%s'\n"
                        + "TBLPROPERTIES ('avro.schema.literal'='%s')",
                          configuration.getTableName(),
-                         configuration.getSourceDirectory() + '/' + snapshotId + '/' + configuration.getCoreName().toLowerCase() + '/',
+                         getSnapshotPath(configuration.getCoreName()),
                          OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(false));
   }
 
