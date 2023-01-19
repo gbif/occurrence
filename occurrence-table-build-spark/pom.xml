@@ -10,6 +10,7 @@
   </parent>
 
   <artifactId>occurrence-table-build-spark</artifactId>
+  <name>Occurrence HDFS-Hive Tables Build</name>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>

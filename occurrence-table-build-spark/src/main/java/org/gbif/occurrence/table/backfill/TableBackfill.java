@@ -23,11 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.StructType;
@@ -102,6 +99,7 @@ public class TableBackfill {
         spark.sql(dropAvroTableIfExists());
         spark.sql(createAvroTempTable());
         spark.sql(insertOverwriteTable());
+        spark.sql(dropAvroTableIfExists());
       }
 
       if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -152,24 +150,14 @@ public class TableBackfill {
   }
 
   private void createExtensionTablesParallel(SparkSession spark) {
-   List<CompletableFuture<Dataset<Row>>> futures = ExtensionTable.tableExtensions().stream()
-      .map(extensionTable -> CompletableFuture.supplyAsync(() -> createExtensionTable(spark, extensionTable))).collect(Collectors.toList());
-    wait(futures);
+    ExtensionTable.tableExtensions().stream().parallel().forEach(extensionTable -> createExtensionTable(spark, extensionTable));
   }
 
-
-  private static CompletableFuture<List<Dataset<Row>>> wait(List<CompletableFuture<Dataset<Row>>> futures) {
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-      .thenApply(ignored -> futures.stream()
-        .map(CompletableFuture::join)
-        .collect(Collectors.toList())
-      );
-  }
-
-  private Dataset<Row> createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
+  private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
     spark.sql(deleteAvroExtensionTable(extensionTable));
     spark.sql(createAvroExtensionTable(extensionTable));
-    return spark.sql(createExtensionTableFromAvro(extensionTable));
+    spark.sql(createExtensionTableFromAvro(extensionTable));
+    spark.sql(deleteAvroExtensionTable(extensionTable));
   }
 
   private String dropTable(String tableName) {

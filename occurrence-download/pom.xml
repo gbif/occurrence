@@ -297,6 +297,10 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-tomcat</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -306,6 +310,12 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-es-mapping</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -418,6 +428,18 @@
           <groupId>org.apache.hbase</groupId>
           <artifactId>hbase-server</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>net.logstash.logback</groupId>
+          <artifactId>logstash-logback-encoder</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -436,6 +458,10 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -502,6 +528,10 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
