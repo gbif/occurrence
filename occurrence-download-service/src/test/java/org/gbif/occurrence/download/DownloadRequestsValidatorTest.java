@@ -34,6 +34,62 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
+  public void downloadTestSendNotification() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+
+    //Boolean as string
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n"
+                       + "  \"sendNotification\": \"true\",\n"
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"within\",\n"
+                       + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
+                       + "  }\n"
+                       + "}");
+
+    //Boolean type
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n"
+                       + "  \"sendNotification\": true,\n"
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"within\",\n"
+                       + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
+                       + "  }\n"
+                       + "}");
+  }
+
+  @Test
+  public void downloadTestSendNotificationWrongFormat() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+
+    //As string
+    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n"
+                       + "  \"sendNotification\": \"trrue\",\n"
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"within\",\n"
+                       + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
+                       + "  }\n"
+                       + "}"));
+
+    //As boolean
+    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+      validator.validate("{\n"
+                         + "  \"creator\":\"markus\",\n"
+                         + "  \"format\": \"SIMPLE_CSV\",\n"
+                         + "  \"sendNotification\": truth,\n"
+                         + "  \"predicate\":{\n"
+                         + "    \"type\":\"within\",\n"
+                         + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
+                         + "  }\n"
+                         + "}"));
+  }
+
+  @Test
   public void downloadTestWrongPredicate() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
     Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
@@ -60,5 +116,65 @@ public class DownloadRequestsValidatorTest {
                          + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
                          + "  }\n"
                          + "}"));
+  }
+
+  @Test
+  public void downloadTestMatchCaseField() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+
+    //Boolean as string
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n" //Unknown field
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"equals\",\n"
+                       + "    \"key\":\"CATALOG_NUMBER\",\n"
+                       + "    \"value\":\"Ax1\",\n"
+                       + "    \"matchCase\":\"true\"\n"
+                       + "  }\n"
+                       + "}");
+
+    //Boolean as string
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n" //Unknown field
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"equals\",\n"
+                       + "    \"key\":\"CATALOG_NUMBER\",\n"
+                       + "    \"value\":\"Ax1\",\n"
+                       + "    \"matchCase\": false\n"
+                       + "  }\n"
+                       + "}");
+  }
+
+  @Test
+  public void downloadTestMatchCaseFieldWrong() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+
+    //Boolean as string
+    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n" //Unknown field
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"equals\",\n"
+                       + "    \"key\":\"CATALOG_NUMBER\",\n"
+                       + "    \"value\":\"Ax1\",\n"
+                       + "    \"matchCase\":\"truei\"\n"
+                       + "  }\n"
+                       + "}"));
+
+    //Boolean as string
+    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n" //Unknown field
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"equals\",\n"
+                       + "    \"key\":\"CATALOG_NUMBER\",\n"
+                       + "    \"value\":\"Ax1\",\n"
+                       + "    \"matchCase\": negative\n"
+                       + "  }\n"
+                       + "}"));
   }
 }

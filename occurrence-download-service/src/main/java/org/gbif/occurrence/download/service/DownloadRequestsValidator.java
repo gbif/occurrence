@@ -22,6 +22,7 @@ import org.json.JSONTokener;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.kjetland.jackson.jsonSchema.JsonSchemaConfig;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 
@@ -42,6 +43,24 @@ public class DownloadRequestsValidator {
     predicateDownloadRequestSchema = predicateDownloadRequestSchema();
   }
 
+
+  @SneakyThrows
+  private static ObjectNode lenientBoolean(ObjectMapper mapper) {
+    return (ObjectNode)mapper.readTree("{\"oneOf\":[{\"type\":\"null\",\"title\":\"Not included\"},{\"type\":\"boolean\"},{\"type\":\"string\",\"pattern\":\"^(?i)(true|false)$\"}]}");
+  }
+
+
+  @SneakyThrows
+  private static void changeMatchCaseFieldsToLenientBoolean(JsonNode schemaNode, ObjectMapper objectMapper) {
+
+    schemaNode.get("definitions").elements().forEachRemaining((JsonNode node) -> {
+      if(node.get("properties").has("matchCase")) {
+        ((ObjectNode)node.get("properties")).remove("matchCase");
+        ((ObjectNode)node.get("properties")).putObject("matchCase").setAll(lenientBoolean(objectMapper));
+      }
+    });
+  }
+
   /**
    * Creates an initializes the Json schema.
    */
@@ -49,8 +68,13 @@ public class DownloadRequestsValidator {
   private static Schema predicateDownloadRequestSchema(){
 
     ObjectMapper mapper = new ObjectMapper();
+
     JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper, JsonSchemaConfig.nullableJsonSchemaDraft4());
     JsonNode schemaNode = schemaGen.generateJsonSchema(PredicateDownloadRequest.class);
+    ((ObjectNode)(schemaNode).get("properties")).remove("sendNotification");
+    ((ObjectNode)(schemaNode).get("properties")).putObject("sendNotification").setAll(lenientBoolean(mapper));
+
+    changeMatchCaseFieldsToLenientBoolean(schemaNode, mapper);
 
     JSONObject rawSchema = new JSONObject(new JSONTokener(mapper.writeValueAsString(schemaNode)));
 
