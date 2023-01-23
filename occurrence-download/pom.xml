@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.192-SNAPSHOT</version>
+    <version>0.192.2-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -206,6 +206,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-no-slf4j</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <rules>
             <bannedDependencies>
@@ -216,16 +224,7 @@
               </excludes>
             </bannedDependencies>
           </rules>
-          <fail>false</fail>
         </configuration>
-        <executions>
-          <execution>
-            <id>enforce</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -297,6 +296,7 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-tomcat</artifactId>
         </exclusion>
+        <!-- Excluded to avoid log4j collisions in Oozie/Hadoop-->
         <exclusion>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-logging</artifactId>
@@ -310,6 +310,7 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-es-mapping</artifactId>
+      <!-- Excluded to avoid log4j collisions with other dependencies in libraries-->
       <exclusions>
         <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
@@ -428,6 +429,7 @@
           <groupId>org.apache.hbase</groupId>
           <artifactId>hbase-server</artifactId>
         </exclusion>
+        <!-- Excluded to avoid log4j collisions with other dependencies in libraries and Hadoop-->
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>log4j-over-slf4j</artifactId>
@@ -459,6 +461,7 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-core</artifactId>
         </exclusion>
+        <!-- Excluded to avoid log4j collisions with hadoop libraries, this should be provided by Hadoop at runtime-->
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-log4j12</artifactId>
