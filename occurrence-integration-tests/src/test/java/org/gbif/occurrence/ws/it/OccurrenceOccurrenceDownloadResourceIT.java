@@ -86,6 +86,7 @@ public class OccurrenceOccurrenceDownloadResourceIT {
     predicateDownloadRequest.setFormat(DownloadFormat.SIMPLE_CSV);
     predicateDownloadRequest.setCreator(TEST_USER.getUserName());
     predicateDownloadRequest.setNotificationAddressesAsString(TEST_USER.getEmail());
+    predicateDownloadRequest.setPredicate(null);
     return predicateDownloadRequest;
   }
 

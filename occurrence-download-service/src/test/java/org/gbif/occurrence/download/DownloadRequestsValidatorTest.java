@@ -82,6 +82,15 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
+  public void downloadTestEmptyPredicate() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+    validator.validate("{\n"
+      + "  \"creator\":\"markus\",\n"
+      + "  \"predicate\":{}\n"
+      + "}");
+  }
+
+  @Test
   public void downloadTestMatchCaseField() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
