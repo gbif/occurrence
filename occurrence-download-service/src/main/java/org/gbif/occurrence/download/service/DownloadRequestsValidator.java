@@ -16,6 +16,8 @@ package org.gbif.occurrence.download.service;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 
@@ -26,6 +28,7 @@ import java.text.ParseException;
  */
 @Slf4j
 public class DownloadRequestsValidator {
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestsValidator.class);
 
   public DownloadRequestsValidator() {
   }
@@ -36,7 +39,7 @@ public class DownloadRequestsValidator {
   public void validate(String jsonPredicateDownloadRequest) {
     JSONObject object = new JSONObject(jsonPredicateDownloadRequest);
     if (!object.has("predicate")) {
-      throw new ParseException("Required property 'predicate' not found.", 0);
+      LOG.warn("Download request without a predicate: {}", jsonPredicateDownloadRequest);
     };
   }
 }
