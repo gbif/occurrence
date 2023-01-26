@@ -191,4 +191,65 @@ public class DownloadRequestsValidatorTest {
                        + "  }\n"
                        + "}"));
   }
+
+  /**
+   * Request sent by PyGBIF <= 0.6.1.  For backward compatibility, do not change this test!
+   *
+   * Note the 'created' property, the quoted booleans, and the underscore in notification_address.
+   */
+  @Test
+  public void downloadFromPygbifTest() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+    validator.validate("{\n"
+      + "  \"creator\":\"pygbif\",\n"
+      + "  \"notification_address\":[\"pygbif@mailinator.com\"],\n"
+      + "  \"created\":\"2023\",\n"
+      + "  \"sendNotification\":\"true\",\n"
+      + "  \"format\": \"SIMPLE_CSV\",\n"
+      + "  \"predicate\":{\n"
+      + "    \"type\":\"within\",\n"
+      + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
+      + "  }\n"
+      + "}");
+  }
+
+  /**
+   * Request sent by RGBIF 3.75+.  For backward compatibility, do not change this test!
+   *
+   * Note the lack of sendNotification.
+   */
+  @Test
+  public void downloadFromRgbifTest() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+    validator.validate("{\n"
+      + "  \"creator\":\"rgbif\",\n"
+      + "  \"notification_address\":[\"rgbif@mailinator.com\"],\n"
+      + "  \"format\": \"SIMPLE_CSV\",\n"
+      + "  \"predicate\":{\n"
+      + "    \"type\":\"within\",\n"
+      + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
+      + "  }\n"
+      + "}");
+  }
+
+  /**
+   * Working request at v0.188.  For backward compatibility, do not change this test!
+   *
+   * Note the 212 rather than "212".
+   */
+  @Test
+  public void downloadWithNumbersTest() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+    validator.validate("{\n"
+      + "  \"creator\":\"gbif_user\",\n"
+      + "  \"notification_address\":[\"rgbif@mailinator.com\"],\n"
+      + "  \"created\":\"2023\",\n"
+      + "  \"format\": \"SIMPLE_CSV\",\n"
+      + "  \"predicate\":{\n"
+      + "    \"type\":\"equals\",\n"
+      + "    \"key\":\"TAXON_KEY\",\n"
+      + "    \"value\":212\n"
+      + "  }\n"
+      + "}");
+  }
 }
