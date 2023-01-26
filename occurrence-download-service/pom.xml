@@ -241,12 +241,8 @@
       <artifactId>jackson-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.erosb</groupId>
-      <artifactId>everit-json-schema</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.kjetland</groupId>
-      <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
     </dependency>
     <dependency>
       <groupId>org.freemarker</groupId>

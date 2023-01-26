@@ -13,21 +13,11 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.kjetland.jackson.jsonSchema.JsonSchemaConfig;
-import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
+
+import java.text.ParseException;
 
 /**
  * Utility class to validate PredicateDownloadRequest against a Json Schema.
@@ -37,63 +27,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DownloadRequestsValidator {
 
-  private final Schema predicateDownloadRequestSchema;
-
   public DownloadRequestsValidator() {
-    predicateDownloadRequestSchema = predicateDownloadRequestSchema();
-  }
-
-
-  @SneakyThrows
-  private static ObjectNode lenientBoolean(ObjectMapper mapper) {
-    return (ObjectNode)mapper.readTree("{\"oneOf\":[{\"type\":\"null\",\"title\":\"Not included\"},{\"type\":\"boolean\"},{\"type\":\"string\",\"pattern\":\"^(?i)(true|false)$\"}]}");
-  }
-
-
-  @SneakyThrows
-  private static void changeMatchCaseFieldsToLenientBoolean(JsonNode schemaNode, ObjectMapper objectMapper) {
-
-    schemaNode.get("definitions").elements().forEachRemaining((JsonNode node) -> {
-      if(node.get("properties").has("matchCase")) {
-        ((ObjectNode)node.get("properties")).remove("matchCase");
-        ((ObjectNode)node.get("properties")).putObject("matchCase").setAll(lenientBoolean(objectMapper));
-      }
-    });
-  }
-
-  /**
-   * Creates an initializes the Json schema.
-   */
-  @SneakyThrows
-  private static Schema predicateDownloadRequestSchema(){
-
-    ObjectMapper mapper = new ObjectMapper();
-
-    JsonSchemaGenerator schemaGen = new JsonSchemaGenerator(mapper, JsonSchemaConfig.nullableJsonSchemaDraft4());
-    JsonNode schemaNode = schemaGen.generateJsonSchema(PredicateDownloadRequest.class);
-    ((ObjectNode)(schemaNode).get("properties")).remove("sendNotification");
-    ((ObjectNode)(schemaNode).get("properties")).putObject("sendNotification").setAll(lenientBoolean(mapper));
-
-    changeMatchCaseFieldsToLenientBoolean(schemaNode, mapper);
-
-    JSONObject rawSchema = new JSONObject(new JSONTokener(mapper.writeValueAsString(schemaNode)));
-
-    JSONObject notificationAddresses = rawSchema.getJSONObject("properties").getJSONObject("notificationAddresses");
-    //Adding 2 artificial fields to allow snake and camel case format in some properties
-    rawSchema.getJSONObject("properties")
-      .put("send_notification", rawSchema.getJSONObject("properties").getJSONObject("sendNotification"))
-      .put("notification_addresses", notificationAddresses)
-      .put("notificationAddress", notificationAddresses)
-      .put("notification_address", notificationAddresses);
-
-    log.info("Download requests will be validated against schema {}", rawSchema);
-    return SchemaLoader.load(rawSchema);
   }
 
 
   /** Validates the predicate download request as Json against the schema.*/
   @SneakyThrows
   public void validate(String jsonPredicateDownloadRequest) {
-    predicateDownloadRequestSchema.validate(new JSONObject(jsonPredicateDownloadRequest));
+    JSONObject object = new JSONObject(jsonPredicateDownloadRequest);
+    if (!object.has("predicate")) {
+      throw new ParseException("Required property 'predicate' not found.", 0);
+    };
   }
 }
