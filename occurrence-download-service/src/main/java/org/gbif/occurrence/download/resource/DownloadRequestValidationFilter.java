@@ -26,7 +26,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.everit.json.schema.ValidationException;
 import org.springframework.http.HttpStatus;
 
 import lombok.SneakyThrows;
@@ -61,7 +60,7 @@ public class DownloadRequestValidationFilter implements Filter {
     try {
       downloadRequestsValidator.validate(jsonDownloadRequest);
       return true;
-    } catch (ValidationException exception) {
+    } catch (IllegalArgumentException exception) {
       setErrorContent(response, exception);
       return false;
     }
@@ -71,9 +70,9 @@ public class DownloadRequestValidationFilter implements Filter {
    * Sets the response error content.
    */
   @SneakyThrows
-  private void setErrorContent(HttpServletResponse response, ValidationException exception) {
+  private void setErrorContent(HttpServletResponse response, IllegalArgumentException exception) {
     response.setStatus(HttpStatus.BAD_REQUEST.value());
-    String responseBody = String.join("\n", exception.getAllMessages());
+    String responseBody = String.join("\n", exception.getMessage());
     response.setContentLength(responseBody.length());
     response.getOutputStream().write(responseBody.getBytes());
   }

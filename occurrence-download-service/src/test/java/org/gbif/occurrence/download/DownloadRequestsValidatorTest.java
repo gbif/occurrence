@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 public class DownloadRequestsValidatorTest {
 
   @Test
-  public void downloadTestSendNotificationNull() {
+  public void downloadSendNotificationNullTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
     validator.validate("{\n"
                        + "  \"creator\":\"markus\",\n"
@@ -34,7 +34,22 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  public void downloadTestSendNotification() {
+  public void unknownFieldTest() {
+    DownloadRequestsValidator validator = new DownloadRequestsValidator();
+    Assertions.assertThrows(IllegalArgumentException.class, () ->
+    validator.validate("{\n"
+                       + "  \"creator\":\"markus\",\n"
+                       + "  \"format\": \"SIMPLE_CSV\",\n"
+                       + "  \"type\": \"and\",\n"
+                       + "  \"predicate\":{\n"
+                       + "    \"type\":\"within\",\n"
+                       + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
+                       + "  }\n"
+                       + "}"));
+  }
+
+  @Test
+  public void downloadSendNotificationTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
     //Boolean as string
@@ -61,11 +76,10 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  public void downloadTestSendNotificationWrongFormat() {
+  public void downloadSendNotificationWrongFormatTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
-    //As string
-    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    //As string  WARNING Jackson interprets trruee as False, whatever is not 'true' in any variation is false
     validator.validate("{\n"
                        + "  \"creator\":\"markus\",\n"
                        + "  \"format\": \"SIMPLE_CSV\",\n"
@@ -74,10 +88,10 @@ public class DownloadRequestsValidatorTest {
                        + "    \"type\":\"within\",\n"
                        + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
                        + "  }\n"
-                       + "}"));
+                       + "}");
 
     //As boolean
-    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    Assertions.assertThrows(IllegalArgumentException.class, () ->
       validator.validate("{\n"
                          + "  \"creator\":\"markus\",\n"
                          + "  \"format\": \"SIMPLE_CSV\",\n"
@@ -90,9 +104,9 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  public void downloadTestWrongPredicate() {
+  public void downloadWrongPredicateTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
-    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    Assertions.assertThrows(IllegalArgumentException.class, () ->
     validator.validate("{\n"
                        + "  \"creator\":\"markus\",\n"
                        + "  \"format\": \"SIMPLE_CSV\",\n"
@@ -105,9 +119,9 @@ public class DownloadRequestsValidatorTest {
 
 
   @Test
-  public void downloadTestUnknownField() {
+  public void downloadUnknownFieldTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
-    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    Assertions.assertThrows(IllegalArgumentException.class, () ->
       validator.validate("{\n"
                          + "  \"creator\":\"markus\",\n"
                          + "  \"format_type\": \"SIMPLE_CSV\",\n" //Unknown field
@@ -119,7 +133,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  public void downloadTestMatchCaseField() {
+  public void downloadMatchCaseFieldTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
     //Boolean as string
@@ -148,11 +162,11 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  public void downloadTestMatchCaseFieldWrong() {
+  public void downloadMatchCaseFieldWrongTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
     //Boolean as string
-    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    Assertions.assertThrows(IllegalArgumentException.class, () ->
     validator.validate("{\n"
                        + "  \"creator\":\"markus\",\n"
                        + "  \"format\": \"SIMPLE_CSV\",\n" //Unknown field
@@ -165,7 +179,7 @@ public class DownloadRequestsValidatorTest {
                        + "}"));
 
     //Boolean as string
-    Assertions.assertThrows(org.everit.json.schema.ValidationException.class, () ->
+    Assertions.assertThrows(IllegalArgumentException.class, () ->
     validator.validate("{\n"
                        + "  \"creator\":\"markus\",\n"
                        + "  \"format\": \"SIMPLE_CSV\",\n" //Unknown field
