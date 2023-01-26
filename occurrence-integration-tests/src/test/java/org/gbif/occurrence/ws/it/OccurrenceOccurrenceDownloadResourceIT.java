@@ -16,6 +16,7 @@ package org.gbif.occurrence.ws.it;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
 import org.gbif.ws.client.ClientBuilder;
@@ -86,7 +87,7 @@ public class OccurrenceOccurrenceDownloadResourceIT {
     predicateDownloadRequest.setFormat(DownloadFormat.SIMPLE_CSV);
     predicateDownloadRequest.setCreator(TEST_USER.getUserName());
     predicateDownloadRequest.setNotificationAddressesAsString(TEST_USER.getEmail());
-    predicateDownloadRequest.setPredicate(null);
+    predicateDownloadRequest.setPredicate(new Predicate() {});
     return predicateDownloadRequest;
   }
 
