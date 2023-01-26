@@ -14,8 +14,8 @@
 package org.gbif.occurrence.download;
 
 import org.gbif.occurrence.download.service.DownloadRequestsValidator;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class DownloadRequestsValidatorTest {
@@ -61,7 +61,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  @Ignore
+  @Disabled("Not ready, see #273")
   public void downloadTestUnknownField() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
     Assertions.assertThrows(java.text.ParseException.class, () ->
@@ -75,7 +75,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  @Ignore
+  @Disabled("Not ready, see #273")
   public void downloadTestMissingPredicate() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
     Assertions.assertThrows(java.text.ParseException.class, () ->
