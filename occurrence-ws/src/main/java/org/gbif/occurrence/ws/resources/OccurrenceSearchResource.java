@@ -540,6 +540,11 @@ public class OccurrenceSearchResource {
        schema = @Schema(implementation = Integer.class, minimum = "0"),
        in = ParameterIn.QUERY),
      @Parameter(
+       name = "taxonId",
+       description = "The taxon identifier provided to GBIF by the data publisher.",
+       schema = @Schema(implementation = String.class),
+       in = ParameterIn.QUERY),
+     @Parameter(
        name = "typeStatus",
        description = "Nomenclatural type (type status, typified scientific name, publication) applied to the subject.",
        schema = @Schema(implementation = TypeStatus.class),
@@ -547,11 +552,6 @@ public class OccurrenceSearchResource {
      @Parameter(
        name = "verbatimScientificName",
        description = "The scientific name provided to GBIF by the data publisher, before interpretation and processing by GBIF.",
-       schema = @Schema(implementation = String.class),
-       in = ParameterIn.QUERY),
-     @Parameter(
-       name = "verbatimTaxonId",
-       description = "The taxon identifier provided to GBIF by the data publisher.",
        schema = @Schema(implementation = String.class),
        in = ParameterIn.QUERY),
      @Parameter(
