@@ -17,19 +17,23 @@ import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.InitializableField;
 import org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.table.udf.CleanDelimiterArraysUdf;
+import org.gbif.occurrence.table.udf.CleanDelimiterCharsUdf;
+import org.gbif.occurrence.table.udf.StringArrayContainsGenericUdf;
+import org.gbif.occurrence.table.udf.ToISO8601Udf;
+import org.gbif.occurrence.table.udf.ToLocalISO8601Udf;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
 import lombok.AllArgsConstructor;
@@ -90,18 +94,34 @@ public class TableBackfill {
            .getOrCreate();
   }
 
+  private void registerUdfs(SparkSession sparkSession) {
+    sparkSession.udf().register("cleanDelimiters", new CleanDelimiterCharsUdf(), DataTypes.StringType);
+    sparkSession.udf().register("cleanDelimitersArray", new CleanDelimiterArraysUdf(), DataTypes.createArrayType(DataTypes.StringType));
+    sparkSession.udf().register("toISO8601", new ToISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register("toLocalISO8601", new ToLocalISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+  }
+
+  private void createTableUsingSpark(SparkSession sparkSession) {
+    //Create Hive Table if it doesn't exist
+    sparkSession.sql(createTableIfNotExists());
+
+    sparkSession.read().format("com.databricks.spark.avro")
+      .load(getSnapshotPath(configuration.getCoreName()) + "/*.avro")
+      .select(selectFromAvro())
+      .write().format("parquet").option("compression", "snappy").mode("overwrite")
+      .saveAsTable(configuration.getTableName());
+  }
+
   private void executeCreateAction(Command command, SparkSession spark) {
     HdfsSnapshotAction snapshotAction = new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
     try {
       log.info("Using {} as snapshot name of source directory", snapshotId);
       snapshotAction.createHdfsSnapshot(snapshotId);
-      registerUdfs().forEach(spark::sql);
+      registerUdfs(spark);
       if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
         log.info("Creating Avro and Parquet Table for " + configuration.getTableName());
-        spark.sql(createTableIfNotExists());
-        spark.sql(dropAvroTableIfExists());
-        spark.sql(createAvroTempTable());
-        spark.sql(insertOverwriteTable());
+        createTableUsingSpark(spark);
       }
 
       if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -152,24 +172,14 @@ public class TableBackfill {
   }
 
   private void createExtensionTablesParallel(SparkSession spark) {
-   List<CompletableFuture<Dataset<Row>>> futures = ExtensionTable.tableExtensions().stream()
-      .map(extensionTable -> CompletableFuture.supplyAsync(() -> createExtensionTable(spark, extensionTable))).collect(Collectors.toList());
-    wait(futures);
+    ExtensionTable.tableExtensions().stream().parallel().forEach(extensionTable -> createExtensionTable(spark, extensionTable));
   }
 
-
-  private static CompletableFuture<List<Dataset<Row>>> wait(List<CompletableFuture<Dataset<Row>>> futures) {
-    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-      .thenApply(ignored -> futures.stream()
-        .map(CompletableFuture::join)
-        .collect(Collectors.toList())
-      );
-  }
-
-  private Dataset<Row> createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
+  private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
     spark.sql(deleteAvroExtensionTable(extensionTable));
     spark.sql(createAvroExtensionTable(extensionTable));
-    return spark.sql(createExtensionTableFromAvro(extensionTable));
+    spark.sql(createExtensionTableFromAvro(extensionTable));
+    spark.sql(deleteAvroExtensionTable(extensionTable));
   }
 
   private String dropTable(String tableName) {
@@ -183,6 +193,13 @@ public class TableBackfill {
     String path = Paths.get(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase(), ".snapshot", snapshotId, dataDirectory.toLowerCase()).toString();
     log.info("Snapshot path {}", path);
     return path;
+  }
+
+  private List<String> setCompression() {
+   return Arrays.asList("SET spark.hadoop.hive.exec.compress.output=true",
+                        "SET spark.hadoop.mapred.output.compress=true",
+                        "SET spark.hadoop.mapred.output.compression.type=BLOCK",
+                        "SET spark.hadoop.mapred.output.compression.codec=org.apache.hadoop.io.compress.SnappyCodec");
   }
 
   private String createAvroExtensionTable(ExtensionTable extensionTable) {
@@ -288,6 +305,13 @@ public class TableBackfill {
            OccurrenceHDFSTableDefinition.definition().stream().map(InitializableField::getInitializer).collect(Collectors.joining(", \n"))
           +
            "\nFROM %s_avro", configuration.getTableName());
+  }
+
+  private Column[] selectFromAvro() {
+    return OccurrenceHDFSTableDefinition.definition().stream()
+      .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
+      .collect(Collectors.toList())
+      .toArray(new Column[]{});
   }
 
   private String insertOverwriteTable() {
