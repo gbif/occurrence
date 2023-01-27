@@ -14,19 +14,23 @@
 package org.gbif.occurrence.table.backfill;
 
 import org.gbif.occurrence.download.hive.ExtensionTable;
-import org.gbif.occurrence.download.hive.InitializableField;
-import org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.table.udf.CleanDelimiterArraysUdf;
+import org.gbif.occurrence.table.udf.CleanDelimiterCharsUdf;
+import org.gbif.occurrence.table.udf.StringArrayContainsGenericUdf;
+import org.gbif.occurrence.table.udf.ToISO8601Udf;
+import org.gbif.occurrence.table.udf.ToLocalISO8601Udf;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
 import lombok.AllArgsConstructor;
@@ -87,19 +91,33 @@ public class TableBackfill {
            .getOrCreate();
   }
 
+  private void registerUdfs(SparkSession sparkSession) {
+    sparkSession.udf().register("cleanDelimiters", new CleanDelimiterCharsUdf(), DataTypes.StringType);
+    sparkSession.udf().register("cleanDelimitersArray", new CleanDelimiterArraysUdf(), DataTypes.createArrayType(DataTypes.StringType));
+    sparkSession.udf().register("toISO8601", new ToISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register("toLocalISO8601", new ToLocalISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+  }
+
+  private void createTableUsingSpark(SparkSession spark) {
+    //Create Hive Table if it doesn't exist
+    spark.sql(createTableIfNotExists());
+    fromAvroToTable(spark,
+                    getSnapshotPath(configuration.getCoreName()), //FROM
+                    selectFromAvro(), //SELECT
+                    configuration.getTableName() //INSERT OVERWRITE INTO
+                    );
+  }
+
   private void executeCreateAction(Command command, SparkSession spark) {
     HdfsSnapshotAction snapshotAction = new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
     try {
       log.info("Using {} as snapshot name of source directory", snapshotId);
       snapshotAction.createHdfsSnapshot(snapshotId);
-      registerUdfs().forEach(spark::sql);
+      registerUdfs(spark);
       if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
         log.info("Creating Avro and Parquet Table for " + configuration.getTableName());
-        spark.sql(createTableIfNotExists());
-        spark.sql(dropAvroTableIfExists());
-        spark.sql(createAvroTempTable());
-        spark.sql(insertOverwriteTable());
-        spark.sql(dropAvroTableIfExists());
+        createTableUsingSpark(spark);
       }
 
       if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -150,21 +168,38 @@ public class TableBackfill {
   }
 
   private void createExtensionTablesParallel(SparkSession spark) {
-    ExtensionTable.tableExtensions().stream().parallel().forEach(extensionTable -> createExtensionTable(spark, extensionTable));
+    ExtensionTable.tableExtensions().parallelStream()
+      .forEach(extensionTable -> createExtensionTable(spark, extensionTable));
   }
 
+  private static void fromAvroToTable(SparkSession spark, String fromSourceDir, Column[] select, String saveToTable) {
+    spark.read().format("com.databricks.spark.avro")
+      .load(fromSourceDir + "/*.avro")
+      .select(select)
+      .write().format("parquet").option("compression", "snappy").mode("overwrite")
+      .saveAsTable(saveToTable);
+  }
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
-    spark.sql(deleteAvroExtensionTable(extensionTable));
-    spark.sql(createAvroExtensionTable(extensionTable));
-    spark.sql(createExtensionTableFromAvro(extensionTable));
-    spark.sql(deleteAvroExtensionTable(extensionTable));
+    spark.sql(createExtensionAvroTable(extensionTable));
+    fromAvroToTable(spark,
+                    getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
+                    extensionTable.getFields().stream()
+                      .map(field -> field.contains(")")? callUDF(field.substring(0, field.indexOf('(')), col(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))).alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')'))) : col(field))
+                      .collect(Collectors.toList()).toArray(new Column[]{}), //SELECT
+                    extensionTable.getHiveTableName()); //INSERT OVERWRITE INTO
+  }
+
+  private String createExtensionAvroTable(ExtensionTable extensionTable) {
+   return String.format("CREATE TABLE IF NOT EXISTS %1$s_ext_%2$s\n"
+                        + '(' + extensionTable.getSchema().getFields().stream().map(f -> f.name() + " STRING").collect(
+                          Collectors.joining(",\n")) + ')'
+                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n",
+                        configuration.getTableName(),
+                        extensionTable.getHiveTableName());
   }
 
   private String dropTable(String tableName) {
     return String.format("DROP TABLE IF EXISTS %s", tableName);
-  }
-  private String deleteAvroExtensionTable(ExtensionTable extensionTable) {
-    return String.format("DROP TABLE IF EXISTS %s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
   }
 
   private String getSnapshotPath(String dataDirectory) {
@@ -173,34 +208,12 @@ public class TableBackfill {
     return path;
   }
 
-  private String createAvroExtensionTable(ExtensionTable extensionTable) {
-    return String.format("CREATE EXTERNAL TABLE %s_ext_%s_avro\n"
-                         + "ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'\n"
-                         + "STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'\n"
-                         + "OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'\n"
-                         + "LOCATION '%s'\n"
-                         + "TBLPROPERTIES ('avro.schema.literal'='%s')",
-                         configuration.getTableName(),
-                         extensionTable.getHiveTableName(),
-                         getSnapshotPath(extensionTable.getDirectoryTableName()),
-                         extensionTable.getSchema().toString(false));
-  }
-
-  private String createExtensionTableFromAvro(ExtensionTable extensionTable) {
-    return String.format("CREATE TABLE IF NOT EXISTS %1$s_ext_%2$s\n"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n"
-                         + "AS\n"
-                         + "SELECT\n"
-                         + String.join(",\n", extensionTable.getFields())
-                         + "\nFROM %1$s_ext_%2$s_avro", configuration.getTableName(), extensionTable.getHiveTableName());
-  }
-
   public String createIfNotExistsGbifMultimedia() {
     return String.format("CREATE TABLE IF NOT EXISTS %s_multimedia\n"
                          + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
                          + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
                          + "publisher STRING, license STRING, rightsHolder STRING)\n"
-                         + "STORED AS PARQUET", configuration.getTableName());
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")", configuration.getTableName());
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
@@ -246,10 +259,6 @@ public class TableBackfill {
                             configuration.getTableName()));
   }
 
-
-  private String dropAvroTableIfExists() {
-    return String.format("DROP TABLE IF EXISTS %s_avro", configuration.getTableName());
-  }
   private String createTableIfNotExists() {
     return String.format("CREATE TABLE IF NOT EXISTS %s (\n"
                          + OccurrenceHDFSTableDefinition.definition().stream()
@@ -259,38 +268,11 @@ public class TableBackfill {
                          configuration.getTableName());
   }
 
-  private String createAvroTempTable() {
-    return String.format("CREATE EXTERNAL TABLE %s_avro\n"
-                       + "ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'\n"
-                       + "STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'\n"
-                       + "OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'\n"
-                       + "LOCATION '%s'\n"
-                       + "TBLPROPERTIES ('avro.schema.literal'='%s')",
-                         configuration.getTableName(),
-                         getSnapshotPath(configuration.getCoreName()),
-                         OccurrenceAvroHdfsTableDefinition.avroDefinition().toString(false));
-  }
-
-  private String selectFromAvroQuery() {
-    return String.format("SELECT \n" +
-           OccurrenceHDFSTableDefinition.definition().stream().map(InitializableField::getInitializer).collect(Collectors.joining(", \n"))
-          +
-           "\nFROM %s_avro", configuration.getTableName());
-  }
-
-  private String insertOverwriteTable() {
-    return String.format("INSERT OVERWRITE TABLE %s \n", configuration.getTableName())
-           + selectFromAvroQuery();
-  }
-
-  public List<String> registerUdfs() {
-    return Arrays.asList(
-    "CREATE TEMPORARY FUNCTION removeNulls AS 'org.gbif.occurrence.hive.udf.ArrayNullsRemoverGenericUDF'"
-    ,"CREATE TEMPORARY FUNCTION cleanDelimiters AS 'org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF'"
-    , "CREATE TEMPORARY FUNCTION cleanDelimitersArray AS 'org.gbif.occurrence.hive.udf.CleanDelimiterArraysUDF'"
-    , "CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF'"
-    , "CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF'"
-    , "CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF'");
+  private Column[] selectFromAvro() {
+    return OccurrenceHDFSTableDefinition.definition().stream()
+      .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
+      .collect(Collectors.toList())
+      .toArray(new Column[]{});
   }
 
 
