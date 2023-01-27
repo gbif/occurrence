@@ -27,6 +27,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
@@ -36,6 +38,7 @@ import org.apache.spark.sql.types.StructType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.apache.spark.sql.functions.callUDF;
@@ -87,6 +90,7 @@ public class TableBackfill {
    return SparkSession.builder()
            .appName(configuration.getTableName() + " table build")
            .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+           .config("spark.hadoop.avro.mapred.ignore.inputs.without.extension","false")
            .enableHiveSupport()
            .getOrCreate();
   }
@@ -147,11 +151,11 @@ public class TableBackfill {
       spark.sql(dropTable(configuration.getTableName() + "_multimedia"));
     }
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
-      log.info("Deleting Extension Tables ");
+      log.info("Deleting Extension Tables");
       ExtensionTable.tableExtensions().forEach(extensionTable -> {
-        log.info("Deleting Extension Parquet and Avro Tables for " + extensionTable.getHiveTableName());
-        spark.sql(dropTable(String.format("%s_ext_%s", configuration.getTableName(), extensionTable.getHiveTableName())));
-        spark.sql(dropTable(String.format("%s_ext_%s_avro", configuration.getTableName(), extensionTable.getHiveTableName())));
+        String extensionTableName = extensionTableName(extensionTable);
+        log.info("Deleting Extension Table {}", extensionTableName);
+        spark.sql(dropTable(extensionTableName));
       });
     }
   }
@@ -172,30 +176,44 @@ public class TableBackfill {
       .forEach(extensionTable -> createExtensionTable(spark, extensionTable));
   }
 
+  @SneakyThrows
+  private static boolean isDirectoryEmpty(String fromSourceDir, SparkSession spark) {
+    return FileSystem.get(spark.sparkContext().hadoopConfiguration()).getContentSummary(new Path(fromSourceDir)).getFileCount() == 0;
+  }
+
   private static void fromAvroToTable(SparkSession spark, String fromSourceDir, Column[] select, String saveToTable) {
-    spark.read().format("com.databricks.spark.avro")
-      .load(fromSourceDir + "/*.avro")
-      .select(select)
-      .write().format("parquet").option("compression", "snappy").mode("overwrite")
-      .saveAsTable(saveToTable);
+   if(!isDirectoryEmpty(fromSourceDir, spark)) {
+     spark.read()
+       .format("com.databricks.spark.avro")
+       .load(fromSourceDir)
+       .select(select)
+       .write()
+       .format("parquet")
+       .option("compression", "snappy")
+       .mode("overwrite")
+       .saveAsTable(saveToTable);
+   }
   }
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
-    spark.sql(createExtensionAvroTable(extensionTable));
+    spark.sql(createExtensionTable(extensionTable));
     fromAvroToTable(spark,
                     getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
                     extensionTable.getFields().stream()
                       .map(field -> field.contains(")")? callUDF(field.substring(0, field.indexOf('(')), col(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))).alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')'))) : col(field))
                       .collect(Collectors.toList()).toArray(new Column[]{}), //SELECT
-                    extensionTable.getHiveTableName()); //INSERT OVERWRITE INTO
+                    extensionTableName(extensionTable)); //INSERT OVERWRITE INTO
   }
 
-  private String createExtensionAvroTable(ExtensionTable extensionTable) {
-   return String.format("CREATE TABLE IF NOT EXISTS %1$s_ext_%2$s\n"
+  private String extensionTableName(ExtensionTable extensionTable) {
+   return String.format("%s_ext_%s", configuration.getTableName(),extensionTable.getHiveTableName());
+  }
+
+  private String createExtensionTable(ExtensionTable extensionTable) {
+   return String.format("CREATE TABLE IF NOT EXISTS %s\n"
                         + '(' + extensionTable.getSchema().getFields().stream().map(f -> f.name() + " STRING").collect(
                           Collectors.joining(",\n")) + ')'
                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n",
-                        configuration.getTableName(),
-                        extensionTable.getHiveTableName());
+                        extensionTableName(extensionTable));
   }
 
   private String dropTable(String tableName) {
