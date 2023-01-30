@@ -185,7 +185,7 @@ public class TableBackfill {
    if(!isDirectoryEmpty(fromSourceDir, spark)) {
      spark.read()
        .format("com.databricks.spark.avro")
-       .load(fromSourceDir)
+       .load(fromSourceDir + "/*.avro")
        .select(select)
        .write()
        .format("parquet")
