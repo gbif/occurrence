@@ -17,18 +17,9 @@
 
     <!-- Spark -->
     <spark.version>2.3.0</spark.version>
-    <spark.elasticsearch.version>8.1.1</spark.elasticsearch.version>
     <databricks.version>4.0.0</databricks.version>
     <scala.tools.version>2.11</scala.tools.version>
     <scala.library.version>2.11.8</scala.library.version>
-
-    <!-- GBIF -->
-    <gbif-common-search.version>0.39</gbif-common-search.version>
-
-    <elasticsearch.java.version>7.15.0</elasticsearch.java.version>
-    <!-- These must be compatible with Spark version (see https://stackoverflow.com/a/50114083) -->
-    <janino.version>3.0.8</janino.version>
-    <commons-compiler.version>3.0.8</commons-compiler.version>
   </properties>
 
   <build>
@@ -95,17 +86,70 @@
 
     <!-- GBIF -->
     <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-search</artifactId>
-      <version>${gbif-common-search.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-hdfs-table</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.gbif.predicates</groupId>
+          <artifactId>es-predicates</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.beam</groupId>
+          <artifactId>beam-sdks-java-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif</groupId>
+          <artifactId>dwca-io</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-hive</artifactId>
+      <artifactId>occurrence-persistence</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.inject</groupId>
+          <artifactId>guice</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hbase</groupId>
+          <artifactId>hbase-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif</groupId>
+          <artifactId>hbase-utils</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif.common</groupId>
+          <artifactId>co</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.gbif</groupId>
+          <artifactId>gbif-common-service</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.gbif.predicates</groupId>
+          <artifactId>es-predicates</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.beust</groupId>
+          <artifactId>jcommander</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Logging -->
@@ -129,6 +173,7 @@
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Jackson and Yaml-->
@@ -165,12 +210,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.databricks</groupId>
-      <artifactId>spark-avro_${scala.tools.version}</artifactId>
-      <version>${databricks.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-yarn_${scala.tools.version}</artifactId>
       <version>${spark.version}</version>
@@ -181,6 +220,18 @@
       <artifactId>spark-hive_${scala.tools.version}</artifactId>
       <version>${spark.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- Avro -->
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.databricks</groupId>
+      <artifactId>spark-avro_${scala.tools.version}</artifactId>
+      <version>${databricks.version}</version>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>
