@@ -63,34 +63,36 @@ public class CitationFileReader {
   public void read() throws IOException {
     Path citationSrc = new Path(citationFileName);
     // the hive query result is a directory with one or more files - read them all into an uuid set
-    FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
-    int invalidUuids = 0;
-    for (FileStatus fs : citFiles) {
-      if (!fs.isDirectory()) {
-        log.info("Reading citation file {}", fs);
-        try (BufferedReader citationReader =
-               new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()), StandardCharsets.UTF_8))) {
-          String line = citationReader.readLine();
-          while (line != null) {
-            if (!Strings.isNullOrEmpty(line)) {
-              // we also catch errors for every dataset to don't break the loop
-              try {
-                ConstituentDataset constituent = parseConstituent(line);
-                datasetUsages.put(constituent.getKey(), constituent.getRecords());
-                onRead.accept(constituent);
-              } catch (Exception e) {
-                // ignore invalid UUIDs
-                log.info("Found invalid UUID as datasetId {}", line, e);
-                invalidUuids++;
+    if (sourceFs.exists(citationSrc)) { //Empty results can lead to empty citation files
+      FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
+      int invalidUuids = 0;
+      for (FileStatus fs : citFiles) {
+        if (!fs.isDirectory()) {
+          log.info("Reading citation file {}", fs);
+          try (BufferedReader citationReader = new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()),
+                                                                                        StandardCharsets.UTF_8))) {
+            String line = citationReader.readLine();
+            while (line != null) {
+              if (!Strings.isNullOrEmpty(line)) {
+                // we also catch errors for every dataset to don't break the loop
+                try {
+                  ConstituentDataset constituent = parseConstituent(line);
+                  datasetUsages.put(constituent.getKey(), constituent.getRecords());
+                  onRead.accept(constituent);
+                } catch (Exception e) {
+                  // ignore invalid UUIDs
+                  log.info("Found invalid UUID as datasetId {}", line, e);
+                  invalidUuids++;
+                }
               }
+              line = citationReader.readLine();
             }
-            line = citationReader.readLine();
           }
         }
       }
-    }
-    if (invalidUuids > 0) {
-      log.info("Found {} invalid dataset UUIDs", invalidUuids);
+      if (invalidUuids > 0) {
+        log.info("Found {} invalid dataset UUIDs", invalidUuids);
+      }
     }
     onFinish.accept(datasetUsages);
   }
