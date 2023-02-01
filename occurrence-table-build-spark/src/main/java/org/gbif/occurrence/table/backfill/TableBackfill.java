@@ -15,14 +15,10 @@ package org.gbif.occurrence.table.backfill;
 
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
-import org.gbif.occurrence.table.udf.CleanDelimiterArraysUdf;
-import org.gbif.occurrence.table.udf.CleanDelimiterCharsUdf;
-import org.gbif.occurrence.table.udf.StringArrayContainsGenericUdf;
-import org.gbif.occurrence.table.udf.ToISO8601Udf;
-import org.gbif.occurrence.table.udf.ToLocalISO8601Udf;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,7 +28,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
-import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
 import lombok.AllArgsConstructor;
@@ -51,7 +46,7 @@ import static org.apache.spark.sql.functions.from_json;
 public class TableBackfill {
  private final TableBackfillConfiguration configuration;
 
- private final String snapshotId = UUID.randomUUID().toString();
+ private final String jobId = UUID.randomUUID().toString();
 
 
  public enum Option {
@@ -87,20 +82,15 @@ public class TableBackfill {
   }
 
   private SparkSession createSparkSession() {
-   return SparkSession.builder()
+    SparkSession.Builder sparkBuilder = SparkSession.builder()
            .appName(configuration.getTableName() + " table build")
            .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
-           .config("spark.hadoop.avro.mapred.ignore.inputs.without.extension","false")
-           .enableHiveSupport()
-           .getOrCreate();
-  }
+           .enableHiveSupport();
 
-  private void registerUdfs(SparkSession sparkSession) {
-    sparkSession.udf().register("cleanDelimiters", new CleanDelimiterCharsUdf(), DataTypes.StringType);
-    sparkSession.udf().register("cleanDelimitersArray", new CleanDelimiterArraysUdf(), DataTypes.createArrayType(DataTypes.StringType));
-    sparkSession.udf().register("toISO8601", new ToISO8601Udf(), DataTypes.StringType);
-    sparkSession.udf().register("toLocalISO8601", new ToLocalISO8601Udf(), DataTypes.StringType);
-    sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+    if (configuration.isUsePartitionedTable()) {
+      sparkBuilder.config("spark.sql.sources.partitionOverwriteMode","dynamic");
+    }
+    return sparkBuilder.getOrCreate();
   }
 
   private void createTableUsingSpark(SparkSession spark) {
@@ -116,9 +106,9 @@ public class TableBackfill {
   private void executeCreateAction(Command command, SparkSession spark) {
     HdfsSnapshotAction snapshotAction = new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
     try {
-      log.info("Using {} as snapshot name of source directory", snapshotId);
-      snapshotAction.createHdfsSnapshot(snapshotId);
-      registerUdfs(spark);
+      log.info("Using {} as snapshot name of source directory", jobId);
+      snapshotAction.createHdfsSnapshot(jobId);
+      UDFS.registerUdfs(spark);
       if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
         log.info("Creating Avro and Parquet Table for " + configuration.getTableName());
         createTableUsingSpark(spark);
@@ -135,7 +125,7 @@ public class TableBackfill {
         insertOverwriteMultimediaTable(spark);
       }
     } finally {
-      snapshotAction.deleteHdfsSnapshot(snapshotId);
+      snapshotAction.deleteHdfsSnapshot(jobId);
       log.info("Creation finished");
     }
   }
@@ -181,8 +171,11 @@ public class TableBackfill {
     return FileSystem.get(spark.sparkContext().hadoopConfiguration()).getContentSummary(new Path(fromSourceDir)).getFileCount() == 0;
   }
 
-  private static void fromAvroToTable(SparkSession spark, String fromSourceDir, Column[] select, String saveToTable) {
+  private void fromAvroToTable(SparkSession spark, String fromSourceDir, Column[] select, String saveToTable) {
    if(!isDirectoryEmpty(fromSourceDir, spark)) {
+     if(configuration.isUsePartitionedTable()) {
+       spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
+     }
      spark.read()
        .format("com.databricks.spark.avro")
        .load(fromSourceDir + "/*.avro")
@@ -191,7 +184,7 @@ public class TableBackfill {
        .format("parquet")
        .option("compression", "snappy")
        .mode("overwrite")
-       .saveAsTable(saveToTable);
+       .insertInto(saveToTable);
    }
   }
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
@@ -221,7 +214,8 @@ public class TableBackfill {
   }
 
   private String getSnapshotPath(String dataDirectory) {
-    String path = Paths.get(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase(), ".snapshot", snapshotId, dataDirectory.toLowerCase()).toString();
+    String path = Paths.get(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase(), ".snapshot",
+                            jobId, dataDirectory.toLowerCase()).toString();
     log.info("Snapshot path {}", path);
     return path;
   }
@@ -277,7 +271,12 @@ public class TableBackfill {
                             configuration.getTableName()));
   }
 
+
   private String createTableIfNotExists() {
+   return configuration.isUsePartitionedTable()? createPartitionedTableIfNotExists(): createParquetTableIfNotExists();
+  }
+
+  private String createParquetTableIfNotExists() {
     return String.format("CREATE TABLE IF NOT EXISTS %s (\n"
                          + OccurrenceHDFSTableDefinition.definition().stream()
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
@@ -286,11 +285,31 @@ public class TableBackfill {
                          configuration.getTableName());
   }
 
+  private String createPartitionedTableIfNotExists() {
+    return String.format("CREATE TABLE IF NOT EXISTS %s ("
+                         + OccurrenceHDFSTableDefinition.definition().stream()
+                           .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
+                           .map(field -> field.getHiveField() + " " + field.getHiveDataType())
+                           .collect(Collectors.joining(", "))
+                         + ") "
+                         + "PARTITIONED BY(datasetkey STRING) "
+                         + "STORED AS PARQUET "
+                         + "TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\", \"auto.purge\"=\"true\")",
+                         configuration.getTableName());
+
+  }
+
   private Column[] selectFromAvro() {
-    return OccurrenceHDFSTableDefinition.definition().stream()
+    List<Column> columns = OccurrenceHDFSTableDefinition.definition().stream()
+      .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
       .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
-      .collect(Collectors.toList())
-      .toArray(new Column[]{});
+      .collect(Collectors.toList());
+
+    //Partitioned columns must be at the end
+    if (configuration.isUsePartitionedTable()) {
+      columns.add(col("datasetkey"));
+    }
+    return columns.toArray(new Column[]{});
   }
 
 

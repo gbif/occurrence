@@ -13,25 +13,35 @@
  */
 package org.gbif.occurrence.table.udf;
 
-import org.gbif.occurrence.common.download.DownloadUtils;
-
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 import org.apache.spark.sql.api.java.UDF1;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 
 public class ToLocalISO8601Udf implements UDF1<String,String> {
 
+  private final Cache<String,String> cache;
+  public ToLocalISO8601Udf() {
+    cache = Cache2kBuilder.of(String.class, String.class)
+              .entryCapacity(100_000) //maximum capacity
+              .loader(ToLocalISO8601Udf::toLocalIso8601) //auto populating function
+              .permitNullValues(true) //allow nulls
+              .build();
+  }
+
+  private static String toLocalIso8601(String value) {
+    return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochMilli(Long.parseLong(value)).atZone(ZoneOffset.UTC));
+  }
+
+  private static boolean isNotNullOrEmpty(String value) {
+    return value != null && value.length() > 0;
+  }
+
   @Override
   public String call(String field) throws Exception {
-    if (field == null || field.length() == 0) {
-      return null;
-    } else {
-      try {
-        return DownloadUtils.ISO_8601_LOCAL.format(Instant.ofEpochMilli(Long.parseLong(field.toString())).atZone(ZoneOffset.UTC));
-      } catch (NumberFormatException e) {
-        return null;
-      }
-    }
+    return isNotNullOrEmpty(field)? cache.get(field) : null;
   }
 }
