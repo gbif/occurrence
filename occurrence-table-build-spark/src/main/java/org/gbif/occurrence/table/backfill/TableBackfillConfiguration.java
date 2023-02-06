@@ -60,6 +60,8 @@ public class TableBackfillConfiguration {
 
   private final boolean usePartitionedTable;
 
+  private final String targetDirectory;
+
   private final String coreName;
 
   private final String hiveDatabase;

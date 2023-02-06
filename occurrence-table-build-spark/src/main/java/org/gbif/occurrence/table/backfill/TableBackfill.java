@@ -286,7 +286,7 @@ public class TableBackfill {
   }
 
   private String createPartitionedTableIfNotExists() {
-    return String.format("CREATE TABLE IF NOT EXISTS %s ("
+    return String.format("CREATE EXTERNAL TABLE IF NOT EXISTS %s ("
                          + OccurrenceHDFSTableDefinition.definition().stream()
                            .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
@@ -294,8 +294,10 @@ public class TableBackfill {
                          + ") "
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "STORED AS PARQUET "
+                         + "LOCATION '%s'"
                          + "TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\", \"auto.purge\"=\"true\")",
-                         configuration.getTableName());
+                         configuration.getTableName(),
+                         Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
 
   }
 
