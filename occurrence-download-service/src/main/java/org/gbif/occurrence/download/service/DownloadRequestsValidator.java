@@ -13,16 +13,13 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
-import java.util.Objects;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.ParseException;
 
 /**
  * Utility class to validate PredicateDownloadRequest against a Json Schema.
@@ -31,23 +28,18 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class DownloadRequestsValidator {
+  private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestsValidator.class);
 
-  private static final ObjectMapper MAPPER = JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport();
-
-  static {
-    MAPPER.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+  public DownloadRequestsValidator() {
   }
 
 
   /** Validates the predicate download request as Json against the schema.*/
+  @SneakyThrows
   public void validate(String jsonPredicateDownloadRequest) {
-    try {
-      PredicateDownloadRequest request = MAPPER.readValue(jsonPredicateDownloadRequest, PredicateDownloadRequest.class);
-      if (Objects.isNull(request)) {
-        throw new IllegalArgumentException("Request contains invalid fields");
-      }
-    } catch (JsonProcessingException exception) {
-      throw new IllegalArgumentException(exception);
-    }
+    JSONObject object = new JSONObject(jsonPredicateDownloadRequest);
+    if (!object.has("predicate")) {
+      LOG.warn("Download request without a predicate: {}", jsonPredicateDownloadRequest);
+    };
   }
 }

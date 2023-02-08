@@ -13,6 +13,14 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.vocabulary.Country;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
@@ -26,6 +34,7 @@ import org.gbif.occurrence.download.hive.InitializableField;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.http.MediaType;
@@ -43,6 +52,9 @@ import lombok.Data;
  * Resource to describe file/table formats use in GBIF occurrence downloads.
  * Project specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.IUCN, DownloadFormat.MAP_OF_LIFE.
  */
+@Tag(
+  name = "Occurrence download formats",
+  description = "This API lists the fields present in the various download formats, their data types and their term identifiers.")
 @RestController
 @Validated
 @RequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE,
@@ -63,7 +75,6 @@ public class OccurrenceDownloadDescribeResource {
       return "DATE";
     }
     return hiveType;
-
   }
 
   /**
@@ -174,29 +185,117 @@ public class OccurrenceDownloadDescribeResource {
 
   //End of static cached definitions
 
-
+  @Operation(
+    operationId = "describeDwcaDownload",
+    summary = "Describes the fields present in a Darwin Core Archive format download")
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Field description",
+        content = {
+          @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = DwcDownload.class))
+        })
+    })
   @GetMapping("dwca")
   public DwcDownload dwca() {
     return DWC_DOWNLOAD;
   }
 
+  @Operation(
+    operationId = "describeSimpleCsvDownload",
+    summary = "Describes the fields present in a Simple CSV format download")
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Field description",
+        content = {
+          @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Table.class))
+        })
+    })
   @GetMapping("simpleCsv")
   public Table simpleCsv() {
     return SIMPLE_CSV;
   }
 
+  @Operation(
+    operationId = "describeSpeciesListDownload",
+    summary = "Describes the fields present in a Species List format download")
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Field description",
+        content = {
+          @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Table.class))
+        })
+    })
   @GetMapping("speciesList")
   public Table speciesList() {
     return SPECIES_LIST;
   }
 
+  @Operation(
+    operationId = "describeSimpleAvroDownload",
+    summary = "Describes the fields present in a Simple Avro format download")
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Field description",
+        content = {
+          @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Table.class))
+        })
+    })
   @GetMapping("simpleAvro")
   public Table simpleAvro() {
     return SIMPLE_AVRO;
   }
 
+  @Operation(
+    operationId = "describeSimpleWithVerbatimAvroDownload",
+    summary = "Describes the fields present in a Simple With Verbatim Avro format download")
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Field description",
+        content = {
+          @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Table.class))
+        })
+    })
   @GetMapping("simpleWithVerbatimAvro")
   public Table simpleWithVerbatimAvro() {
     return SIMPLE_WITH_VERBATIM_AVRO;
+  }
+
+  @Operation(
+    operationId = "describeSimpleParquetDownload",
+    summary = "Describes the fields present in a Simple Parquet format download")
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Field description",
+        content = {
+          @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Table.class))
+        })
+    })
+  @GetMapping("simpleParquet")
+  public Table simpleParquet() {
+    return SIMPLE_CSV;
   }
 }

@@ -60,7 +60,7 @@ public class DownloadRequestValidationFilter implements Filter {
     try {
       downloadRequestsValidator.validate(jsonDownloadRequest);
       return true;
-    } catch (IllegalArgumentException exception) {
+    } catch (Exception exception) {
       setErrorContent(response, exception);
       return false;
     }
@@ -70,7 +70,7 @@ public class DownloadRequestValidationFilter implements Filter {
    * Sets the response error content.
    */
   @SneakyThrows
-  private void setErrorContent(HttpServletResponse response, IllegalArgumentException exception) {
+  private void setErrorContent(HttpServletResponse response, Exception exception) {
     response.setStatus(HttpStatus.BAD_REQUEST.value());
     String responseBody = String.join("\n", exception.getMessage());
     response.setContentLength(responseBody.length());
