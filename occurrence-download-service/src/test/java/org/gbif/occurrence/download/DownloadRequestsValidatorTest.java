@@ -110,7 +110,6 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  @Disabled("Not ready, see #273")
   public void downloadMatchCaseFieldTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
@@ -140,6 +139,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
+  @Disabled("Not ready, see #273")
   public void downloadMatchCaseFieldWrongTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
