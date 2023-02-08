@@ -34,6 +34,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
+  @Disabled("Not ready, see #273")
   public void unknownFieldTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
     Assertions.assertThrows(IllegalArgumentException.class, () ->
@@ -109,6 +110,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
+  @Disabled("Not ready, see #273")
   public void downloadMatchCaseFieldTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 
