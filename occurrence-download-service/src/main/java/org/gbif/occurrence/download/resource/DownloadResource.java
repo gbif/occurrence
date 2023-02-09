@@ -351,6 +351,7 @@ public class DownloadResource {
         parseSource(source, userAgent));
   }
 
+  @Hidden
   @GetMapping("predicate")
   public DownloadRequest downloadPredicate(
       @Autowired HttpServletRequest httpRequest,

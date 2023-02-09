@@ -103,7 +103,7 @@ public class OccurrenceSearchResource {
     this.searchTermService = searchTermService;
   }
 
-  // TODO Document
+  @Hidden
   @PostMapping("predicate")
   public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
      LOG.debug("Executing query, predicate {}, limit {}, offset {}", request.getPredicate(), request.getLimit(),
@@ -111,7 +111,7 @@ public class OccurrenceSearchResource {
     return searchService.search(request);
   }
 
-  // TODO Document or hide?
+  @Hidden
   @PostMapping
   public SearchResponse<Occurrence,OccurrenceSearchParameter> postSearch(@NotNull @Valid @RequestBody OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
