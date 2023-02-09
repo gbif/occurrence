@@ -13,8 +13,15 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import io.swagger.v3.oas.annotations.*;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -31,14 +38,6 @@ import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipServic
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
-
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.List;
-import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +48,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.List;
+import java.util.UUID;
 
-import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static org.gbif.ws.paths.OccurrencePaths.FRAGMENT_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
@@ -72,8 +77,19 @@ import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
   servers = {
     @Server(url = "https://api.gbif.org/v1/", description = "Production"),
     @Server(url = "https://api.gbif-uat.org/v1/", description = "User testing")
+  },
+  tags = {
+    @Tag(
+      name = "Occurrence download statistics",
+      description = "This API provides statistics about occurrence downloads.",
+      extensions = @io.swagger.v3.oas.annotations.extensions.Extension(
+        name = "Order", properties = @ExtensionProperty(name = "Order", value = "0500")))
   })
-@Tag(name = "Occurrences", description = "This API provides services related to the retrieval of single occurrence records.")
+@Tag(name = "Occurrences",
+  description = "This API provides services related to the retrieval of single occurrence records.",
+  extensions = @io.swagger.v3.oas.annotations.extensions.Extension(
+  name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100"))
+)
 @RestController
 @RequestMapping(
   value = OCCURRENCE_PATH,

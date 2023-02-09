@@ -14,6 +14,7 @@
 package org.gbif.occurrence.ws.resources;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -54,7 +55,10 @@ import lombok.Data;
  */
 @Tag(
   name = "Occurrence download formats",
-  description = "This API lists the fields present in the various download formats, their data types and their term identifiers.")
+  description = "This API lists the fields present in the various download formats, their data types and their term identifiers.",
+  extensions = @io.swagger.v3.oas.annotations.extensions.Extension(
+    name = "Order", properties = @ExtensionProperty(name = "Order", value = "0400"))
+)
 @RestController
 @Validated
 @RequestMapping(produces = {MediaType.APPLICATION_JSON_VALUE,

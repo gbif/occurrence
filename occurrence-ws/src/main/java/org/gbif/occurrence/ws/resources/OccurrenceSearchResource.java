@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -77,7 +78,10 @@ import static org.gbif.ws.paths.OccurrencePaths.*;
   "In order to retrieve all results for a given search filter you need to issue individual requests for each page, which is limited to " +
   "a maximum size of 300 records per page. Note that for technical reasons we also have a hard limit for any query of 100,000 records. " +
   "You will get an error if the offset + limit exceeds 100,000. To retrieve all records beyond 100,000 you should use our asynchronous " +
-  "download service (below) instead.")
+  "download service (below) instead.",
+  extensions = @io.swagger.v3.oas.annotations.extensions.Extension(
+  name = "Order", properties = @ExtensionProperty(name = "Order", value = "0200"))
+)
 @RestController
 @RequestMapping(
   value = OCC_SEARCH_PATH,

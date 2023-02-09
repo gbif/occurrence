@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.service.occurrence.DownloadRequestService;
@@ -27,7 +28,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Occurrence downloads", description = "This API provides services for bulk downloads of occurrences.")
+@Tag(name = "Occurrence downloads", description = "This API provides services for bulk downloads of occurrences.",
+  extensions = @io.swagger.v3.oas.annotations.extensions.Extension(
+    name = "Order", properties = @ExtensionProperty(name = "Order", value = "0300"))
+)
 @RestController
 @Validated
 @RequestMapping(
