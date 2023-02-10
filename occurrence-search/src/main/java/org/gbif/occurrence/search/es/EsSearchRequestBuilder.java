@@ -31,6 +31,8 @@ import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
+import com.google.common.annotations.VisibleForTesting;
+import lombok.SneakyThrows;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
@@ -55,10 +57,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-
-import com.google.common.annotations.VisibleForTesting;
-
-import lombok.SneakyThrows;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
@@ -129,8 +127,8 @@ public class EsSearchRequestBuilder {
               new Script(
                   ScriptType.INLINE,
                   "painless",
-                  "(doc['_id'].value + '" + searchRequest.getShuffle() + "').hashCode()",
-                  new HashMap<>()),
+                  "(doc['_id'].value + params['seed']).hashCode()",
+                  Collections.singletonMap("seed", searchRequest.getShuffle())),
               ScriptSortBuilder.ScriptSortType.NUMBER));
     } else if (Strings.isNullOrEmpty(searchRequest.getQ())) {
       occurrenceBaseEsFieldMapper.getDefaultSort().forEach(searchSourceBuilder::sort);
