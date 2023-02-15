@@ -464,7 +464,7 @@ public class OccurrenceSearchResource {
        in = ParameterIn.QUERY),
      @Parameter(
        name = "publishingCountry",
-       description = "The 2-letter country code (as per ISO-3166-1) of the owining organization's country.",
+       description = "The 2-letter country code (as per ISO-3166-1) of the owning organization's country.",
        schema = @Schema(implementation = Country.class),
        in = ParameterIn.QUERY,
        explode = Explode.FALSE),
@@ -683,7 +683,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestCatalogNumbers",
     summary = "Suggest catalogue numbers",
     description = "Search that returns matching catalogue numbers. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(CATALOG_NUMBER_PATH)
   @ResponseBody
   public List<String> suggestCatalogNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -696,7 +696,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestCollectionCodes",
     summary = "Suggest collection codes",
     description = "Search that returns matching collection codes. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(COLLECTION_CODE_PATH)
   @ResponseBody
   public List<String> suggestCollectionCodes(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -709,7 +709,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestRecordedBy",
     summary = "Suggest recorded by values",
     description = "Search that returns matching recorded by values. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(RECORDED_BY_PATH)
   @ResponseBody
   public List<String> suggestRecordedBy(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -722,7 +722,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestIdentifiedBy",
     summary = "Suggest identified by values",
     description = "Search that returns matching identified by values. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(IDENTIFIED_BY_PATH)
   @ResponseBody
   public List<String> suggestIdentifiedBy(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -735,7 +735,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestRecordNumbers",
     summary = "Suggest record numbers",
     description = "Search that returns matching record numbers. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(RECORD_NUMBER_PATH)
   @ResponseBody
   public List<String> suggestRecordNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -748,7 +748,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestInstitutionCodes",
     summary = "Suggest institution codes",
     description = "Search that returns matching institution codes. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(INSTITUTION_CODE_PATH)
   @ResponseBody
   public List<String> suggestInstitutionCodes(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -761,7 +761,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestOccurrenceIds",
     summary = "Suggest occurrence ids",
     description = "Search that returns matching occurrence ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(OCCURRENCE_ID_PATH)
   @ResponseBody
   public List<String> suggestOccurrenceIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -774,7 +774,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestOrganismIds",
     summary = "Suggest organism ids",
     description = "Search that returns matching organism ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(ORGANISM_ID_PATH)
   @ResponseBody
   public List<String> suggestOrganismIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -787,7 +787,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestLocalities",
     summary = "Suggest locality strings",
     description = "Search that returns matching localities. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(LOCALITY_PATH)
   @ResponseBody
   public List<String> suggestLocalities(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -800,7 +800,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestStateProvinces",
     summary = "Suggest states/provinces",
     description = "Search that returns matching states or provinces. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(STATE_PROVINCE_PATH)
   @ResponseBody
   public List<String> suggestStatesProvinces(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -813,7 +813,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestWaterBodies",
     summary = "Suggest water bodies",
     description = "Search that returns matching water bodies. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(WATER_BODY_PATH)
   @ResponseBody
   public List<String> suggestWaterBodies(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -826,7 +826,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestSamplingProtocols",
     summary = "Suggest sampling protocols",
     description = "Search that returns matching sampling protocols. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(SAMPLING_PROTOCOL_PATH)
   @ResponseBody
   public List<String> suggestSamplingProtocols(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -839,7 +839,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestEventIds",
     summary = "Suggest event ids",
     description = "Search that returns matching event ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(EVENT_ID_PATH)
   @ResponseBody
   public List<String> suggestEventIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -852,7 +852,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestParentEventIds",
     summary = "Suggest parent event ids",
     description = "Search that returns matching parent event ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(PARENT_EVENT_ID_PATH)
   @ResponseBody
   public List<String> suggestParentEventIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -865,7 +865,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestDatasetNames",
     summary = "Suggest dataset names",
     description = "Search that returns matching dataset names. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(DATASET_NAME_PATH)
   @ResponseBody
   public List<String> suggestDatasetNames(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -878,7 +878,7 @@ public class OccurrenceSearchResource {
     operationId = "suggestOtherCatalogNumbers",
     summary = "Suggest other catalogue numbers",
     description = "Search that returns matching other catalogue numbers. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @GetMapping(OTHER_CATALOG_NUMBERS_PATH)
   @ResponseBody
   public List<String> suggestOtherCatalogNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -892,7 +892,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest values for supported terms",
     description = "Search that returns values for supported terms. Results are ordered by relevance.",
     // TODO: what is supported?
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200"))
   @Parameters(
     value = {
       @Parameter(

@@ -125,13 +125,25 @@ public class OccurrenceDownloadDescribeResource {
   /**
    * Field description of file or download table.
    */
+  @Schema(
+    description = "Field description of file or download table."
+  )
   @Data
   @Builder
   public static class Field {
+    @Schema(description = "The field name.")
     private final String name;
+
+    @Schema(description = "The data type.")
     private final String type;
+
+    @Schema(description = "A pattern showing the format of the field data.")
     private String typeFormat;
+
+    @Schema(description = "The URI for the term (e.g. Darwin Core term) for the field.")
     private final Term term;
+
+    @Schema(description = "Whether the field is required.")
     private boolean required;
   }
 

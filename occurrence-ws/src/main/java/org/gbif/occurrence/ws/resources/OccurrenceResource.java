@@ -22,15 +22,18 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.gbif.api.annotation.NullToNotFound;
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
@@ -164,7 +167,10 @@ public class OccurrenceResource {
   @Operation(
     operationId = "getOccurrenceById",
     summary = "Occurrence by id",
-    description = "Retrieve details for a single, interpreted occurrence")
+    description = "Retrieve details for a single, interpreted occurrence.\n\n" +
+      "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
+      "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
+      "Term names.")
   @GbifIdPathParameter
   @ApiResponses(
     value = {
@@ -193,104 +199,6 @@ public class OccurrenceResource {
   }
 
   /**
-   * This retrieves a single occurrence fragment in its raw form as a string.
-   *
-   * @param gbifId The Occurrence gbifId
-   * @return requested occurrence fragment or null if none could be found
-   */
-  @Operation(
-    operationId = "getOccurrenceFragmentById",
-    summary = "Occurrence fragment by id",
-    description = "Retrieve a single occurrence fragment in its raw form (JSON or XML)")
-  @Parameters(
-    value = {
-      @Parameter(
-        name = "gbifId",
-        description = "Integer gbifId for the occurrence.",
-        examples = {@ExampleObject("1258202889"), @ExampleObject("142316233")},
-        schema = @Schema(implementation = Long.class, minimum = "1"),
-        in = ParameterIn.PATH),
-    }
-  )
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence fragment in JSON or XML format",
-        content = {
-          @Content(
-            mediaType = "application/json",
-            schema = @Schema(implementation = Occurrence.class)),
-          @Content(
-            mediaType = "text/xml",
-            schema = @Schema(implementation = Occurrence.class))
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Occurrence fragment not found",
-        content = @Content)
-    })
-  @GetMapping("/{gbifId}/" + FRAGMENT_PATH)
-  @ResponseBody
-  @NullToNotFound
-  public String getFragment(@PathVariable("gbifId") Long gbifId) {
-    LOG.debug("Request occurrence fragment [{}]:", gbifId);
-    // TODO: Content type needs to be text/xml if necessary.
-    return occurrenceService.getFragment(gbifId);
-  }
-
-  /**
-   * This retrieves a single occurrence fragment in its raw form as a string.
-   *
-   * @param datasetKey dataset UUID identifier
-   * @param occurrenceId record identifier in the dataset
-   * @return requested occurrence or null if none could be found
-   */
-  @Operation(
-    operationId = "getOccurrenceFragmentByDatasetKeyAndOccurrenceId",
-    summary = "Occurrence fragment by dataset key and occurrence id",
-    description = "Retrieve a single occurrence fragment in its raw form (JSON or XML) by its dataset key and occurrenceId in that dataset")
-  @DatasetKeyOccurrenceIdPathParameters
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence fragment found",
-        content = {
-          @Content(
-            mediaType = "application/json",
-            schema = @Schema(implementation = Occurrence.class)),
-          @Content(
-            mediaType = "text/xml",
-            schema = @Schema(implementation = Occurrence.class))
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier(s) supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Dataset or occurrenceId not found",
-        content = @Content)
-    })
-  @GetMapping("/{datasetKey}/{occurrenceId}/" + FRAGMENT_PATH)
-  @ResponseBody
-  @NullToNotFound
-  public String getFragment(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
-    LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
-    Occurrence occurrence = occurrenceGetByKey.get(datasetKey, occurrenceId);
-    if (occurrence != null) {
-      // TODO: Content type needs to be text/xml if necessary.
-      return getFragment(occurrence.getKey());
-    }
-    return null;
-  }
-
-  /**
    * This retrieves a single Occurrence detail from the occurrence store.
    *
    * @param datasetKey dataset UUID identifier
@@ -301,7 +209,10 @@ public class OccurrenceResource {
   @Operation(
     operationId = "getOccurrenceByDatasetKeyAndOccurrenceId",
     summary = "Occurrence by dataset key and occurrence id",
-    description = "Retrieve a single, interpreted occurrence by its dataset key and occurrenceId in that dataset")
+    description = "Retrieve a single, interpreted occurrence by its dataset key and occurrenceId in that dataset.\n\n" +
+      "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
+      "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
+      "Term names.")
   @DatasetKeyOccurrenceIdPathParameters
   @ApiResponses(
     value = {
@@ -331,6 +242,98 @@ public class OccurrenceResource {
   }
 
   /**
+   * This retrieves a single occurrence fragment in its raw form as a string.
+   *
+   * @param gbifId The Occurrence gbifId
+   * @return requested occurrence fragment or null if none could be found
+   */
+  @Operation(
+    operationId = "getOccurrenceFragmentById",
+    summary = "Occurrence fragment by id",
+    description = "Retrieve a single occurrence fragment in its raw form (JSON or XML).\n\n" +
+      "Fragments for deleted occurrences are retained (in most cases) since #TODO# YYYY-MM-DD.") // TODO
+  @Parameters(
+    value = {
+      @Parameter(
+        name = "gbifId",
+        description = "Integer gbifId for the occurrence.",
+        examples = {@ExampleObject("1258202889"), @ExampleObject("142316233")},
+        schema = @Schema(implementation = Long.class, minimum = "1"),
+        in = ParameterIn.PATH),
+    }
+  )
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Occurrence fragment in JSON or XML format",
+        content = {
+          @Content(mediaType = "application/json"),
+          @Content(mediaType = "text/xml")
+        }),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid identifier supplied",
+        content = @Content),
+      @ApiResponse(
+        responseCode = "404",
+        description = "Occurrence fragment not found",
+        content = @Content)
+    })
+  @GetMapping("/{gbifId}/" + FRAGMENT_PATH)
+  @ResponseBody
+  @NullToNotFound
+  public String getFragment(@PathVariable("gbifId") Long gbifId) {
+    LOG.debug("Request occurrence fragment [{}]:", gbifId);
+    // TODO: Content type needs to be text/xml if necessary.
+    return occurrenceService.getFragment(gbifId);
+  }
+
+  /**
+   * This retrieves a single occurrence fragment in its raw form as a string.
+   *
+   * @param datasetKey dataset UUID identifier
+   * @param occurrenceId record identifier in the dataset
+   * @return requested occurrence or null if none could be found
+   */
+  @Operation(
+    operationId = "getOccurrenceFragmentByDatasetKeyAndOccurrenceId",
+    summary = "Occurrence fragment by dataset key and occurrence id",
+    description = "Retrieve a single occurrence fragment in its raw form (JSON or XML) by its dataset key and occurrenceId in that dataset.\n\n" +
+      "Fragments for deleted occurrences are retained (in most cases) since #TODO# YYYY-MM-DD.")
+  @DatasetKeyOccurrenceIdPathParameters
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Occurrence fragment found",
+        content = {
+          @Content(mediaType = "application/json"),
+          @Content(mediaType = "text/xml")
+        }),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid identifier(s) supplied",
+        content = @Content),
+      @ApiResponse(
+        responseCode = "404",
+        description = "Dataset or occurrenceId not found",
+        content = @Content)
+    })
+  @GetMapping("/{datasetKey}/{occurrenceId}/" + FRAGMENT_PATH)
+  @ResponseBody
+  @NullToNotFound
+  public String getFragment(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
+    LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
+    Occurrence occurrence = occurrenceGetByKey.get(datasetKey, occurrenceId);
+    if (occurrence != null) {
+      // TODO: Content type needs to be text/xml if necessary.
+      return getFragment(occurrence.getKey());
+    }
+    return null;
+  }
+
+  /**
    * This retrieves a single VerbatimOccurrence detail by its key from the occurrence store and transforms it into the API
    * version which uses Maps.
    *
@@ -340,7 +343,10 @@ public class OccurrenceResource {
   @Operation(
     operationId = "getVerbatimOccurrenceById",
     summary = "Verbatim occurrence by id",
-    description = "Retrieve a single, verbatim occurrence without any interpretation")
+    description = "Retrieve a single, verbatim occurrence without any interpretation\n\n" +
+      "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
+      "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
+      "Term names.")
   @GbifIdPathParameter
   @ApiResponses(
     value = {
@@ -415,7 +421,7 @@ public class OccurrenceResource {
   @Operation(
     operationId = "experimentalGetRelatedOccurrences",
     summary = "Related occurrences by gbifId",
-    description = "**Experimental** Retrieve a list of related occurrences")
+    description = "**Experimental** Retrieve a list of related occurrences.")
   @Parameters(
     value = {
       @Parameter(
