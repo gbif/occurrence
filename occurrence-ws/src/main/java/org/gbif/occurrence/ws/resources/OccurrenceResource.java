@@ -13,27 +13,7 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.SchemaProperty;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.servers.Server;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.gbif.api.annotation.NullToNotFound;
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
@@ -41,15 +21,6 @@ import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipServic
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -58,13 +29,29 @@ import java.lang.annotation.Target;
 import java.util.List;
 import java.util.UUID;
 
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static org.gbif.ws.paths.OccurrencePaths.FRAGMENT_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
-import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+
+import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import static java.lang.annotation.ElementType.*;
+import static org.gbif.ws.paths.OccurrencePaths.*;
 
 /**
  * Occurrence resource, the verbatim sub resource, and occurrence metrics.
@@ -170,7 +157,9 @@ public class OccurrenceResource {
     description = "Retrieve details for a single, interpreted occurrence.\n\n" +
       "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
       "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names.")
+      "Term names.",
+    extensions = @io.swagger.v3.oas.annotations.extensions.Extension(name = "Category", properties = @ExtensionProperty(name = "BasicCategory", value = "Include"))
+  )
   @GbifIdPathParameter
   @ApiResponses(
     value = {

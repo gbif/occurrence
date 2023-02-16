@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
     // This isn't ideal, and should be migrated to its own section or possibly non-OpenAPI documentation later.
     "### Occurrence Download Predicates\n\n" +
     "**TODO**, the explanation is probably too long for here and will refer to an external page.\n\n" +
-    "For the moment, expand the `predicate` section of the request body schema on the [creation API call](#operation/requestDownload)." +
+    "For the moment, expand the `predicate` section of the request body schema on the [creation API call](#operation/requestDownload).\n" +
     "### Occurrence Download Limits\n\n" +
     "Occurrence downloads demand significant computational resources, and are monitored and limited according to the " +
     "GBIF platform load. In order to avoid that downloads requested by a single user utilize most of the resources " +
