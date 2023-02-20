@@ -13,14 +13,15 @@
  */
 package org.gbif.occurrence.ws.config;
 
-import io.swagger.v3.oas.models.tags.Tag;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
-import java.util.Map;
-import java.util.stream.Collectors;
+import io.swagger.v3.oas.models.tags.Tag;
 
 /**
  * Java configuration of the OpenAPI specification.

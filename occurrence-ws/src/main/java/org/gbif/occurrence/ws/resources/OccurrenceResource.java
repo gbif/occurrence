@@ -157,8 +157,7 @@ public class OccurrenceResource {
     description = "Retrieve details for a single, interpreted occurrence.\n\n" +
       "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
       "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names.",
-    extensions = @io.swagger.v3.oas.annotations.extensions.Extension(name = "Category", properties = @ExtensionProperty(name = "BasicCategory", value = "Include"))
+      "Term names."
   )
   @GbifIdPathParameter
   @ApiResponses(

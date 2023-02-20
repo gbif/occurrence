@@ -13,13 +13,13 @@
  */
 package org.gbif.occurrence.download.service;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.ParseException;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 
 /**
  * Utility class to validate PredicateDownloadRequest against a Json Schema.
