@@ -188,12 +188,20 @@ public class TableBackfill {
    }
   }
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
-    spark.sql(createExtensionTable(extensionTable));
+    spark.sql(configuration.isUsePartitionedTable()? createExtensionExternalTable(extensionTable) : createExtensionTable(extensionTable));
+
+    List<Column> columns = extensionTable.getFields().stream()
+      .filter(field -> configuration.isUsePartitionedTable() && !field.equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
+      .map(field -> field.contains(")")? callUDF(field.substring(0, field.indexOf('(')), col(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))).alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')'))) : col(field))
+      .collect(Collectors.toList());
+
+    //Partitioned columns must be at the end
+    if (configuration.isUsePartitionedTable()) {
+      columns.add(col("datasetkey"));
+    }
     fromAvroToTable(spark,
                     getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
-                    extensionTable.getFields().stream()
-                      .map(field -> field.contains(")")? callUDF(field.substring(0, field.indexOf('(')), col(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))).alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')'))) : col(field))
-                      .collect(Collectors.toList()).toArray(new Column[]{}), //SELECT
+                    columns.toArray(new Column[]{}), //SELECT
                     extensionTableName(extensionTable)); //INSERT OVERWRITE INTO
   }
 
@@ -207,6 +215,17 @@ public class TableBackfill {
                           Collectors.joining(",\n")) + ')'
                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n",
                         extensionTableName(extensionTable));
+  }
+
+  private String createExtensionExternalTable(ExtensionTable extensionTable) {
+    return String.format("CREATE EXTERNAL TABLE IF NOT EXISTS %s\n"
+                         + '(' + extensionTable.getSchema().getFields().stream().filter(f -> !f.name().equalsIgnoreCase("datasetkey")).map(f -> f.name() + " STRING").collect(
+                           Collectors.joining(",\n")) + ')'
+                         + "PARTITIONED BY(datasetkey STRING) "
+                         + "LOCATION '%s'"
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n",
+                         extensionTableName(extensionTable),
+                         Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
 
   private String dropTable(String tableName) {
