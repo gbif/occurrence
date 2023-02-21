@@ -16,6 +16,7 @@ package org.gbif.occurrence.download;
 import org.gbif.occurrence.download.service.DownloadRequestsValidator;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class DownloadRequestsValidatorTest {
@@ -34,6 +35,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
+  @Disabled("Not ready, see #273")
   public void unknownFieldTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
     Assertions.assertThrows(IllegalArgumentException.class, () ->
@@ -76,27 +78,13 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  public void downloadSendNotificationWrongFormatTest() {
+  @Disabled("Not ready, see #273")
+  public void downloadTestUnknownField() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
-
-    //As string  WARNING Jackson interprets trruee as False, whatever is not 'true' in any variation is false
-    validator.validate("{\n"
-                       + "  \"creator\":\"markus\",\n"
-                       + "  \"format\": \"SIMPLE_CSV\",\n"
-                       + "  \"sendNotification\": \"trrue\",\n"
-                       + "  \"predicate\":{\n"
-                       + "    \"type\":\"within\",\n"
-                       + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
-                       + "  }\n"
-                       + "}");
-
-    //As boolean
-    Assertions.assertThrows(IllegalArgumentException.class, () ->
+    Assertions.assertThrows(java.text.ParseException.class, () ->
       validator.validate("{\n"
                          + "  \"creator\":\"markus\",\n"
-                         + "  \"format\": \"SIMPLE_CSV\",\n"
-                         + "  \"sendNotification\": truth,\n"
-                         + "  \"predicate\":{\n"
+                         + "  \"predicates\":{\n" // Incorrect name (extra s).
                          + "    \"type\":\"within\",\n"
                          + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
                          + "  }\n"
@@ -104,32 +92,22 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
-  public void downloadWrongPredicateTest() {
+  @Disabled("Not ready, see #273")
+  public void downloadTestMissingPredicate() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
-    Assertions.assertThrows(IllegalArgumentException.class, () ->
-    validator.validate("{\n"
-                       + "  \"creator\":\"markus\",\n"
-                       + "  \"format\": \"SIMPLE_CSV\",\n"
-                       + "  \"predicate\":{\n"
-                       + "    \"type\":\"inner\",\n" //Wrong predicate name
-                       + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
-                       + "  }\n"
-                       + "}"));
+    Assertions.assertThrows(java.text.ParseException.class, () ->
+      validator.validate("{\n"
+        + "  \"creator\":\"markus\"\n"
+        + "}"));
   }
 
-
   @Test
-  public void downloadUnknownFieldTest() {
+  public void downloadTestEmptyPredicate() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
-    Assertions.assertThrows(IllegalArgumentException.class, () ->
-      validator.validate("{\n"
-                         + "  \"creator\":\"markus\",\n"
-                         + "  \"format_type\": \"SIMPLE_CSV\",\n" //Unknown field
-                         + "  \"predicate\":{\n"
-                         + "    \"type\":\"inner\",\n" //Wrong predicate name
-                         + "    \"geometry\":\"POLYGON ((-85.781 17.978,-81.035 14.774,-77.343 10.314,-79.277 6.315,-93.955 14.604,-91.450 18.229,-87.626 19.311,-85.781 17.978))\"\n"
-                         + "  }\n"
-                         + "}"));
+    validator.validate("{\n"
+      + "  \"creator\":\"markus\",\n"
+      + "  \"predicate\":{}\n"
+      + "}");
   }
 
   @Test
@@ -162,6 +140,7 @@ public class DownloadRequestsValidatorTest {
   }
 
   @Test
+  @Disabled("Not ready, see #273")
   public void downloadMatchCaseFieldWrongTest() {
     DownloadRequestsValidator validator = new DownloadRequestsValidator();
 

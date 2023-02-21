@@ -129,8 +129,8 @@ public class EsSearchRequestBuilder {
               new Script(
                   ScriptType.INLINE,
                   "painless",
-                  "(doc['_id'].value + '" + searchRequest.getShuffle() + "').hashCode()",
-                  new HashMap<>()),
+                  "(doc['_id'].value + params['seed']).hashCode()",
+                  Collections.singletonMap("seed", searchRequest.getShuffle())),
               ScriptSortBuilder.ScriptSortType.NUMBER));
     } else if (Strings.isNullOrEmpty(searchRequest.getQ())) {
       occurrenceBaseEsFieldMapper.getDefaultSort().forEach(searchSourceBuilder::sort);

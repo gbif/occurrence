@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.192.3-SNAPSHOT</version>
+  <version>0.192.6-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -108,6 +108,8 @@
     <mybatis-spring-boot-starter-test.version>2.0.0</mybatis-spring-boot-starter-test.version>
     <feign.version>10.11</feign.version>
     <spring-boot-admin.version>2.2.4</spring-boot-admin.version>
+    <springdoc-openapi-ui.version>1.5.8</springdoc-openapi-ui.version>
+    <swagger-annotations.version>2.2.3</swagger-annotations.version>
 
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
@@ -159,7 +161,7 @@
     <httpcore.version>4.4.13</httpcore.version>
 
     <jackson.version>2.11.3</jackson.version>
-
+    <json.version>20220320</json.version>
     <jcommander.version>1.35</jcommander.version>
     <logback.version>1.1.5</logback.version>
     <logstash-encoder.version>4.6</logstash-encoder.version>
@@ -205,7 +207,7 @@
     <download-query-tools.version>1.47</download-query-tools.version>
     <dwc-api.version>1.43</dwc-api.version>
     <dwca-io.version>2.15</dwca-io.version>
-    <gbif-api.version>1.0.2</gbif-api.version>
+    <gbif-api.version>1.1.0-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -611,6 +613,16 @@
         <artifactId>spring-boot-admin-starter-client</artifactId>
         <version>${spring-boot-admin.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-ui</artifactId>
+        <version>${springdoc-openapi-ui.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-annotations</artifactId>
+        <version>${swagger-annotations.version}</version>
+      </dependency>
 
       <!-- Other -->
       <dependency>
@@ -654,7 +666,12 @@
         <version>${jackson.version}</version>
       </dependency>
 
-      <!-- Templates -->
+      <!-- Json Schemas -->
+      <dependency>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>${json.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>
         <artifactId>freemarker</artifactId>

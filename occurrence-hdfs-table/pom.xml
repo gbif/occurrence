@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.192.3-SNAPSHOT</version>
+    <version>0.192.6-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
