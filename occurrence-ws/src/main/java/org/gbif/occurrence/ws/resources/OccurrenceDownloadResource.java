@@ -39,10 +39,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     "and use HTTP authentication using the username (not the email) and password.\n\n" +
     "Internally we use a [Java web service client](https://github.com/gbif/occurrence/tree/master/occurrence-ws-client) " +
     "for the consumption of these HTTP-based, RESTful web services. It may be of interest to those coding against the API.\n\n" +
-    // This isn't ideal, and should be migrated to its own section or possibly non-OpenAPI documentation later.
     "### Occurrence Download Predicates\n\n" +
-    "**TODO**, the explanation is probably too long for here and will refer to an external page.\n\n" +
-    "For the moment, expand the `predicate` section of the request body schema on the [creation API call](#operation/requestDownload).\n" +
+    "For the API reference for download predicates expand the `predicate` section of the request body schema on the " +
+    "[creation API call](#operation/requestDownload).\n\n" +
+    "For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads.html)" +
     "### Occurrence Download Limits\n\n" +
     "Occurrence downloads demand significant computational resources, and are monitored and limited according to the " +
     "GBIF platform load. In order to avoid that downloads requested by a single user utilize most of the resources " +

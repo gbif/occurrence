@@ -231,7 +231,7 @@ public class OccurrenceSearchResource {
         name = "continent",
         description = "Continent, as defined in our Continent vocabulary.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
-        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Continent.class)),
         explode = Explode.TRUE,
         in = ParameterIn.QUERY,
         example = "EUROPE"),
@@ -250,6 +250,7 @@ public class OccurrenceSearchResource {
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Country.class)),
         explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
         example = "AF"),
       @Parameter(
         name = "crawlId",

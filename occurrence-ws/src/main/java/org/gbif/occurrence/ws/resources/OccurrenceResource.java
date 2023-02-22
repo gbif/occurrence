@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 
 import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -69,11 +70,40 @@ import static org.gbif.ws.paths.OccurrencePaths.*;
     @Server(url = "https://api.gbif-uat.org/v1/", description = "User testing")
   },
   tags = {
+    // This is an additional tag to allow the statistics methods implemented in the
+    // registry to belong in their own section.
+    // They are annotated with @Tag(name = "Occurrence download statistics").
     @Tag(
       name = "Occurrence download statistics",
       description = "This API provides statistics about occurrence downloads.",
-      extensions = @io.swagger.v3.oas.annotations.extensions.Extension(
-        name = "Order", properties = @ExtensionProperty(name = "Order", value = "0500")))
+      extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0500"))
+    ),
+    // These are for the methods from metrics-ws.
+    @Tag(
+      name = "Occurrence metrics",
+      description = "This API provides services to retrieve various counts and metrics " +
+        "provided for occurrence records. The metrics that are currently supported are " +
+        "listed by the API itself, see [the schema method](#operation/getOccurrenceCountSchema) " +
+        "for details.",
+      extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0600"))
+    ),
+    @Tag(
+      name = "Occurrence inventories",
+      description = "This API provides services that list all distinct values together with " +
+        "their occurrence count for a given occurrence property. Only a few properties are " +
+        "supported, each with its own service to call.",
+      extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0700"))
+    ),
+    // And this for the GADM methods from geocode-ws
+    @Tag(
+      name = "GADM regions",
+      description = "The [GADM Global Administrative Area Database](https://gadm.org) " +
+        "is a high-resolution database of administrative areas of countries.\n\n" +
+        "Within GBIF, it is used to index occurrence data by administrative region.\n\n" +
+        "This API provides services to search and browse regions and sub-regions " +
+        "down to the third level sub-region.",
+      extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0800"))
+    )
   })
 @Tag(name = "Occurrences",
   description = "This API provides services related to the retrieval of single occurrence records.",
