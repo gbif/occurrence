@@ -95,6 +95,7 @@
     <module>event-ws</module>
     <module>occurrence-download-service</module>
     <module>occurrence-table-build-spark</module>
+    <module>occurrence-download-spark</module>
   </modules>
 
   <properties>
