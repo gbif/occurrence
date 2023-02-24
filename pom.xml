@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.189-hadoop3-SNAPSHOT</version>
+  <version>0.192.6-hadoop3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -86,6 +86,8 @@
     <mybatis-spring-boot-starter-test.version>2.0.0</mybatis-spring-boot-starter-test.version>
     <feign.version>10.11</feign.version>
     <spring-boot-admin.version>2.2.4</spring-boot-admin.version>
+    <springdoc-openapi-ui.version>1.5.8</springdoc-openapi-ui.version>
+    <swagger-annotations.version>2.2.3</swagger-annotations.version>
 
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
@@ -131,11 +133,7 @@
     <httpcore.version>4.4.13</httpcore.version>
 
     <jackson.version>2.11.3</jackson.version>
-
-    <!-- Json Schemas-->
-    <everit-json-schema.version>1.14.1</everit-json-schema.version>
-    <mbknor-jackson-jsonschema.version>1.0.39</mbknor-jackson-jsonschema.version>
-
+    <json.version>20220320</json.version>
     <jcommander.version>1.35</jcommander.version>
     <logback.version>1.1.5</logback.version>
     <logstash-encoder.version>4.6</logstash-encoder.version>
@@ -181,14 +179,14 @@
     <download-query-tools.version>1.47-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.44</dwc-api.version>
     <dwca-io.version>2.15</dwca-io.version>
-    <gbif-api.version>1.0.0</gbif-api.version>
+    <gbif-api.version>1.1.0-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
-    <gbif-common-ws.version>1.23</gbif-common-ws.version>
+    <gbif-common-ws.version>1.24</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-metadata-profile.version>2.0</gbif-metadata-profile.version>
+    <gbif-metadata-profile.version>2.1</gbif-metadata-profile.version>
     <gbif-parsers.version>0.59</gbif-parsers.version>
     <gbif-postal-service.version>1.4</gbif-postal-service.version>
     <gbif-registry.version>3.88</gbif-registry.version>
@@ -587,6 +585,16 @@
         <artifactId>spring-boot-admin-starter-client</artifactId>
         <version>${spring-boot-admin.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-ui</artifactId>
+        <version>${springdoc-openapi-ui.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-annotations</artifactId>
+        <version>${swagger-annotations.version}</version>
+      </dependency>
 
       <!-- Other -->
       <dependency>
@@ -632,14 +640,9 @@
 
       <!-- Json Schemas -->
       <dependency>
-        <groupId>com.github.erosb</groupId>
-        <artifactId>everit-json-schema</artifactId>
-        <version>${everit-json-schema.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.kjetland</groupId>
-        <artifactId>mbknor-jackson-jsonschema_2.12</artifactId>
-        <version>${mbknor-jackson-jsonschema.version}</version>
+        <groupId>org.json</groupId>
+        <artifactId>json</artifactId>
+        <version>${json.version}</version>
       </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>

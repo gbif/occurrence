@@ -82,16 +82,8 @@ public class CitationFileReaderTest {
     return citationFile;
   }
 
-  /**
-   * Tests that writes and reads and consistent for a citation file.
-   */
-  @Test
   @SneakyThrows
-  public void readTest() {
-    //Creates a test file with 3 citations UUID -> recordCount
-    int numberOfCitations = 3;
-    File citationTestFile = createCitationTestFile(numberOfCitations);
-
+  private void testTemplate(int numberOfCitations, File citationTestFile) {
     //Accumulate results
     List<ConstituentDataset> constituentDatasets = new ArrayList<>();
 
@@ -109,5 +101,21 @@ public class CitationFileReaderTest {
 
     //Resulted constituents have the expected quantity
     assertEquals(numberOfCitations, constituentDatasets.size(), "Expected citations differ");
+  }
+
+  /**
+   * Tests that writes and reads and consistent for a citation file.
+   */
+  @Test
+  @SneakyThrows
+  public void readTest() {
+    int numberOfCitations = 3;
+    testTemplate(numberOfCitations, createCitationTestFile(numberOfCitations));
+  }
+
+  @Test
+  @SneakyThrows
+  public void emptyReadTest() {
+    testTemplate(0, new File("thisFileDoesNotExist"));
   }
 }
