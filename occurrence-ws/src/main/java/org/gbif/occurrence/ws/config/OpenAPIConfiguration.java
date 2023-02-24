@@ -30,7 +30,7 @@ import io.swagger.v3.oas.models.tags.Tag;
 public class OpenAPIConfiguration {
 
   /**
-   * Sorts tags (sections of the registry documentation) by the order extension, rather than alphabetically.
+   * Sorts tags (sections of the occurrence documentation) by the order extension, rather than alphabetically.
    */
   @Bean
   public OpenApiCustomiser sortTagsByOrderExtension() {
