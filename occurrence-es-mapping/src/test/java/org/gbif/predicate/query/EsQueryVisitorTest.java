@@ -13,6 +13,7 @@
  */
 package org.gbif.predicate.query;
 
+import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
 import org.gbif.api.model.predicate.DisjunctionPredicate;
@@ -34,11 +35,14 @@ import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.util.Arrays;
+import java.util.Date;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** Test cases for the Elasticsearch query visitor. */
 public class EsQueryVisitorTest {
@@ -1498,5 +1502,41 @@ public class EsQueryVisitorTest {
                 throw new RuntimeException(ex);
               }
             });
+  }
+
+  @Test
+  public void testAllParametersMapped() {
+    for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      try {
+        Predicate p;
+        Object value = null;
+        if (param == OccurrenceSearchParameter.GEOMETRY) {
+          value = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
+          p = new WithinPredicate(value.toString());
+        } else if (param == OccurrenceSearchParameter.GEO_DISTANCE) {
+          value = "10,10,10km";
+          p = new GeoDistancePredicate(DistanceUnit.GeoDistance.parseGeoDistance(value.toString()));
+        } else {
+          if (param.type().isAssignableFrom(UUID.class)) {
+            value = UUID.randomUUID();
+          } else if (param.type().isAssignableFrom(Boolean.class)) {
+            value = true;
+          } else if (param.type().isEnum()) {
+            value = param.type().getEnumConstants()[0];
+          } else if (param.type().isAssignableFrom(Date.class)) {
+            value = "2023-03-02";
+          } else {
+            // String, Integer and Double
+            value = "1";
+          }
+          p = new EqualsPredicate<>(param, value.toString(), false);
+        }
+        visitor.buildQuery(p);
+      } catch (Exception e) {
+        System.err.println(e.getMessage());
+        e.printStackTrace();
+        fail("Failed for " + param);
+      }
+    }
   }
 }
