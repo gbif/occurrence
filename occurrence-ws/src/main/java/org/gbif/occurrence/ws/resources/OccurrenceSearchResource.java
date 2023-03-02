@@ -511,6 +511,14 @@ public class OccurrenceSearchResource {
        explode = Explode.TRUE,
        in = ParameterIn.QUERY,
        example = "5"),
+      @Parameter(
+        name = "networkKey",
+        description = "The network's GBIF key (a UUID).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2b7c7b4f-4d4f-40d3-94de-c28b6fa054a6"),
      @Parameter(
        name = "occurrenceId",
        description = "A globally unique identifier for the occurrence record as provided by the publisher.\n\n" +
