@@ -1,5 +1,5 @@
 appkeys:
-  file: @appkeys.testfile@
+  file: /usr/share/tomcat7/conf/appkeys-properties
 occurrence:
   download:
     disabled: false

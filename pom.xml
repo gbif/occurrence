@@ -192,7 +192,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-SNAPSHOT</hbase-utils.version>
-    <download-query-tools.version>1.47-SNAPSHOT</download-query-tools.version>
+    <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.44</dwc-api.version>
     <dwca-io.version>2.15</dwca-io.version>
     <gbif-api.version>1.2.0</gbif-api.version>
