@@ -36,6 +36,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Optional;
 import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,25 +68,25 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   protected static final Set<Download.Status> RUNNING_STATUSES =
       EnumSet.of(Download.Status.PREPARING, Download.Status.RUNNING, Download.Status.SUSPENDED);
 
-  /** Map to provide conversions from oozie.Job.Status to Download.Status. */
+  /** Map to provide conversions from JobStatus to Download.Status. */
   @VisibleForTesting
-  protected static final ImmutableMap<Job.Status, Download.Status> STATUSES_MAP =
-      new ImmutableMap.Builder<Job.Status, Download.Status>()
-          .put(Job.Status.PREP, Download.Status.PREPARING)
-          .put(Job.Status.PREPPAUSED, Download.Status.PREPARING)
-          .put(Job.Status.PREMATER, Download.Status.PREPARING)
-          .put(Job.Status.PREPSUSPENDED, Download.Status.SUSPENDED)
-          .put(Job.Status.RUNNING, Download.Status.RUNNING)
-          .put(Job.Status.KILLED, Download.Status.KILLED)
-          .put(Job.Status.RUNNINGWITHERROR, Download.Status.RUNNING)
-          .put(Job.Status.DONEWITHERROR, Download.Status.FAILED)
-          .put(Job.Status.FAILED, Download.Status.FAILED)
-          .put(Job.Status.PAUSED, Download.Status.RUNNING)
-          .put(Job.Status.PAUSEDWITHERROR, Download.Status.RUNNING)
-          .put(Job.Status.SUCCEEDED, Download.Status.SUCCEEDED)
-          .put(Job.Status.SUSPENDED, Download.Status.SUSPENDED)
-          .put(Job.Status.SUSPENDEDWITHERROR, Download.Status.SUSPENDED)
-          .put(Job.Status.IGNORED, Download.Status.FAILED)
+  protected static final ImmutableMap<JobStatus, Download.Status> STATUSES_MAP =
+      new ImmutableMap.Builder<JobStatus, Download.Status>()
+          .put(JobStatus.PREP, Download.Status.PREPARING)
+          .put(JobStatus.PREPPAUSED, Download.Status.PREPARING)
+          .put(JobStatus.PREMATER, Download.Status.PREPARING)
+          .put(JobStatus.PREPSUSPENDED, Download.Status.SUSPENDED)
+          .put(JobStatus.RUNNING, Download.Status.RUNNING)
+          .put(JobStatus.KILLED, Download.Status.KILLED)
+          .put(JobStatus.RUNNINGWITHERROR, Download.Status.RUNNING)
+          .put(JobStatus.DONEWITHERROR, Download.Status.FAILED)
+          .put(JobStatus.FAILED, Download.Status.FAILED)
+          .put(JobStatus.PAUSED, Download.Status.RUNNING)
+          .put(JobStatus.PAUSEDWITHERROR, Download.Status.RUNNING)
+          .put(JobStatus.SUCCEEDED, Download.Status.SUCCEEDED)
+          .put(JobStatus.SUSPENDED, Download.Status.SUSPENDED)
+          .put(JobStatus.SUSPENDEDWITHERROR, Download.Status.SUSPENDED)
+          .put(JobStatus.IGNORED, Download.Status.FAILED)
           .build();
 
   private static final Counter SUCCESSFUL_DOWNLOADS =
@@ -240,7 +241,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
     Preconditions.checkArgument(
         !Strings.isNullOrEmpty(status), "<status> may not be null or empty");
-    Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
+    Optional<JobStatus> opStatus = Enums.getIfPresent(JobStatus.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
 

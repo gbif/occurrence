@@ -19,7 +19,8 @@ public class SparkDownloadService implements Closeable {
 
   public String createJob(DownloadRequest downloadRequest) {
     SparkLauncher sparkLauncher;
-    sparkLauncher.
+    //sparkLauncher.
+    return "";
   }
 
   @Override
