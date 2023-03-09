@@ -38,11 +38,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import org.apache.oozie.client.Job;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +48,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -63,9 +58,9 @@ import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 @Component
+@Slf4j
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
 
@@ -100,7 +95,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private static final Counter CANCELLED_DOWNLOADS =
       Metrics.newCounter(CallbackService.class, "cancelled_downloads");
 
-  private final OozieClient client;
+  private final DownloadIdService downloadIdService;
   private final String portalUrl;
   private final String wsUrl;
   private final File downloadMount;
@@ -113,7 +108,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Autowired
   public DownloadRequestServiceImpl(
-      OozieClient client,
       @Qualifier("oozie.default_properties") Map<String, String> defaultProperties,
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
@@ -122,7 +116,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
       EmailSender emailSender) {
-    this.client = client;
+    this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
@@ -140,21 +134,21 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       if (download != null) {
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
-          client.kill(DownloadUtils.downloadToWorkflowId(downloadKey));
-          LOG.info("Download {} cancelled", downloadKey);
+          //client.kill(DownloadUtils.downloadToWorkflowId(downloadKey));
+          log.info("Download {} cancelled", downloadKey);
         }
       } else {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, String.format("Download %s not found", downloadKey));
       }
-    } catch (OozieClientException e) {
+    } catch (Exception e) {
       throw new ServiceUnavailableException("Failed to cancel download " + downloadKey, e);
     }
   }
 
   @Override
   public String create(DownloadRequest request, String source) {
-    LOG.debug("Trying to create download from request [{}]", request);
+    log.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
@@ -162,7 +156,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     try {
       String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
       if (exceedComplexityLimit != null) {
-        LOG.info("Download request refused as it would exceed complexity limits");
+        log.info("Download request refused as it would exceed complexity limits");
         throw new ResponseStatusException(
             HttpStatus.PAYLOAD_TOO_LARGE,
             "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
@@ -171,20 +165,20 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       String exceedSimultaneousLimit =
           downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
       if (exceedSimultaneousLimit != null) {
-        LOG.info("Download request refused as it would exceed simultaneous limits");
+        log.info("Download request refused as it would exceed simultaneous limits");
         // Keep HTTP 420 ("Enhance your calm") here.
         throw new ResponseStatusException(
             HttpStatus.METHOD_FAILURE,
             "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
       }
 
-      String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
-      LOG.debug("Oozie job id is: [{}]", jobId);
+      String jobId = downloadIdService.generateId();
+      log.debug("Download job id is: [{}]", jobId);
       String downloadId = DownloadUtils.workflowToDownloadId(jobId);
       persistDownload(request, downloadId, source);
       return downloadId;
-    } catch (OozieClientException e) {
-      LOG.error("Failed to create download job", e);
+    } catch (Exception e) {
+      log.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
@@ -250,12 +244,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
     String downloadId = DownloadUtils.workflowToDownloadId(jobId);
 
-    LOG.debug("Processing callback for jobId [{}] with status [{}]", jobId, status);
+    log.debug("Processing callback for jobId [{}] with status [{}]", jobId, status);
 
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
       // Download can be null if the oozie reports status before the download is persisted
-      LOG.info(
+      log.info(
           "Download {} not found. [Oozie may be issuing callback before download persisted.]",
           downloadId);
       return;
@@ -266,7 +260,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         || Download.Status.KILLED.equals(download.getStatus())) {
       // Download has already completed, so perhaps callbacks in rapid succession have been
       // processed out-of-order
-      LOG.warn(
+      log.warn(
           "Download {} has finished, but Oozie has sent a RUNNING callback. Ignoring it.",
           downloadId);
       return;
@@ -283,7 +277,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         }
 
       case FAILED:
-        LOG.error(
+        log.error(
             NOTIFY_ADMIN, "Got callback for failed query. JobId [{}], Status [{}]", jobId, status);
         updateDownloadStatus(download, newStatus);
         emailModel = emailManager.generateFailedDownloadEmailModel(download, portalUrl);
@@ -308,7 +302,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   }
 
   /**
-   * Tries to get the size of a download file. Logs as warning if the size is 0 or if the file can't
+   * Tries to get the size of a download file. logs as warning if the size is 0 or if the file can't
    * be read.
    */
   private Long getDownloadSize(Download download) {
@@ -316,12 +310,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (file.canRead()) {
       long size = file.length();
       if (size == 0) {
-        LOG.warn(
+        log.warn(
             "Download file {} size not read accurately, 0 length returned", file.getAbsolutePath());
       }
       return size;
     } else {
-      LOG.warn("Can't read download file {}", file.getAbsolutePath());
+      log.warn("Can't read download file {}", file.getAbsolutePath());
     }
     return 0L;
   }
