@@ -1,11 +1,13 @@
 package org.gbif.occurrence;
 
+import java.util.Optional;
+
 import org.gbif.api.model.occurrence.DownloadRequest;
 
 public class KubernetesJobManager implements JobManager{
 
   @Override
-  public String createJob(String jobId, DownloadRequest downloadRequest) {
+  public Optional<String> createJob(String jobId, DownloadRequest downloadRequest) {
     throw new UnsupportedOperationException("The method is not implemented!");
   }
 
