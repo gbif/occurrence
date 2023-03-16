@@ -217,7 +217,8 @@ public class OccurrenceResource {
     description = "Retrieve details for a single, interpreted occurrence.\n\n" +
       "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
       "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names."
+      "Term names.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100"))
   )
   @GbifIdPathParameter
   @ApiResponse(
@@ -225,7 +226,6 @@ public class OccurrenceResource {
     description = "Occurrence found"
   )
   @OccurrenceErrorResponses
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0010"))
   @NullToNotFound
   @GetMapping("{gbifId}")
   public Occurrence get(@PathVariable("gbifId") Long gbifId) {
@@ -247,14 +247,14 @@ public class OccurrenceResource {
     description = "Retrieve a single, interpreted occurrence by its dataset key and occurrenceId in that dataset.\n\n" +
       "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
       "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names.")
+      "Term names.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0110")))
   @DatasetKeyOccurrenceIdPathParameters
   @ApiResponse(
     responseCode = "200",
     description = "Occurrence found"
   )
   @OccurrenceErrorResponses
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0020"))
   @GetMapping("/{datasetKey}/{occurrenceId}")
   @ResponseBody
   @NullToNotFound
@@ -273,7 +273,8 @@ public class OccurrenceResource {
     operationId = "getOccurrenceFragmentById",
     summary = "Occurrence fragment by id",
     description = "Retrieve a single occurrence fragment in its raw form (JSON or XML).\n\n" +
-      "Fragments for deleted occurrences are retained (in most cases) since #TODO# YYYY-MM-DD.") // TODO
+      "Fragments for deleted occurrences are retained (in most cases) since #TODO# YYYY-MM-DD.", // TODO
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0130")))
   @Parameters(
     value = {
       @Parameter(
@@ -292,7 +293,6 @@ public class OccurrenceResource {
       @Content(mediaType = "text/xml")
     })
   @OccurrenceErrorResponses
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0110"))
   @GetMapping("/{gbifId}/" + FRAGMENT_PATH)
   @ResponseBody
   @NullToNotFound
@@ -313,7 +313,8 @@ public class OccurrenceResource {
     operationId = "getOccurrenceFragmentByDatasetKeyAndOccurrenceId",
     summary = "Occurrence fragment by dataset key and occurrence id",
     description = "Retrieve a single occurrence fragment in its raw form (JSON or XML) by its dataset key and occurrenceId in that dataset.\n\n" +
-      "Fragments for deleted occurrences are retained (in most cases) since #TODO# YYYY-MM-DD.")
+      "Fragments for deleted occurrences are retained (in most cases) since #TODO# YYYY-MM-DD.", // TODO
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0140")))
   @DatasetKeyOccurrenceIdPathParameters
   @ApiResponse(
     responseCode = "200",
@@ -323,7 +324,6 @@ public class OccurrenceResource {
       @Content(mediaType = "text/xml")
     })
   @OccurrenceErrorResponses
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0120"))
   @GetMapping("/{datasetKey}/{occurrenceId}/" + FRAGMENT_PATH)
   @ResponseBody
   @NullToNotFound
@@ -350,14 +350,14 @@ public class OccurrenceResource {
     description = "Retrieve a single, verbatim occurrence without any interpretation\n\n" +
       "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
       "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names.")
+      "Term names.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0210")))
   @GbifIdPathParameter
   @ApiResponse(
     responseCode = "200",
     description = "Verbatim occurrence found"
   )
   @OccurrenceErrorResponses
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0210"))
   @GetMapping("/{gbifId}/" + VERBATIM_PATH)
   @NullToNotFound
   public VerbatimOccurrence getVerbatim(@PathVariable("gbifId") Long gbifId) {
@@ -376,14 +376,14 @@ public class OccurrenceResource {
   @Operation(
     operationId = "getVerbatimOccurrenceByDatasetKeyAndOccurrenceId",
     summary = "Verbatim occurrence by dataset key and occurrence id",
-    description = "Retrieve a single, verbatim occurrence without any interpretation by its dataset key and occurrenceId")
+    description = "Retrieve a single, verbatim occurrence without any interpretation by its dataset key and occurrenceId",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0220")))
   @DatasetKeyOccurrenceIdPathParameters
   @ApiResponse(
     responseCode = "200",
     description = "Verbatim occurrence found"
   )
   @OccurrenceErrorResponses
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0220"))
   @GetMapping("/{datasetKey}/{occurrenceId}/" + VERBATIM_PATH)
   @ResponseBody
   @NullToNotFound
@@ -399,7 +399,8 @@ public class OccurrenceResource {
   @Operation(
     operationId = "experimentalGetRelatedOccurrences",
     summary = "Related occurrences by gbifId",
-    description = "**Experimental** Retrieve a list of related occurrences.")
+    description = "**Experimental** Retrieve a list of related occurrences.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0300")))
   @Parameters(
     value = {
       @Parameter(
@@ -415,7 +416,6 @@ public class OccurrenceResource {
     description = "Occurrence found, list of related occurrences returned."
   )
   @OccurrenceErrorResponses
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0300"))
   @GetMapping("/{gbifId}/experimental/related")
   public String getRelatedOccurrences(@PathVariable("gbifId") Long gbifId) {
     LOG.debug("Request RelatedOccurrences [{}]:", gbifId);

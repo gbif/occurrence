@@ -17,6 +17,8 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.tags.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springdoc.core.customizers.OpenApiCustomiser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -32,6 +34,7 @@ import java.util.stream.Stream;
  */
 @Component
 public class OpenAPIConfiguration {
+  private static final Logger LOG = LoggerFactory.getLogger(OpenAPIConfiguration.class);
 
   /**
    * Sorts tags (sections of the occurrence documentation) by the order extension, rather than alphabetically.
@@ -49,6 +52,7 @@ public class OpenAPIConfiguration {
       Paths paths = openApi.getPaths().entrySet()
         .stream()
         .sorted(Comparator.comparing(entry -> getOperationTag(entry.getValue())))
+        .peek(e -> LOG.info("{} ← {}", getOperationTag(e.getValue()), e.getKey()))
         .collect(Paths::new, (map, item) -> map.addPathItem(item.getKey(), item.getValue()), Paths::putAll);
 
       openApi.setPaths(paths);
@@ -69,12 +73,10 @@ public class OpenAPIConfiguration {
         pathItem.getPost(),
         pathItem.getPut(),
         pathItem.getDelete(),
-        pathItem.getHead(),
         pathItem.getOptions(),
         pathItem.getTrace(),
         pathItem.getPatch())
       .filter(Objects::nonNull)
-      .peek(op -> System.out.println(getOperationOrder(op)))
       .map(op -> getOperationOrder(op))
       .findFirst()
       .orElse("");
@@ -85,7 +87,7 @@ public class OpenAPIConfiguration {
    */
   private String getOperationOrder(Operation op) {
     if (op.getExtensions() != null && op.getExtensions().containsKey("x-Order")) {
-      return ((Map)op.getExtensions().get("x-Order")).get("Order").toString();
+      return ((Map)op.getExtensions().get("x-Order")).get("Order").toString() + "_" + op.getOperationId();
     }
     return op.getOperationId();
   }

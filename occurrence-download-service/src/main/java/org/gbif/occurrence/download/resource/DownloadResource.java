@@ -168,7 +168,8 @@ public class DownloadResource {
     operationId = "cancelDownload",
     summary = "Cancel a running download",
     description = "Cancel a running download",
-    responses = @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0030")))
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -180,7 +181,6 @@ public class DownloadResource {
         description = "Invalid occurrence download key."
       )
     })
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0030"))
   @DeleteMapping("{key}")
   public void delDownload(@PathVariable("key") @DownloadIdentifierPathParameter String jobId,
                           @Autowired Principal principal) {
@@ -206,7 +206,8 @@ public class DownloadResource {
     operationId = "retrieveDownload",
     summary = "Retrieve the resulting download file",
     description = "Retrieves the download file if it is available.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0020")))
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -222,7 +223,6 @@ public class DownloadResource {
         description = "Occurrence download file was erased and is no longer available."
       )
     })
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0020"))
   @GetMapping(
       value = "{key}",
       produces = {
@@ -279,7 +279,8 @@ public class DownloadResource {
     summary = "Requests the creation of a download file.",
     description = "Starts the process of creating a download file. See the predicates " +
       "section to consult the requests accepted by this service and the limits section to refer " +
-      "for information of how this service is limited per user.")
+      "for information of how this service is limited per user.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0010")))
   @Parameters(
     value = {
       @Parameter(
@@ -308,7 +309,6 @@ public class DownloadResource {
           "See [limits](#operations-tag-Occurrence_downloads)"
       )
     })
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0010"))
   @PostMapping(
       produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})

@@ -214,7 +214,8 @@ public class OccurrenceSearchResource {
   @Operation(
     operationId = "searchOccurrence",
     summary = "Occurrence search",
-    description = "Full search across all occurrences. Results are ordered by relevance.") // TODO: is that true?
+    description = "Full search across all occurrences.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0000")))
   @Parameters(
     value = {
       @Parameter(
@@ -845,7 +846,6 @@ public class OccurrenceSearchResource {
         description = "Invalid query, e.g. invalid vocabulary values",
         content = @Content)
     })
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100"))
   @GetMapping
   public SearchResponse<Occurrence,OccurrenceSearchParameter> search(OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
@@ -926,8 +926,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestCatalogNumbers",
     summary = "Suggest catalogue numbers",
     description = "Search that returns matching catalogue numbers. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(CATALOG_NUMBER_PATH)
   @ResponseBody
   public List<String> suggestCatalogNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -940,8 +940,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestCollectionCodes",
     summary = "Suggest collection codes",
     description = "Search that returns matching collection codes. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(COLLECTION_CODE_PATH)
   @ResponseBody
   public List<String> suggestCollectionCodes(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -954,8 +954,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestRecordedBy",
     summary = "Suggest recorded by values",
     description = "Search that returns matching recorded by values. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(RECORDED_BY_PATH)
   @ResponseBody
   public List<String> suggestRecordedBy(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -968,8 +968,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestIdentifiedBy",
     summary = "Suggest identified by values",
     description = "Search that returns matching identified by values. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(IDENTIFIED_BY_PATH)
   @ResponseBody
   public List<String> suggestIdentifiedBy(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -982,8 +982,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestRecordNumbers",
     summary = "Suggest record numbers",
     description = "Search that returns matching record numbers. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(RECORD_NUMBER_PATH)
   @ResponseBody
   public List<String> suggestRecordNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -996,8 +996,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestInstitutionCodes",
     summary = "Suggest institution codes",
     description = "Search that returns matching institution codes. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(INSTITUTION_CODE_PATH)
   @ResponseBody
   public List<String> suggestInstitutionCodes(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1010,8 +1010,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestOccurrenceIds",
     summary = "Suggest occurrence ids",
     description = "Search that returns matching occurrence ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(OCCURRENCE_ID_PATH)
   @ResponseBody
   public List<String> suggestOccurrenceIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1024,8 +1024,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestOrganismIds",
     summary = "Suggest organism ids",
     description = "Search that returns matching organism ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(ORGANISM_ID_PATH)
   @ResponseBody
   public List<String> suggestOrganismIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1038,8 +1038,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestLocalities",
     summary = "Suggest locality strings",
     description = "Search that returns matching localities. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(LOCALITY_PATH)
   @ResponseBody
   public List<String> suggestLocalities(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1052,8 +1052,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestStateProvinces",
     summary = "Suggest states/provinces",
     description = "Search that returns matching states or provinces. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(STATE_PROVINCE_PATH)
   @ResponseBody
   public List<String> suggestStatesProvinces(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1066,8 +1066,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestWaterBodies",
     summary = "Suggest water bodies",
     description = "Search that returns matching water bodies. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(WATER_BODY_PATH)
   @ResponseBody
   public List<String> suggestWaterBodies(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1080,8 +1080,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestSamplingProtocols",
     summary = "Suggest sampling protocols",
     description = "Search that returns matching sampling protocols. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(SAMPLING_PROTOCOL_PATH)
   @ResponseBody
   public List<String> suggestSamplingProtocols(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1094,8 +1094,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestEventIds",
     summary = "Suggest event ids",
     description = "Search that returns matching event ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(EVENT_ID_PATH)
   @ResponseBody
   public List<String> suggestEventIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1108,8 +1108,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestParentEventIds",
     summary = "Suggest parent event ids",
     description = "Search that returns matching parent event ids. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(PARENT_EVENT_ID_PATH)
   @ResponseBody
   public List<String> suggestParentEventIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1122,8 +1122,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestDatasetNames",
     summary = "Suggest dataset names",
     description = "Search that returns matching dataset names. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(DATASET_NAME_PATH)
   @ResponseBody
   public List<String> suggestDatasetNames(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1136,8 +1136,8 @@ public class OccurrenceSearchResource {
     operationId = "suggestOtherCatalogNumbers",
     summary = "Suggest other catalogue numbers",
     description = "Search that returns matching other catalogue numbers. Results are ordered by relevance.",
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000")))
   @GetMapping(OTHER_CATALOG_NUMBERS_PATH)
   @ResponseBody
   public List<String> suggestOtherCatalogNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1151,8 +1151,8 @@ public class OccurrenceSearchResource {
     summary = "Suggest values for supported terms",
     description = "Search that returns values for supported terms. Results are ordered by relevance.",
     // TODO: what is supported?
-    responses = @ApiResponse(responseCode = "200"))
-  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "5000"))
+    responses = @ApiResponse(responseCode = "200"),
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "5000")))
   @Parameters(
     value = {
       @Parameter(
