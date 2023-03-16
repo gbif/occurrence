@@ -6,7 +6,7 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 
 public interface JobManager {
 
-  Optional<String> createJob(String jobId, DownloadRequest downloadRequest);
+  Optional<String> createJob(DownloadsMessage message);
 
   void cancelJob(String jobId);
 

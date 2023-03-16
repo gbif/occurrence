@@ -9,8 +9,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.gbif.api.model.occurrence.DownloadRequest;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -19,6 +17,8 @@ import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.spark.launcher.SparkAppHandle;
+import org.apache.spark.launcher.SparkAppHandle.Listener;
 import org.apache.spark.launcher.SparkLauncher;
 
 import javax.validation.constraints.NotNull;
@@ -35,7 +35,7 @@ public class YarnJobManager implements JobManager {
       YarnApplicationState.ACCEPTED,
       YarnApplicationState.RUNNING);
 
-  private static final Set<String> DOWNLOADS_TYPES = Collections.singleton("SPARK");
+  private static final Set<String> APPLICATION_TYPES = Collections.singleton("SPARK");
 
   private final YarnClient yarnClient;
 
@@ -44,8 +44,10 @@ public class YarnJobManager implements JobManager {
   }
 
   @Override
-  public Optional<String> createJob(@NotNull String jobId, @NotNull DownloadRequest downloadRequest) {
+  public Optional<String> createJob(@NotNull DownloadsMessage message) {
     try {
+      String jobId = message.getJobId();
+
       new SparkLauncher()
         .setAppName(jobId)
         .setSparkHome("/opt/cloudera/parcels/CDH-5.16.2-1.cdh5.16.2.p0.8/lib/spark")
@@ -53,7 +55,17 @@ public class YarnJobManager implements JobManager {
         .setMaster("yarn")
         .setAppResource("hdfs://ha-nn/pipelines/jars/ingest-gbif.jar")
         .setMainClass("org.gbif.pipelines.ingest.pipelines.VerbatimToIdentifierPipeline")
-        .launch();
+        .startApplication(new Listener() {
+          @Override
+          public void stateChanged(SparkAppHandle sparkAppHandle) {
+
+          }
+
+          @Override
+          public void infoChanged(SparkAppHandle sparkAppHandle) {
+
+          }
+        });
 
       return getApplicationIdByName(jobId).stream().findAny().map(Objects::toString);
     } catch (Exception ex) {
@@ -89,7 +101,7 @@ public class YarnJobManager implements JobManager {
   private List<ApplicationId> getApplicationIdByName(@NotNull String jobId) {
     List<ApplicationId> ids = new ArrayList<>();
     try {
-      for (ApplicationReport ar : yarnClient.getApplications(DOWNLOADS_TYPES, YARN_APPLICATION_STATES)) {
+      for (ApplicationReport ar : yarnClient.getApplications(APPLICATION_TYPES, YARN_APPLICATION_STATES)) {
         if (ar.getName().equals(jobId)) {
           ApplicationId applicationId = ar.getApplicationId();
           ids.add(applicationId);
