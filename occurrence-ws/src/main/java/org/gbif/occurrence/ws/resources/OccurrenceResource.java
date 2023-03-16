@@ -13,32 +13,13 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.api.annotation.NullToNotFound;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
-import org.gbif.occurrence.search.OccurrenceGetByKey;
-import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
-import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
-
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.List;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-
-import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
@@ -50,9 +31,38 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.gbif.api.annotation.NullToNotFound;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
+import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
+import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import static java.lang.annotation.ElementType.*;
-import static org.gbif.ws.paths.OccurrencePaths.*;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.List;
+import java.util.UUID;
+
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static org.gbif.ws.paths.OccurrencePaths.FRAGMENT_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
 
 /**
  * Occurrence resource, the verbatim sub resource, and occurrence metrics.
@@ -176,6 +186,26 @@ public class OccurrenceResource {
   @interface DatasetKeyOccurrenceIdPathParameters {}
 
   /**
+   * Error responses for documentation.
+   */
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid identifier supplied",
+        content = @Content),
+      @ApiResponse(
+        responseCode = "404",
+        description = "Occurrence not found",
+        content = @Content)
+    }
+  )
+  @interface OccurrenceErrorResponses {}
+
+  /**
    * This retrieves a single Occurrence detail by its gbifId from the occurrence store.
    *
    * @param gbifId Occurrence gbifId
@@ -190,25 +220,12 @@ public class OccurrenceResource {
       "Term names."
   )
   @GbifIdPathParameter
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence found",
-        content = {
-          @Content(
-            mediaType = "application/json",
-            schema = @Schema(implementation = Occurrence.class))
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Occurrence not found",
-        content = @Content)
-    })
+  @ApiResponse(
+    responseCode = "200",
+    description = "Occurrence found"
+  )
+  @OccurrenceErrorResponses
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0010"))
   @NullToNotFound
   @GetMapping("{gbifId}")
   public Occurrence get(@PathVariable("gbifId") Long gbifId) {
@@ -232,25 +249,12 @@ public class OccurrenceResource {
       "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
       "Term names.")
   @DatasetKeyOccurrenceIdPathParameters
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence found",
-        content = {
-          @Content(
-            mediaType = "application/json",
-            schema = @Schema(implementation = Occurrence.class))
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Occurrence not found",
-        content = @Content)
-    })
+  @ApiResponse(
+    responseCode = "200",
+    description = "Occurrence found"
+  )
+  @OccurrenceErrorResponses
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0020"))
   @GetMapping("/{datasetKey}/{occurrenceId}")
   @ResponseBody
   @NullToNotFound
@@ -280,24 +284,15 @@ public class OccurrenceResource {
         in = ParameterIn.PATH),
     }
   )
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence fragment in JSON or XML format",
-        content = {
-          @Content(mediaType = "application/json"),
-          @Content(mediaType = "text/xml")
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Occurrence fragment not found",
-        content = @Content)
+  @ApiResponse(
+    responseCode = "200",
+    description = "Occurrence fragment in JSON or XML format",
+    content = {
+      @Content(mediaType = "application/json"),
+      @Content(mediaType = "text/xml")
     })
+  @OccurrenceErrorResponses
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0110"))
   @GetMapping("/{gbifId}/" + FRAGMENT_PATH)
   @ResponseBody
   @NullToNotFound
@@ -320,24 +315,15 @@ public class OccurrenceResource {
     description = "Retrieve a single occurrence fragment in its raw form (JSON or XML) by its dataset key and occurrenceId in that dataset.\n\n" +
       "Fragments for deleted occurrences are retained (in most cases) since #TODO# YYYY-MM-DD.")
   @DatasetKeyOccurrenceIdPathParameters
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence fragment found",
-        content = {
-          @Content(mediaType = "application/json"),
-          @Content(mediaType = "text/xml")
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier(s) supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Dataset or occurrenceId not found",
-        content = @Content)
+  @ApiResponse(
+    responseCode = "200",
+    description = "Occurrence fragment in JSON or XML format",
+    content = {
+      @Content(mediaType = "application/json"),
+      @Content(mediaType = "text/xml")
     })
+  @OccurrenceErrorResponses
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0120"))
   @GetMapping("/{datasetKey}/{occurrenceId}/" + FRAGMENT_PATH)
   @ResponseBody
   @NullToNotFound
@@ -366,25 +352,12 @@ public class OccurrenceResource {
       "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
       "Term names.")
   @GbifIdPathParameter
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence found",
-        content = {
-          @Content(
-            mediaType = "application/json",
-            schema = @Schema(implementation = VerbatimOccurrence.class))
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Occurrence not found",
-        content = @Content)
-    })
+  @ApiResponse(
+    responseCode = "200",
+    description = "Verbatim occurrence found"
+  )
+  @OccurrenceErrorResponses
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0210"))
   @GetMapping("/{gbifId}/" + VERBATIM_PATH)
   @NullToNotFound
   public VerbatimOccurrence getVerbatim(@PathVariable("gbifId") Long gbifId) {
@@ -405,25 +378,12 @@ public class OccurrenceResource {
     summary = "Verbatim occurrence by dataset key and occurrence id",
     description = "Retrieve a single, verbatim occurrence without any interpretation by its dataset key and occurrenceId")
   @DatasetKeyOccurrenceIdPathParameters
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence found",
-        content = {
-          @Content(
-            mediaType = "application/json",
-            schema = @Schema(implementation = Occurrence.class))
-        }),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Occurrence not found",
-        content = @Content)
-    })
+  @ApiResponse(
+    responseCode = "200",
+    description = "Verbatim occurrence found"
+  )
+  @OccurrenceErrorResponses
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0220"))
   @GetMapping("/{datasetKey}/{occurrenceId}/" + VERBATIM_PATH)
   @ResponseBody
   @NullToNotFound
@@ -450,21 +410,12 @@ public class OccurrenceResource {
         in = ParameterIn.PATH),
     }
   )
-  @ApiResponses(
-    value = {
-      @ApiResponse(
-        responseCode = "200",
-        description = "Occurrence found, clusters listed if present",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid identifier supplied",
-        content = @Content),
-      @ApiResponse(
-        responseCode = "404",
-        description = "Occurrence not found",
-        content = @Content)
-    })
+  @ApiResponse(
+    responseCode = "200",
+    description = "Occurrence found, list of related occurrences returned."
+  )
+  @OccurrenceErrorResponses
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0300"))
   @GetMapping("/{gbifId}/experimental/related")
   public String getRelatedOccurrences(@PathVariable("gbifId") Long gbifId) {
     LOG.debug("Request RelatedOccurrences [{}]:", gbifId);

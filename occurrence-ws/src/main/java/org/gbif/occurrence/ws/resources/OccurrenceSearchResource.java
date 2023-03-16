@@ -13,6 +13,20 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
@@ -21,20 +35,15 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.*;
+import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.License;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.api.vocabulary.OccurrenceStatus;
+import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.occurrence.search.SearchTermService;
-
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,22 +60,39 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
-import io.swagger.v3.oas.annotations.*;
-import io.swagger.v3.oas.annotations.enums.Explode;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
-import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
-import static org.gbif.ws.paths.OccurrencePaths.*;
+import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.DATASET_NAME_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.EVENT_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.IDENTIFIED_BY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.INSTITUTION_CODE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.LOCALITY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OCC_SEARCH_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.ORGANISM_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.OTHER_CATALOG_NUMBERS_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.PARENT_EVENT_ID_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.RECORDED_BY_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.RECORD_NUMBER_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.SAMPLING_PROTOCOL_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
+import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 
 /**
  * Occurrence resource.
@@ -78,8 +104,7 @@ import static org.gbif.ws.paths.OccurrencePaths.*;
   "a maximum size of 300 records per page. Note that for technical reasons we also have a hard limit for any query of 100,000 records. " +
   "You will get an error if the offset + limit exceeds 100,000. To retrieve all records beyond 100,000 you should use our asynchronous " +
   "download service (below) instead.",
-  extensions = @io.swagger.v3.oas.annotations.extensions.Extension(
-  name = "Order", properties = @ExtensionProperty(name = "Order", value = "0200"))
+  extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0200"))
 )
 @RestController
 @RequestMapping(
@@ -820,6 +845,7 @@ public class OccurrenceSearchResource {
         description = "Invalid query, e.g. invalid vocabulary values",
         content = @Content)
     })
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100"))
   @GetMapping
   public SearchResponse<Occurrence,OccurrenceSearchParameter> search(OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
@@ -901,6 +927,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest catalogue numbers",
     description = "Search that returns matching catalogue numbers. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(CATALOG_NUMBER_PATH)
   @ResponseBody
   public List<String> suggestCatalogNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -914,6 +941,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest collection codes",
     description = "Search that returns matching collection codes. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(COLLECTION_CODE_PATH)
   @ResponseBody
   public List<String> suggestCollectionCodes(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -927,6 +955,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest recorded by values",
     description = "Search that returns matching recorded by values. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(RECORDED_BY_PATH)
   @ResponseBody
   public List<String> suggestRecordedBy(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -940,6 +969,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest identified by values",
     description = "Search that returns matching identified by values. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(IDENTIFIED_BY_PATH)
   @ResponseBody
   public List<String> suggestIdentifiedBy(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -953,6 +983,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest record numbers",
     description = "Search that returns matching record numbers. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(RECORD_NUMBER_PATH)
   @ResponseBody
   public List<String> suggestRecordNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -966,6 +997,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest institution codes",
     description = "Search that returns matching institution codes. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(INSTITUTION_CODE_PATH)
   @ResponseBody
   public List<String> suggestInstitutionCodes(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -979,6 +1011,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest occurrence ids",
     description = "Search that returns matching occurrence ids. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(OCCURRENCE_ID_PATH)
   @ResponseBody
   public List<String> suggestOccurrenceIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -992,6 +1025,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest organism ids",
     description = "Search that returns matching organism ids. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(ORGANISM_ID_PATH)
   @ResponseBody
   public List<String> suggestOrganismIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1005,6 +1039,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest locality strings",
     description = "Search that returns matching localities. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(LOCALITY_PATH)
   @ResponseBody
   public List<String> suggestLocalities(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1018,6 +1053,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest states/provinces",
     description = "Search that returns matching states or provinces. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(STATE_PROVINCE_PATH)
   @ResponseBody
   public List<String> suggestStatesProvinces(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1031,6 +1067,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest water bodies",
     description = "Search that returns matching water bodies. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(WATER_BODY_PATH)
   @ResponseBody
   public List<String> suggestWaterBodies(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1044,6 +1081,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest sampling protocols",
     description = "Search that returns matching sampling protocols. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(SAMPLING_PROTOCOL_PATH)
   @ResponseBody
   public List<String> suggestSamplingProtocols(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1057,6 +1095,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest event ids",
     description = "Search that returns matching event ids. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(EVENT_ID_PATH)
   @ResponseBody
   public List<String> suggestEventIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1070,6 +1109,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest parent event ids",
     description = "Search that returns matching parent event ids. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(PARENT_EVENT_ID_PATH)
   @ResponseBody
   public List<String> suggestParentEventIds(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1083,6 +1123,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest dataset names",
     description = "Search that returns matching dataset names. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(DATASET_NAME_PATH)
   @ResponseBody
   public List<String> suggestDatasetNames(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1096,6 +1137,7 @@ public class OccurrenceSearchResource {
     summary = "Suggest other catalogue numbers",
     description = "Search that returns matching other catalogue numbers. Results are ordered by relevance.",
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "1000"))
   @GetMapping(OTHER_CATALOG_NUMBERS_PATH)
   @ResponseBody
   public List<String> suggestOtherCatalogNumbers(@RequestParam(QUERY_PARAM) @SuggestQParameter String prefix,
@@ -1110,6 +1152,7 @@ public class OccurrenceSearchResource {
     description = "Search that returns values for supported terms. Results are ordered by relevance.",
     // TODO: what is supported?
     responses = @ApiResponse(responseCode = "200"))
+  @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "5000"))
   @Parameters(
     value = {
       @Parameter(
