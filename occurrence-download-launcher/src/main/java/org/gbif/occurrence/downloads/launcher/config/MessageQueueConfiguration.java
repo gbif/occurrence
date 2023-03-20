@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence;
+package org.gbif.occurrence.downloads.launcher.config;
 
 import java.io.IOException;
 
@@ -35,41 +35,39 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class MessageQueueConfiguration {
 
-  public static final String QUEUE_NAME = "occurrence_downloads_spark";
-  public static final String QUEUE_NAME_DEAD = "occurrence_downloads_spark_dead";
-
   private final ObjectMapper objectMapper;
-  private final RabbitProperties properties;
+  private final DownloadServiceConfiguration configuration;
 
   public MessageQueueConfiguration(
-      @Qualifier("objectMapper") ObjectMapper objectMapper,
-      RabbitProperties properties) {
+    @Qualifier("objectMapper") ObjectMapper objectMapper,
+    DownloadServiceConfiguration configuration) {
     this.objectMapper = objectMapper;
-    this.properties = properties;
+    this.configuration = configuration;
   }
 
   @Bean
   @ConditionalOnProperty(value = "message.enabled", havingValue = "true")
   public MessagePublisher messagePublisher() throws IOException {
     log.info("DefaultMessagePublisher activated");
+    ConnectionParameters connectionParameters = configuration.getMessaging().getConnectionParameters();
     return new DefaultMessagePublisher(
-        new ConnectionParameters(
-            properties.getHost(),
-            properties.getPort(),
-            properties.getUsername(),
-            properties.getPassword(),
-            properties.getVirtualHost()),
-        new DefaultMessageRegistry(),
-        objectMapper);
+      new ConnectionParameters(
+        connectionParameters.getHost(),
+        connectionParameters.getPort(),
+        connectionParameters.getUsername(),
+        connectionParameters.getPassword(),
+        connectionParameters.getVirtualHost()),
+      new DefaultMessageRegistry(),
+      objectMapper);
   }
 
   @Bean
   Queue occurrenceDownloadsSparkQueue() {
-    return QueueBuilder.durable(QUEUE_NAME).build();
+    return QueueBuilder.durable(configuration.getQueueName()).build();
   }
 
   @Bean
   Queue occurrenceDownloadsSparkDeadQueue() {
-    return QueueBuilder.durable(QUEUE_NAME_DEAD).build();
+    return QueueBuilder.durable(configuration.getDeadQueueName()).build();
   }
 }

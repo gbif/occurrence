@@ -1,10 +1,10 @@
-package org.gbif.occurrence;
+package org.gbif.occurrence.downloads.launcher.services;
 
 import java.util.Optional;
 
-import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 
-public class KubernetesJobManager implements JobManager{
+public class KubernetesJobManagerService implements JobManager{
 
   @Override
   public Optional<String> createJob(DownloadsMessage message) {

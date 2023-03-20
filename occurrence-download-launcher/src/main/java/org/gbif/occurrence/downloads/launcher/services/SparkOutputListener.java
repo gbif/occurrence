@@ -1,4 +1,4 @@
-package org.gbif.occurrence;
+package org.gbif.occurrence.downloads.launcher.services;
 
 import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkAppHandle.Listener;

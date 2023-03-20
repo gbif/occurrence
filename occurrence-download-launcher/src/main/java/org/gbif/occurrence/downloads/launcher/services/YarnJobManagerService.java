@@ -1,4 +1,4 @@
-package org.gbif.occurrence;
+package org.gbif.occurrence.downloads.launcher.services;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -25,7 +27,7 @@ import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class YarnJobManager implements JobManager {
+public class YarnJobManagerService implements JobManager {
 
   private static final EnumSet<YarnApplicationState> YARN_APPLICATION_STATES =
     EnumSet.of(
@@ -39,7 +41,7 @@ public class YarnJobManager implements JobManager {
 
   private final YarnClient yarnClient;
 
-  public YarnJobManager(String pathToYarnSite, String pathToCoreSite, String pathToHdfsSite) {
+  public YarnJobManagerService(String pathToYarnSite, String pathToCoreSite, String pathToHdfsSite) {
     this.yarnClient = createYarnClient(pathToYarnSite, pathToCoreSite, pathToHdfsSite);
   }
 
