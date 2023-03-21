@@ -13,85 +13,73 @@
  */
 package org.gbif.occurrence.downloads.launcher;
 
-import org.gbif.ws.remoteauth.IdentityServiceClient;
-import org.gbif.ws.remoteauth.RemoteAuthClient;
-import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
-import org.gbif.ws.remoteauth.RestTemplateRemoteAuthClient;
-import org.gbif.ws.security.AppKeySigningService;
-import org.gbif.ws.security.FileSystemKeyStore;
-import org.gbif.ws.security.GbifAuthServiceImpl;
-import org.gbif.ws.security.GbifAuthenticationManagerImpl;
-import org.gbif.ws.server.filter.AppIdentityFilter;
-import org.gbif.ws.server.filter.IdentityFilter;
+import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
+import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.yarn.client.api.YarnClient;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 
-// TODO Clean-up
-@SpringBootApplication(
-  exclude = {
-    RabbitAutoConfiguration.class
-  })
+@SpringBootApplication
 @EnableConfigurationProperties
-@ComponentScan(
-  basePackages = {
-    "org.gbif.ws.server.interceptor",
-    "org.gbif.ws.server.aspect",
-    "org.gbif.ws.server.filter",
-    "org.gbif.ws.server.advice",
-    "org.gbif.ws.server.mapper",
-    "org.gbif.ws.remoteauth",
-    "org.gbif.ws.security"
-  },
-  excludeFilters = {
-    @ComponentScan.Filter(
-      type = FilterType.ASSIGNABLE_TYPE,
-      classes = {
-        AppKeySigningService.class,
-        FileSystemKeyStore.class,
-        IdentityFilter.class,
-        AppIdentityFilter.class,
-        GbifAuthenticationManagerImpl.class,
-        GbifAuthServiceImpl.class
-      })
-  })
 public class OccurrenceDownloadsLauncherApplication {
 
-  public static void main(String[] args) {
+
+  @ConfigurationProperties(prefix = "downloads")
+  @Bean
+  public DownloadServiceConfiguration downloadServiceConfiguration() {
+    return new DownloadServiceConfiguration();
+  }
+
+  @ConfigurationProperties(prefix = "spark")
+  @Bean
+  public SparkConfiguration sparkConfiguration() {
+    return new SparkConfiguration();
+  }
+
+  @Bean
+  Queue downloadsQueue(DownloadServiceConfiguration configuration) {
+    return QueueBuilder.durable(configuration.getQueueName()).build();
+  }
+
+  @Bean
+  public Jackson2JsonMessageConverter messageConverter() {
+    return new Jackson2JsonMessageConverter();
+  }
+
+  @Bean
+  public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, Jackson2JsonMessageConverter converter) {
+    RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+    rabbitTemplate.setMessageConverter(converter);
+    return rabbitTemplate;
+  }
+
+  @Bean
+  public YarnClient yarnClient(DownloadServiceConfiguration configuration) {
+    Configuration cfg = new Configuration();
+    cfg.addResource(new Path(configuration.getPathToYarnSite()));
+
+    YarnConfiguration yarnConfiguration = new YarnConfiguration(cfg);
+    YarnClient client = YarnClient.createYarnClient();
+    client.init(yarnConfiguration);
+    client.start();
+
+    return client;
+  }
+
+  public static void main(String... args) {
     SpringApplication.run(OccurrenceDownloadsLauncherApplication.class, args);
   }
 
-  // TODO Clean-up
-  @Bean
-  public IdentityServiceClient identityServiceClient(
-    @Value("${registry.ws.url}") String gbifApiUrl,
-    @Value("${gbif.ws.security.appKey}") String appKey,
-    @Value("${gbif.ws.security.appSecret}") String appSecret) {
-    return IdentityServiceClient.getInstance(gbifApiUrl, appKey, appKey, appSecret);
-  }
-
-  // TODO Clean-up
-  @Bean
-  public RemoteAuthClient remoteAuthClient(
-    RestTemplateBuilder builder, @Value("${registry.ws.url}") String gbifApiUrl) {
-    return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
-  }
-
-  // TODO Clean-up
-  @Configuration
-  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-
-    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
-      super(context, remoteAuthClient);
-    }
-  }
 }

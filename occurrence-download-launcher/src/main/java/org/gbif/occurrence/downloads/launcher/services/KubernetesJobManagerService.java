@@ -4,7 +4,10 @@ import java.util.Optional;
 
 import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 
-public class KubernetesJobManagerService implements JobManager{
+import org.springframework.stereotype.Service;
+
+@Service("kubernetes")
+public class KubernetesJobManagerService implements JobManager {
 
   @Override
   public Optional<String> createJob(DownloadsMessage message) {
@@ -16,8 +19,4 @@ public class KubernetesJobManagerService implements JobManager{
     throw new UnsupportedOperationException("The method is not implemented!");
   }
 
-  @Override
-  public void close() {
-    throw new UnsupportedOperationException("The method is not implemented!");
-  }
 }

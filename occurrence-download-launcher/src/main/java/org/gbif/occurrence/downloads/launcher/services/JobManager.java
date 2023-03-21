@@ -10,6 +10,4 @@ public interface JobManager {
 
   void cancelJob(String jobId);
 
-  void close();
-
 }

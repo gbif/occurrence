@@ -10,23 +10,23 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
+import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkAppHandle.Listener;
 import org.apache.spark.launcher.SparkLauncher;
+import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Service("yarn")
 public class YarnJobManagerService implements JobManager {
 
   private static final EnumSet<YarnApplicationState> YARN_APPLICATION_STATES =
@@ -41,8 +41,11 @@ public class YarnJobManagerService implements JobManager {
 
   private final YarnClient yarnClient;
 
-  public YarnJobManagerService(String pathToYarnSite, String pathToCoreSite, String pathToHdfsSite) {
-    this.yarnClient = createYarnClient(pathToYarnSite, pathToCoreSite, pathToHdfsSite);
+  private final SparkConfiguration sparkConfiguration;
+
+  public YarnJobManagerService(YarnClient yarnClient, SparkConfiguration sparkConfiguration) {
+    this.yarnClient = yarnClient;
+    this.sparkConfiguration = sparkConfiguration;
   }
 
   @Override
@@ -52,11 +55,11 @@ public class YarnJobManagerService implements JobManager {
 
       new SparkLauncher()
         .setAppName(jobId)
-        .setSparkHome("/opt/cloudera/parcels/CDH-5.16.2-1.cdh5.16.2.p0.8/lib/spark")
+        .setSparkHome(sparkConfiguration.getSparkHome())
         .setDeployMode("cluster")
         .setMaster("yarn")
-        .setAppResource("hdfs://ha-nn/pipelines/jars/ingest-gbif.jar")
-        .setMainClass("org.gbif.pipelines.ingest.pipelines.VerbatimToIdentifierPipeline")
+        .setAppResource(sparkConfiguration.getAppResource())
+        .setMainClass(sparkConfiguration.getMainClass())
         .startApplication(new Listener() {
           @Override
           public void stateChanged(SparkAppHandle sparkAppHandle) {
@@ -88,18 +91,6 @@ public class YarnJobManagerService implements JobManager {
     }
   }
 
-  // TODO: move to Spring bean
-  @Override
-  public void close() {
-    try {
-      if (yarnClient != null) {
-        yarnClient.close();
-      }
-    } catch (IOException ex) {
-      log.error("Exception during the closing YARN client", ex);
-    }
-  }
-
   private List<ApplicationId> getApplicationIdByName(@NotNull String jobId) {
     List<ApplicationId> ids = new ArrayList<>();
     try {
@@ -113,20 +104,5 @@ public class YarnJobManagerService implements JobManager {
       log.error("Exception during the killing the jobId {}", jobId, ex);
     }
     return ids;
-  }
-
-  // TODO: move to Spring bean
-  private YarnClient createYarnClient(String pathToYarnSite, String pathToCoreSite, String pathToHdfsSite) {
-    Configuration cfg = new Configuration();
-    cfg.addResource(new Path(pathToYarnSite));
-    cfg.addResource(new Path(pathToCoreSite));
-    cfg.addResource(new Path(pathToHdfsSite));
-
-    YarnConfiguration configuration = new YarnConfiguration(cfg);
-    YarnClient client = YarnClient.createYarnClient();
-    client.init(configuration);
-    client.start();
-
-    return client;
   }
 }

@@ -1,16 +1,19 @@
 package org.gbif.occurrence.downloads.launcher;
 
-import org.gbif.api.model.occurrence.DownloadRequest;
+import java.io.Serializable;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 // TODO Move to postal service
 @Data
-@Builder
-public class DownloadsMessage {
+public class DownloadsMessage implements Serializable {
 
-  private String jobId;
-  private DownloadRequest downloadRequest;
+  private final String jobId;
 
+  @JsonCreator
+  public DownloadsMessage(@JsonProperty("jobId")String jobId) {
+    this.jobId = jobId;
+  }
 }

@@ -4,15 +4,15 @@ import javax.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class DownloadServiceConfiguration {
+public class SparkConfiguration {
 
   @NotNull
-  private String queueName;
+  private String sparkHome;
 
   @NotNull
-  private String deadQueueName;
+  private String appResource;
 
   @NotNull
-  private String pathToYarnSite;
+  private String mainClass;
 }
 
