@@ -14,5 +14,8 @@ public class DownloadServiceConfiguration {
 
   @NotNull
   private String pathToYarnSite;
+
+  @NotNull
+  private String cron;
 }
 

@@ -14,5 +14,11 @@ public class SparkConfiguration {
 
   @NotNull
   private String mainClass;
+
+  @NotNull
+  private String deployMode;
+
+  @NotNull
+  private String master;
 }
 

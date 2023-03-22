@@ -16,10 +16,6 @@ package org.gbif.occurrence.downloads.launcher;
 import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.yarn.client.api.YarnClient;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -30,8 +26,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 @EnableConfigurationProperties
 public class OccurrenceDownloadsLauncherApplication {
 
@@ -63,19 +61,6 @@ public class OccurrenceDownloadsLauncherApplication {
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
     rabbitTemplate.setMessageConverter(converter);
     return rabbitTemplate;
-  }
-
-  @Bean
-  public YarnClient yarnClient(DownloadServiceConfiguration configuration) {
-    Configuration cfg = new Configuration();
-    cfg.addResource(new Path(configuration.getPathToYarnSite()));
-
-    YarnConfiguration yarnConfiguration = new YarnConfiguration(cfg);
-    YarnClient client = YarnClient.createYarnClient();
-    client.init(yarnConfiguration);
-    client.start();
-
-    return client;
   }
 
   public static void main(String... args) {
