@@ -126,8 +126,8 @@ public class TermUtils {
    * relevant to occurrences.
    */
   private static List<GbifTerm> gbifPropertyTerms() {
-    // the following have no place on occurrence
     final Set<GbifTerm> exclusions = ImmutableSet.of(
+      // the following have no place on occurrence
       GbifTerm.infraspecificMarker,
       GbifTerm.isExtinct,
       GbifTerm.isFreshwater,
@@ -148,9 +148,13 @@ public class TermUtils {
       GbifTerm.canonicalName,
       GbifTerm.nameType,
       GbifTerm.verbatimLabel,
-      GbifTerm.eventType);
+      GbifTerm.eventType,
 
-    //We should handle deprecated terms here. Waiting for https://dev.gbif.org/issues/browse/GBIF-132/
+      // And these have been superseded by other terms or otherwise deprecated and removed
+      GbifTerm.distanceAboveSurface,
+      GbifTerm.distanceAboveSurfaceAccuracy
+      );
+
     return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
