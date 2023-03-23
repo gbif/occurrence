@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
 /** Listen MQ to receive and run a download */
-
 @Slf4j
 @Component
 public class DownloadServiceListener extends AbstractMessageCallback<DownloadsMessage> {
@@ -29,8 +28,11 @@ public class DownloadServiceListener extends AbstractMessageCallback<DownloadsMe
   public void handleMessage(DownloadsMessage downloadsMessage) {
     log.info("Received message {}", downloadsMessage);
     Optional<String> applicationId = jobManager.createJob(downloadsMessage);
-    if(applicationId.isPresent()) {
-      log.info("Running a download for jobId {}, applicationId {}", downloadsMessage.getJobId(), applicationId.get());
+    if (applicationId.isPresent()) {
+      log.info(
+        "Running a download for jobId {}, applicationId {}",
+        downloadsMessage.getJobId(),
+        applicationId.get());
     } else {
       log.error("Failed to run a download for jobId {}", downloadsMessage.getJobId());
     }

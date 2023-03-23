@@ -18,5 +18,4 @@ public class KubernetesJobManagerService implements JobManager {
   public void cancelJob(String jobId) {
     throw new UnsupportedOperationException("The method is not implemented!");
   }
-
 }

@@ -18,4 +18,3 @@ public class DownloadServiceConfiguration {
   @NotNull
   private String cron;
 }
-

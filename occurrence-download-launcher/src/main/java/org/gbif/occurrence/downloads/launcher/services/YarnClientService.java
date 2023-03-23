@@ -25,42 +25,30 @@ import javax.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.ACCEPTED;
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.FAILED;
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.FINISHED;
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.KILLED;
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.NEW;
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.NEW_SAVING;
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.RUNNING;
+import static org.apache.hadoop.yarn.api.records.YarnApplicationState.SUBMITTED;
+
 @Slf4j
 @Service
 public class YarnClientService implements Closeable {
 
-  @Data
-  static class Application {
-    private ApplicationId applicationId;
-    private YarnApplicationState state;
-    private boolean finished;
-
-    public Application(ApplicationId applicationId, YarnApplicationState state) {
-      this.applicationId = applicationId;
-      this.state = state;
-      this.finished = YARN_FINISHED_APPLICATION_STATES.contains(state);
-    }
-  }
-
   private static final EnumSet<YarnApplicationState> YARN_RUNNING_APPLICATION_STATES =
-      EnumSet.of(
-          YarnApplicationState.NEW,
-          YarnApplicationState.NEW_SAVING,
-          YarnApplicationState.SUBMITTED,
-          YarnApplicationState.ACCEPTED,
-          YarnApplicationState.RUNNING);
+    EnumSet.of(NEW, NEW_SAVING, SUBMITTED, ACCEPTED, RUNNING);
   private static final EnumSet<YarnApplicationState> YARN_FINISHED_APPLICATION_STATES =
-      EnumSet.of(
-          YarnApplicationState.FAILED,
-          YarnApplicationState.KILLED,
-          YarnApplicationState.FINISHED);
+    EnumSet.of(FAILED, KILLED, FINISHED);
   private static final Set<String> APPLICATION_TYPES = Collections.singleton("SPARK");
-
   private final YarnClient yarnClient;
 
   public YarnClientService(DownloadServiceConfiguration configuration) {
     this.yarnClient = createYarnClient(configuration);
   }
+
   public void killApplicationByName(@NotNull String applicationName) {
     try {
       for (ApplicationId applicationId : getRunningApplicationIdByName(applicationName).values()) {
@@ -76,42 +64,52 @@ public class YarnClientService implements Closeable {
     return getRunningApplicationIdByName(Collections.singleton(applicationName));
   }
 
-  public Map<String, ApplicationId> getRunningApplicationIdByName(@NotNull Set<String> applicationNames) {
+  public Map<String, ApplicationId> getRunningApplicationIdByName(
+    @NotNull Set<String> applicationNames) {
     try {
-      return yarnClient.getApplications(APPLICATION_TYPES, YARN_RUNNING_APPLICATION_STATES)
-          .stream()
-          .filter(ar -> applicationNames.contains(ar.getName()))
-          .collect(Collectors.toMap(ApplicationReport::getName, ApplicationReport::getApplicationId, (a, b) -> b));
+      return yarnClient.getApplications(APPLICATION_TYPES, YARN_RUNNING_APPLICATION_STATES).stream()
+        .filter(ar -> applicationNames.contains(ar.getName()))
+        .collect(
+          Collectors.toMap(
+            ApplicationReport::getName, ApplicationReport::getApplicationId, (a, b) -> b));
     } catch (YarnException | IOException ex) {
-      log.error("Exception during the getting applicationIds for applicationNames {}",
-          String.join(",", applicationNames), ex);
+      log.error(
+        "Exception during the getting applicationIds for applicationNames {}",
+        String.join(",", applicationNames),
+        ex);
     }
     return Collections.emptyMap();
   }
 
   public Map<String, Application> getAllApplicationByNames(@NotNull Set<String> applicationNames) {
     try {
-      return yarnClient.getApplications(APPLICATION_TYPES)
-          .stream()
-          .filter(ar -> applicationNames.contains(ar.getName()))
-          .collect(Collectors.toMap(ApplicationReport::getName,
-              ar -> new Application(ar.getApplicationId(), ar.getYarnApplicationState()), (a, b) -> b));
+      return yarnClient.getApplications(APPLICATION_TYPES).stream()
+        .filter(ar -> applicationNames.contains(ar.getName()))
+        .collect(
+          Collectors.toMap(
+            ApplicationReport::getName,
+            ar -> new Application(ar.getApplicationId(), ar.getYarnApplicationState()),
+            (a, b) -> b));
     } catch (YarnException | IOException ex) {
-      log.error("Exception during the getting applicationIds for applicationNames {}",
-          String.join(",", applicationNames), ex);
+      log.error(
+        "Exception during the getting applicationIds for applicationNames {}",
+        String.join(",", applicationNames),
+        ex);
     }
     return Collections.emptyMap();
   }
 
   public Optional<String> getFinishedApplicationNameById(@NotNull String applicationId) {
     try {
-      return yarnClient.getApplications(APPLICATION_TYPES, YARN_FINISHED_APPLICATION_STATES)
-          .stream()
-          .filter(ar-> ar.getApplicationId().toString().equals(applicationId))
-          .findFirst()
-          .map(ApplicationReport::getName);
+      return yarnClient
+        .getApplications(APPLICATION_TYPES, YARN_FINISHED_APPLICATION_STATES)
+        .stream()
+        .filter(ar -> ar.getApplicationId().toString().equals(applicationId))
+        .findFirst()
+        .map(ApplicationReport::getName);
     } catch (YarnException | IOException ex) {
-      log.error("Exception during the getting applicationName for applicationId {}", applicationId, ex);
+      log.error(
+        "Exception during the getting applicationName for applicationId {}", applicationId, ex);
     }
     return Optional.empty();
   }
@@ -132,13 +130,27 @@ public class YarnClientService implements Closeable {
 
   @Override
   public void close() {
-    if(yarnClient != null){
-      try{
+    if (yarnClient != null) {
+      try {
         log.info("Closing YARN client connection");
-       yarnClient.close();
-      } catch (IOException ex){
+        yarnClient.close();
+      } catch (IOException ex) {
         log.error("Can't close YARN client connection");
       }
+    }
+  }
+
+  @Data
+  static class Application {
+
+    private ApplicationId applicationId;
+    private YarnApplicationState state;
+    private boolean finished;
+
+    public Application(ApplicationId applicationId, YarnApplicationState state) {
+      this.applicationId = applicationId;
+      this.state = state;
+      this.finished = YARN_FINISHED_APPLICATION_STATES.contains(state);
     }
   }
 }

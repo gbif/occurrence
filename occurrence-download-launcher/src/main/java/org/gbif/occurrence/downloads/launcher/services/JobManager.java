@@ -9,5 +9,4 @@ public interface JobManager {
   Optional<String> createJob(DownloadsMessage message);
 
   void cancelJob(String jobId);
-
 }

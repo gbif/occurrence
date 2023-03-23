@@ -13,8 +13,12 @@
  */
 package org.gbif.occurrence.downloads.launcher;
 
+import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
+import org.gbif.occurrence.downloads.launcher.config.RegistryConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.QueueBuilder;
@@ -33,6 +37,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableConfigurationProperties
 public class OccurrenceDownloadsLauncherApplication {
 
+  public static void main(String... args) {
+    SpringApplication.run(OccurrenceDownloadsLauncherApplication.class, args);
+  }
 
   @ConfigurationProperties(prefix = "downloads")
   @Bean
@@ -46,6 +53,12 @@ public class OccurrenceDownloadsLauncherApplication {
     return new SparkConfiguration();
   }
 
+  @ConfigurationProperties(prefix = "registry")
+  @Bean
+  public RegistryConfiguration registryConfiguration() {
+    return new RegistryConfiguration();
+  }
+
   @Bean
   Queue downloadsQueue(DownloadServiceConfiguration configuration) {
     return QueueBuilder.durable(configuration.getQueueName()).build();
@@ -57,14 +70,20 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
-  public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, Jackson2JsonMessageConverter converter) {
+  public RabbitTemplate rabbitTemplate(
+    ConnectionFactory connectionFactory, Jackson2JsonMessageConverter converter) {
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
     rabbitTemplate.setMessageConverter(converter);
     return rabbitTemplate;
   }
 
-  public static void main(String... args) {
-    SpringApplication.run(OccurrenceDownloadsLauncherApplication.class, args);
+  @Bean
+  public OccurrenceDownloadService occurrenceDownloadService(RegistryConfiguration configuration) {
+    return new ClientBuilder()
+      .withUrl(configuration.getApiUrl())
+      .withCredentials(configuration.getUserName(), configuration.getPassword())
+      .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+      .withFormEncoder()
+      .build(OccurrenceDownloadService.class);
   }
-
 }

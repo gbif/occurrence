@@ -21,7 +21,10 @@ public class YarnJobManagerService implements JobManager {
   private final YarnClientService yarnClientService;
   private final SparkOutputListener outputListener;
 
-  public YarnJobManagerService(YarnClientService yarnClientService, SparkConfiguration sparkConfiguration, SparkOutputListener outputListener) {
+  public YarnJobManagerService(
+    YarnClientService yarnClientService,
+    SparkConfiguration sparkConfiguration,
+    SparkOutputListener outputListener) {
     this.yarnClientService = yarnClientService;
     this.sparkConfiguration = sparkConfiguration;
     this.outputListener = outputListener;
@@ -32,7 +35,8 @@ public class YarnJobManagerService implements JobManager {
     try {
       String jobId = message.getJobId();
 
-      SparkAppHandle application = new SparkLauncher()
+      SparkAppHandle application =
+        new SparkLauncher()
           .setAppName(jobId)
           .setSparkHome(sparkConfiguration.getSparkHome())
           .setDeployMode(sparkConfiguration.getDeployMode())
@@ -43,13 +47,13 @@ public class YarnJobManagerService implements JobManager {
 
       String applicationId = application.getAppId();
 
-      while (applicationId == null){
+      while (applicationId == null) {
         log.info("Wait 3 seconds...");
         TimeUnit.SECONDS.sleep(3L);
         applicationId = application.getAppId();
       }
 
-      return Optional.ofNullable(applicationId);
+      return Optional.of(applicationId);
     } catch (Exception ex) {
       log.error("Oops", ex);
     }
@@ -59,6 +63,6 @@ public class YarnJobManagerService implements JobManager {
   @Override
   public void cancelJob(@NotNull String jobId) {
     yarnClientService.killApplicationByName(jobId);
-    //TODO: Update status for the download using registry-ws
+    // TODO: Update status for the download using registry-ws
   }
 }

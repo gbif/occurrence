@@ -29,6 +29,7 @@
     <spark.version>2.3.0</spark.version>
     <swagger-annotations.version>2.2.3</swagger-annotations.version>
     <gbif-postal-service.version>1.4</gbif-postal-service.version>
+    <gbif-registry.version>3.88</gbif-registry.version>
   </properties>
 
   <repositories>
@@ -85,6 +86,17 @@
       <groupId>org.gbif.common</groupId>
       <artifactId>gbif-postal-service</artifactId>
       <version>${gbif-postal-service.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-ws-client</artifactId>
+      <version>${gbif-registry.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.gbif.registry</groupId>
+          <artifactId>registry-persistence</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

@@ -13,7 +13,7 @@ public class DownloadsMessage implements Serializable {
   private final String jobId;
 
   @JsonCreator
-  public DownloadsMessage(@JsonProperty("jobId")String jobId) {
+  public DownloadsMessage(@JsonProperty("jobId") String jobId) {
     this.jobId = jobId;
   }
 }
