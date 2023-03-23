@@ -447,7 +447,7 @@ public class TermUtils {
 
   /**
    * Lists all terms relevant for a multimedia extension record.
-   * gbifID is included and comes first as its the foreign key to the core record.
+   * gbifID is included and comes first as it is the foreign key to the core record.
    */
   public static Iterable<Term> multimediaTerms() {
     return Iterables.concat(Collections.singletonList(GbifTerm.gbifID), MULTIMEDIA_TERMS);

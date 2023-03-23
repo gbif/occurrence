@@ -70,7 +70,7 @@ public class GenerateHQL {
       File outDir = new File(args[0]);
       Preconditions.checkState(outDir.exists() && outDir.isDirectory(), "Output directory must exist");
 
-      // create the sub directories into which we will write
+      // create the subdirectories into which we will write
       File createTablesDir = new File(outDir, CREATE_TABLES_DIR);
       File downloadDir = new File(outDir, DOWNLOAD_DIR);
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);

@@ -50,7 +50,7 @@ public class DownloadTerms {
     GbifTerm.numberOfOccurrences
   );
 
-  // This set is used fot the HDFS table definition
+  // This set is used for the HDFS table definition
   public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>()
     .addAll(EXCLUSIONS_INTERPRETED)
     .add(GbifTerm.verbatimScientificName).build();

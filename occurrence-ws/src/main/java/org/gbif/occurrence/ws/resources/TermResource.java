@@ -75,7 +75,7 @@ public class TermResource {
       qualifiedName = term.qualifiedName();
       source = term.getClass().getSimpleName();
 
-      // Not too clean but we can't override the Term's @JsonSerialize
+      // Not too clean, but we can't override the Term's @JsonSerialize
       if (DwcTerm.class.equals(term.getClass())) {
         group = ((DwcTerm)term).getGroup();
       } else if (GbifTerm.class.equals(term.getClass())) {

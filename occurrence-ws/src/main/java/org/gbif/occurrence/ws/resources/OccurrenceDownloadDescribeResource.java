@@ -48,7 +48,8 @@ import lombok.Data;
 
 /**
  * Resource to describe file/table formats use in GBIF occurrence downloads.
- * Project specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.IUCN, DownloadFormat.MAP_OF_LIFE.
+ *
+ * <p>Project-specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.IUCN, DownloadFormat.MAP_OF_LIFE.
  */
 @Tag(
   name = "Occurrence download formats",
@@ -62,7 +63,7 @@ import lombok.Data;
   "application/x-javascript"}, value = "occurrence/download/describe")
 public class OccurrenceDownloadDescribeResource {
 
-  //Required fields in downloads
+  // Required fields in downloads
   private static final Set<Term> REQUIRED_FIELD = new ImmutableSet.Builder<Term>()
                                                     .add(GbifTerm.gbifID, GbifTerm.datasetKey)
                                                     .build();
@@ -128,7 +129,7 @@ public class OccurrenceDownloadDescribeResource {
   @Data
   @Builder
   public static class Field {
-    @Schema(description = "The field name.")
+    @Schema(description = "The column name in download files.")
     private final String name;
 
     @Schema(description = "The data type.")
@@ -140,7 +141,7 @@ public class OccurrenceDownloadDescribeResource {
     @Schema(description = "The URI for the term (e.g. Darwin Core term) for the field.")
     private final Term term;
 
-    @Schema(description = "Whether the field is required.")
+    @Schema(description = "Whether the field is required and therefore present on all records.")
     private boolean required;
   }
 
@@ -168,7 +169,7 @@ public class OccurrenceDownloadDescribeResource {
                                         .build();
   }
 
-  //Static cached definitions
+  // Static cached definitions
   private static final DwcDownload DWC_DOWNLOAD = new DwcDownload();
 
   private static final Table SIMPLE_CSV = Table.builder()
@@ -195,8 +196,7 @@ public class OccurrenceDownloadDescribeResource {
   private static final Table SIMPLE_WITH_VERBATIM_AVRO = Table.builder()
                                                           .fields(toFieldList(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(false), true))
                                                           .build();
-
-  //End of static cached definitions
+  // End of static cached definitions
 
   @Operation(
     operationId = "describeDwcaDownload",

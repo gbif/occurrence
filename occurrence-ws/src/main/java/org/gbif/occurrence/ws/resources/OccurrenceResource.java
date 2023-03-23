@@ -13,8 +13,35 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import org.gbif.api.annotation.NullToNotFound;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.service.occurrence.OccurrenceService;
+import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
+import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
+import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
+
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,30 +58,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.gbif.api.annotation.NullToNotFound;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.service.occurrence.OccurrenceService;
-import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
-import org.gbif.occurrence.search.OccurrenceGetByKey;
-import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
-import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.List;
-import java.util.UUID;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
