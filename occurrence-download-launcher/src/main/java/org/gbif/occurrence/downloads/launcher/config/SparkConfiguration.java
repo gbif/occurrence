@@ -20,5 +20,6 @@ public class SparkConfiguration {
 
   @NotNull
   private String master;
-}
 
+  private long waitTimeout = 3L;
+}
