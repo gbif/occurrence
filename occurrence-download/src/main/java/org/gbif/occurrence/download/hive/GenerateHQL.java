@@ -165,12 +165,14 @@ public class GenerateHQL {
   private static void generateQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
       Template template = cfg.getTemplate("download/execute-query.ftl");
-      Map<String, Object> data = ImmutableMap.of(
-        "verbatimFields", HIVE_QUERIES.selectVerbatimFields().values(),
-        "interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values(),
-        "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values(),
-        "extensions", ExtensionTable.tableExtensions()
-      );
+      Map<String, Object> data = ImmutableMap.<String, Object>builder()
+        .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
+        .put("interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values())
+        .put("initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values())
+        .put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values())
+        .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
+        .put("extensions", ExtensionTable.tableExtensions())
+        .build();
       template.process(data, out);
     }
     generateDropTableQueryHQL(cfg, outDir);

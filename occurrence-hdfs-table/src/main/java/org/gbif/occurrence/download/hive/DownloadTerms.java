@@ -64,6 +64,9 @@ public class DownloadTerms {
   public static final Set<Term> DOWNLOAD_VERBATIM_TERMS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.verbatimTerms()), EXCLUSIONS).immutableCopy();
 
+  public static final Set<Term> DOWNLOAD_MULTIMEDIA_TERMS =
+    Sets.difference(ImmutableSet.copyOf(TermUtils.multimediaTerms()), EXCLUSIONS).immutableCopy();
+
   /**
    * The terms that will be included in the interpreted table if also present in ${@link
    * org.gbif.occurrence.common.TermUtils#interpretedTerms()}
