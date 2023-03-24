@@ -43,6 +43,7 @@ public class YarnJobManagerService implements JobManager {
     try {
       String jobId = message.getJobId();
 
+      // TODO: Does it need to be run as a feature?
       new SparkLauncher()
         .setAppName(jobId)
         .setSparkHome(sparkConfiguration.getSparkHome())
