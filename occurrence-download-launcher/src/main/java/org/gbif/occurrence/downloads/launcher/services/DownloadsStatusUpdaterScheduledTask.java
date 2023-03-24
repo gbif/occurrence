@@ -16,19 +16,32 @@ public class DownloadsStatusUpdaterScheduledTask {
 
   private final DownloadStatusUpdaterService downloadStatusUpdaterService;
   private final JobManager jobManager;
+  private final LockerService lockerService;
 
   public DownloadsStatusUpdaterScheduledTask(
     @Qualifier("yarn") JobManager jobManager,
-    DownloadStatusUpdaterService downloadStatusUpdaterService) {
+    DownloadStatusUpdaterService downloadStatusUpdaterService,
+    LockerService lockerService) {
     this.jobManager = jobManager;
     this.downloadStatusUpdaterService = downloadStatusUpdaterService;
+    this.lockerService = lockerService;
   }
 
   @Scheduled(cron = "${downloads.cron}")
   public void renewedDownloadsStatuses() {
     log.info("Running scheduled checker...");
     List<Download> downloads = downloadStatusUpdaterService.getExecutingDownloads();
-    List<Download> renewedDownloads = jobManager.renewRunningDownloadsStatuses(downloads);
-    renewedDownloads.forEach(downloadStatusUpdaterService::updateDownload);
+    if (!downloads.isEmpty()) {
+      log.info("Found {} running downloads", downloads.size());
+      List<Download> renewedDownloads = jobManager.renewRunningDownloadsStatuses(downloads);
+      renewedDownloads.forEach(
+        download -> {
+          downloadStatusUpdaterService.updateDownload(download);
+          lockerService.unlock(download.getKey());
+        });
+    } else {
+      log.info("No running downloads found");
+      lockerService.unlockAll();
+    }
   }
 }

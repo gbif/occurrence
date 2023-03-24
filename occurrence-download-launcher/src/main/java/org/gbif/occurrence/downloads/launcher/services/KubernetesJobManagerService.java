@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 
 import org.springframework.stereotype.Service;
@@ -12,13 +13,18 @@ import org.springframework.stereotype.Service;
 public class KubernetesJobManagerService implements JobManager {
 
   @Override
-  public Optional<String> createJob(DownloadsMessage message) {
+  public JobStatus createJob(DownloadsMessage message) {
     throw new UnsupportedOperationException("The method is not implemented!");
   }
 
   @Override
-  public void cancelJob(String jobId) {
+  public JobStatus cancelJob(String jobId) {
     throw new UnsupportedOperationException("The method is not implemented!");
+  }
+
+  @Override
+  public Optional<Status> getStatusByName(String name) {
+    return Optional.empty();
   }
 
   @Override

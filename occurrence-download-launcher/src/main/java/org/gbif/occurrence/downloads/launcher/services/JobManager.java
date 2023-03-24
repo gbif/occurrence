@@ -8,9 +8,17 @@ import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 
 public interface JobManager {
 
-  Optional<String> createJob(DownloadsMessage message);
+  JobStatus createJob(DownloadsMessage message);
 
-  void cancelJob(String jobId);
+  JobStatus cancelJob(String jobId);
+
+  Optional<Download.Status> getStatusByName(String name);
 
   List<Download> renewRunningDownloadsStatuses(List<Download> downloads);
+
+  enum JobStatus {
+    RUNNING,
+    FAILED,
+    CANCELLED
+  }
 }

@@ -15,11 +15,15 @@ public class SparkOutputListener implements Listener {
 
   private final DownloadStatusUpdaterService downloadStatusUpdaterService;
   private final YarnClientService clientService;
+  private final LockerService lockerService;
 
   public SparkOutputListener(
-    DownloadStatusUpdaterService downloadStatusUpdaterService, YarnClientService clientService) {
+    DownloadStatusUpdaterService downloadStatusUpdaterService,
+    YarnClientService clientService,
+    LockerService lockerService) {
     this.downloadStatusUpdaterService = downloadStatusUpdaterService;
     this.clientService = clientService;
+    this.lockerService = lockerService;
   }
 
   private static Status mapToDownloadStatus(State state) {
@@ -63,7 +67,11 @@ public class SparkOutputListener implements Listener {
       Status status = mapToDownloadStatus(state);
       clientService
         .getFinishedApplicationNameById(appId)
-        .ifPresent(name -> downloadStatusUpdaterService.updateStatus(name, status));
+        .ifPresent(
+          name -> {
+            lockerService.unlock(name);
+            downloadStatusUpdaterService.updateStatus(name, status);
+          });
     }
   }
 }

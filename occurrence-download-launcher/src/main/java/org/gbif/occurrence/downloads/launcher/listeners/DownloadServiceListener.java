@@ -1,12 +1,11 @@
 package org.gbif.occurrence.downloads.launcher.listeners;
 
-import java.util.Optional;
-
-import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.JobManager;
+import org.gbif.occurrence.downloads.launcher.services.JobManager.JobStatus;
+import org.gbif.occurrence.downloads.launcher.services.LockerService;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,26 +20,31 @@ public class DownloadServiceListener extends AbstractMessageCallback<DownloadsMe
 
   private final JobManager jobManager;
   private final DownloadStatusUpdaterService downloadStatusUpdaterService;
+  private final LockerService lockerService;
 
   public DownloadServiceListener(
     @Qualifier("yarn") JobManager jobManager,
-    DownloadStatusUpdaterService downloadStatusUpdaterService) {
+    DownloadStatusUpdaterService downloadStatusUpdaterService,
+    LockerService lockerService) {
     this.jobManager = jobManager;
     this.downloadStatusUpdaterService = downloadStatusUpdaterService;
+    this.lockerService = lockerService;
   }
 
   @Override
   @RabbitListener(queues = "${downloads.queueName}")
   public void handleMessage(DownloadsMessage downloadsMessage) {
     log.info("Received message {}", downloadsMessage);
-    Optional<String> applicationId = jobManager.createJob(downloadsMessage);
-    String jobId = downloadsMessage.getJobId();
-    if (applicationId.isPresent()) {
-      log.info("Running a download for jobId {}, applicationId {}", jobId, applicationId.get());
-      downloadStatusUpdaterService.updateStatus(jobId, Status.RUNNING);
-    } else {
-      log.error("Failed to run a download for jobId {}", downloadsMessage.getJobId());
-      downloadStatusUpdaterService.updateStatus(jobId, Status.FAILED);
+    JobStatus jobStatus = jobManager.createJob(downloadsMessage);
+    if (jobStatus == JobStatus.RUNNING) {
+      String jobId = downloadsMessage.getJobId();
+
+      log.info("Locking the thread until downloads job is finished");
+      lockerService.lock(jobId, Thread.currentThread());
+
+      jobManager
+        .getStatusByName(jobId)
+        .ifPresent(status -> downloadStatusUpdaterService.updateStatus(jobId, status));
     }
   }
 }
