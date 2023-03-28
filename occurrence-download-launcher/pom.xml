@@ -2,60 +2,51 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>${spring-boot.version}</version>
-    <relativePath/> <!-- lookup parent from repository -->
+    <artifactId>occurrence-motherpom</artifactId>
+    <groupId>org.gbif.occurrence</groupId>
+    <version>0.192.6-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.gbif</groupId>
   <artifactId>occurrence-download-launcher</artifactId>
   <name>Occurrence Downloads using Apache Spark</name>
-  <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <maven.compiler.source>8</maven.compiler.source>
-    <maven.compiler.target>8</maven.compiler.target>
-
-    <java.version>1.8</java.version>
-
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-    <lombok.version>1.18.20</lombok.version>
-
-    <gbif-api.version>1.2.0</gbif-api.version>
     <hadoop-yarn-client.version>2.6.0-cdh5.16.2</hadoop-yarn-client.version>
     <spark.version>2.3.0</spark.version>
-    <swagger-annotations.version>2.2.3</swagger-annotations.version>
-    <gbif-postal-service.version>1.4</gbif-postal-service.version>
-    <gbif-registry.version>3.88</gbif-registry.version>
-  </properties>
+    <amqp-client.version>5.9.0</amqp-client.version>
 
-  <repositories>
-    <repository>
-      <id>gbif-all</id>
-      <url>https://repository.gbif.org/content/groups/gbif/</url>
-    </repository>
-    <repository>
-      <id>gbif-thirdparty</id>
-      <url>https://repository.gbif.org/content/repositories/thirdparty/</url>
-    </repository>
-    <repository>
-      <id>cloudera-repos</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
+    <start-class>org.gbif.occurrence.downloads.launcher.OccurrenceDownloadsLauncherApplication</start-class>
+  </properties>
 
   <build>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>repackage</id>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+            <configuration>
+              <attach>true</attach>
+              <classifier>exec</classifier>
+            </configuration>
+          </execution>
+          <execution>
+            <id>build-info</id>
+            <goals>
+              <goal>build-info</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
+          <mainClass>${start-class}</mainClass>
+          <addResources>false</addResources>
+          <layout>ZIP</layout>
           <excludes>
             <exclude>
               <groupId>org.projectlombok</groupId>
@@ -72,7 +63,6 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
@@ -80,17 +70,14 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
-      <version>${gbif-api.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif.common</groupId>
       <artifactId>gbif-postal-service</artifactId>
-      <version>${gbif-postal-service.version}</version>
     </dependency>
     <dependency>
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
-      <version>${gbif-registry.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.gbif.registry</groupId>
@@ -111,9 +98,12 @@
     <dependency>
       <groupId>io.swagger.core.v3</groupId>
       <artifactId>swagger-annotations</artifactId>
-      <version>${swagger-annotations.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>com.rabbitmq</groupId>
+      <artifactId>amqp-client</artifactId>
+      <version>${amqp-client.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
