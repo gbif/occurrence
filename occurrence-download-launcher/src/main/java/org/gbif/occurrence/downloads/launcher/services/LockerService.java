@@ -33,7 +33,13 @@ public class LockerService {
   public void unlockAll() {
     log.info("Unlock all threads");
     if (!lockMap.isEmpty()) {
-      lockMap.values().forEach(LockSupport::unpark);
+
+      lockMap.forEach(
+        (id, thread) -> {
+          log.info("Unpark thread for id {}", id);
+          LockSupport.unpark(thread);
+        });
+
       lockMap.clear();
     }
   }
