@@ -29,6 +29,7 @@ public class DownloadServiceResource {
     this.lockerService = lockerService;
   }
 
+  // TODO: ADD SECURITY: ADMIN ONLY
   @Hidden
   @DeleteMapping("{jobId}")
   public void cancelJob(@PathVariable String jobId) {
@@ -38,6 +39,7 @@ public class DownloadServiceResource {
     }
   }
 
+  // TODO: ADD SECURITY: ADMIN ONLY
   @Hidden
   @DeleteMapping("/unlock")
   public void unlockAll() {

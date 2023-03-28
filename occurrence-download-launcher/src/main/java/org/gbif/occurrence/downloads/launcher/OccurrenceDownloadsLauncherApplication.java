@@ -32,6 +32,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+// TODO: RESTRUCTURE THE CLASS
+// TODO: RESTRUCTURE CLASSES INSIDE PACKAGES
 @SpringBootApplication
 @EnableScheduling
 @EnableConfigurationProperties
