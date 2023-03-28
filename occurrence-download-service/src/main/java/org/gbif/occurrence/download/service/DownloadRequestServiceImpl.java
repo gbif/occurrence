@@ -36,10 +36,8 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Optional;
 import javax.annotation.Nullable;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,11 +47,14 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
