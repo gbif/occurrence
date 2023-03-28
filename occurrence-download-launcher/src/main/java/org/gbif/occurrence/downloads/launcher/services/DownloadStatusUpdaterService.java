@@ -32,10 +32,12 @@ public class DownloadStatusUpdaterService {
   }
 
   public void updateStatus(String downloadKey, Status status) {
-    log.info("Update status for jobId {}, status {}", downloadKey, status);
     Download download = occurrenceDownloadService.get(downloadKey);
-    download.setStatus(status);
-    updateDownload(download);
+    if (!status.equals(download.getStatus())) {
+      log.info("Update status for jobId {}, from {} to {}", downloadKey, download.getStatus(), status);
+      download.setStatus(status);
+      updateDownload(download);
+    }
   }
 
   public void updateDownload(Download download) {
