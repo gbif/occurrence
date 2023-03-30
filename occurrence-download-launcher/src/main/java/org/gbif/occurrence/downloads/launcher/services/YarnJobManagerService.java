@@ -51,6 +51,8 @@ public class YarnJobManagerService implements JobManager {
         .setAppResource(sparkConfiguration.getAppResource())
         .setMainClass(sparkConfiguration.getMainClass())
         .startApplication(outputListener);
+      // TODO: CALCULATE SPARK RESOURCES?
+      // TODO: PASS ALL DOWNLOADS PARAMS
 
       return JobStatus.RUNNING;
 
