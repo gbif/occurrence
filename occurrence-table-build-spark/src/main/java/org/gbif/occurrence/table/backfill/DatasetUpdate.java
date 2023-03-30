@@ -14,6 +14,7 @@
 package org.gbif.occurrence.table.backfill;
 
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.util.List;
 import java.util.UUID;

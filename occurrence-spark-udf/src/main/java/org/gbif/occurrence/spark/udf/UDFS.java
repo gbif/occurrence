@@ -11,13 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.table.backfill;
-
-import org.gbif.occurrence.table.udf.CleanDelimiterArraysUdf;
-import org.gbif.occurrence.table.udf.CleanDelimiterCharsUdf;
-import org.gbif.occurrence.table.udf.StringArrayContainsGenericUdf;
-import org.gbif.occurrence.table.udf.ToISO8601Udf;
-import org.gbif.occurrence.table.udf.ToLocalISO8601Udf;
+package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
@@ -33,6 +27,9 @@ public class UDFS {
     sparkSession.udf().register("toISO8601", new ToISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("toLocalISO8601", new ToLocalISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("joinArray", new JoinArrayUdf(), DataTypes.StringType);
   }
 
 }

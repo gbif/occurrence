@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.table.udf;
+package org.gbif.occurrence.spark.udf;
 
 import java.util.Objects;
 
@@ -20,10 +20,12 @@ import org.apache.spark.sql.api.java.UDF1;
 import scala.collection.JavaConversions;
 import scala.collection.mutable.WrappedArray;
 
-public class RemoveNullsFromListUdf implements UDF1<WrappedArray<?>, Object[]> {
+public class RemoveNullsFromStringListUdf implements UDF1<WrappedArray<String>, String[]> {
 
   @Override
-  public Object[] call(WrappedArray<?> values) throws Exception {
-    return values == null || values.isEmpty() ? null : JavaConversions.asJavaCollection(values).stream().filter(Objects::nonNull).toArray(Object[]::new);
+  public String[] call(WrappedArray<String> values) throws Exception {
+    return values == null || values.isEmpty() ? null : JavaConversions.asJavaCollection(values).stream()
+      .filter(e -> Objects.nonNull(e) && !e.trim().isEmpty())
+      .toArray(String[]::new);
   }
 }

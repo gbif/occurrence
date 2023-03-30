@@ -18,10 +18,16 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.utils.file.properties.PropertiesUtil;
+
+import java.util.Properties;
 
 import lombok.Builder;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -58,18 +64,38 @@ public class DownloadWorkflow {
   }
 
   public void run() {
-
     if (download.getRequest().getFormat() != DownloadFormat.SPECIES_LIST) {
       long recordCount = recordCount(download);
       updateTotalRecordsCount(download, recordCount);
       if (isSmallDownloadCount(recordCount)) {
-        //runFromElastic()
+        runFromElastic();
       } else {
-        //runFromHive()
+        runFromSpark();
       }
     } else {
-      //runFromHive();
+      runFromSpark();
     }
+  }
+
+  @SneakyThrows
+  private void runFromElastic() {
+    Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, download.getRequest().getFormat().toString());
+    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
+    FromSearchDownloadAction.run(workflowConfiguration, DownloadJobConfiguration.builder()
+      .searchQuery(EsPredicateUtil.searchQuery(((PredicateDownloadRequest)download.getRequest()).getPredicate(),
+        DownloadWorkflowModule.esFieldMapper(workflowConfiguration.getEsIndexType())).toString())
+      .downloadKey(download.getKey())
+      .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
+      .sourceDir(workflowConfiguration.getTempDir())
+      .isSmallDownload(true)
+      .downloadFormat(workflowConfiguration.getDownloadFormat())
+      .coreTerm(coreDwcTerm)
+      .extensions(download.getRequest().getVerbatimExtensions())
+      .build());
+  }
+
+  private void runFromSpark() {
 
   }
 

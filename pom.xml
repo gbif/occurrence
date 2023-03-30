@@ -104,6 +104,8 @@
     <module>occurrence-download-service</module>
     <module>occurrence-table-build-spark</module>
     <module>occurrence-download-launcher</module>
+      <module>occurrence-spark-udf</module>
+    <module>occurrence-download-spark</module>
   </modules>
 
   <properties>
@@ -252,6 +254,12 @@
     <testcontainers-elasticsearch.version>1.17.3</testcontainers-elasticsearch.version>
     <!-- Used to match version used by Elasticsearch-->
     <lucene.version>8.7.0</lucene.version>
+
+    <!-- Spark -->
+    <spark.version>2.3.0</spark.version>
+    <databricks.version>4.0.0</databricks.version>
+    <scala.tools.version>2.11</scala.tools.version>
+    <scala.library.version>2.11.8</scala.library.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -481,6 +489,11 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-download-service</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-spark-udf</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -1317,6 +1330,52 @@
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils-core</artifactId>
         <version>${commons-beanutils-core.version}</version>
+      </dependency>
+
+      <!-- Spark -->
+      <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-catalyst_${scala.tools.version}</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-core_${scala.tools.version}</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-sql_${scala.tools.version}</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-yarn_${scala.tools.version}</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.spark</groupId>
+        <artifactId>spark-hive_${scala.tools.version}</artifactId>
+        <version>${spark.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.scala-lang</groupId>
+        <artifactId>scala-library</artifactId>
+        <version>${scala.library.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Avro -->
+      <dependency>
+        <groupId>com.databricks</groupId>
+        <artifactId>spark-avro_${scala.tools.version}</artifactId>
+        <version>${databricks.version}</version>
+        <scope>runtime</scope>
       </dependency>
 
       <!-- TEST PIECES -->

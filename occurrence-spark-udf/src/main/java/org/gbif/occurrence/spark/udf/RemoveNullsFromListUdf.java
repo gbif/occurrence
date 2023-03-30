@@ -11,22 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.table.udf;
+package org.gbif.occurrence.spark.udf;
+
+import java.util.Objects;
 
 import org.apache.spark.sql.api.java.UDF1;
 
 import scala.collection.JavaConversions;
 import scala.collection.mutable.WrappedArray;
 
-public class CleanDelimiterArraysUdf implements UDF1<WrappedArray<String>,String[]> {
-
-  private static final CleanDelimiters CLEAN_DELIMITERS = new CleanDelimiters();
+public class RemoveNullsFromListUdf implements UDF1<WrappedArray<?>, Object[]> {
 
   @Override
-  public String[] call(WrappedArray<String> field) throws Exception {
-    return field != null? JavaConversions.asJavaCollection(field).stream()
-      .map(CLEAN_DELIMITERS)
-      .filter(s -> s != null && !s.isEmpty())
-      .toArray(String[]::new) : null;
+  public Object[] call(WrappedArray<?> values) throws Exception {
+    return values == null || values.isEmpty() ? null : JavaConversions.asJavaCollection(values).stream().filter(Objects::nonNull).toArray(Object[]::new);
   }
 }

@@ -14,12 +14,6 @@
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-    <!-- Spark -->
-    <spark.version>2.3.0</spark.version>
-    <databricks.version>4.0.0</databricks.version>
-    <scala.tools.version>2.11</scala.tools.version>
-    <scala.library.version>2.11.8</scala.library.version>
   </properties>
 
   <build>
@@ -105,6 +99,10 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-spark-udf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>
       <exclusions>
         <exclusion>
@@ -186,35 +184,35 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+    </dependency>
+
     <!-- Spark -->
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-catalyst_${scala.tools.version}</artifactId>
-      <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.tools.version}</artifactId>
-      <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_${scala.tools.version}</artifactId>
-      <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-yarn_${scala.tools.version}</artifactId>
-      <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-hive_${scala.tools.version}</artifactId>
-      <version>${spark.version}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -226,14 +224,12 @@
     <dependency>
       <groupId>com.databricks</groupId>
       <artifactId>spark-avro_${scala.tools.version}</artifactId>
-      <version>${databricks.version}</version>
       <scope>runtime</scope>
     </dependency>
 
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>${scala.library.version}</version>
       <scope>provided</scope>
     </dependency>
 
