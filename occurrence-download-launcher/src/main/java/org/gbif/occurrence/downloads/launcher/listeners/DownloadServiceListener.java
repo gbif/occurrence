@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
+// TODO: MAYBE MUST BE DIFFERRENT SPRING SCOPE TYPE, TEST MULTIPPLE QUEUE LISTENERS
 /** Listen MQ to receive and run a download */
 @Slf4j
 @Component
