@@ -16,6 +16,8 @@ import org.gbif.occurrence.downloads.launcher.services.YarnClientService.Applica
 
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.spark.launcher.SparkLauncher;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service("yarn")
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class YarnJobManagerService implements JobManager {
 
   private final SparkConfiguration sparkConfiguration;

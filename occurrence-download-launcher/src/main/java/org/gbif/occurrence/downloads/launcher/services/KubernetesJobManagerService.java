@@ -7,9 +7,12 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 @Service("kubernetes")
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class KubernetesJobManagerService implements JobManager {
 
   @Override
