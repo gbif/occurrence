@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.spark;
 
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -31,6 +28,10 @@ import org.gbif.occurrence.download.predicate.EsPredicateUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.util.Properties;
+
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DownloadWorkflow {
@@ -121,6 +122,11 @@ public class DownloadWorkflow {
    * Method that determines if the search query produces a "small" download file.
    */
   private Boolean isSmallDownloadCount(long recordCount) {
+    return isSmallDownloadCount(recordCount, workflowConfiguration);
+  }
+
+
+  public static Boolean isSmallDownloadCount(long recordCount, WorkflowConfiguration workflowConfiguration) {
     return recordCount != ERROR_COUNT && recordCount <= workflowConfiguration.getIntSetting(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY);
   }
 

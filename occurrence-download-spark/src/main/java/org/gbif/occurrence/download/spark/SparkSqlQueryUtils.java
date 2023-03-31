@@ -22,7 +22,7 @@ import org.apache.spark.sql.SparkSession;
 
 import lombok.SneakyThrows;
 
-public class SparkSqlFileRunner {
+public class SparkSqlQueryUtils {
 
   public static SparkSession createSparkSession(String appName, String warehouseLocation) {
     return SparkSession.builder()
@@ -54,7 +54,30 @@ public class SparkSqlFileRunner {
   public static void runSQLFile(String fileName, Map<String,String> params, SparkSession sparkSession) {
     //Load parameters
     String queryFileContent = replaceVariables(readFile(fileName), params);
-    for (String query : queryFileContent.split(";")) {
+    runMultiSQL(queryFileContent, params, sparkSession);
+  }
+
+  /**
+   * Executes, statement-by-statement a file containing SQL queries.
+   */
+  public static void runSQLFile(String fileName, SparkSession sparkSession) {
+    runMultiSQL(readFile(fileName), sparkSession);
+  }
+
+  /**
+   * Executes, statement-by-statement a  String that contains multiple SQL queries.
+   */
+  public static void runMultiSQL(String multiQuery, Map<String,String> params, SparkSession sparkSession) {
+    //Load parameters
+    String filteredFileContent = replaceVariables(multiQuery, params);
+    runMultiSQL(filteredFileContent, sparkSession);
+  }
+
+  /**
+   * Executes, statement-by-statement a  String that contains multiple SQL queries.
+   */
+  public static void runMultiSQL(String multiQuery, SparkSession sparkSession) {
+    for (String query : multiQuery.split(";")) {
       sparkSession.sql(query);
     }
   }

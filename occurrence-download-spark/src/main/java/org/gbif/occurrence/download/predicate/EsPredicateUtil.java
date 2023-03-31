@@ -13,19 +13,22 @@
  */
 package org.gbif.occurrence.download.predicate;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
-import lombok.experimental.UtilityClass;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 
 import java.util.Optional;
+
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class EsPredicateUtil {

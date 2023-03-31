@@ -13,24 +13,27 @@
  */
 package org.gbif.occurrence.download.elastic;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.core.CountRequest;
-import org.elasticsearch.client.core.CountResponse;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.predicate.EsPredicateUtil;
+import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Objects;
+
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Builder
 @Slf4j
