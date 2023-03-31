@@ -16,5 +16,8 @@ public class DownloadServiceConfiguration {
   private String pathToYarnSite;
 
   @NotNull
-  private String cron;
+  private String taskCron;
+
+  @NotNull
+  private String managerQualifier;
 }

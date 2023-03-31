@@ -8,7 +8,6 @@ import org.gbif.occurrence.downloads.launcher.services.JobManager.JobStatus;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,7 @@ public class DownloadServiceListener extends AbstractMessageCallback<DownloadsMe
   private final LockerService lockerService;
 
   public DownloadServiceListener(
-    @Qualifier("yarn") JobManager jobManager,
+    JobManager jobManager,
     DownloadStatusUpdaterService downloadStatusUpdaterService,
     LockerService lockerService) {
     this.jobManager = jobManager;

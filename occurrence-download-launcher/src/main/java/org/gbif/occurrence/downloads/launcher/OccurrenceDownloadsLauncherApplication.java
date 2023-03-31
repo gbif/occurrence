@@ -17,6 +17,7 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.RegistryConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.services.JobManager;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
@@ -29,6 +30,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -88,4 +90,10 @@ public class OccurrenceDownloadsLauncherApplication {
       .withFormEncoder()
       .build(OccurrenceDownloadService.class);
   }
+
+  @Bean
+  JobManager jobManager(ApplicationContext context, DownloadServiceConfiguration configuration) {
+    return context.getBean(configuration.getManagerQualifier(), JobManager.class);
+  }
+
 }

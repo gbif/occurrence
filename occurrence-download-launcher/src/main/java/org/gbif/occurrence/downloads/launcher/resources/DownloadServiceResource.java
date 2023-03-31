@@ -6,7 +6,6 @@ import org.gbif.occurrence.downloads.launcher.services.JobManager;
 import org.gbif.occurrence.downloads.launcher.services.JobManager.JobStatus;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +20,7 @@ public class DownloadServiceResource {
   private final LockerService lockerService;
 
   public DownloadServiceResource(
-    @Qualifier("yarn") JobManager jobManager,
+    JobManager jobManager,
     DownloadStatusUpdaterService downloadStatusUpdaterService,
     LockerService lockerService) {
     this.jobManager = jobManager;

@@ -5,7 +5,6 @@ import java.util.List;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +19,7 @@ public class DownloadsStatusUpdaterScheduledTask {
   private final LockerService lockerService;
 
   public DownloadsStatusUpdaterScheduledTask(
-    @Qualifier("yarn") JobManager jobManager,
+    JobManager jobManager,
     DownloadStatusUpdaterService downloadStatusUpdaterService,
     LockerService lockerService) {
     this.jobManager = jobManager;
@@ -28,7 +27,7 @@ public class DownloadsStatusUpdaterScheduledTask {
     this.lockerService = lockerService;
   }
 
-  @Scheduled(cron = "${downloads.cron}")
+  @Scheduled(cron = "${downloads.taskCron}")
   public void renewedDownloadsStatuses() {
     log.info("Running scheduled checker...");
     List<Download> downloads = downloadStatusUpdaterService.getExecutingDownloads();

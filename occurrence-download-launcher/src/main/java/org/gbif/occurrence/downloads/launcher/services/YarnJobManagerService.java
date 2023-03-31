@@ -53,6 +53,9 @@ public class YarnJobManagerService implements JobManager {
         .setMaster(sparkConfiguration.getMaster())
         .setAppResource(sparkConfiguration.getAppResource())
         .setMainClass(sparkConfiguration.getMainClass())
+        .addAppArgs(
+          sparkConfiguration.getPropertiesPath()
+        )
         .startApplication(outputListener);
       // TODO: CALCULATE SPARK RESOURCES?
       // TODO: PASS ALL DOWNLOADS PARAMS

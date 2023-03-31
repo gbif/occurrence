@@ -20,4 +20,7 @@ public class SparkConfiguration {
 
   @NotNull
   private String master;
+
+  @NotNull
+  private String propertiesPath;
 }
