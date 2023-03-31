@@ -11,8 +11,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.oozie;
+package org.gbif.occurrence.download.spark;
 
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -20,15 +23,14 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.elastic.DownloadEsClient;
 import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.download.oozie.FromSearchDownloadAction;
+import org.gbif.occurrence.download.predicate.EsPredicateUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.util.Properties;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DownloadWorkflow {
