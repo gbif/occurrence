@@ -3,6 +3,7 @@ package org.gbif.occurrence.downloads.launcher.services;
 import java.util.List;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,11 +38,10 @@ public class DownloadsStatusUpdaterScheduledTask {
       renewedDownloads.forEach(
         download -> {
           downloadStatusUpdaterService.updateDownload(download);
-          lockerService.unlock(download.getKey());
+          if (Status.FINISH_STATUSES.contains(download.getStatus())) {
+            lockerService.unlock(download.getKey());
+          }
         });
-    } else {
-      log.info("No running downloads found");
-      lockerService.unlockAll();
     }
   }
 }

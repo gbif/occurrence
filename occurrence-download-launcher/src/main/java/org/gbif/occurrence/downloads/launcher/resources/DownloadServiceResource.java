@@ -45,4 +45,12 @@ public class DownloadServiceResource {
   public void unlockAll() {
     lockerService.unlockAll();
   }
+
+
+  // TODO: ADD SECURITY: ADMIN ONLY
+  @Hidden
+  @DeleteMapping("/unlock/{jobId}")
+  public void unlock(@PathVariable String jobId) {
+    lockerService.unlock(jobId);
+  }
 }
