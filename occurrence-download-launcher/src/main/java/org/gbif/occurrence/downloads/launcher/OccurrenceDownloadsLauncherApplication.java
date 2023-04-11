@@ -64,8 +64,16 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
+  Queue downloadsDeadQueue(DownloadServiceConfiguration configuration) {
+    return QueueBuilder.durable(configuration.getDeadQueueName()).build();
+  }
+
+  @Bean
   Queue downloadsQueue(DownloadServiceConfiguration configuration) {
-    return QueueBuilder.durable(configuration.getQueueName()).build();
+    return QueueBuilder.durable(configuration.getQueueName())
+      .withArgument("x-dead-letter-exchange", "")
+      .withArgument("x-dead-letter-routing-key", configuration.getDeadQueueName())
+      .build();
   }
 
   @Bean

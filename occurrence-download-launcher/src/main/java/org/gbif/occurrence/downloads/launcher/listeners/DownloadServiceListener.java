@@ -7,6 +7,7 @@ import org.gbif.occurrence.downloads.launcher.services.JobManager;
 import org.gbif.occurrence.downloads.launcher.services.JobManager.JobStatus;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,10 @@ public class DownloadServiceListener extends AbstractMessageCallback<DownloadsMe
       jobManager
         .getStatusByName(jobId)
         .ifPresent(status -> downloadStatusUpdaterService.updateStatus(jobId, status));
+    }
+
+    if (jobStatus == JobStatus.FAILED) {
+      throw new AmqpRejectAndDontRequeueException("Failed to process message");
     }
   }
 }
