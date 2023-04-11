@@ -104,7 +104,7 @@
     <module>occurrence-download-service</module>
     <module>occurrence-table-build-spark</module>
     <module>occurrence-download-launcher</module>
-      <module>occurrence-spark-udf</module>
+    <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
   </modules>
 

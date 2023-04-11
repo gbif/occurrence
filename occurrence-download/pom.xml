@@ -566,6 +566,13 @@
       <artifactId>zookeeper</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.library.version}</version>
+      <scope>compile</scope>
+    </dependency>
+
     <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
 
     <!-- Test -->
