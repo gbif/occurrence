@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.conf;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -129,6 +130,11 @@ public class WorkflowConfiguration {
     return SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE).toUpperCase());
   }
 
+  public DwcTerm getCoreTerm() {
+    Preconditions.checkNotNull(settings);
+    return getEsIndexType() == SearchType.OCCURRENCE? DwcTerm.Occurrence : DwcTerm.Event;
+  }
+
   /**
    *
    * @param downloadKey download id
@@ -158,6 +164,16 @@ public class WorkflowConfiguration {
   public String getHiveDBPath() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
+  }
+
+
+  /**
+   *
+   * @return hdfs directory of the Hive warehouse.
+   */
+  public String getHiveWarehouseDir() {
+    Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_WAREHOUSE_DIR);
   }
 
   /**
