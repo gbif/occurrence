@@ -13,11 +13,11 @@
  */
 package org.gbif.occurrence.downloads.launcher;
 
-import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.RegistryConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.JobManager;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
@@ -82,13 +82,13 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
-  public OccurrenceDownloadService occurrenceDownloadService(RegistryConfiguration configuration) {
+  public OccurrenceDownloadClient occurrenceDownloadClient(RegistryConfiguration configuration) {
     return new ClientBuilder()
       .withUrl(configuration.getApiUrl())
       .withCredentials(configuration.getUserName(), configuration.getPassword())
       .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
       .withFormEncoder()
-      .build(OccurrenceDownloadService.class);
+      .build(OccurrenceDownloadClient.class);
   }
 
   @Bean
