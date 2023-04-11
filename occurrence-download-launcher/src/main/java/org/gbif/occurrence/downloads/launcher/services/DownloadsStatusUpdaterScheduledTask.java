@@ -31,6 +31,9 @@ public class DownloadsStatusUpdaterScheduledTask {
   public void renewedDownloadsStatuses() {
     log.info("Running scheduled checker...");
     List<Download> downloads = downloadStatusUpdaterService.getExecutingDownloads();
+
+    log.info("Found running downloads - {}", downloads.size());
+
     if (!downloads.isEmpty()) {
       log.info("Found {} running downloads", downloads.size());
       List<Download> renewedDownloads = jobManager.renewRunningDownloadsStatuses(downloads);
