@@ -323,6 +323,8 @@ public class DownloadWorkflowModule  {
 
     public static final String NAME_NODE_KEY = "hdfs.namenode";
     public static final String HIVE_DB_KEY = "hive.db";
+
+    public static final String HIVE_WAREHOUSE_DIR = "hive.warehouse.dir";
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
     public static final String API_URL_KEY = "api.url";
     public static final String ES_INDEX_KEY = "es.index";
