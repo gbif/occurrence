@@ -126,10 +126,6 @@
           <artifactId>hbase-utils</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>org.gbif.common</groupId>
-          <artifactId>co</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>org.gbif</groupId>
           <artifactId>gbif-common-service</artifactId>
         </exclusion>
