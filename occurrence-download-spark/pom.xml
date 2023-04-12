@@ -92,6 +92,10 @@
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
 
     <!-- GBIF -->
     <dependency>
@@ -101,6 +105,12 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-download</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>brickhouse</artifactId>
+          <groupId>com.klout</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
