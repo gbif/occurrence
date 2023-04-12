@@ -85,7 +85,7 @@ public class DwcaDownload {
 
 
   private void dropTables() {
-    SparkSqlQueryUtils.runSQLFile(dropTablesQueryFile, sparkSession);
+    SparkSqlQueryUtils.runSQLFile(dropTablesQueryFile, queryParameters.toMap(), sparkSession);
   }
 
   private boolean hasRequestedExtensions() {
