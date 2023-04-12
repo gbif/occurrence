@@ -94,7 +94,6 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <shadedArtifactAttached>true</shadedArtifactAttached>
               <artifactSet>
                 <excludes>
                   <exclude>org.apache.hadoop:*</exclude>
@@ -131,6 +130,10 @@
                 <relocation>
                   <pattern>org.apache.commons.logging</pattern>
                   <shadedPattern>shadedspringjcl.org.apache.commons.logging</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>scala</pattern>
+                  <shadedPattern>shadedscala</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
