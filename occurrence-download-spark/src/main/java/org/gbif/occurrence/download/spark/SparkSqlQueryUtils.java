@@ -17,11 +17,13 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.sql.SparkSession;
 
 import lombok.SneakyThrows;
 
+@Slf4j
 public class SparkSqlQueryUtils {
 
   public static SparkSession createSparkSession(String appName, String warehouseLocation) {
@@ -52,9 +54,7 @@ public class SparkSqlQueryUtils {
    * Executes, statement-by-statement a file containing SQL queries.
    */
   public static void runSQLFile(String fileName, Map<String,String> params, SparkSession sparkSession) {
-    //Load parameters
-    String queryFileContent = replaceVariables(readFile(fileName), params);
-    runMultiSQL(queryFileContent, params, sparkSession);
+    runMultiSQL(readFile(fileName), params, sparkSession);
   }
 
   /**
@@ -78,6 +78,7 @@ public class SparkSqlQueryUtils {
    */
   public static void runMultiSQL(String multiQuery, SparkSession sparkSession) {
     for (String query : multiQuery.split(";")) {
+      log.info("Executing query: \n {}", query);
       sparkSession.sql(query);
     }
   }
