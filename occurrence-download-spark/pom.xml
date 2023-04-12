@@ -45,9 +45,16 @@
                 <exclude>META-INF/*.SF</exclude>
                 <exclude>META-INF/*.DSA</exclude>
                 <exclude>META-INF/*.RSA</exclude>
+                <exclude>org/codehaus/jackson/**</exclude>
               </excludes>
             </filter>
           </filters>
+          <relocations>
+            <relocation>
+              <pattern>com.fasterxml</pattern>
+              <shadedPattern>shaded.com.fasterxml</shadedPattern>
+            </relocation>
+          </relocations>
         </configuration>
         <executions>
           <execution>
