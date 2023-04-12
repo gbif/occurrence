@@ -77,9 +77,12 @@ public class SparkSqlQueryUtils {
    * Executes, statement-by-statement a  String that contains multiple SQL queries.
    */
   public static void runMultiSQL(String multiQuery, SparkSession sparkSession) {
-    for (String query : multiQuery.split(";")) {
-      log.info("Executing query: \n {}", query);
-      sparkSession.sql(query);
+    for (String query : multiQuery.split("(?!\\\\;)(;)")) {
+      query = query.trim();
+      if(query.length() > 0) {
+        log.info("Executing query: \n {}", query);
+        sparkSession.sql(query);
+      }
     }
   }
 }
