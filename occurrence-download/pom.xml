@@ -19,7 +19,7 @@
   </distributionManagement>
 
   <properties>
-    <hadoop-compress.version>1.4-SNAPSHOT</hadoop-compress.version>
+    <hadoop-compress.version>1.4-H3-SNAPSHOT</hadoop-compress.version>
     <metrics-core.version>2.2.0</metrics-core.version>
     <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
