@@ -46,7 +46,7 @@ public enum OccurrenceEsField implements EsField {
   NETWORK_KEY(new BaseEsField("networkKeys", GbifInternalTerm.networkKey)),
   PROTOCOL(new BaseEsField("protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("license", DcTerm.license)),
-  PROJECT_ID(new BaseEsField("projectId", GbifInternalTerm.projectId)),
+  PROJECT_ID(new BaseEsField("projectId", GbifTerm.projectId)),
   PROGRAMME(new BaseEsField("programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
