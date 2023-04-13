@@ -17,16 +17,11 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 
 import lombok.experimental.UtilityClass;
-import org.cache2k.core.HeapCache;
 
 @UtilityClass
 public class UDFS {
 
   public static void registerUdfs(SparkSession sparkSession) {
-
-    sparkSession.sparkContext().conf().registerKryoClasses(new Class<?>[]{
-      HeapCache.class
-    });
     sparkSession.udf().register("cleanDelimiters", new CleanDelimiterCharsUdf(), DataTypes.StringType);
     sparkSession.udf().register("cleanDelimitersArray", new CleanDelimiterArraysUdf(), DataTypes.createArrayType(DataTypes.StringType));
     sparkSession.udf().register("toISO8601", new ToISO8601Udf(), DataTypes.StringType);

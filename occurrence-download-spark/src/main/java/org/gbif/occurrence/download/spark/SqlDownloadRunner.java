@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import org.apache.spark.SparkConf;
+import org.cache2k.core.HeapCache;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -56,10 +58,13 @@ public class SqlDownloadRunner {
   }
 
   private static SparkSession createSparkSession(String downloadKey, WorkflowConfiguration workflowConfiguration) {
+    SparkConf sparkConf = new SparkConf();
+    sparkConf.set("spark.sql.warehouse.dir", workflowConfiguration.getHiveWarehouseDir())
+             .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+             .registerKryoClasses(new Class<?>[]{HeapCache.class});
     SparkSession.Builder sparkBuilder = SparkSession.builder()
       .appName(downloadKey + " download job")
-      .config("spark.sql.warehouse.dir", workflowConfiguration.getHiveWarehouseDir())
-      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .config(sparkConf)
       .enableHiveSupport();
     return sparkBuilder.getOrCreate();
   }
