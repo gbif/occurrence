@@ -31,6 +31,7 @@ import org.apache.spark.sql.SparkSession;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 @Builder
 public class SimpleCsvDownload {
@@ -63,6 +64,7 @@ public class SimpleCsvDownload {
   }
 
   private void executeQuery() {
+    UDFS.registerUdfs(sparkSession);
     SparkSqlQueryUtils.runSQLFile(queryFile, queryParameters.toMap(), sparkSession);
   }
 

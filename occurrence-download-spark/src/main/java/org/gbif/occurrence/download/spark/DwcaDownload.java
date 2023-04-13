@@ -28,6 +28,7 @@ import org.apache.spark.sql.SparkSession;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 @Builder
 @Slf4j
@@ -62,6 +63,7 @@ public class DwcaDownload {
   }
 
   private void executeQuery() {
+    UDFS.registerUdfs(sparkSession);
     SparkSqlQueryUtils.runSQLFile(queryFile, getQueryParameters(), sparkSession);
     if (hasRequestedExtensions()) {
       runExtensionsQuery();
