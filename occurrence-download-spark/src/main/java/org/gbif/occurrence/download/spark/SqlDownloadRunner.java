@@ -59,8 +59,7 @@ public class SqlDownloadRunner {
   private static SparkSession createSparkSession(String downloadKey, WorkflowConfiguration workflowConfiguration) {
 
     SparkConf sparkConf = new SparkConf()
-                            .set("spark.sql.warehouse.dir", workflowConfiguration.getHiveWarehouseDir())
-                            .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+                            .set("spark.sql.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
     SparkSession.Builder sparkBuilder = SparkSession.builder()
       .appName("Download job " + downloadKey)
       .config(sparkConf)
