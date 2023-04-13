@@ -37,6 +37,6 @@ public class ToISO8601Udf implements UDF1<String,String> {
 
   @Override
   public String call(String field) throws Exception {
-    return isNotNullOrEmpty(field)? cache.get(field) : null;
+    return isNotNullOrEmpty(field)? cache.computeIfAbsent(field, ToISO8601Udf::toIso8601) : null;
   }
 }

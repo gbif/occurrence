@@ -38,6 +38,6 @@ public class CleanDelimiters implements Function<String,String> {
   @Override
   @SneakyThrows
   public String apply(String value) {
-    return value != null? cache.get(value) : null;
+    return value != null? cache.computeIfAbsent(value, CleanDelimiters::cleanDelimiters) : null;
   }
 }
