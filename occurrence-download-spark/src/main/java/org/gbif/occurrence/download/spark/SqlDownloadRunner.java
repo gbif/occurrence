@@ -59,6 +59,7 @@ public class SqlDownloadRunner {
     SparkSession.Builder sparkBuilder = SparkSession.builder()
       .appName(downloadKey + " download job")
       .config("spark.sql.warehouse.dir", workflowConfiguration.getHiveWarehouseDir())
+      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .enableHiveSupport();
     return sparkBuilder.getOrCreate();
   }
