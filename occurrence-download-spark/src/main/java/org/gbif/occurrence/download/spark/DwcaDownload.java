@@ -18,6 +18,7 @@ import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.io.BufferedWriter;
 import java.io.StringWriter;
@@ -28,7 +29,6 @@ import org.apache.spark.sql.SparkSession;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.gbif.occurrence.spark.udf.UDFS;
 
 @Builder
 @Slf4j

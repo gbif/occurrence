@@ -17,18 +17,22 @@ package org.gbif.occurrence.spark.udf;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
+import lombok.SneakyThrows;
 
 public class CleanDelimiters implements Function<String,String> {
 
-  private final Cache<String,String> cache;
+  private final LoadingCache<String,String> cache;
   public CleanDelimiters() {
-    cache = Cache2kBuilder.of(String.class, String.class)
-              .entryCapacity(100_000) //maximum capacity
-              .loader(CleanDelimiters::cleanDelimiters) //auto populating function
-              .permitNullValues(true) //allow nulls
-              .build();
+    cache = CacheBuilder.newBuilder().maximumSize(100_000).build(new CacheLoader<String, String>() {
+      @Override
+      public String load(String s) throws Exception {
+        return CleanDelimiters.cleanDelimiters(s);
+      }
+    });
   }
 
   private static String cleanDelimiters(String value) {
@@ -40,6 +44,7 @@ public class CleanDelimiters implements Function<String,String> {
 
   public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMETERS_MATCH);
   @Override
+  @SneakyThrows
   public String apply(String value) {
     return value != null? cache.get(value) : null;
   }

@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.conf;
 
-import lombok.Builder;
-import lombok.Data;
-import org.apache.hadoop.fs.Path;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
@@ -32,6 +29,11 @@ import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.util.Set;
+
+import org.apache.hadoop.fs.Path;
+
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * Configuration of a small download execution.

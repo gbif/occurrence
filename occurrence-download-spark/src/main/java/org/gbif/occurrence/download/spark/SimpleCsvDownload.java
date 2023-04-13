@@ -22,6 +22,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.util.Set;
 
@@ -31,7 +32,6 @@ import org.apache.spark.sql.SparkSession;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
-import org.gbif.occurrence.spark.udf.UDFS;
 
 @Builder
 public class SimpleCsvDownload {

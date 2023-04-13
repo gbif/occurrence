@@ -18,18 +18,21 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import org.apache.spark.sql.api.java.UDF1;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 public class ToISO8601Udf implements UDF1<String,String> {
 
-  private final Cache<String,String> cache;
+  private final LoadingCache<String,String> cache;
   public ToISO8601Udf() {
-    cache = Cache2kBuilder.of(String.class, String.class)
-              .entryCapacity(100_000) //maximum capacity
-              .loader(ToISO8601Udf::toIso8601) //auto populating function
-              .permitNullValues(true) //allow nulls
-              .build();
+    cache = CacheBuilder.newBuilder().maximumSize(100_000).build(new CacheLoader<String, String>() {
+      @Override
+      public String load(String key) throws Exception {
+        return ToISO8601Udf.toIso8601(key);
+      }
+    });
   }
 
   private static String toIso8601(String value) {
