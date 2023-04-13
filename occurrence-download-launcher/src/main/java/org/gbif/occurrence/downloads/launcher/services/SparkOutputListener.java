@@ -72,8 +72,8 @@ public class SparkOutputListener implements Listener {
         .getFinishedApplicationNameById(appId)
         .ifPresent(
           name -> {
-            lockerService.unlock(name);
             downloadStatusUpdaterService.updateStatus(name, status);
+            lockerService.unlock(name);
           });
     }
   }

@@ -33,10 +33,16 @@ public class DownloadStatusUpdaterService {
 
   public void updateStatus(String downloadKey, Status status) {
     Download download = occurrenceDownloadClient.get(downloadKey);
-    if (!status.equals(download.getStatus())) {
-      log.info("Update status for jobId {}, from {} to {}", downloadKey, download.getStatus(), status);
-      download.setStatus(status);
-      updateDownload(download);
+    if (download != null) {
+      if (!status.equals(download.getStatus())) {
+        log.info("Update status for jobId {}, from {} to {}", downloadKey, download.getStatus(), status);
+        download.setStatus(status);
+        updateDownload(download);
+      } else {
+        log.info("Skiping downloads status updating for download {}, status is already {}", downloadKey, status);
+      }
+    } else {
+      log.error("Can't update status for download {} to {}", downloadKey, status);
     }
   }
 

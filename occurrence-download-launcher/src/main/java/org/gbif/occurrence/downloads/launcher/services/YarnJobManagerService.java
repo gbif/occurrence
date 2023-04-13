@@ -46,17 +46,21 @@ public class YarnJobManagerService implements JobManager {
     try {
       String jobId = message.getJobId();
 
-      new SparkLauncher()
+      SparkLauncher launcher = new SparkLauncher()
+        // Spark settings
         .setAppName(jobId)
         .setSparkHome(sparkConfiguration.getSparkHome())
         .setDeployMode(sparkConfiguration.getDeployMode())
         .setMaster(sparkConfiguration.getMaster())
         .setAppResource(sparkConfiguration.getAppResource())
         .setMainClass(sparkConfiguration.getMainClass())
-        .addAppArgs(
-          sparkConfiguration.getPropertiesPath()
-        )
-        .startApplication(outputListener);
+        .setVerbose(sparkConfiguration.isVerbose());
+
+      sparkConfiguration.getFiles().forEach(launcher::addFile);
+      // App settings
+      launcher.addAppArgs(message.getJobId());
+      // Launch
+      launcher.startApplication(outputListener);
       // TODO: CALCULATE SPARK RESOURCES?
       // TODO: PASS ALL DOWNLOADS PARAMS
 
