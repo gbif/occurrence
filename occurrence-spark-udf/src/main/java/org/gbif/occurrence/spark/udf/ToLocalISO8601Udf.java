@@ -27,12 +27,7 @@ public class ToLocalISO8601Udf implements UDF1<String,String> {
 
   private final LoadingCache<String,String> cache;
   public ToLocalISO8601Udf() {
-    cache = CacheBuilder.newBuilder().maximumSize(100_000).build(new CacheLoader<String, String>() {
-      @Override
-      public String load(String key) throws Exception {
-        return ToLocalISO8601Udf.toLocalIso8601(key);
-      }
-    });
+    cache = CacheBuilder.newBuilder().maximumSize(100_000).build(CacheLoader.from(ToLocalISO8601Udf::toLocalIso8601));
   }
 
   private static String toLocalIso8601(String value) {

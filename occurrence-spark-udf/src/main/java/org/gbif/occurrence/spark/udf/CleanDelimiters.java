@@ -27,12 +27,7 @@ public class CleanDelimiters implements Function<String,String> {
 
   private final LoadingCache<String,String> cache;
   public CleanDelimiters() {
-    cache = CacheBuilder.newBuilder().maximumSize(100_000).build(new CacheLoader<String, String>() {
-      @Override
-      public String load(String s) throws Exception {
-        return CleanDelimiters.cleanDelimiters(s);
-      }
-    });
+    cache = CacheBuilder.newBuilder().maximumSize(100_000).build(CacheLoader.from(CleanDelimiters::cleanDelimiters));
   }
 
   private static String cleanDelimiters(String value) {
