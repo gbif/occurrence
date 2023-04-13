@@ -48,7 +48,9 @@ public class DownloadServiceListener extends AbstractMessageCallback<DownloadsMe
   @RabbitListener(queues = "${downloads.queueName}")
   public void handleMessage(DownloadsMessage downloadsMessage) {
     log.info("Received message {}", downloadsMessage);
+
     JobStatus jobStatus = jobManager.createJob(downloadsMessage);
+
     if (jobStatus == JobStatus.RUNNING) {
       String jobId = downloadsMessage.getJobId();
 
@@ -61,6 +63,7 @@ public class DownloadServiceListener extends AbstractMessageCallback<DownloadsMe
     }
 
     if (jobStatus == JobStatus.FAILED) {
+      log.error("Failed to process message: {}", downloadsMessage.toString());
       throw new AmqpRejectAndDontRequeueException("Failed to process message");
     }
   }
