@@ -31,10 +31,6 @@ public class ToISO8601Udf implements UDF1<Long,String> {
     return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochMilli(value).atZone(ZoneOffset.UTC));
   }
 
-  private static boolean isNotNullOrEmpty(String value) {
-    return value != null && value.length() > 0;
-  }
-
   @Override
   public String call(Long field) throws Exception {
     return field != null? cache.computeIfAbsent(field, ToISO8601Udf::toIso8601) : null;
