@@ -20,15 +20,15 @@ import java.util.Map;
 
 import org.apache.spark.sql.api.java.UDF1;
 
-public class ToISO8601Udf implements UDF1<String,String> {
+public class ToISO8601Udf implements UDF1<Long,String> {
 
-  private final Map<String,String> cache;
+  private final Map<Long,String> cache;
   public ToISO8601Udf() {
     cache = UDFS.createLRUMap(100_00);
   }
 
-  private static String toIso8601(String value) {
-    return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochMilli(Long.parseLong(value)).atZone(ZoneOffset.UTC));
+  private static String toIso8601(Long value) {
+    return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochMilli(value).atZone(ZoneOffset.UTC));
   }
 
   private static boolean isNotNullOrEmpty(String value) {
@@ -36,7 +36,7 @@ public class ToISO8601Udf implements UDF1<String,String> {
   }
 
   @Override
-  public String call(String field) throws Exception {
-    return isNotNullOrEmpty(field)? cache.computeIfAbsent(field, ToISO8601Udf::toIso8601) : null;
+  public String call(Long field) throws Exception {
+    return field != null? cache.computeIfAbsent(field, ToISO8601Udf::toIso8601) : null;
   }
 }
