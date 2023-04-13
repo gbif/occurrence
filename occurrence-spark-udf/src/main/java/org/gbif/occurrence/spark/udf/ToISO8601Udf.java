@@ -25,7 +25,7 @@ import com.google.common.cache.LoadingCache;
 
 public class ToISO8601Udf implements UDF1<String,String> {
 
-  private final LoadingCache<String,String> cache;
+  private transient final LoadingCache<String,String> cache;
   public ToISO8601Udf() {
     cache = CacheBuilder.newBuilder().maximumSize(100_000).build(new CacheLoader<String, String>() {
       @Override
