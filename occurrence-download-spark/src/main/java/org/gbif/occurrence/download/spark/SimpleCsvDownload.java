@@ -65,11 +65,11 @@ public class SimpleCsvDownload {
 
   private void executeQuery() {
     UDFS.registerUdfs(sparkSession);
-    SparkSqlQueryUtils.runSQLFile(queryFile, queryParameters.toMap(), sparkSession);
+    SqlQueryUtils.runSQLFile(queryFile, queryParameters.toMap(), sparkSession::sql);
   }
 
   private void dropTables() {
-    dropTables(queryParameters.getDownloadTableName(), queryParameters.getTableName() + "_citation");
+    dropTables(queryParameters.getDownloadTableName(), queryParameters.getDownloadTableName() + "_citation");
   }
 
   @SneakyThrows

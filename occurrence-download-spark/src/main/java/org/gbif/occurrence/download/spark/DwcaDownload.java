@@ -64,7 +64,7 @@ public class DwcaDownload {
 
   private void executeQuery() {
     UDFS.registerUdfs(sparkSession);
-    SparkSqlQueryUtils.runSQLFile(queryFile, getQueryParameters(), sparkSession);
+    SqlQueryUtils.runSQLFile(queryFile, getQueryParameters(), sparkSession::sql);
     if (hasRequestedExtensions()) {
       runExtensionsQuery();
     }
@@ -87,7 +87,7 @@ public class DwcaDownload {
 
 
   private void dropTables() {
-    SparkSqlQueryUtils.runSQLFile(dropTablesQueryFile, queryParameters.toMap(), sparkSession);
+    SqlQueryUtils.runSQLFile(dropTablesQueryFile, queryParameters.toMap(), sparkSession::sql);
   }
 
   private boolean hasRequestedExtensions() {
@@ -96,17 +96,17 @@ public class DwcaDownload {
 
   private Map<String,String> getQueryParameters() {
     Map<String,String> parameters = queryParameters.toMap();
-    parameters.put("verbatimTable", queryParameters.getTableName() + "_verbatim");
-    parameters.put("interpretedTable", queryParameters.getTableName() + "_interpreted");
-    parameters.put("citationTable", queryParameters.getTableName() + "_citation");
-    parameters.put("multimediaTable", queryParameters.getTableName() + "_multimedia");
+    parameters.put("verbatimTable", queryParameters.getDownloadTableName() + "_verbatim");
+    parameters.put("interpretedTable", queryParameters.getDownloadTableName() + "_interpreted");
+    parameters.put("citationTable", queryParameters.getDownloadTableName() + "_citation");
+    parameters.put("multimediaTable", queryParameters.getDownloadTableName() + "_multimedia");
 
     return parameters;
   }
 
 
   private void runExtensionsQuery() {
-      SparkSqlQueryUtils.runMultiSQL(extensionQuery(), sparkSession);
+      SqlQueryUtils.runMultiSQL(extensionQuery(), sparkSession::sql);
   }
 
   @SneakyThrows

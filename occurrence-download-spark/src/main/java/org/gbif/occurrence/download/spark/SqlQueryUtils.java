@@ -16,22 +16,15 @@ package org.gbif.occurrence.download.spark;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.spark.sql.SparkSession;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SparkSqlQueryUtils {
-
-  public static SparkSession createSparkSession(String appName, String warehouseLocation) {
-    return SparkSession.builder()
-            .appName(appName)
-            .config("spark.sql.warehouse.dir", warehouseLocation)
-            .enableHiveSupport().getOrCreate();
-  }
+public class SqlQueryUtils {
 
   /**
    * Reads a file into a string.
@@ -53,35 +46,29 @@ public class SparkSqlQueryUtils {
   /**
    * Executes, statement-by-statement a file containing SQL queries.
    */
-  public static void runSQLFile(String fileName, Map<String,String> params, SparkSession sparkSession) {
-    runMultiSQL(readFile(fileName), params, sparkSession);
+  public static void runSQLFile(String fileName, Map<String,String> params, Consumer<String> queryExecutor) {
+    runMultiSQL(readFile(fileName), params, queryExecutor);
   }
 
-  /**
-   * Executes, statement-by-statement a file containing SQL queries.
-   */
-  public static void runSQLFile(String fileName, SparkSession sparkSession) {
-    runMultiSQL(readFile(fileName), sparkSession);
-  }
 
   /**
    * Executes, statement-by-statement a  String that contains multiple SQL queries.
    */
-  public static void runMultiSQL(String multiQuery, Map<String,String> params, SparkSession sparkSession) {
+  public static void runMultiSQL(String multiQuery, Map<String,String> params, Consumer<String> queryExecutor) {
     //Load parameters
     String filteredFileContent = replaceVariables(multiQuery, params);
-    runMultiSQL(filteredFileContent, sparkSession);
+    runMultiSQL(filteredFileContent, queryExecutor);
   }
 
   /**
    * Executes, statement-by-statement a  String that contains multiple SQL queries.
    */
-  public static void runMultiSQL(String multiQuery, SparkSession sparkSession) {
+  public static void runMultiSQL(String multiQuery, Consumer<String> queryExecutor) {
     for (String query : multiQuery.split(";\n")) {
       query = query.trim();
       if(query.length() > 0) {
         log.info("Executing query: \n {}", query);
-        sparkSession.sql(query);
+        queryExecutor.accept(query);
       }
     }
   }
