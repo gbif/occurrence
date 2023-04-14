@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import com.sun.corba.se.spi.orbutil.threadpool.Work;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -32,7 +33,11 @@ public class SqlDownloadRunner {
     Download download = downloadService.get(downloadKey);
     DownloadJobConfiguration jobConfiguration = DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath());
 
-    try(SparkSession sparkSession = createSparkSession(downloadKey, workflowConfiguration)) {
+    run(download, workflowConfiguration, jobConfiguration);
+  }
+
+  public static void run(Download download, WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration jobConfiguration) {
+    try(SparkSession sparkSession = createSparkSession(download.getKey(), workflowConfiguration)) {
       if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
         DwcaDownload.builder()
           .download(download)

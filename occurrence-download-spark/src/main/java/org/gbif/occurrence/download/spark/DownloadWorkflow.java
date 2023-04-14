@@ -99,7 +99,9 @@ public class DownloadWorkflow {
   }
 
   private void runFromSpark() {
-
+    SqlDownloadRunner.run(download,
+                          workflowConfiguration,
+                          DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath()));
   }
 
 
