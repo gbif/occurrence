@@ -21,7 +21,6 @@ import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.GenerateHQL;
 import org.gbif.occurrence.spark.udf.UDFS;
 
-import java.io.BufferedWriter;
 import java.io.StringWriter;
 import java.util.Map;
 
@@ -137,7 +136,7 @@ public class DwcaDownload {
 
   @SneakyThrows
   private String extensionQuery() {
-    try (BufferedWriter writer = new BufferedWriter(new StringWriter())) {
+    try (StringWriter writer = new StringWriter()) {
       ExtensionsQuery.builder().writer(writer).build().generateExtensionsQueryHQL(download);
       return writer.toString();
     }

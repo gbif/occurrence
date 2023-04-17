@@ -16,10 +16,10 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.common.download.DownloadUtils;
 
-import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ import lombok.SneakyThrows;
 @Builder
 public class ExtensionsQuery {
 
-  private final BufferedWriter writer;
+  private final Writer writer;
 
   private static final String TEMPLATE_FILE = "templates/download/execute-extensions-query.ftl";
 
