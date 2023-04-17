@@ -131,7 +131,7 @@ public class DwcaDownload {
 
 
   private void runExtensionsQuery() {
-      SqlQueryUtils.runMultiSQL(extensionQuery(), sparkSession::sql);
+      SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), sparkSession::sql);
   }
 
   @SneakyThrows
