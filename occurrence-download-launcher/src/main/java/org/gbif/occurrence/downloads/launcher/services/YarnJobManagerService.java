@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
+import org.apache.spark.launcher.Spark2Launcher;
 import org.apache.spark.launcher.SparkLauncher;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -60,10 +61,10 @@ public class YarnJobManagerService implements JobManager {
     try {
       String jobId = message.getJobId();
 
-      SparkLauncher launcher = new SparkLauncher()
+      SparkLauncher launcher = new Spark2Launcher()
         // Spark settings
         .setAppName(jobId)
-        .setSparkHome(sparkConfiguration.getSparkHome())
+        .setSparkHome("empty")
         .setDeployMode(sparkConfiguration.getDeployMode())
         .setMaster(sparkConfiguration.getMaster())
         .setAppResource(sparkConfiguration.getAppResource())
