@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.spark;
 
-import com.sun.corba.se.spi.orbutil.threadpool.Work;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -44,7 +43,6 @@ public class SqlDownloadRunner {
           .workflowConfiguration(workflowConfiguration)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
           .dropTablesQueryFile("drop_tables.q")
-          .queryFile("execute-query.q")
           .sparkSession(sparkSession)
           .build()
           .run();
@@ -52,7 +50,6 @@ public class SqlDownloadRunner {
         SimpleCsvDownload.builder()
           .download(download)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .queryFile("execute-simple-csv-query.q")
           .workflowConfiguration(workflowConfiguration)
           .sparkSession(sparkSession)
           .build()

@@ -18,6 +18,7 @@ import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
+import org.gbif.occurrence.download.hive.GenerateHQL;
 import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.io.BufferedWriter;
@@ -34,9 +35,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DwcaDownload {
 
-  private final SparkSession sparkSession;
+  private static String downloadQuery;
 
-  private final String queryFile;
+  private static String dropTablesQuery;
+
+  private final SparkSession sparkSession;
 
   private final String dropTablesQueryFile;
 
@@ -64,10 +67,33 @@ public class DwcaDownload {
 
   private void executeQuery() {
     UDFS.registerUdfs(sparkSession);
-    SqlQueryUtils.runSQLFile(queryFile, getQueryParameters(), sparkSession::sql);
+
+    SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), sparkSession::sql);
     if (hasRequestedExtensions()) {
       runExtensionsQuery();
     }
+  }
+
+  @SneakyThrows
+  private String downloadQuery() {
+    if(downloadQuery == null) {
+      try (StringWriter stringWriter = new StringWriter()) {
+        GenerateHQL.generateDwcaQueryHQL(stringWriter);
+        downloadQuery = stringWriter.toString();
+      }
+    }
+    return downloadQuery;
+  }
+
+  @SneakyThrows
+  private String dropTablesQuery() {
+    if(dropTablesQuery == null) {
+      try (StringWriter stringWriter = new StringWriter()) {
+        GenerateHQL.generateDwcaQueryHQL(stringWriter);
+        dropTablesQuery = stringWriter.toString();
+      }
+    }
+    return dropTablesQuery;
   }
 
 
@@ -87,7 +113,7 @@ public class DwcaDownload {
 
 
   private void dropTables() {
-    SqlQueryUtils.runSQLFile(dropTablesQueryFile, queryParameters.toMap(), sparkSession::sql);
+    SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), sparkSession::sql);
   }
 
   private boolean hasRequestedExtensions() {

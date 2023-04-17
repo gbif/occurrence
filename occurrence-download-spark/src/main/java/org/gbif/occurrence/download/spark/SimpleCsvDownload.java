@@ -22,8 +22,10 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.hive.GenerateHQL;
 import org.gbif.occurrence.spark.udf.UDFS;
 
+import java.io.StringWriter;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -36,9 +38,9 @@ import lombok.SneakyThrows;
 @Builder
 public class SimpleCsvDownload {
 
-  private final SparkSession sparkSession;
+  private static String downloadQuery;
 
-  private final String queryFile;
+  private final SparkSession sparkSession;
 
   private final Download download;
 
@@ -65,7 +67,18 @@ public class SimpleCsvDownload {
 
   private void executeQuery() {
     UDFS.registerUdfs(sparkSession);
-    SqlQueryUtils.runSQLFile(queryFile, queryParameters.toMap(), sparkSession::sql);
+    SqlQueryUtils.runMultiSQL(downloadQuery(), queryParameters.toMap(), sparkSession::sql);
+  }
+
+  @SneakyThrows
+  private String downloadQuery() {
+    if(downloadQuery == null) {
+      try (StringWriter stringWriter = new StringWriter()) {
+        GenerateHQL.generateSimpleCsvQueryHQL(stringWriter);
+        downloadQuery = stringWriter.toString();
+      }
+    }
+    return downloadQuery;
   }
 
   private void dropTables() {
