@@ -89,7 +89,7 @@ public class DwcaDownload {
   private String dropTablesQuery() {
     if(dropTablesQuery == null) {
       try (StringWriter stringWriter = new StringWriter()) {
-        GenerateHQL.generateDwcaQueryHQL(stringWriter);
+        GenerateHQL.generateDwcaDropTableQueryHQL(stringWriter);
         dropTablesQuery = stringWriter.toString();
       }
     }
