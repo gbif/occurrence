@@ -23,9 +23,6 @@ import lombok.Data;
 public class SparkConfiguration {
 
   @NotNull
-  private String sparkHome;
-
-  @NotNull
   private String appResource;
 
   @NotNull
