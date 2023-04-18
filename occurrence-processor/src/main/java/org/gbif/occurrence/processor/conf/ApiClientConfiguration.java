@@ -17,8 +17,10 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
-import com.google.common.base.Objects;
 
+import lombok.ToString;
+
+@ToString
 public class ApiClientConfiguration {
 
   /**
@@ -42,13 +44,4 @@ public class ApiClientConfiguration {
   @Min(10)
   public int maxConnections = 100;
 
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-      .add("url", url)
-      .add("timeout", timeout)
-      .add("maxConnections", maxConnections)
-      .toString();
-  }
 }

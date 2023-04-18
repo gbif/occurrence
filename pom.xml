@@ -49,38 +49,9 @@
       <url>https://repository.gbif.org/content/repositories/thirdparty/</url>
     </repository>
     <repository>
-      <id>cloudera-repos</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
       <id>osgeo</id>
       <name>Open Source Geospatial Foundation Repository</name>
       <url>https://repo.osgeo.org/repository/release/</url>
-    </repository>
-    <repository>
-      <id>typesafe</id>
-      <name>Typesafe Repository</name>
-      <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
-    </repository>
-    <repository>
-      <id>maven-restlet</id>
-      <name>Restlet repository</name>
-      <url>http://maven.restlet.com</url>
-    </repository>
-    <repository>
-      <id>datanucleus</id>
-      <url>http://www.datanucleus.org/downloads/maven2/</url>
-    </repository>
-    <repository>
-      <id>ALA</id>
-      <url>https://nexus.ala.org.au/content/repositories/releases</url>
-    </repository>
-    <repository>
-      <id>ALA-snapshots</id>
-      <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
     </repository>
   </repositories>
 
@@ -149,23 +120,18 @@
     <commons-digester.version>2.1</commons-digester.version>
     <commons-io.version>2.4</commons-io.version>
     <commmons-lang.version>3.12.0</commmons-lang.version>
-    <curator.version>4.0.1</curator.version>
-    <curator-test.version>2.12.0</curator-test.version>
+    <curator.version>4.3.0</curator.version>
+    <curator-test.version>4.3.0</curator-test.version>
     <dbunit.version>2.4.9</dbunit.version>
     <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
     <!--
       Important! Guava is highly fragile across webservices, YARN MR jobs, downloads and
-      the CLIs.  Be very sure that all environments are tested thoroughly before changing.
+      and the CLIs.  Be very sure that all environments are tested thoroughly before
+      changing.
     -->
-    <guava.version>18.0</guava.version>
+    <guava.version>27.0-jre</guava.version>
     <hamcrest.version>1.3</hamcrest.version>
-
-    <!-- Guava version used in CDH cluster-->
-    <guava-cdh.version>14.0.1</guava-cdh.version>
-
-    <!-- Version required by HBase test utility -->
-    <guava-hbase-test.version>12.0.1</guava-hbase-test.version>
 
     <!-- Version for ES client -->
     <httpclient.version>4.5.2</httpclient.version>
@@ -214,9 +180,9 @@
     <avro.version>1.8.2</avro.version>
 
     <!-- GBIF VERSIONS -->
-    <hbase-utils.version>0.12</hbase-utils.version>
-    <download-query-tools.version>1.47</download-query-tools.version>
-    <dwc-api.version>1.43</dwc-api.version>
+    <hbase-utils.version>0.13-hbase2-SNAPSHOT</hbase-utils.version>
+    <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
+    <dwc-api.version>1.44</dwc-api.version>
     <dwca-io.version>2.15</dwca-io.version>
     <gbif-api.version>1.2.0</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
@@ -257,10 +223,10 @@
     <lucene.version>8.7.0</lucene.version>
 
     <!-- Spark -->
-    <spark.version>2.3.0</spark.version>
-    <databricks.version>4.0.0</databricks.version>
-    <scala.tools.version>2.11</scala.tools.version>
-    <scala.library.version>2.11.8</scala.library.version>
+    <spark.version>3.3.1</spark.version>
+    <databricks.version>3.4.0</databricks.version>
+    <scala.tools.version>2.12</scala.tools.version>
+    <scala.library.version>2.12.17</scala.library.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -285,11 +251,11 @@
       </activation>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>2.6.0-cdh5.16.2</hadoop.version>
-        <hbase.version>1.2.0-cdh5.16.2</hbase.version>
-        <hive.version>1.1.0-cdh5.16.2</hive.version>
+        <hadoop.version>3.3.4</hadoop.version>
+        <hbase.version>2.4.12</hbase.version>
+        <hive.version>3.1.3</hive.version>
         <oozie.version>4.1.0-cdh5.16.2</oozie.version>
-        <zookeeper.version>3.4.5-cdh5.16.2</zookeeper.version>
+        <zookeeper.version>3.5.8</zookeeper.version>
         <occurrence.environment>dev</occurrence.environment>
         <occurrence.env_prefix>dev</occurrence.env_prefix>
         <!-- Hive table name -->
@@ -304,11 +270,11 @@
       <id>prod</id>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>2.6.0-cdh5.16.2</hadoop.version>
-        <hbase.version>1.2.0-cdh5.16.2</hbase.version>
-        <hive.version>1.1.0-cdh5.16.2</hive.version>
+        <hadoop.version>3.3.4</hadoop.version>
+        <hbase.version>2.4.12</hbase.version>
+        <hive.version>3.1.3</hive.version>
         <oozie.version>4.1.0-cdh5.16.2</oozie.version>
-        <zookeeper.version>3.4.5-cdh5.16.2</zookeeper.version>
+        <zookeeper.version>3.5.8</zookeeper.version>
       </properties>
     </profile>
   </profiles>
@@ -886,37 +852,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <!-- e.g. TableMapper is in the server jar (!) -->
-      <dependency>
-        <groupId>org.apache.hbase</groupId>
-        <artifactId>hbase-server</artifactId>
-        <version>${hbase.version}</version>
-        <exclusions>
-          <!-- ignore MR1 artifacts -->
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-core</artifactId>
-          </exclusion>
-          <!-- ignore logging implementations -->
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-          </exclusion>
-          <!-- this brings in test classifier stuff -->
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-common</artifactId>
@@ -967,24 +902,6 @@
         <artifactId>hbase-testing-util</artifactId>
         <version>${hbase.version}</version>
         <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-core</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-minicluster</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -1373,7 +1290,7 @@
 
       <!-- Avro -->
       <dependency>
-        <groupId>com.databricks</groupId>
+        <groupId>org.apache.spark</groupId>
         <artifactId>spark-avro_${scala.tools.version}</artifactId>
         <version>${databricks.version}</version>
         <scope>runtime</scope>

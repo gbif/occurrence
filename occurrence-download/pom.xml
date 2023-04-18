@@ -19,9 +19,8 @@
   </distributionManagement>
 
   <properties>
-    <hadoop-compress.version>1.2</hadoop-compress.version>
+    <hadoop-compress.version>1.3-hadoop3-SNAPSHOT</hadoop-compress.version>
     <metrics-core.version>2.2.0</metrics-core.version>
-    <hive.serde>1.1.0-cdh5.16.2</hive.serde>
     <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
     <akka-actor.version>2.0.5</akka-actor.version>
@@ -400,7 +399,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava-cdh.version}</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
