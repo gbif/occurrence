@@ -13,12 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
-import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.YarnClientService.Application;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +21,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
+import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.services.YarnClientService.Application;
 
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.spark.launcher.Spark2Launcher;
@@ -36,6 +34,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -64,7 +63,7 @@ public class YarnJobManagerService implements JobManager {
       SparkLauncher launcher = new Spark2Launcher()
         // Spark settings
         .setAppName(jobId)
-        .setSparkHome("empty")
+        .setSparkHome("empty") // Workaround for Spark2Launcher
         .setDeployMode(sparkConfiguration.getDeployMode())
         .setMaster(sparkConfiguration.getMaster())
         .setAppResource(sparkConfiguration.getAppResource())
