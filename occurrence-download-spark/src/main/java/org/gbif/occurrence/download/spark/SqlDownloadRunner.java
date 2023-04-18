@@ -42,7 +42,6 @@ public class SqlDownloadRunner {
           .download(download)
           .workflowConfiguration(workflowConfiguration)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .dropTablesQueryFile("drop_tables.q")
           .sparkSession(sparkSession)
           .build()
           .run();

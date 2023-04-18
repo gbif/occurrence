@@ -40,8 +40,6 @@ public class DwcaDownload {
 
   private final SparkSession sparkSession;
 
-  private final String dropTablesQueryFile;
-
   private final Download download;
 
   private final DownloadQueryParameters queryParameters;
