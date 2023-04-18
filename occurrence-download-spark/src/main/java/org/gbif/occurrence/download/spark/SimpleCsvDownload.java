@@ -25,7 +25,6 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.GenerateHQL;
 import org.gbif.occurrence.spark.udf.UDFS;
 
-import java.io.StringWriter;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;

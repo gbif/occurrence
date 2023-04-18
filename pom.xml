@@ -106,6 +106,7 @@
     <module>occurrence-download-launcher</module>
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
+      <module>occurrence-download-cli</module>
   </modules>
 
   <properties>

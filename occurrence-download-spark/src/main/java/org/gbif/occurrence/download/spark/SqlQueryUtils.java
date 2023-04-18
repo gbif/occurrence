@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.gbif.occurrence.download.hive.GenerateHQL;
 
 @Slf4j
 public class SqlQueryUtils {
@@ -76,8 +75,13 @@ public class SqlQueryUtils {
     }
   }
 
+  @FunctionalInterface
+  public interface TemplateConsumer<T> {
+    void accept(T t) throws Exception;
+  }
+
   @SneakyThrows
-  public static String queryTemplateToString(Consumer<Writer> templateBuilder) {
+  public static String queryTemplateToString(TemplateConsumer<Writer> templateBuilder) {
     try (StringWriter stringWriter = new StringWriter()) {
       templateBuilder.accept(stringWriter);
       return stringWriter.toString();
