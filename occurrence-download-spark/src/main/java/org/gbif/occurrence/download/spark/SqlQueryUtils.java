@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -22,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.gbif.occurrence.download.hive.GenerateHQL;
 
 @Slf4j
 public class SqlQueryUtils {
@@ -70,6 +73,14 @@ public class SqlQueryUtils {
         log.info("Executing query: \n {}", query);
         queryExecutor.accept(query);
       }
+    }
+  }
+
+  @SneakyThrows
+  public static String queryTemplateToString(Consumer<Writer> templateBuilder) {
+    try (StringWriter stringWriter = new StringWriter()) {
+      templateBuilder.accept(stringWriter);
+      return stringWriter.toString();
     }
   }
 }

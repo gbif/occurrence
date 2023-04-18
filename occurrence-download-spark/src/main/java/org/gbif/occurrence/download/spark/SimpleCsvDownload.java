@@ -72,11 +72,8 @@ public class SimpleCsvDownload {
 
   @SneakyThrows
   private String downloadQuery() {
-    if(downloadQuery == null) {
-      try (StringWriter stringWriter = new StringWriter()) {
-        GenerateHQL.generateSimpleCsvQueryHQL(stringWriter);
-        downloadQuery = stringWriter.toString();
-      }
+    if (downloadQuery == null) {
+      downloadQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateSimpleCsvQueryHQL);
     }
     return downloadQuery;
   }

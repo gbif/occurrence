@@ -73,22 +73,16 @@ public class DwcaDownload {
 
   @SneakyThrows
   private String downloadQuery() {
-    if(downloadQuery == null) {
-      try (StringWriter stringWriter = new StringWriter()) {
-        GenerateHQL.generateDwcaQueryHQL(stringWriter);
-        downloadQuery = stringWriter.toString();
-      }
+    if (downloadQuery == null) {
+       downloadQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaQueryHQL);
     }
     return downloadQuery;
   }
 
   @SneakyThrows
   private String dropTablesQuery() {
-    if(dropTablesQuery == null) {
-      try (StringWriter stringWriter = new StringWriter()) {
-        GenerateHQL.generateDwcaDropTableQueryHQL(stringWriter);
-        dropTablesQuery = stringWriter.toString();
-      }
+    if (dropTablesQuery == null) {
+      downloadQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaDropTableQueryHQL);
     }
     return dropTablesQuery;
   }
