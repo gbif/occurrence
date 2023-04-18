@@ -13,13 +13,10 @@
  */
 package org.gbif.occurrence.downloads.launcher;
 
-import org.gbif.api.model.occurrence.DownloadRequest;
-
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
 
 // TODO Move to postal service
@@ -28,12 +25,9 @@ public class DownloadsMessage implements Serializable {
 
   private final String jobId;
 
-  private final DownloadRequest downloadRequest;
-
   @JsonCreator
-  public DownloadsMessage(@JsonProperty("jobId") String jobId,
-    @JsonProperty("downloadRequest") DownloadRequest downloadRequest) {
+  public DownloadsMessage(@JsonProperty("jobId") String jobId) {
     this.jobId = jobId;
-    this.downloadRequest = downloadRequest;
   }
+
 }
