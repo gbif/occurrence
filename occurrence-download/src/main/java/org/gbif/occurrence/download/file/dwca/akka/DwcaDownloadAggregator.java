@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;

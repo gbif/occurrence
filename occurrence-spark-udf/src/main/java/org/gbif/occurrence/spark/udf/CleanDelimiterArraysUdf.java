@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.table.udf;
+package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.api.java.UDF1;
 

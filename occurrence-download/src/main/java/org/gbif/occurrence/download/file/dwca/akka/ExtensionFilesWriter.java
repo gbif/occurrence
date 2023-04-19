@@ -14,7 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.akka;
 
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;

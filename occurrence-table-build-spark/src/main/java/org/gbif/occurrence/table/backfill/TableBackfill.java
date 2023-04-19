@@ -15,6 +15,7 @@ package org.gbif.occurrence.table.backfill;
 
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -177,7 +178,7 @@ public class TableBackfill {
        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
      }
      spark.read()
-       .format("com.databricks.spark.avro")
+       .format("avro")
        .load(fromSourceDir + "/*.avro")
        .select(select)
        .write()

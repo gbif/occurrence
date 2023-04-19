@@ -21,9 +21,9 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.event.search.es.EventEsField;
 import org.gbif.event.search.es.SearchHitEventConverter;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.dwca.akka.DwcaDownloadAggregator;
@@ -94,11 +94,11 @@ public class DownloadWorkflowModule  {
    * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
    */
   public DownloadPrepareAction downloadPrepareAction(DwcTerm dwcTerm, String wfPath) {
-    return DownloadPrepareAction.builder().esClient(esClient())
+    return DownloadPrepareAction.builder().esClient(esClient(workflowConfiguration))
             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
             .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
             .workflowConfiguration(workflowConfiguration)
-            .occurrenceDownloadService(downloadServiceClient(dwcTerm))
+            .occurrenceDownloadService(downloadServiceClient(dwcTerm, workflowConfiguration))
             .esFieldMapper(esFieldMapper(workflowConfiguration.getEsIndexType()))
             .coreTerm(dwcTerm)
             .wfPath(wfPath)
@@ -108,14 +108,14 @@ public class DownloadWorkflowModule  {
   /**
    * Creates a DownloadService for Event or Occurrence downloads.
    */
-  private OccurrenceDownloadService downloadServiceClient(DwcTerm coreTerm) {
-    return DwcTerm.Event == coreTerm? clientBuilder().build(EventDownloadClient.class) : clientBuilder().build(OccurrenceDownloadClient.class);
+  public static OccurrenceDownloadService downloadServiceClient(DwcTerm coreTerm, WorkflowConfiguration workflowConfiguration) {
+    return DwcTerm.Event == coreTerm? clientBuilder(workflowConfiguration).build(EventDownloadClient.class) : clientBuilder(workflowConfiguration).build(OccurrenceDownloadClient.class);
   }
 
   /**
    * GBIF Ws client factory.
    */
-  public ClientBuilder clientBuilder() {
+  public static ClientBuilder clientBuilder(WorkflowConfiguration workflowConfiguration) {
     return new ClientBuilder()
         .withUrl(workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY))
         .withCredentials(
@@ -159,7 +159,7 @@ public class DownloadWorkflowModule  {
   /**
    * Factory method for Elasticsearch client.
    */
-  public RestHighLevelClient esClient() {
+  public static RestHighLevelClient esClient(WorkflowConfiguration workflowConfiguration) {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
@@ -209,7 +209,7 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
-  public OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType) {
+  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType) {
     return WorkflowConfiguration.SearchType.OCCURRENCE == searchType? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
   }
 
@@ -250,7 +250,7 @@ public class DownloadWorkflowModule  {
     return system.actorOf(new Props(() -> DownloadMaster.builder()
                                             .workflowConfiguration(workflowConfiguration)
                                             .masterConfiguration(masterConfiguration())
-                                            .esClient(esClient())
+                                            .esClient(esClient(workflowConfiguration))
                                             .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
                                             .jobConfiguration(downloadJobConfiguration)
                                             .aggregator(getAggregator())
@@ -277,12 +277,12 @@ public class DownloadWorkflowModule  {
         case SIMPLE_CSV:
           return new SimpleCsvDownloadAggregator(downloadJobConfiguration,
                                                  workflowConfiguration,
-                                                 clientBuilder().build(OccurrenceDownloadClient.class));
+                                                 clientBuilder(workflowConfiguration).build(OccurrenceDownloadClient.class));
 
         case SPECIES_LIST:
           return new SpeciesListDownloadAggregator(downloadJobConfiguration,
                                                    workflowConfiguration,
-                                                   clientBuilder().build(OccurrenceDownloadClient.class));
+                                                   clientBuilder(workflowConfiguration).build(OccurrenceDownloadClient.class));
         case SIMPLE_AVRO:
         case SIMPLE_PARQUET:
         case SIMPLE_WITH_VERBATIM_AVRO:
@@ -323,6 +323,8 @@ public class DownloadWorkflowModule  {
 
     public static final String NAME_NODE_KEY = "hdfs.namenode";
     public static final String HIVE_DB_KEY = "hive.db";
+
+    public static final String HIVE_WAREHOUSE_DIR = "hive.warehouse.dir";
     public static final String REGISTRY_URL_KEY = "registry.ws.url";
     public static final String API_URL_KEY = "api.url";
     public static final String ES_INDEX_KEY = "es.index";

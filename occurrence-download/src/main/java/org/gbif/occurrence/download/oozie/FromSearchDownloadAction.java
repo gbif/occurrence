@@ -15,8 +15,8 @@ package org.gbif.occurrence.download.oozie;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -30,19 +30,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class that encapsulates the process of creating the occurrence files from Elasticsearch/Hive.
  * To start the process
  */
+@Slf4j
 public class FromSearchDownloadAction {
-
-  private static final Logger LOG = LoggerFactory.getLogger(FromSearchDownloadAction.class);
 
   private static final long SLEEP_TIME_BEFORE_TERMINATION = 5000L;
 
@@ -118,7 +116,7 @@ public class FromSearchDownloadAction {
         try {
           Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
         } catch (InterruptedException ie) {
-          LOG.error("Thread interrupted", ie);
+          log.error("Thread interrupted", ie);
         }
       }
       system.shutdown();

@@ -14,8 +14,8 @@
 package org.gbif.occurrence.download.file.dwca.oozie;
 
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 
 import java.io.IOException;

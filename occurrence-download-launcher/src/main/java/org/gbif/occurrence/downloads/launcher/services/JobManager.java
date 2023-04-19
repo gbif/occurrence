@@ -11,18 +11,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.table.udf;
+package org.gbif.occurrence.downloads.launcher.services;
 
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
 
-import org.apache.spark.sql.api.java.UDF3;
+import java.util.List;
+import java.util.Optional;
 
-import scala.collection.JavaConversions;
-import scala.collection.mutable.WrappedArray;
+public interface JobManager {
 
-public class StringArrayContainsGenericUdf implements UDF3<WrappedArray<String>,String,Boolean,Boolean> {
+  JobStatus createJob(DownloadsMessage message);
 
-  @Override
-  public Boolean call(WrappedArray<String> array, String value, Boolean caseSensitive) throws Exception {
-    return array != null && !array.isEmpty() && JavaConversions.asJavaCollection(array).stream().anyMatch(e -> caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value));
+  JobStatus cancelJob(String jobId);
+
+  Optional<Download.Status> getStatusByName(String name);
+
+  List<Download> renewRunningDownloadsStatuses(List<Download> downloads);
+
+  enum JobStatus {
+    RUNNING,
+    FAILED,
+    CANCELLED
   }
 }

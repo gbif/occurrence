@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.hive;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -91,8 +92,7 @@ public class GenerateHQL {
       mapOfLifeDownloadDir.mkdirs();
       avroSchemasDir.mkdirs();
 
-      Configuration cfg = new Configuration();
-      cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
+      Configuration cfg = templateConfig();
 
       generateOccurrenceAvroSchema(avroSchemasDir);
       copyExtensionSchemas(avroSchemasDir);
@@ -100,7 +100,7 @@ public class GenerateHQL {
 
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
       // co-located)
-      generateQueryHQL(cfg, downloadDir);
+      generateDwcaQueryHQL(cfg, downloadDir);
       generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
       generateSimpleAvroSchema(cfg, simpleAvroDownloadDir.getParentFile());
@@ -124,10 +124,16 @@ public class GenerateHQL {
 
   }
 
+  private static Configuration templateConfig() {
+    Configuration cfg = new Configuration();
+    cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
+    return cfg;
+  }
+
   /**
    * Generates HQL which is used to create the Hive table, and creates an HDFS equivalent.
    */
-  private static void generateOccurrenceAvroTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateOccurrenceAvroTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
 
     try (FileWriter createTableScript = new FileWriter(new File(outDir, "create-occurrence-avro.q"));
          FileWriter swapTablesScript = new FileWriter(new File(outDir, "swap-tables.q"));
@@ -162,8 +168,14 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for DwCA downloads.
    */
-  private static void generateQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateDwcaQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
+      generateDwcaQueryHQL(cfg, out);
+    }
+    generateDwcaDropTableQueryHQL(cfg, outDir);
+  }
+
+  public static void generateDwcaQueryHQL(Configuration cfg, Writer writer) throws IOException, TemplateException {
       Template template = cfg.getTemplate("download/execute-query.ftl");
       Map<String, Object> data = ImmutableMap.of(
         "verbatimFields", HIVE_QUERIES.selectVerbatimFields().values(),
@@ -171,12 +183,14 @@ public class GenerateHQL {
         "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values(),
         "extensions", ExtensionTable.tableExtensions()
       );
-      template.process(data, out);
-    }
-    generateDropTableQueryHQL(cfg, outDir);
+      template.process(data, writer);
   }
 
-  private static void generateDropTableQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateDwcaQueryHQL(Writer writer) throws IOException, TemplateException {
+    generateDwcaQueryHQL(templateConfig(), writer);
+  }
+
+  public static void generateDwcaDropTableQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "drop_tables.q"))) {
       Template template = cfg.getTemplate("download/drop_tables.ftl");
       Map<String, Object> data = Collections.singletonMap("extensions", ExtensionTable.tableExtensions());
@@ -184,16 +198,37 @@ public class GenerateHQL {
     }
   }
 
+  public static void generateDwcaDropTableQueryHQL(Writer writer) throws IOException, TemplateException {
+      Template template = templateConfig().getTemplate("download/drop_tables.ftl");
+      Map<String, Object> data = Collections.singletonMap("extensions", ExtensionTable.tableExtensions());
+      template.process(data, writer);
+  }
+
   /**
    * Generates the Hive query file used for CSV downloads.
    */
-  private static void generateSimpleCsvQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateSimpleCsvQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-csv-query.q"))) {
-      Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
-
-      Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
-      template.process(data, out);
+      generateSimpleCsvQueryHQL(cfg, out);
     }
+  }
+
+  /**
+   * Generates the Hive query file used for CSV downloads.
+   */
+  public static void generateSimpleCsvQueryHQL(Configuration cfg, Writer writer) throws IOException, TemplateException {
+    Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
+    Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
+    template.process(data, writer);
+  }
+
+  /**
+   * Generates the Hive query file used for CSV downloads.
+   */
+  public static void generateSimpleCsvQueryHQL(Writer writer) throws IOException, TemplateException {
+    Template template = templateConfig().getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
+    Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
+    template.process(data, writer);
   }
 
   /**
@@ -230,7 +265,7 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for simple Parquet downloads.
    */
-  private static void generateSimpleParquetQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateSimpleParquetQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-parquet-query.q"))) {
       Template template = cfg.getTemplate("simple-parquet-download/execute-simple-parquet-query.ftl");
 
@@ -249,7 +284,7 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for simple with verbatim AVRO downloads.
    */
-  private static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-with-verbatim-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-with-verbatim-avro-download/execute-simple-with-verbatim-avro-query.ftl");
 
@@ -286,7 +321,7 @@ public class GenerateHQL {
   /**
    * Generates the schema used for simple with verbatim AVRO downloads.
    */
-  private static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir) throws IOException {
+  public static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-with-verbatim-occurrence.avsc"))) {
       Schema schema = simpleWithVerbatimAvroSchema();
 

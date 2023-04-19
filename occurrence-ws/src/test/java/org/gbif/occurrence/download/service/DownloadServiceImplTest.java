@@ -89,7 +89,7 @@ public class DownloadServiceImplTest {
     downloadService = mock(OccurrenceDownloadService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
     requestService =
-      new DownloadRequestServiceImpl(oozieClient, props, "", "", "", downloadService, downloadLimitsService, mock(OccurrenceEmailManager.class), mock(EmailSender.class));
+      new DownloadRequestServiceImpl(props, "", "", "", downloadService, downloadLimitsService, mock(OccurrenceEmailManager.class), mock(EmailSender.class));
   }
 
 

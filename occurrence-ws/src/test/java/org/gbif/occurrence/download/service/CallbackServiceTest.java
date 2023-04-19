@@ -102,7 +102,7 @@ public class CallbackServiceTest {
     oozieClient = mock(OozieClient.class);
     service =
       new DownloadRequestServiceImpl(
-          oozieClient, Maps.newHashMap(), "http://gbif-dev.org/occurrence", "http://localhost:8080/",
+        Maps.newHashMap(), "http://gbif-dev.org/occurrence", "http://localhost:8080/",
         "", occurrenceDownloadService, downloadLimitsService, emailManager, emailSender);
   }
 

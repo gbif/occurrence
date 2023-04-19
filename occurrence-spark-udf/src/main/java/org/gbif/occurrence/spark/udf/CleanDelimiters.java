@@ -11,24 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.table.udf;
+package org.gbif.occurrence.spark.udf;
 
 
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
+import lombok.SneakyThrows;
 
 public class CleanDelimiters implements Function<String,String> {
 
-  private final Cache<String,String> cache;
+  private final Map<String,String> cache;
   public CleanDelimiters() {
-    cache = Cache2kBuilder.of(String.class, String.class)
-              .entryCapacity(100_000) //maximum capacity
-              .loader(CleanDelimiters::cleanDelimiters) //auto populating function
-              .permitNullValues(true) //allow nulls
-              .build();
+    cache = UDFS.createLRUMap(100_00);
   }
 
   private static String cleanDelimiters(String value) {
@@ -40,7 +36,8 @@ public class CleanDelimiters implements Function<String,String> {
 
   public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMETERS_MATCH);
   @Override
+  @SneakyThrows
   public String apply(String value) {
-    return value != null? cache.get(value) : null;
+    return value != null? cache.computeIfAbsent(value, CleanDelimiters::cleanDelimiters) : null;
   }
 }

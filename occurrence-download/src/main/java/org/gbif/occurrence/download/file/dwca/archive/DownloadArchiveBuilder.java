@@ -20,8 +20,8 @@ import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 

@@ -11,14 +11,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file;
+package org.gbif.occurrence.download.conf;
 
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadType;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.event.search.es.EventEsField;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.predicate.PredicateUtil;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.util.Set;
 
@@ -99,6 +107,23 @@ public class DownloadJobConfiguration {
     this.downloadFormat = downloadFormat;
     this.coreTerm = coreTerm;
     this.extensions = extensions;
+  }
+
+  public static DownloadJobConfiguration forSqlDownload(Download download, String sourceDir) {
+    return DownloadJobConfiguration.builder()
+            .downloadKey(download.getKey())
+            .downloadFormat(download.getRequest().getFormat())
+            .coreTerm(download.getRequest().getType().getCoreTerm())
+            .extensions(download.getRequest().getVerbatimExtensions())
+            .filter(PredicateUtil.toSqlQuery(((PredicateDownloadRequest)download.getRequest()).getPredicate()))
+            .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
+            .isSmallDownload(false)
+            .sourceDir(sourceDir)
+            .build();
+  }
+
+  public static OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
+    return DownloadType.OCCURRENCE == download.getRequest().getType()? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
   }
 
   /**

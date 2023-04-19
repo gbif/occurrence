@@ -11,13 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.table.backfill;
+package org.gbif.occurrence.spark.udf;
 
-import org.gbif.occurrence.table.udf.CleanDelimiterArraysUdf;
-import org.gbif.occurrence.table.udf.CleanDelimiterCharsUdf;
-import org.gbif.occurrence.table.udf.StringArrayContainsGenericUdf;
-import org.gbif.occurrence.table.udf.ToISO8601Udf;
-import org.gbif.occurrence.table.udf.ToLocalISO8601Udf;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
@@ -33,6 +30,17 @@ public class UDFS {
     sparkSession.udf().register("toISO8601", new ToISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("toLocalISO8601", new ToLocalISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("joinArray", new JoinArrayUdf(), DataTypes.StringType);
   }
 
+  public static <K, V> Map<K, V> createLRUMap(final int maxEntries) {
+    return new LinkedHashMap<K, V>(maxEntries*10/7, 0.7f, true) {
+      @Override
+      protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+        return size() > maxEntries;
+      }
+    };
+  }
 }
