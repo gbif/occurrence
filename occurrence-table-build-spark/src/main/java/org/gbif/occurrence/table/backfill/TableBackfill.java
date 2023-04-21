@@ -86,6 +86,7 @@ public class TableBackfill {
     SparkSession.Builder sparkBuilder = SparkSession.builder()
            .appName(configuration.getTableName() + " table build")
            .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+           .config("hive.metastore.uris", configuration.getHiveThriftAddress())
            .enableHiveSupport();
 
     if (configuration.isUsePartitionedTable()) {

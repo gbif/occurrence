@@ -70,6 +70,8 @@ public class TableBackfillConfiguration {
 
   private final String warehouseLocation;
 
+  private final String hiveThriftAddress;
+
   @Data
   @Builder
   @Jacksonized
