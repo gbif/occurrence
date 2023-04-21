@@ -15,16 +15,16 @@ package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.api.java.UDF1;
 
-import scala.collection.JavaConversions;
-import scala.collection.mutable.WrappedArray;
+import scala.collection.JavaConverters;
+import scala.collection.mutable.ArraySeq;
 
-public class CleanDelimiterArraysUdf implements UDF1<WrappedArray<String>,String[]> {
+public class CleanDelimiterArraysUdf implements UDF1<ArraySeq<String>,String[]> {
 
   private static final CleanDelimiters CLEAN_DELIMITERS = new CleanDelimiters();
 
   @Override
-  public String[] call(WrappedArray<String> field) throws Exception {
-    return field != null? JavaConversions.asJavaCollection(field).stream()
+  public String[] call(ArraySeq<String> field) throws Exception {
+    return field != null? JavaConverters.asJava(field).stream()
       .map(CLEAN_DELIMITERS)
       .filter(s -> s != null && !s.isEmpty())
       .toArray(String[]::new) : null;

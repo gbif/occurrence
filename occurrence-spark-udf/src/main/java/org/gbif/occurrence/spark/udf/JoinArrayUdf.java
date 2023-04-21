@@ -15,12 +15,12 @@ package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.api.java.UDF2;
 
-import scala.collection.JavaConversions;
-import scala.collection.mutable.WrappedArray;
+import scala.collection.JavaConverters;
+import scala.collection.mutable.ArraySeq;
 
-public class JoinArrayUdf implements UDF2<WrappedArray<String>,String,String> {
+public class JoinArrayUdf implements UDF2<ArraySeq<String>,String,String> {
   @Override
-  public String call(WrappedArray<String> stringWrappedArray, String sep) throws Exception {
-    return (stringWrappedArray != null && !stringWrappedArray.isEmpty())?  String.join(sep, JavaConversions.asJavaCollection(stringWrappedArray)) : null;
+  public String call(ArraySeq<String> stringWrappedArray, String sep) throws Exception {
+    return (stringWrappedArray != null && !stringWrappedArray.isEmpty())?  String.join(sep, JavaConverters.asJava(stringWrappedArray)) : null;
   }
 }
