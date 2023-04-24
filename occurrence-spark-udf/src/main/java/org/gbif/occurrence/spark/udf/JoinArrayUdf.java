@@ -21,6 +21,6 @@ import scala.collection.mutable.ArraySeq;
 public class JoinArrayUdf implements UDF2<ArraySeq<String>,String,String> {
   @Override
   public String call(ArraySeq<String> stringWrappedArray, String sep) throws Exception {
-    return (stringWrappedArray != null && !stringWrappedArray.isEmpty())?  String.join(sep, JavaConverters.asJava(stringWrappedArray)) : null;
+    return (stringWrappedArray != null && !stringWrappedArray.isEmpty())?  String.join(sep, JavaConverters.asJavaCollection(stringWrappedArray)) : null;
   }
 }

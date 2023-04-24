@@ -24,6 +24,6 @@ public class StringArrayContainsGenericUdf implements UDF3<ArraySeq<String>, Str
 
   @Override
   public Boolean call(ArraySeq<String> array, String value, Boolean caseSensitive) throws Exception {
-    return array != null && !array.isEmpty() && JavaConverters.asJava(array).stream().anyMatch(e -> caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value));
+    return array != null && !array.isEmpty() && JavaConverters.asJavaCollection(array).stream().anyMatch(e -> caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value));
   }
 }

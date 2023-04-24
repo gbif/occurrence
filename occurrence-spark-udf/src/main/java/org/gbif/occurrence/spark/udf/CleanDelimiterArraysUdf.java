@@ -24,7 +24,7 @@ public class CleanDelimiterArraysUdf implements UDF1<ArraySeq<String>,String[]> 
 
   @Override
   public String[] call(ArraySeq<String> field) throws Exception {
-    return field != null? JavaConverters.asJava(field).stream()
+    return field != null? JavaConverters.asJavaCollection(field).stream()
       .map(CLEAN_DELIMITERS)
       .filter(s -> s != null && !s.isEmpty())
       .toArray(String[]::new) : null;

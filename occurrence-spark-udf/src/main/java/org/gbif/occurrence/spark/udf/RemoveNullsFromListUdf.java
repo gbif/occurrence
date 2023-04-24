@@ -24,6 +24,6 @@ public class RemoveNullsFromListUdf implements UDF1<ArraySeq<?>, Object[]> {
 
   @Override
   public Object[] call(ArraySeq<?> values) throws Exception {
-    return values == null || values.isEmpty() ? null : JavaConverters.asJava(values).stream().filter(Objects::nonNull).toArray(Object[]::new);
+    return values == null || values.isEmpty() ? null : JavaConverters.asJavaCollection(values).stream().filter(Objects::nonNull).toArray(Object[]::new);
   }
 }
