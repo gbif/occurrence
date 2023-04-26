@@ -184,7 +184,10 @@ public class TableBackfill {
        .select(select);
 
      if (input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
-       input = input.coalesce(configuration.getTablePartitions());
+       input = input
+                .withColumn("_salted_key", col("gbifid").mod(configuration.getTablePartitions()))
+                .repartition(configuration.getTablePartitions())
+                .drop("_salted_key");
      }
 
      input
