@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.StructType;
@@ -176,11 +178,16 @@ public class TableBackfill {
      if(configuration.isUsePartitionedTable()) {
        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
      }
-     spark.read()
+     Dataset<Row> input  = spark.read()
        .format("com.databricks.spark.avro")
        .load(fromSourceDir + "/*.avro")
-       .select(select)
-       .repartition(configuration.getTablePartitions())
+       .select(select);
+
+     if (input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
+       input = input.coalesce(configuration.getTablePartitions());
+     }
+
+     input
        .write()
        .format("parquet")
        .option("compression", "snappy")
