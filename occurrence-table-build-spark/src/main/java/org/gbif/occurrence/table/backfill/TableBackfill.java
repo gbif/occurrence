@@ -180,6 +180,7 @@ public class TableBackfill {
        .format("com.databricks.spark.avro")
        .load(fromSourceDir + "/*.avro")
        .select(select)
+       .repartition(configuration.getTablePartitions())
        .write()
        .format("parquet")
        .option("compression", "snappy")
