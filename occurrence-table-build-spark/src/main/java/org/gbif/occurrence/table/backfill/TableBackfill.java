@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.LongType;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 
@@ -185,7 +187,7 @@ public class TableBackfill {
 
      if (input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
        input = input
-                .withColumn("_salted_key", col("gbifid").mod(configuration.getTablePartitions()))
+                .withColumn("_salted_key", col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
                 .repartition(configuration.getTablePartitions())
                 .drop("_salted_key");
      }
