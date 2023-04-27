@@ -17,12 +17,13 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.spark.sql.api.java.UDF1;
 
 public class ToISO8601Udf implements UDF1<Long,String> {
 
-  private final Map<Long,String> cache;
+  private final ConcurrentMap<Long,String> cache;
   public ToISO8601Udf() {
     cache = UDFS.createLRUMap(100_00);
   }

@@ -15,6 +15,7 @@ package org.gbif.occurrence.spark.udf;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
@@ -35,12 +36,13 @@ public class UDFS {
     sparkSession.udf().register("joinArray", new JoinArrayUdf(), DataTypes.StringType);
   }
 
-  public static <K, V> Map<K, V> createLRUMap(final int maxEntries) {
-    return new LinkedHashMap<K, V>(maxEntries*10/7, 0.7f, true) {
+  public static <K, V> ConcurrentHashMap<K, V> createLRUMap(final int maxEntries) {
+    /*return new LinkedHashMap<K, V>(maxEntries*10/7, 0.7f, true) {
       @Override
       protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > maxEntries;
       }
-    };
+    };*/
+    return new ConcurrentHashMap<K,V>(maxEntries*10/7, 0.7f);
   }
 }

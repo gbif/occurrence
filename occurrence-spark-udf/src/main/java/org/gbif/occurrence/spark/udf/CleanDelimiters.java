@@ -15,6 +15,7 @@ package org.gbif.occurrence.spark.udf;
 
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -22,7 +23,7 @@ import lombok.SneakyThrows;
 
 public class CleanDelimiters implements Function<String,String> {
 
-  private final Map<String,String> cache;
+  private final ConcurrentMap<String,String> cache;
   public CleanDelimiters() {
     cache = UDFS.createLRUMap(100_00);
   }
