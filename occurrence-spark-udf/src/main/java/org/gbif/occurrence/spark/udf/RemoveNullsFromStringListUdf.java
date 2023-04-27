@@ -18,12 +18,12 @@ import java.util.Objects;
 import org.apache.spark.sql.api.java.UDF1;
 
 import scala.collection.JavaConverters;
-import scala.collection.mutable.ArraySeq;
+import scala.collection.mutable.WrappedArray;
 
-public class RemoveNullsFromStringListUdf implements UDF1<ArraySeq<String>, String[]> {
+public class RemoveNullsFromStringListUdf implements UDF1<WrappedArray<String>, String[]> {
 
   @Override
-  public String[] call(ArraySeq<String> values) throws Exception {
+  public String[] call(WrappedArray<String> values) throws Exception {
     return values == null || values.isEmpty() ? null : JavaConverters.asJavaCollection(values).stream()
       .filter(e -> Objects.nonNull(e) && !e.trim().isEmpty())
       .toArray(String[]::new);

@@ -18,12 +18,12 @@ import org.apache.spark.sql.api.java.UDF3;
 
 import scala.collection.JavaConverters;
 
-import scala.collection.mutable.ArraySeq;
+import scala.collection.mutable.WrappedArray;
 
-public class StringArrayContainsGenericUdf implements UDF3<ArraySeq<String>, String, Boolean, Boolean> {
+public class StringArrayContainsGenericUdf implements UDF3<WrappedArray<String>, String, Boolean, Boolean> {
 
   @Override
-  public Boolean call(ArraySeq<String> array, String value, Boolean caseSensitive) throws Exception {
+  public Boolean call(WrappedArray<String> array, String value, Boolean caseSensitive) throws Exception {
     return array != null && !array.isEmpty() && JavaConverters.asJavaCollection(array).stream().anyMatch(e -> caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value));
   }
 }
