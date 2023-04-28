@@ -11,24 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher;
+package org.gbif.occurrence.trino.udf;
 
-import java.io.Serializable;
+import io.trino.spi.Plugin;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import lombok.Data;
 
-// TODO Move to postal service
-@Data
-public class DownloadsMessage implements Serializable {
+public class GbifUdfs implements Plugin {
 
-  private final String jobId;
-
-  @JsonCreator
-  public DownloadsMessage(@JsonProperty("jobId") String jobId) {
-    this.jobId = jobId;
+  @Override
+  public Set<Class<?>> getFunctions() {
+    return new HashSet<>(Arrays.asList(DataCleanUdfs.class, DateTimeUdfs.class, ContainsUdf.class, GeoDistanceUdf.class));
   }
-
 }

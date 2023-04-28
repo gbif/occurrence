@@ -11,24 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher;
+package org.gbif.occurrence.download.sql;
 
-import java.io.Serializable;
+import java.io.Closeable;
+import java.util.function.Consumer;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Data;
-
-// TODO Move to postal service
-@Data
-public class DownloadsMessage implements Serializable {
-
-  private final String jobId;
-
-  @JsonCreator
-  public DownloadsMessage(@JsonProperty("jobId") String jobId) {
-    this.jobId = jobId;
-  }
-
+public interface QueryExecutor extends Closeable, Consumer<String> {
 }

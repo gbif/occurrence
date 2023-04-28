@@ -11,38 +11,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.spark;
+package org.gbif.occurrence.download.sql;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 
-import org.apache.spark.SparkConf;
-import org.apache.spark.sql.SparkSession;
+import java.util.function.Supplier;
 
+import lombok.Builder;
+import lombok.SneakyThrows;
+
+@Builder
 public class SqlDownloadRunner {
+    private final Download download;
 
-  public static void main(String[] args) {
-    String downloadKey = args[0];
-    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
-    OccurrenceDownloadService downloadService = DownloadWorkflowModule.downloadServiceClient(workflowConfiguration.getCoreTerm(), workflowConfiguration);
-    Download download = downloadService.get(downloadKey);
-    DownloadJobConfiguration jobConfiguration = DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath());
+    private final WorkflowConfiguration workflowConfiguration;
 
-    run(download, workflowConfiguration, jobConfiguration);
-  }
+    private final DownloadJobConfiguration jobConfiguration;
 
-  public static void run(Download download, WorkflowConfiguration workflowConfiguration, DownloadJobConfiguration jobConfiguration) {
-    try(SparkSession sparkSession = createSparkSession(download.getKey(), workflowConfiguration)) {
+    private final Supplier<QueryExecutor> queryExecutorSupplier;
+
+
+  @SneakyThrows
+    public void run() {
+    try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
       if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
         DwcaDownload.builder()
           .download(download)
           .workflowConfiguration(workflowConfiguration)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .sparkSession(sparkSession)
+          .queryExecutor(queryExecutor)
           .build()
           .run();
       } else if (download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV) {
@@ -50,22 +50,11 @@ public class SqlDownloadRunner {
           .download(download)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
           .workflowConfiguration(workflowConfiguration)
-          .sparkSession(sparkSession)
+          .queryExecutor(queryExecutor)
           .build()
           .run();
       }
     }
-  }
-
-  private static SparkSession createSparkSession(String downloadKey, WorkflowConfiguration workflowConfiguration) {
-
-    SparkConf sparkConf = new SparkConf()
-                            .set("spark.sql.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
-    SparkSession.Builder sparkBuilder = SparkSession.builder()
-      .appName("Download job " + downloadKey)
-      .config(sparkConf)
-      .enableHiveSupport();
-    return sparkBuilder.getOrCreate();
   }
 
   private static DownloadQueryParameters downloadQueryParameters(DownloadJobConfiguration jobConfiguration, WorkflowConfiguration workflowConfiguration) {

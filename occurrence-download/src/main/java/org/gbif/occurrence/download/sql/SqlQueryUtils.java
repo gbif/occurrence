@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.spark;
+package org.gbif.occurrence.download.sql;
 
 import java.io.StringWriter;
 import java.io.Writer;

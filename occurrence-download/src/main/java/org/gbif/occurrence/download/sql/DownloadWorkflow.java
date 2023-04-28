@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.spark;
+package org.gbif.occurrence.download.sql;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -28,6 +28,7 @@ import org.gbif.occurrence.download.predicate.EsPredicateUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.util.Properties;
+import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -47,23 +48,21 @@ public class DownloadWorkflow {
 
   private final Download download;
 
-  public static void main(String[] args) {
-
-    DownloadWorkflow.builder()
-      .downloadKey(args[0])
-      .coreDwcTerm(DwcTerm.valueOf(args[1]))
-      .workflowConfiguration(new WorkflowConfiguration())
-      .build()
-      .run();
-  }
+  private final SqlDownloadRunner sqlDownloadRunner;
 
 
   @Builder
-  public DownloadWorkflow(WorkflowConfiguration workflowConfiguration, DwcTerm coreDwcTerm, String downloadKey) {
+  public DownloadWorkflow(WorkflowConfiguration workflowConfiguration, DwcTerm coreDwcTerm, String downloadKey, Supplier<QueryExecutor> queryExecutorSupplier) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
     downloadService = DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
     download = downloadService.get(downloadKey);
+    this.sqlDownloadRunner = SqlDownloadRunner.builder()
+      .workflowConfiguration(workflowConfiguration)
+      .download(download)
+      .jobConfiguration(DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath()))
+      .queryExecutorSupplier(queryExecutorSupplier)
+      .build();
   }
 
   public void run() {
@@ -73,10 +72,10 @@ public class DownloadWorkflow {
       if (isSmallDownloadCount(recordCount)) {
         runFromElastic();
       } else {
-        runFromSpark();
+        sqlDownloadRunner.run();
       }
     } else {
-      runFromSpark();
+      sqlDownloadRunner.run();
     }
   }
 
@@ -96,12 +95,6 @@ public class DownloadWorkflow {
       .coreTerm(coreDwcTerm)
       .extensions(download.getRequest().getVerbatimExtensions())
       .build());
-  }
-
-  private void runFromSpark() {
-    SqlDownloadRunner.run(download,
-                          workflowConfiguration,
-                          DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath()));
   }
 
 

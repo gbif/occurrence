@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.spark;
+package org.gbif.occurrence.download.sql;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
@@ -19,12 +19,9 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.GenerateHQL;
-import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.io.StringWriter;
 import java.util.Map;
-
-import org.apache.spark.sql.SparkSession;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -38,7 +35,7 @@ public class DwcaDownload {
 
   private static String dropTablesQuery;
 
-  private final SparkSession sparkSession;
+  private final QueryExecutor queryExecutor;
 
   private final Download download;
 
@@ -59,13 +56,11 @@ public class DwcaDownload {
       //Drop tables
       dropTables();
     }
-
   }
 
   private void executeQuery() {
-    UDFS.registerUdfs(sparkSession);
 
-    SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), sparkSession::sql);
+    SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
     if (hasRequestedExtensions()) {
       runExtensionsQuery();
     }
@@ -104,7 +99,7 @@ public class DwcaDownload {
 
 
   private void dropTables() {
-    SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), sparkSession::sql);
+    SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   private boolean hasRequestedExtensions() {
@@ -123,7 +118,7 @@ public class DwcaDownload {
 
 
   private void runExtensionsQuery() {
-      SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), sparkSession::sql);
+      SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   @SneakyThrows

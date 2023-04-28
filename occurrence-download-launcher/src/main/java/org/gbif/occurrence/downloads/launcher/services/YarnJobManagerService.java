@@ -13,6 +13,12 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
+import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.services.YarnClientService.Application;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,11 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
-import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.YarnClientService.Application;
+import javax.validation.constraints.NotNull;
 
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.spark.launcher.Spark2Launcher;
@@ -34,7 +36,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

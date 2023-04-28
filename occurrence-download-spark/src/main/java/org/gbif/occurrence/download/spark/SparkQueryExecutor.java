@@ -11,24 +11,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher;
+package org.gbif.occurrence.download.spark;
 
-import java.io.Serializable;
+import org.gbif.occurrence.download.sql.QueryExecutor;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.IOException;
 
-import lombok.Data;
+import org.apache.spark.sql.SparkSession;
 
-// TODO Move to postal service
-@Data
-public class DownloadsMessage implements Serializable {
+import lombok.AllArgsConstructor;
 
-  private final String jobId;
+@AllArgsConstructor
+public class SparkQueryExecutor implements QueryExecutor {
+  private SparkSession sparkSession;
 
-  @JsonCreator
-  public DownloadsMessage(@JsonProperty("jobId") String jobId) {
-    this.jobId = jobId;
+  @Override
+  public void close() throws IOException {
+    sparkSession.close();
   }
 
+  @Override
+  public void accept(String sql) {
+    sparkSession.sql(sql);
+  }
 }

@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.spark;
+package org.gbif.occurrence.download.sql;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -23,13 +23,11 @@ import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.GenerateHQL;
-import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.spark.sql.SparkSession;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -39,13 +37,15 @@ public class SimpleCsvDownload {
 
   private static String downloadQuery;
 
-  private final SparkSession sparkSession;
+  private final QueryExecutor queryExecutor;
 
   private final Download download;
 
   private final DownloadQueryParameters queryParameters;
 
   private final WorkflowConfiguration workflowConfiguration;
+
+  private Runnable onStart;
 
 
   public void run() {
@@ -65,8 +65,10 @@ public class SimpleCsvDownload {
   }
 
   private void executeQuery() {
-    UDFS.registerUdfs(sparkSession);
-    SqlQueryUtils.runMultiSQL(downloadQuery(), queryParameters.toMap(), sparkSession::sql);
+    if(onStart != null) {
+      onStart.run();
+    }
+    SqlQueryUtils.runMultiSQL(downloadQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   @SneakyThrows
@@ -120,11 +122,9 @@ public class SimpleCsvDownload {
 
   }
 
-
-
   private void dropTables(String... tableNames) {
     for(String tableName: tableNames) {
-      sparkSession.sql("DROP TABLE IF EXISTS " + tableName);
+      queryExecutor.accept("DROP TABLE IF EXISTS " + tableName);
     }
   }
 }
