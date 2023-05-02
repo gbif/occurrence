@@ -184,7 +184,7 @@ public class TableBackfill {
        .load(fromSourceDir + "/*.avro")
        .select(select);
 
-     if (input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
+     if (configuration.getTablePartitions() != null &&  input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
        input = input
                 .withColumn("_salted_key", col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
                 .repartition(configuration.getTablePartitions())
