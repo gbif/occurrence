@@ -19,8 +19,9 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
 import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
@@ -33,18 +34,14 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import org.apache.oozie.client.Job;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -59,10 +56,13 @@ import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 
+import lombok.extern.slf4j.Slf4j;
+
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 @Component
+@Slf4j
 public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadRequestServiceImpl.class);
@@ -99,38 +99,34 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       Metrics.newCounter(CallbackService.class, "failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS =
       Metrics.newCounter(CallbackService.class, "cancelled_downloads");
-
-  private final OozieClient client;
   private final String portalUrl;
   private final String wsUrl;
   private final File downloadMount;
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final DownloadWorkflowParametersBuilder parametersBuilder;
   private final OccurrenceEmailManager emailManager;
   private final EmailSender emailSender;
 
   private final DownloadLimitsService downloadLimitsService;
+  private final MessagePublisher messagePublisher;
 
   @Autowired
   public DownloadRequestServiceImpl(
-      OozieClient client,
-      @Qualifier("oozie.default_properties") Map<String, String> defaultProperties,
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
-      EmailSender emailSender) {
-    this.client = client;
+      EmailSender emailSender,
+      MessagePublisher messagePublisher) {
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);
     this.downloadLimitsService = downloadLimitsService;
     this.emailManager = emailManager;
     this.emailSender = emailSender;
+    this.messagePublisher = messagePublisher;
   }
 
   @Override
@@ -140,14 +136,16 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       if (download != null) {
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
-          client.kill(DownloadUtils.downloadToWorkflowId(downloadKey));
-          LOG.info("Download {} cancelled", downloadKey);
+
+          messagePublisher.send(null); // TODO: Cancel message
+
+          log.info("Download {} cancelled", downloadKey);
         }
       } else {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, String.format("Download %s not found", downloadKey));
       }
-    } catch (OozieClientException e) {
+    } catch (Exception e) {
       throw new ServiceUnavailableException("Failed to cancel download " + downloadKey, e);
     }
   }
@@ -178,12 +176,15 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
       }
 
-      String jobId = client.run(parametersBuilder.buildWorkflowParameters(request));
-      LOG.debug("Oozie job id is: [{}]", jobId);
-      String downloadId = DownloadUtils.workflowToDownloadId(jobId);
+      String downloadId = null;
+      log.debug("Download job id is: [{}]", downloadId);
       persistDownload(request, downloadId, source);
+
+      log.debug("Send message to the download launcher queue");
+      messagePublisher.send(new DownloadLauncherMessage(downloadId));
+
       return downloadId;
-    } catch (OozieClientException e) {
+    } catch (Exception e) {
       LOG.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
