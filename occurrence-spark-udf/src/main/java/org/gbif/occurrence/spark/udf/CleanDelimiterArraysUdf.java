@@ -15,7 +15,7 @@ package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.api.java.UDF1;
 
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
 import scala.collection.mutable.WrappedArray;
 
 public class CleanDelimiterArraysUdf implements UDF1<WrappedArray<String>,String[]> {
@@ -24,7 +24,7 @@ public class CleanDelimiterArraysUdf implements UDF1<WrappedArray<String>,String
 
   @Override
   public String[] call(WrappedArray<String> field) throws Exception {
-    return field != null? JavaConversions.asJavaCollection(field).stream()
+    return field != null? JavaConverters.asJavaCollection(field).stream()
       .map(CLEAN_DELIMITERS)
       .filter(s -> s != null && !s.isEmpty())
       .toArray(String[]::new) : null;

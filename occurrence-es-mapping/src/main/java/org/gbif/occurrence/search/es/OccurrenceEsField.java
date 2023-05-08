@@ -46,7 +46,7 @@ public enum OccurrenceEsField implements EsField {
   NETWORK_KEY(new BaseEsField("networkKeys", GbifInternalTerm.networkKey)),
   PROTOCOL(new BaseEsField("protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("license", DcTerm.license)),
-  PROJECT_ID(new BaseEsField("projectId", GbifInternalTerm.projectId)),
+  PROJECT_ID(new BaseEsField("projectId", GbifTerm.projectId)),
   PROGRAMME(new BaseEsField("programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
@@ -229,6 +229,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
       .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
+      .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(OccurrenceSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
       .put(OccurrenceSearchParameter.PHYLUM_KEY, PHYLUM_KEY)
       .put(OccurrenceSearchParameter.CLASS_KEY, CLASS_KEY)

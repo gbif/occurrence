@@ -16,13 +16,14 @@ package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.api.java.UDF3;
 
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
+
 import scala.collection.mutable.WrappedArray;
 
-public class StringArrayContainsGenericUdf implements UDF3<WrappedArray<String>,String,Boolean,Boolean> {
+public class StringArrayContainsGenericUdf implements UDF3<WrappedArray<String>, String, Boolean, Boolean> {
 
   @Override
   public Boolean call(WrappedArray<String> array, String value, Boolean caseSensitive) throws Exception {
-    return array != null && !array.isEmpty() && JavaConversions.asJavaCollection(array).stream().anyMatch(e -> caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value));
+    return array != null && !array.isEmpty() && JavaConverters.asJavaCollection(array).stream().anyMatch(e -> caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value));
   }
 }

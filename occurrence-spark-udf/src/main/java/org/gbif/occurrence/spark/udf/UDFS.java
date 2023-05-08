@@ -13,13 +13,13 @@
  */
 package org.gbif.occurrence.spark.udf;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 
 import lombok.experimental.UtilityClass;
+import org.cache2k.Cache;
+import org.cache2k.config.Cache2kConfig;
+import org.cache2k.io.CacheLoader;
 
 @UtilityClass
 public class UDFS {
@@ -35,12 +35,11 @@ public class UDFS {
     sparkSession.udf().register("joinArray", new JoinArrayUdf(), DataTypes.StringType);
   }
 
-  public static <K, V> Map<K, V> createLRUMap(final int maxEntries) {
-    return new LinkedHashMap<K, V>(maxEntries*10/7, 0.7f, true) {
-      @Override
-      protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-        return size() > maxEntries;
-      }
-    };
+  public static <K, V> Cache<K, V> createLRUMap(final int maxEntries, CacheLoader<K,V> loader) {
+    return new Cache2kConfig<K,V>().builder()
+      .entryCapacity(maxEntries)
+      .permitNullValues(true)
+      .loader(loader)
+      .build();
   }
 }

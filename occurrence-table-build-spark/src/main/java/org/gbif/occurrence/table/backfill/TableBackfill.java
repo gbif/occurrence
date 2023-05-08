@@ -86,6 +86,7 @@ public class TableBackfill {
     SparkSession.Builder sparkBuilder = SparkSession.builder()
            .appName(configuration.getTableName() + " table build")
            .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+           .config("hive.metastore.uris", configuration.getHiveThriftAddress())
            .enableHiveSupport();
 
     if (configuration.isUsePartitionedTable()) {
@@ -183,7 +184,7 @@ public class TableBackfill {
        .select(select)
        .write()
        .format("parquet")
-       .option("compression", "snappy")
+       .option("compression", "GZ")
        .mode("overwrite")
        .insertInto(saveToTable);
    }
@@ -214,7 +215,7 @@ public class TableBackfill {
    return String.format("CREATE TABLE IF NOT EXISTS %s\n"
                         + '(' + extensionTable.getSchema().getFields().stream().map(f -> f.name() + " STRING").collect(
                           Collectors.joining(",\n")) + ')'
-                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n",
+                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")\n",
                         extensionTableName(extensionTable));
   }
 
@@ -224,7 +225,7 @@ public class TableBackfill {
                            Collectors.joining(",\n")) + ')'
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "LOCATION '%s'"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")\n",
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")\n",
                          extensionTableName(extensionTable),
                          Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
@@ -245,7 +246,7 @@ public class TableBackfill {
                          + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
                          + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
                          + "publisher STRING, license STRING, rightsHolder STRING)\n"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")", configuration.getTableName());
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")", configuration.getTableName());
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
@@ -301,7 +302,7 @@ public class TableBackfill {
                          + OccurrenceHDFSTableDefinition.definition().stream()
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                            .collect(Collectors.joining(", \n"))
-                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
+                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")",
                          configuration.getTableName());
   }
 
@@ -315,7 +316,7 @@ public class TableBackfill {
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "STORED AS PARQUET "
                          + "LOCATION '%s'"
-                         + "TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\", \"auto.purge\"=\"true\")",
+                         + "TBLPROPERTIES (\"parquet.compression\"=\"GZ\", \"auto.purge\"=\"true\")",
                          configuration.getTableName(),
                          Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
 

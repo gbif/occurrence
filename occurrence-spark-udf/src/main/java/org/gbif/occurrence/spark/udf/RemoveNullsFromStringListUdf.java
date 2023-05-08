@@ -17,14 +17,14 @@ import java.util.Objects;
 
 import org.apache.spark.sql.api.java.UDF1;
 
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
 import scala.collection.mutable.WrappedArray;
 
 public class RemoveNullsFromStringListUdf implements UDF1<WrappedArray<String>, String[]> {
 
   @Override
   public String[] call(WrappedArray<String> values) throws Exception {
-    return values == null || values.isEmpty() ? null : JavaConversions.asJavaCollection(values).stream()
+    return values == null || values.isEmpty() ? null : JavaConverters.asJavaCollection(values).stream()
       .filter(e -> Objects.nonNull(e) && !e.trim().isEmpty())
       .toArray(String[]::new);
   }
