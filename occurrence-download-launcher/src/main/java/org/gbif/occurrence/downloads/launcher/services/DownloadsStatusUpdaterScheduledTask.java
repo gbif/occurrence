@@ -17,6 +17,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -25,11 +26,11 @@ import org.springframework.stereotype.Component;
 public class DownloadsStatusUpdaterScheduledTask {
 
   private final DownloadStatusUpdaterService downloadStatusUpdaterService;
-  private final JobManager jobManager;
+  private final DownloadLauncher jobManager;
   private final LockerService lockerService;
 
   public DownloadsStatusUpdaterScheduledTask(
-      JobManager jobManager,
+      DownloadLauncher jobManager,
       DownloadStatusUpdaterService downloadStatusUpdaterService,
       LockerService lockerService) {
     this.jobManager = jobManager;

@@ -17,7 +17,7 @@ import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.RegistryConfiguration;
 import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.JobManager;
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -36,7 +36,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 // TODO: RESTRUCTURE THE CLASS
@@ -74,7 +73,6 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
-  @Primary
   Queue launcherQueue(DownloadServiceConfiguration configuration) {
     return QueueBuilder.durable(configuration.getLauncherQueueName())
         .deadLetterExchange("")
@@ -90,7 +88,14 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
-  public Binding binding(Queue queue) {
+  public Binding launcherQueueBinding(Queue queue) {
+    return BindingBuilder.bind(queue)
+        .to(new DirectExchange("occurrence"))
+        .with(DownloadLauncherMessage.ROUTING_KEY);
+  }
+
+  @Bean
+  public Binding cancellationQueueBinding(Queue queue) {
     return BindingBuilder.bind(queue)
         .to(new DirectExchange("occurrence"))
         .with(DownloadLauncherMessage.ROUTING_KEY);
@@ -120,7 +125,8 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
-  JobManager jobManager(ApplicationContext context, DownloadServiceConfiguration configuration) {
-    return context.getBean(configuration.getManagerQualifier(), JobManager.class);
+  DownloadLauncher downloadLauncher(
+      ApplicationContext context, DownloadServiceConfiguration configuration) {
+    return context.getBean(configuration.getManagerQualifier(), DownloadLauncher.class);
   }
 }

@@ -11,20 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services;
+package org.gbif.occurrence.downloads.launcher.services.launcher.kubernetes;
 
 import java.util.List;
 import java.util.Optional;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 @Service("kubernetes")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class KubernetesJobManagerService implements JobManager {
+public class KubernetesDownloadLauncherService implements DownloadLauncher {
 
   @Override
   public JobStatus createJob(DownloadLauncherMessage message) {

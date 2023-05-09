@@ -99,6 +99,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       Metrics.newCounter(CallbackService.class, "failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS =
       Metrics.newCounter(CallbackService.class, "cancelled_downloads");
+
+  private final DownloadIdService downloadIdService;
   private final String portalUrl;
   private final String wsUrl;
   private final File downloadMount;
@@ -119,6 +121,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
       MessagePublisher messagePublisher) {
+    this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
@@ -176,7 +179,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
       }
 
-      String downloadId = null;
+      String downloadId = downloadIdService.generateId();
       log.debug("Download job id is: [{}]", downloadId);
       persistDownload(request, downloadId, source);
 

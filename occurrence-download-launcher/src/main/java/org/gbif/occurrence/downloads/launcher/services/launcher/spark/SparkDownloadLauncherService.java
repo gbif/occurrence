@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services;
+package org.gbif.occurrence.downloads.launcher.services.launcher.spark;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +29,8 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.YarnClientService.Application;
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.occurrence.downloads.launcher.services.launcher.spark.YarnClientService.Application;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -37,13 +38,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("yarn")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class YarnJobManagerService implements JobManager {
+public class SparkDownloadLauncherService implements DownloadLauncher {
 
   private final SparkConfiguration sparkConfiguration;
   private final YarnClientService yarnClientService;
   private final SparkOutputListener outputListener;
 
-  public YarnJobManagerService(
+  public SparkDownloadLauncherService(
       YarnClientService yarnClientService,
       SparkConfiguration sparkConfiguration,
       SparkOutputListener outputListener) {

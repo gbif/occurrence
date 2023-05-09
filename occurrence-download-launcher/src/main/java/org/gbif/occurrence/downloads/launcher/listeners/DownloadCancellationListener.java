@@ -18,10 +18,9 @@ import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
-import org.gbif.occurrence.downloads.launcher.services.JobManager;
-import org.gbif.occurrence.downloads.launcher.services.JobManager.JobStatus;
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
-import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -30,12 +29,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class DownloadCancellationListener extends AbstractMessageCallback<DownloadLauncherMessage> {
 
-  private final JobManager jobManager;
+  private final DownloadLauncher jobManager;
   private final DownloadStatusUpdaterService downloadStatusUpdaterService;
   private final LockerService lockerService;
 
   public DownloadCancellationListener(
-    JobManager jobManager,
+    DownloadLauncher jobManager,
     DownloadStatusUpdaterService downloadStatusUpdaterService,
     LockerService lockerService) {
     this.jobManager = jobManager;

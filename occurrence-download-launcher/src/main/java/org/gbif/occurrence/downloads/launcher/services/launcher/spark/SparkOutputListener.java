@@ -11,13 +11,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services;
+package org.gbif.occurrence.downloads.launcher.services.launcher.spark;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkAppHandle.Listener;
 import org.apache.spark.launcher.SparkAppHandle.State;
 import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
