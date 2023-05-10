@@ -54,14 +54,14 @@ public class SparkDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus createJob(@NotNull DownloadLauncherMessage message) {
+  public JobStatus create(@NotNull DownloadLauncherMessage message) {
     try {
-      String jobId = message.getJobId();
+      String downloadId = message.getDownloadId();
 
       SparkLauncher launcher =
           new Spark2Launcher()
               // Spark settings
-              .setAppName(jobId)
+              .setAppName(downloadId)
               .setSparkHome("empty") // Workaround for Spark2Launcher
               .setDeployMode(sparkConfiguration.getDeployMode())
               .setMaster(sparkConfiguration.getMaster())
@@ -71,7 +71,7 @@ public class SparkDownloadLauncherService implements DownloadLauncher {
 
       sparkConfiguration.getFiles().forEach(launcher::addFile);
       // App settings
-      launcher.addAppArgs(message.getJobId());
+      launcher.addAppArgs(message.getDownloadId());
       // Launch
       launcher.startApplication(outputListener);
       // TODO: CALCULATE SPARK RESOURCES?
@@ -86,8 +86,8 @@ public class SparkDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus cancelJob(@NotNull String jobId) {
-    yarnClientService.killApplicationByName(jobId);
+  public JobStatus cancel(@NotNull String downloadId) {
+    yarnClientService.killApplicationByName(downloadId);
     return JobStatus.CANCELLED;
   }
 

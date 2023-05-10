@@ -47,10 +47,9 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus createJob(@NotNull DownloadLauncherMessage message) {
+  public JobStatus create(@NotNull DownloadLauncherMessage message) {
     try {
-      // TODO: REWRITE ID?
-      client.run(parametersBuilder.buildWorkflowParameters(message.getJobId(), null));
+      client.run(parametersBuilder.buildWorkflowParameters(message.getDownloadId(), message.getDownloadRequest()));
       return JobStatus.RUNNING;
     } catch (OozieClientException ex) {
       log.error(ex.getMessage(), ex);
@@ -59,9 +58,9 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus cancelJob(@NotNull String jobId) {
+  public JobStatus cancel(@NotNull String downloadId) {
     try {
-      client.kill(DownloadUtils.downloadToWorkflowId(jobId));
+      client.kill(DownloadUtils.downloadToWorkflowId(downloadId));
       return JobStatus.CANCELLED;
     } catch (OozieClientException ex) {
       log.error(ex.getMessage(), ex);

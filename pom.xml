@@ -152,7 +152,7 @@
     <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
     <!--
-      Important! Guava is highly fragile across webservices, YARN MR jobs, downloads and
+      Important! Guava is highly fragile across webservices, YARN MR jobs, downloads
       and the CLIs.  Be very sure that all environments are tested thoroughly before
       changing.
     -->

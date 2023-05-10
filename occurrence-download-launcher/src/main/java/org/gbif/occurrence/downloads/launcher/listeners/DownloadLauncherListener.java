@@ -48,24 +48,24 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
   public void handleMessage(DownloadLauncherMessage downloadsMessage) {
     log.info("Received message {}", downloadsMessage);
 
-    JobStatus jobStatus = jobManager.createJob(downloadsMessage);
+    JobStatus jobStatus = jobManager.create(downloadsMessage);
 
     if (jobStatus == JobStatus.RUNNING) {
-      String jobId = downloadsMessage.getJobId();
+      String downloadId = downloadsMessage.getDownloadId();
 
       // Mark downloads as RUNNING
-      downloadStatusUpdaterService.updateStatus(jobId, Status.RUNNING);
+      downloadStatusUpdaterService.updateStatus(downloadId, Status.RUNNING);
 
       log.info("Locking the thread until downloads job is finished");
-      lockerService.lock(jobId, Thread.currentThread());
+      lockerService.lock(downloadId, Thread.currentThread());
 
       jobManager
-        .getStatusByName(jobId)
-        .ifPresent(status -> downloadStatusUpdaterService.updateStatus(jobId, status));
+        .getStatusByName(downloadId)
+        .ifPresent(status -> downloadStatusUpdaterService.updateStatus(downloadId, status));
     }
 
     if (jobStatus == JobStatus.FAILED) {
-      downloadStatusUpdaterService.updateStatus(downloadsMessage.getJobId(), Status.FAILED);
+      downloadStatusUpdaterService.updateStatus(downloadsMessage.getDownloadId(), Status.FAILED);
       log.error("Failed to process message: {}", downloadsMessage);
       throw new AmqpRejectAndDontRequeueException("Failed to process message");
     }

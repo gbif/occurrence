@@ -88,15 +88,15 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
-  public Binding launcherQueueBinding(Queue queue) {
-    return BindingBuilder.bind(queue)
+  public Binding launcherQueueBinding(Queue launcherDeadQueue) {
+    return BindingBuilder.bind(launcherDeadQueue)
         .to(new DirectExchange("occurrence"))
         .with(DownloadLauncherMessage.ROUTING_KEY);
   }
 
   @Bean
-  public Binding cancellationQueueBinding(Queue queue) {
-    return BindingBuilder.bind(queue)
+  public Binding cancellationQueueBinding(Queue cancellationQueue) {
+    return BindingBuilder.bind(cancellationQueue)
         .to(new DirectExchange("occurrence"))
         .with(DownloadLauncherMessage.ROUTING_KEY);
   }

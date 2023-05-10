@@ -28,12 +28,12 @@ import org.springframework.stereotype.Service;
 public class KubernetesDownloadLauncherService implements DownloadLauncher {
 
   @Override
-  public JobStatus createJob(DownloadLauncherMessage message) {
+  public JobStatus create(DownloadLauncherMessage message) {
     throw new UnsupportedOperationException("The method is not implemented!");
   }
 
   @Override
-  public JobStatus cancelJob(String jobId) {
+  public JobStatus cancel(String downloadId) {
     throw new UnsupportedOperationException("The method is not implemented!");
   }
 

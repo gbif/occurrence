@@ -20,6 +20,7 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.mail.BaseEmailModel;
@@ -140,7 +141,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
 
-          messagePublisher.send(null); // TODO: Cancel message
+          messagePublisher.send(new DownloadCancelMessage(downloadKey));
 
           log.info("Download {} cancelled", downloadKey);
         }
@@ -184,7 +185,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       persistDownload(request, downloadId, source);
 
       log.debug("Send message to the download launcher queue");
-      messagePublisher.send(new DownloadLauncherMessage(downloadId));
+      messagePublisher.send(new DownloadLauncherMessage(downloadId, request));
 
       return downloadId;
     } catch (Exception e) {

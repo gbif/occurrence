@@ -20,9 +20,9 @@ import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 
 public interface DownloadLauncher {
 
-  JobStatus createJob(DownloadLauncherMessage message);
+  JobStatus create(DownloadLauncherMessage message);
 
-  JobStatus cancelJob(String jobId);
+  JobStatus cancel(String downloadId);
 
   Optional<Download.Status> getStatusByName(String name);
 

@@ -46,12 +46,12 @@ public class DownloadCancellationListener extends AbstractMessageCallback<Downlo
   @RabbitListener(queues = "${downloads.cancellationQueueName}")
   public void handleMessage(DownloadLauncherMessage downloadsMessage) {
     log.info("Received message {}", downloadsMessage);
-    String jobId = downloadsMessage.getJobId();
+    String downloadId = downloadsMessage.getDownloadId();
 
-    JobStatus jobStatus = jobManager.cancelJob(jobId);
-    lockerService.unlock(jobId);
+    JobStatus jobStatus = jobManager.cancel(downloadId);
+    lockerService.unlock(downloadId);
     if (jobStatus == JobStatus.CANCELLED) {
-      downloadStatusUpdaterService.updateStatus(jobId, Status.CANCELLED);
+      downloadStatusUpdaterService.updateStatus(downloadId, Status.CANCELLED);
     }
   }
 }
