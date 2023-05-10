@@ -186,7 +186,7 @@
     <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
 
-    <avro.version>1.8.2</avro.version>
+    <avro.version>1.11.1</avro.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-H3-SNAPSHOT</hbase-utils.version>
@@ -207,7 +207,7 @@
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <pipelines.version>2.13.0</pipelines.version>
+    <pipelines.version>2.15.0-H3-SNAPSHOT</pipelines.version>
     <gbif.kvs.version>1.26-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.0</gbif-predicates.version>
@@ -233,7 +233,7 @@
 
     <!-- Spark -->
     <spark.version>3.3.0</spark.version>
-    <databricks.version>3.4.0</databricks.version>
+    <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
     <scala.library.version>2.12.17</scala.library.version>
 

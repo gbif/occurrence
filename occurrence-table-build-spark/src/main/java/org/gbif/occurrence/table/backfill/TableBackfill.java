@@ -179,7 +179,7 @@ public class TableBackfill {
        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
      }
      spark.read()
-       .format("com.databricks.spark.avro")
+       .format("avro")
        .load(fromSourceDir + "/*.avro")
        .select(select)
        .write()
