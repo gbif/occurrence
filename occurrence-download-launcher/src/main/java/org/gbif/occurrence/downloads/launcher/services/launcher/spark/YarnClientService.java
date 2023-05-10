@@ -41,7 +41,7 @@ import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
 import org.springframework.stereotype.Service;
 
 @Slf4j

@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.config;
+package org.gbif.occurrence.downloads.launcher.pojo;
 
 import java.util.Set;
 import javax.validation.constraints.NotNull;

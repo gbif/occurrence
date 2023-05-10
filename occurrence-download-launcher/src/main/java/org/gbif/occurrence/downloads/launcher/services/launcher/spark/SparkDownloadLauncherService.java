@@ -28,7 +28,7 @@ import org.apache.spark.launcher.SparkLauncher;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.SparkConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.spark.YarnClientService.Application;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;

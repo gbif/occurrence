@@ -13,33 +13,15 @@
  */
 package org.gbif.occurrence.downloads.launcher;
 
-import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.downloads.launcher.config.DownloadServiceConfiguration;
-import org.gbif.occurrence.downloads.launcher.config.RegistryConfiguration;
-import org.gbif.occurrence.downloads.launcher.config.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.ws.client.ClientBuilder;
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.QueueBuilder;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-// TODO: RESTRUCTURE THE CLASS
-// TODO: RESTRUCTURE CLASSES INSIDE PACKAGES
 @SpringBootApplication
 @EnableScheduling
 @EnableConfigurationProperties
@@ -47,81 +29,6 @@ public class OccurrenceDownloadsLauncherApplication {
 
   public static void main(String... args) {
     SpringApplication.run(OccurrenceDownloadsLauncherApplication.class, args);
-  }
-
-  @ConfigurationProperties(prefix = "downloads")
-  @Bean
-  public DownloadServiceConfiguration downloadServiceConfiguration() {
-    return new DownloadServiceConfiguration();
-  }
-
-  @ConfigurationProperties(prefix = "spark")
-  @Bean
-  public SparkConfiguration sparkConfiguration() {
-    return new SparkConfiguration();
-  }
-
-  @ConfigurationProperties(prefix = "registry")
-  @Bean
-  public RegistryConfiguration registryConfiguration() {
-    return new RegistryConfiguration();
-  }
-
-  @Bean
-  Queue launcherDeadQueue(DownloadServiceConfiguration configuration) {
-    return QueueBuilder.durable(configuration.getDeadLauncherQueueName()).build();
-  }
-
-  @Bean
-  Queue launcherQueue(DownloadServiceConfiguration configuration) {
-    return QueueBuilder.durable(configuration.getLauncherQueueName())
-        .deadLetterExchange("")
-        .deadLetterRoutingKey(configuration.getDeadLauncherQueueName())
-        .build();
-  }
-
-  @Bean
-  Queue cancellationQueue(DownloadServiceConfiguration configuration) {
-    return QueueBuilder.durable(configuration.getCancellationQueueName())
-        .deadLetterExchange("")
-        .build();
-  }
-
-  @Bean
-  public Binding launcherQueueBinding(Queue launcherDeadQueue) {
-    return BindingBuilder.bind(launcherDeadQueue)
-        .to(new DirectExchange("occurrence"))
-        .with(DownloadLauncherMessage.ROUTING_KEY);
-  }
-
-  @Bean
-  public Binding cancellationQueueBinding(Queue cancellationQueue) {
-    return BindingBuilder.bind(cancellationQueue)
-        .to(new DirectExchange("occurrence"))
-        .with(DownloadLauncherMessage.ROUTING_KEY);
-  }
-
-  @Bean
-  public MessageConverter messageConverter() {
-    return new Jackson2JsonMessageConverter();
-  }
-
-  @Bean
-  public RabbitTemplate rabbitTemplate(
-      ConnectionFactory connectionFactory, MessageConverter converter) {
-    RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-    rabbitTemplate.setMessageConverter(converter);
-    return rabbitTemplate;
-  }
-
-  @Bean
-  public OccurrenceDownloadClient occurrenceDownloadClient(RegistryConfiguration configuration) {
-    return new ClientBuilder()
-        .withUrl(configuration.getApiUrl())
-        .withCredentials(configuration.getUserName(), configuration.getPassword())
-        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-        .withFormEncoder()
-        .build(OccurrenceDownloadClient.class);
   }
 
   @Bean
