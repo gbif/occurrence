@@ -53,7 +53,7 @@ public class DownloadWorkflowParametersBuilder {
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
-    properties.setProperty("oozie.job.name", downloadId); // TODO: CORRECT PROPERTY NAME
+    properties.setProperty("download_id", downloadId);
     if (request.getNotificationAddresses() != null
         && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(
