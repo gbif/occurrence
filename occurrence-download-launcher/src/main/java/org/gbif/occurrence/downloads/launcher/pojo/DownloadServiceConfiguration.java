@@ -29,5 +29,5 @@ public class DownloadServiceConfiguration {
 
   @NotNull private String taskCron;
 
-  @NotNull private String managerQualifier;
+  @NotNull private String launcherQualifier;
 }

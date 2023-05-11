@@ -1,5 +1,6 @@
 package org.gbif.occurrence.downloads.launcher.config;
 
+import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
 import org.springframework.amqp.core.Binding;
@@ -38,8 +39,8 @@ public class RabbitConfiguration {
   }
 
   @Bean
-  public Binding launcherQueueBinding(Queue launcherDeadQueue) {
-    return BindingBuilder.bind(launcherDeadQueue)
+  public Binding launcherQueueBinding(Queue launcherQueue) {
+    return BindingBuilder.bind(launcherQueue)
         .to(new DirectExchange("occurrence"))
         .with(DownloadLauncherMessage.ROUTING_KEY);
   }
@@ -48,7 +49,7 @@ public class RabbitConfiguration {
   public Binding cancellationQueueBinding(Queue cancellationQueue) {
     return BindingBuilder.bind(cancellationQueue)
         .to(new DirectExchange("occurrence"))
-        .with(DownloadLauncherMessage.ROUTING_KEY);
+        .with(DownloadCancelMessage.ROUTING_KEY);
   }
 
   @Bean

@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
@@ -32,8 +33,9 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
+  @Primary
   DownloadLauncher downloadLauncher(
       ApplicationContext context, DownloadServiceConfiguration configuration) {
-    return context.getBean(configuration.getManagerQualifier(), DownloadLauncher.class);
+    return context.getBean(configuration.getLauncherQualifier(), DownloadLauncher.class);
   }
 }
