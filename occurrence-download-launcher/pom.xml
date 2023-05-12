@@ -45,7 +45,7 @@
         </executions>
         <configuration>
           <mainClass>${start-class}</mainClass>
-          <addResources>false</addResources>
+          <addResources>true</addResources>
           <layout>ZIP</layout>
           <excludes>
             <exclude>

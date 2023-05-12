@@ -61,7 +61,9 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
   public JobStatus cancel(@NotNull String downloadId) {
     try {
       String jobId = client.getJobId(downloadId);
-      client.kill(jobId);
+      if (jobId != null && !jobId.isEmpty()) {
+        client.kill(jobId);
+      }
       return JobStatus.CANCELLED;
     } catch (OozieClientException ex) {
       log.error(ex.getMessage(), ex);
