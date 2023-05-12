@@ -26,6 +26,7 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.apache.oozie.client.OozieClient.EXTERNAL_ID;
 
 /** Builds the configuration parameters for the download workflows. */
 public class DownloadWorkflowParametersBuilder {
@@ -54,6 +55,7 @@ public class DownloadWorkflowParametersBuilder {
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
     properties.setProperty("download_id", downloadId);
+    properties.setProperty(EXTERNAL_ID, downloadId);
     if (request.getNotificationAddresses() != null
         && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(

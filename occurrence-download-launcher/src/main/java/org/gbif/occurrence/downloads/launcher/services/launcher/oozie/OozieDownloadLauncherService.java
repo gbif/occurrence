@@ -60,7 +60,8 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus cancel(@NotNull String downloadId) {
     try {
-      client.kill(DownloadUtils.downloadToWorkflowId(downloadId));
+      String jobId = client.getJobId(downloadId);
+      client.kill(jobId);
       return JobStatus.CANCELLED;
     } catch (OozieClientException ex) {
       log.error(ex.getMessage(), ex);
