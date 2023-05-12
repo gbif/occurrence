@@ -18,9 +18,9 @@ import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
-import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -35,9 +35,9 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
   private final LockerService lockerService;
 
   public DownloadLauncherListener(
-    DownloadLauncher jobManager,
-    DownloadStatusUpdaterService downloadStatusUpdaterService,
-    LockerService lockerService) {
+      DownloadLauncher jobManager,
+      DownloadStatusUpdaterService downloadStatusUpdaterService,
+      LockerService lockerService) {
     this.jobManager = jobManager;
     this.downloadStatusUpdaterService = downloadStatusUpdaterService;
     this.lockerService = lockerService;
@@ -46,28 +46,34 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
   @Override
   @RabbitListener(queues = "${downloads.launcherQueueName}")
   public void handleMessage(DownloadLauncherMessage downloadsMessage) {
-    log.info("Received message {}", downloadsMessage);
+    try {
+      log.info("Received message {}", downloadsMessage);
 
-    JobStatus jobStatus = jobManager.create(downloadsMessage);
+      JobStatus jobStatus = jobManager.create(downloadsMessage);
 
-    if (jobStatus == JobStatus.RUNNING) {
-      String downloadId = downloadsMessage.getDownloadId();
+      if (jobStatus == JobStatus.RUNNING) {
+        String downloadId = downloadsMessage.getDownloadId();
 
-      // Mark downloads as RUNNING
-      downloadStatusUpdaterService.updateStatus(downloadId, Status.RUNNING);
+        // Mark downloads as RUNNING
+        downloadStatusUpdaterService.updateStatus(downloadId, Status.RUNNING);
 
-      log.info("Locking the thread until downloads job is finished");
-      lockerService.lock(downloadId, Thread.currentThread());
+        log.info("Locking the thread until downloads job is finished");
+        lockerService.lock(downloadId, Thread.currentThread());
 
-      jobManager
-        .getStatusByName(downloadId)
-        .ifPresent(status -> downloadStatusUpdaterService.updateStatus(downloadId, status));
-    }
+        jobManager
+            .getStatusByName(downloadId)
+            .ifPresent(status -> downloadStatusUpdaterService.updateStatus(downloadId, status));
+      }
 
-    if (jobStatus == JobStatus.FAILED) {
-      downloadStatusUpdaterService.updateStatus(downloadsMessage.getDownloadId(), Status.FAILED);
-      log.error("Failed to process message: {}", downloadsMessage);
-      throw new AmqpRejectAndDontRequeueException("Failed to process message");
+      if (jobStatus == JobStatus.FAILED) {
+        downloadStatusUpdaterService.updateStatus(downloadsMessage.getDownloadId(), Status.FAILED);
+        log.error("Failed to process message: {}", downloadsMessage);
+        throw new AmqpRejectAndDontRequeueException("Failed to process message");
+      }
+
+    } catch (Exception ex) {
+      log.error(ex.getMessage(), ex);
+      throw new AmqpRejectAndDontRequeueException(ex.getMessage());
     }
   }
 }
