@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.oozie;
 
+import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,7 +29,6 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,17 +43,14 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
 
   private final OozieClient client;
   private final DownloadWorkflowParametersBuilder parametersBuilder;
-  private final DownloadStatusUpdaterService downloadStatusUpdaterService;
   private final LockerService lockerService;
 
   public OozieDownloadLauncherService(
       OozieClient client,
       @Qualifier("oozie.default_properties") Map<String, String> defaultProperties,
-      DownloadStatusUpdaterService downloadStatusUpdaterService,
       LockerService lockerService) {
     this.client = client;
     this.parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);
-    this.downloadStatusUpdaterService = downloadStatusUpdaterService;
     this.lockerService = lockerService;
   }
 
@@ -79,12 +77,11 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
             String jobId = client.getJobId(downloadId);
 
             Status status = Status.valueOf(client.getStatus(jobId));
-            while (status == Status.RUNNING) {
+            while (EXECUTING_STATUSES.contains(status)) {
               TimeUnit.SECONDS.sleep(10);
               status = Status.valueOf(client.getStatus(jobId));
             }
 
-            downloadStatusUpdaterService.updateStatus(downloadId, status);
             lockerService.unlock(downloadId);
 
             log.info("Job {} finished with status {}", downloadId, status);
@@ -110,12 +107,8 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public Optional<Status> getStatusByName(String downloadId) throws OozieClientException {
-    String jobId = client.getJobId(downloadId);
-    if(jobId == null || jobId.isEmpty()) {
-      return Optional.empty();
-    }
-    return Optional.of(Status.valueOf(client.getStatus(jobId)));
+  public Optional<Status> getStatusByName(String downloadId) {
+    return Optional.empty(); // Ignore status update, it will be done by oozie callback
   }
 
   @Override
