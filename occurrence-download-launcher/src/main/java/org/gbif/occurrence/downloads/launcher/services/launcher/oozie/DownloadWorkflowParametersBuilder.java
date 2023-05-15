@@ -54,7 +54,7 @@ public class DownloadWorkflowParametersBuilder {
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
-    properties.setProperty("download_id", downloadId);
+    properties.setProperty("download_key", downloadId);
     properties.setProperty(EXTERNAL_ID, downloadId);
     if (request.getNotificationAddresses() != null
         && !request.getNotificationAddresses().isEmpty()) {

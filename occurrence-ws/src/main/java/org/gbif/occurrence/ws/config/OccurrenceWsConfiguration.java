@@ -23,12 +23,19 @@ import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+
+import org.apache.oozie.client.OozieClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OccurrenceWsConfiguration {
+
+  @Bean
+  public OozieClient providesOozieClient(@Value("${occurrence.download.oozie.url}") String url) {
+    return new OozieClient(url);
+  }
 
   @Bean
   public TitleLookupService titleLookupService(@Value("${api.url}") String apiUrl) {

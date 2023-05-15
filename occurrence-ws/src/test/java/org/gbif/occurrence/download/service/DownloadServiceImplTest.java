@@ -71,6 +71,8 @@ public class DownloadServiceImplTest {
   private static final OccurrenceSearchParameter PARAM = OccurrenceSearchParameter.CATALOG_NUMBER;
   private static final String TEST_EMAIL = "test@test.gbif.org";
 
+  @Mock private OozieClient oozieClient;
+
   private DownloadRequestService requestService;
 
   private OccurrenceDownloadService downloadService;
@@ -88,6 +90,7 @@ public class DownloadServiceImplTest {
     MessagePublisher messagePublisher = mock(MessagePublisher.class);
     requestService =
         new DownloadRequestServiceImpl(
+          oozieClient,
             "",
             "",
             "",

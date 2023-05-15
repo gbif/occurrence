@@ -92,10 +92,10 @@ public class SparkDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public Optional<Status> getStatusByName(String name) {
+  public Optional<Status> getStatusByName(String downloadId) {
     Map<String, Application> map =
-        yarnClientService.getAllApplicationByNames(Collections.singleton(name));
-    return getStatus(map.get(name));
+        yarnClientService.getAllApplicationByNames(Collections.singleton(downloadId));
+    return getStatus(map.get(downloadId));
   }
 
   @Override

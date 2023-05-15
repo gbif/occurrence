@@ -38,7 +38,7 @@ public class KubernetesDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public Optional<Status> getStatusByName(String name) {
+  public Optional<Status> getStatusByName(String downloadId) {
     return Optional.empty();
   }
 

@@ -66,6 +66,7 @@ public class CallbackServiceTest {
   private static final String TEST_USER = "admin";
   private static final List<String> EMAILS = Lists.newArrayList("tests@gbif.org");
 
+  private OozieClient oozieClient;
   private CallbackService service;
   private OccurrenceDownloadService occurrenceDownloadService;
   private OccurrenceEmailManager emailManager;
@@ -100,8 +101,9 @@ public class CallbackServiceTest {
     when(downloadLimitsService.exceedsDownloadComplexity(any(DownloadRequest.class))).thenReturn(null);
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
     messagePublisher = mock(MessagePublisher.class);
+    oozieClient = mock(OozieClient.class);
     service =
-      new DownloadRequestServiceImpl("http://gbif-dev.org/occurrence", "http://localhost:8080/",
+      new DownloadRequestServiceImpl(oozieClient, "http://gbif-dev.org/occurrence", "http://localhost:8080/",
         "", occurrenceDownloadService, downloadLimitsService, emailManager, emailSender, messagePublisher);
   }
 

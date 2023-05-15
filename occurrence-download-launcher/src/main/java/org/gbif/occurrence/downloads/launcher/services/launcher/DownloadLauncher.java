@@ -24,7 +24,7 @@ public interface DownloadLauncher {
 
   JobStatus cancel(String downloadId);
 
-  Optional<Download.Status> getStatusByName(String name);
+  Optional<Download.Status> getStatusByName(String downloadId) throws Exception;
 
   List<Download> renewRunningDownloadsStatuses(List<Download> downloads);
 
