@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
+import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.paging.PagingRequest;
@@ -27,17 +29,17 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class DownloadStatusUpdaterService {
+public class DownloadUpdaterService {
 
   private final OccurrenceDownloadClient occurrenceDownloadClient;
 
-  public DownloadStatusUpdaterService(OccurrenceDownloadClient occurrenceDownloadClient) {
+  public DownloadUpdaterService(OccurrenceDownloadClient occurrenceDownloadClient) {
     this.occurrenceDownloadClient = occurrenceDownloadClient;
   }
 
   public List<Download> getExecutingDownloads() {
     return occurrenceDownloadClient
-        .list(new PagingRequest(0, 20), Status.EXECUTING_STATUSES, null)
+        .list(new PagingRequest(0, 20), EXECUTING_STATUSES, null)
         .getResults();
   }
 
@@ -62,5 +64,12 @@ public class DownloadStatusUpdaterService {
 
   public void updateDownload(Download download) {
     occurrenceDownloadClient.update(download);
+  }
+
+  public void markAsCancelled(String downloadKey) {
+    Download download = occurrenceDownloadClient.get(downloadKey);
+    if (download != null && EXECUTING_STATUSES.contains(download.getStatus())) {
+      updateStatus(downloadKey, Status.CANCELLED);
+    }
   }
 }

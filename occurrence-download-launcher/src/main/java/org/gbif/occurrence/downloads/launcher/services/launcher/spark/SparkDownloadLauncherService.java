@@ -56,12 +56,12 @@ public class SparkDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus create(@NotNull DownloadLauncherMessage message) {
     try {
-      String downloadId = message.getDownloadId();
+      String downloadKey = message.getDownloadKey();
 
       SparkLauncher launcher =
           new Spark2Launcher()
               // Spark settings
-              .setAppName(downloadId)
+              .setAppName(downloadKey)
               .setSparkHome("empty") // Workaround for Spark2Launcher
               .setDeployMode(sparkConfiguration.getDeployMode())
               .setMaster(sparkConfiguration.getMaster())
@@ -71,7 +71,7 @@ public class SparkDownloadLauncherService implements DownloadLauncher {
 
       sparkConfiguration.getFiles().forEach(launcher::addFile);
       // App settings
-      launcher.addAppArgs(message.getDownloadId());
+      launcher.addAppArgs(message.getDownloadKey());
       // Launch
       launcher.startApplication(outputListener);
       // TODO: CALCULATE SPARK RESOURCES?
@@ -86,16 +86,16 @@ public class SparkDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus cancel(@NotNull String downloadId) {
-    yarnClientService.killApplicationByName(downloadId);
+  public JobStatus cancel(@NotNull String downloadKey) {
+    yarnClientService.killApplicationByName(downloadKey);
     return JobStatus.CANCELLED;
   }
 
   @Override
-  public Optional<Status> getStatusByName(String downloadId) {
+  public Optional<Status> getStatusByName(String downloadKey) {
     Map<String, Application> map =
-        yarnClientService.getAllApplicationByNames(Collections.singleton(downloadId));
-    return getStatus(map.get(downloadId));
+        yarnClientService.getAllApplicationByNames(Collections.singleton(downloadKey));
+    return getStatus(map.get(downloadKey));
   }
 
   @Override

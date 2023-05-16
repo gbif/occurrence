@@ -22,9 +22,9 @@ public interface DownloadLauncher {
 
   JobStatus create(DownloadLauncherMessage message);
 
-  JobStatus cancel(String downloadId);
+  JobStatus cancel(String downloadKey);
 
-  Optional<Download.Status> getStatusByName(String downloadId) throws Exception;
+  Optional<Download.Status> getStatusByName(String downloadKey) throws Exception;
 
   List<Download> renewRunningDownloadsStatuses(List<Download> downloads);
 

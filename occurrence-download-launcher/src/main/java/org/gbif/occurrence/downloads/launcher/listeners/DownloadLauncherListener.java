@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
@@ -31,15 +31,15 @@ import org.springframework.stereotype.Component;
 public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLauncherMessage> {
 
   private final DownloadLauncher jobManager;
-  private final DownloadStatusUpdaterService downloadStatusUpdaterService;
+  private final DownloadUpdaterService downloadUpdaterService;
   private final LockerService lockerService;
 
   public DownloadLauncherListener(
       DownloadLauncher jobManager,
-      DownloadStatusUpdaterService downloadStatusUpdaterService,
+      DownloadUpdaterService downloadUpdaterService,
       LockerService lockerService) {
     this.jobManager = jobManager;
-    this.downloadStatusUpdaterService = downloadStatusUpdaterService;
+    this.downloadUpdaterService = downloadUpdaterService;
     this.lockerService = lockerService;
   }
 
@@ -52,21 +52,21 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
       JobStatus jobStatus = jobManager.create(downloadsMessage);
 
       if (jobStatus == JobStatus.RUNNING) {
-        String downloadId = downloadsMessage.getDownloadId();
+        String downloadKey = downloadsMessage.getDownloadKey();
 
         // Mark downloads as RUNNING
-        downloadStatusUpdaterService.updateStatus(downloadId, Status.RUNNING);
+        downloadUpdaterService.updateStatus(downloadKey, Status.RUNNING);
 
         log.info("Locking the thread until downloads job is finished");
-        lockerService.lock(downloadId, Thread.currentThread());
+        lockerService.lock(downloadKey, Thread.currentThread());
 
         jobManager
-            .getStatusByName(downloadId)
-            .ifPresent(status -> downloadStatusUpdaterService.updateStatus(downloadId, status));
+            .getStatusByName(downloadKey)
+            .ifPresent(status -> downloadUpdaterService.updateStatus(downloadKey, status));
       }
 
       if (jobStatus == JobStatus.FAILED) {
-        downloadStatusUpdaterService.updateStatus(downloadsMessage.getDownloadId(), Status.FAILED);
+        downloadUpdaterService.updateStatus(downloadsMessage.getDownloadKey(), Status.FAILED);
         log.error("Failed to process message: {}", downloadsMessage);
         throw new AmqpRejectAndDontRequeueException("Failed to process message");
       }

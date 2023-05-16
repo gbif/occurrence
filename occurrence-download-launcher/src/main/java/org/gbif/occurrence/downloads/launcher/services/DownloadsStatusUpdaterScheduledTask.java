@@ -25,13 +25,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class DownloadsStatusUpdaterScheduledTask {
 
-  private final DownloadStatusUpdaterService downloadStatusUpdaterService;
+  private final DownloadUpdaterService downloadStatusUpdaterService;
   private final DownloadLauncher jobManager;
   private final LockerService lockerService;
 
   public DownloadsStatusUpdaterScheduledTask(
       DownloadLauncher jobManager,
-      DownloadStatusUpdaterService downloadStatusUpdaterService,
+      DownloadUpdaterService downloadStatusUpdaterService,
       LockerService lockerService) {
     this.jobManager = jobManager;
     this.downloadStatusUpdaterService = downloadStatusUpdaterService;

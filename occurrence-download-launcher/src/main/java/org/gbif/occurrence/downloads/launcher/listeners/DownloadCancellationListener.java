@@ -14,10 +14,9 @@
 package org.gbif.occurrence.downloads.launcher.listeners;
 
 import lombok.extern.slf4j.Slf4j;
-import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
-import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
@@ -31,15 +30,15 @@ import org.springframework.stereotype.Component;
 public class DownloadCancellationListener extends AbstractMessageCallback<DownloadCancelMessage> {
 
   private final DownloadLauncher jobManager;
-  private final DownloadStatusUpdaterService downloadStatusUpdaterService;
+  private final DownloadUpdaterService downloadUpdaterService;
   private final LockerService lockerService;
 
   public DownloadCancellationListener(
       DownloadLauncher jobManager,
-      DownloadStatusUpdaterService downloadStatusUpdaterService,
+      DownloadUpdaterService downloadUpdaterService,
       LockerService lockerService) {
     this.jobManager = jobManager;
-    this.downloadStatusUpdaterService = downloadStatusUpdaterService;
+    this.downloadUpdaterService = downloadUpdaterService;
     this.lockerService = lockerService;
   }
 
@@ -48,13 +47,14 @@ public class DownloadCancellationListener extends AbstractMessageCallback<Downlo
   public void handleMessage(DownloadCancelMessage downloadsMessage) {
     try {
       log.info("Received message {}", downloadsMessage);
-      String downloadId = downloadsMessage.getDownloadId();
+      String downloadKey = downloadsMessage.getDownloadKey();
 
-      JobStatus jobStatus = jobManager.cancel(downloadId);
-      lockerService.unlock(downloadId);
-      if (jobStatus == JobStatus.CANCELLED) {
-        downloadStatusUpdaterService.updateStatus(downloadId, Status.CANCELLED);
-      }
+      JobStatus jobStatus = jobManager.cancel(downloadKey);
+      lockerService.unlock(downloadKey);
+      downloadUpdaterService.markAsCancelled(downloadKey);
+
+      log.info("Job cancellation status {}", jobStatus);
+
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
       throw new AmqpRejectAndDontRequeueException(ex.getMessage());

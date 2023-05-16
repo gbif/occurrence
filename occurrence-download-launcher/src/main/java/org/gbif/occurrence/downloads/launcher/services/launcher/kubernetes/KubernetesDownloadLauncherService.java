@@ -33,12 +33,12 @@ public class KubernetesDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus cancel(String downloadId) {
+  public JobStatus cancel(String downloadKey) {
     throw new UnsupportedOperationException("The method is not implemented!");
   }
 
   @Override
-  public Optional<Status> getStatusByName(String downloadId) {
+  public Optional<Status> getStatusByName(String downloadKey) {
     return Optional.empty();
   }
 

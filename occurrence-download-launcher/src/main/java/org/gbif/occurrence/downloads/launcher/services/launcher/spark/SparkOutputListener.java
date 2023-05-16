@@ -18,7 +18,7 @@ import org.apache.spark.launcher.SparkAppHandle;
 import org.apache.spark.launcher.SparkAppHandle.Listener;
 import org.apache.spark.launcher.SparkAppHandle.State;
 import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.services.DownloadStatusUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -29,12 +29,12 @@ import org.springframework.stereotype.Service;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SparkOutputListener implements Listener {
 
-  private final DownloadStatusUpdaterService downloadStatusUpdaterService;
+  private final DownloadUpdaterService downloadStatusUpdaterService;
   private final YarnClientService clientService;
   private final LockerService lockerService;
 
   public SparkOutputListener(
-      DownloadStatusUpdaterService downloadStatusUpdaterService,
+      DownloadUpdaterService downloadStatusUpdaterService,
       YarnClientService clientService,
       LockerService lockerService) {
     this.downloadStatusUpdaterService = downloadStatusUpdaterService;

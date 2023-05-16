@@ -57,11 +57,11 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus create(@NotNull DownloadLauncherMessage message) {
     try {
-      String downloadId = message.getDownloadId();
+      String downloadKey = message.getDownloadKey();
       DownloadRequest request = message.getDownloadRequest();
-      client.run(parametersBuilder.buildWorkflowParameters(downloadId, request));
+      client.run(parametersBuilder.buildWorkflowParameters(downloadKey, request));
 
-      asyncStatusCheck(downloadId);
+      asyncStatusCheck(downloadKey);
 
       return JobStatus.RUNNING;
     } catch (OozieClientException ex) {
@@ -70,11 +70,11 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
     }
   }
 
-  private void asyncStatusCheck(String downloadId) {
+  private void asyncStatusCheck(String downloadKey) {
     CompletableFuture.runAsync(
         () -> {
           try {
-            String jobId = client.getJobId(downloadId);
+            String jobId = client.getJobId(downloadKey);
 
             Status status = Status.valueOf(client.getStatus(jobId));
             while (EXECUTING_STATUSES.contains(status)) {
@@ -82,20 +82,20 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
               status = Status.valueOf(client.getStatus(jobId));
             }
 
-            lockerService.unlock(downloadId);
+            lockerService.unlock(downloadKey);
 
-            log.info("Job {} finished with status {}", downloadId, status);
+            log.info("Job {} finished with status {}", downloadKey, status);
           } catch (Exception ex) {
-            lockerService.unlock(downloadId);
+            lockerService.unlock(downloadKey);
             log.error(ex.getMessage(), ex);
           }
         });
   }
 
   @Override
-  public JobStatus cancel(@NotNull String downloadId) {
+  public JobStatus cancel(@NotNull String downloadKey) {
     try {
-      String jobId = client.getJobId(downloadId);
+      String jobId = client.getJobId(downloadKey);
       if (jobId != null && !jobId.isEmpty()) {
         client.kill(jobId);
         return JobStatus.CANCELLED;
@@ -107,7 +107,7 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public Optional<Status> getStatusByName(String downloadId) {
+  public Optional<Status> getStatusByName(String downloadKey) {
     return Optional.empty(); // Ignore status update, it will be done by oozie callback
   }
 

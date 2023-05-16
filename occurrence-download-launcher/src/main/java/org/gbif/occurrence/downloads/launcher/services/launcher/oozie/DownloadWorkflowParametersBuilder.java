@@ -45,7 +45,7 @@ public class DownloadWorkflowParametersBuilder {
   }
 
   /** Use the request format to build the workflow parameters. */
-  public Properties buildWorkflowParameters(String downloadId, @NotNull DownloadRequest request) {
+  public Properties buildWorkflowParameters(String downloadKey, @NotNull DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
     String gbifFilter =
@@ -54,8 +54,8 @@ public class DownloadWorkflowParametersBuilder {
     properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
     properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
     properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
-    properties.setProperty("download_key", downloadId);
-    properties.setProperty(EXTERNAL_ID, downloadId);
+    properties.setProperty("download_key", downloadKey);
+    properties.setProperty(EXTERNAL_ID, downloadKey);
     if (request.getNotificationAddresses() != null
         && !request.getNotificationAddresses().isEmpty()) {
       properties.setProperty(
