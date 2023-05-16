@@ -13,39 +13,25 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.oozie;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.oozie.client.OozieClient;
 
 /** This class contains static fields with the expected parameters by the download workflows. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DownloadWorkflowParameters {
 
-  /** String pattern to the shared lib of oozie workflow of specific environment. */
+  // String pattern to the shared lib of oozie workflow of specific environment.
   public static final String WORKFLOWS_PATH_FMT = "/%s-download-workflows-%s/";
 
   public static final String DOWNLOAD_WORKFLOW_PATH_FMT = WORKFLOWS_PATH_FMT + "download-workflow";
 
   public static final String WORKFLOWS_LIB_PATH_FMT = WORKFLOWS_PATH_FMT + "lib/";
-
-  /** Constant parameters shared by all the Oozie workflows. */
-  public static final ImmutableMap<String, String> CONSTANT_PARAMETERS =
-      new ImmutableMap.Builder<String, String>()
-          .put(OozieClient.USE_SYSTEM_LIBPATH, "true")
-          .put("mapreduce.job.user.classpath.first", "true")
-          .build();
-
-  // Download format
   public static final String DOWNLOAD_FORMAT = "download_format";
 
   public static final String CORE_TERM_NAME = "core_term_name";
   public static final String TABLE_NAME = "table_name";
-
-  // Filter/Predicate/SQL
-  public static final String GBIF_FILTER = "gbif_filter";
-
-  public static final String SQL_HEADER = "sql_header";
-
-  public static final String SQL_WHERE = "sql_where";
+  public static final String GBIF_FILTER = "gbif_filter"; // Filter/Predicate/SQL
+  public static final String NOTIFICATION_PROPERTY = "gbif_notification_addresses";
+  public static final String USER_PROPERTY = "gbif_user";
+  public static final String DOWNLOAD_KEY = "download_key";
 }

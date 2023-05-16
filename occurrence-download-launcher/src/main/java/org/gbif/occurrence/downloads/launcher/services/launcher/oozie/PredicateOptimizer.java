@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.oozie;
 
-import com.google.common.base.Throwables;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -22,6 +21,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
 import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
@@ -220,6 +220,7 @@ public class PredicateOptimizer {
    */
   public void visit(GeoDistancePredicate predicate) {}
 
+  @SneakyThrows
   private Object visit(Object object) {
     Method method;
     try {
@@ -235,11 +236,10 @@ public class PredicateOptimizer {
       log.error(
           "This error shouldn't occur if all visit methods are public. Probably a programming error",
           e);
-      Throwables.propagate(e);
+      throw e;
     } catch (InvocationTargetException e) {
       log.info("Exception thrown while building the query", e);
-      throw new RuntimeException(e);
+      throw e;
     }
-    throw new RuntimeException("Exception thrown while building the query");
   }
 }

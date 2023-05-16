@@ -47,7 +47,7 @@ public class OozieDownloadLauncherService implements DownloadLauncher {
 
   public OozieDownloadLauncherService(
       OozieClient client,
-      @Qualifier("oozie.default_properties") Map<String, String> defaultProperties,
+      @Qualifier("oozie.properties") Map<String, String> defaultProperties,
       LockerService lockerService) {
     this.client = client;
     this.parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);

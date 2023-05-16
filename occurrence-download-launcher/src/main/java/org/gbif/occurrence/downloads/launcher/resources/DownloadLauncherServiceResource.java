@@ -39,8 +39,8 @@ public class DownloadLauncherServiceResource implements DownloadLauncherService 
   // TODO: ADD SECURITY: ADMIN ONLY
   @Override
   @Hidden
-  @DeleteMapping("/unlock/{jobId}")
-  public void unlock(@PathVariable String jobId) {
-    lockerService.unlock(jobId);
+  @DeleteMapping("/unlock/{downloadKey}")
+  public void unlock(@PathVariable String downloadKey) {
+    lockerService.unlock(downloadKey);
   }
 }

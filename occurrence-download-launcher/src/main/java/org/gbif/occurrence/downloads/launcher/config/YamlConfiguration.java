@@ -1,6 +1,7 @@
 package org.gbif.occurrence.downloads.launcher.config;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import org.apache.oozie.client.OozieClient;
 import org.gbif.api.model.occurrence.DownloadType;
@@ -19,36 +20,39 @@ import org.springframework.context.annotation.Configuration;
 public class YamlConfiguration {
 
   @Bean
-  @Qualifier("oozie.default_properties")
+  @Qualifier("oozie.properties")
   public Map<String, String> providesDefaultParameters(
       @Value("${occurrence.download.environment}") String environment,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.hdfs.namenode}") String nameNode,
       @Value("${occurrence.download.username}") String userName,
       @Value("${occurrence.download.type}") DownloadType type) {
-    return new ImmutableMap.Builder<String, String>()
-        .put(
-            OozieClient.LIBPATH,
-            String.format(
-                DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, "occurrence", environment))
-        .put(
-            OozieClient.APP_PATH,
-            nameNode
-                + String.format(
-                    DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT,
-                    "occurrence",
-                    environment))
-        .put(
-            OozieClient.WORKFLOW_NOTIFICATION_URL,
-            DownloadUtils.concatUrlPaths(
-                wsUrl,
-                type.name().toLowerCase()
-                    + "/download/request/callback?job_id=$jobId&status=$status"))
-        .put(OozieClient.USER_NAME, userName)
-        .put(DownloadWorkflowParameters.CORE_TERM_NAME, type.getCoreTerm().name())
-        .put(DownloadWorkflowParameters.TABLE_NAME, type.getCoreTerm().name().toLowerCase())
-        .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS)
-        .build();
+    Map<String, String> config = new HashMap<>();
+
+    // Dynamic values
+    config.put(
+        OozieClient.LIBPATH,
+        String.format(
+            DownloadWorkflowParameters.WORKFLOWS_LIB_PATH_FMT, "occurrence", environment));
+    config.put(
+        OozieClient.APP_PATH,
+        nameNode
+            + String.format(
+                DownloadWorkflowParameters.DOWNLOAD_WORKFLOW_PATH_FMT, "occurrence", environment));
+    config.put(
+        OozieClient.WORKFLOW_NOTIFICATION_URL,
+        DownloadUtils.concatUrlPaths(
+            wsUrl,
+            type.name().toLowerCase() + "/download/request/callback?job_id=$jobId&status=$status"));
+    config.put(OozieClient.USER_NAME, userName);
+    config.put(DownloadWorkflowParameters.CORE_TERM_NAME, type.getCoreTerm().name());
+    config.put(DownloadWorkflowParameters.TABLE_NAME, type.getCoreTerm().name().toLowerCase());
+
+    // Fixed values
+    config.put(OozieClient.USE_SYSTEM_LIBPATH, "true");
+    config.put("mapreduce.job.user.classpath.first", "true");
+
+    return Collections.unmodifiableMap(config);
   }
 
   @ConfigurationProperties(prefix = "downloads")

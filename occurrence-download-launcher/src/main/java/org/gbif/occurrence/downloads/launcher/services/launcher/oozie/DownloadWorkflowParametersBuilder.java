@@ -13,12 +13,16 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.oozie;
 
+import static org.apache.oozie.client.OozieClient.EXTERNAL_ID;
+import static org.gbif.occurrence.downloads.launcher.services.launcher.oozie.DownloadWorkflowParameters.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Joiner;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.DownloadRequest;
@@ -26,7 +30,6 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.predicate.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.apache.oozie.client.OozieClient.EXTERNAL_ID;
 
 /** Builds the configuration parameters for the download workflows. */
 public class DownloadWorkflowParametersBuilder {
@@ -36,7 +39,6 @@ public class DownloadWorkflowParametersBuilder {
 
   private static final Logger LOG =
       LoggerFactory.getLogger(DownloadWorkflowParametersBuilder.class);
-  private static final Joiner EMAIL_JOINER = Joiner.on(';').skipNulls();
 
   private final Map<String, String> defaultProperties;
 
@@ -48,18 +50,23 @@ public class DownloadWorkflowParametersBuilder {
   public Properties buildWorkflowParameters(String downloadKey, @NotNull DownloadRequest request) {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
-    String gbifFilter =
-        getJsonStringPredicate(
-            PredicateOptimizer.optimize(((PredicateDownloadRequest) request).getPredicate()));
-    properties.setProperty(DownloadWorkflowParameters.GBIF_FILTER, gbifFilter);
-    properties.setProperty(Constants.USER_PROPERTY, request.getCreator());
-    properties.setProperty(DownloadWorkflowParameters.DOWNLOAD_FORMAT, request.getFormat().name());
-    properties.setProperty("download_key", downloadKey);
+
+    Predicate predicateRequest = ((PredicateDownloadRequest) request).getPredicate();
+    String gbifFilter = getJsonStringPredicate(PredicateOptimizer.optimize(predicateRequest));
+
+    properties.setProperty(GBIF_FILTER, gbifFilter);
+    properties.setProperty(USER_PROPERTY, request.getCreator());
+    properties.setProperty(DOWNLOAD_FORMAT, request.getFormat().name());
+    properties.setProperty(DOWNLOAD_KEY, downloadKey);
     properties.setProperty(EXTERNAL_ID, downloadKey);
     if (request.getNotificationAddresses() != null
         && !request.getNotificationAddresses().isEmpty()) {
-      properties.setProperty(
-          Constants.NOTIFICATION_PROPERTY, EMAIL_JOINER.join(request.getNotificationAddresses()));
+      String emails =
+          request.getNotificationAddresses().stream()
+              .filter(Objects::nonNull)
+              .map(String::trim)
+              .collect(Collectors.joining(";"));
+      properties.setProperty(NOTIFICATION_PROPERTY, emails);
     }
 
     LOG.debug("job properties: {}", properties);
