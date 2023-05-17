@@ -75,7 +75,7 @@ public class DownloadWorkflowParametersBuilder {
   }
 
   /** Serializes a predicate filter into a json string. */
-  private static String getJsonStringPredicate(Predicate predicate) {
+  protected static String getJsonStringPredicate(Predicate predicate) {
     try {
       StringWriter writer = new StringWriter();
       JSON_MAPPER.writeValue(writer, predicate);
