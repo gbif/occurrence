@@ -27,25 +27,25 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class DownloadsStatusUpdaterScheduledTask {
+public class DownloadsUpdaterScheduledTask {
 
-  private final DownloadUpdaterService downloadStatusUpdaterService;
+  private final DownloadUpdaterService downloadUpdaterService;
   private final DownloadLauncher jobManager;
   private final LockerService lockerService;
 
-  public DownloadsStatusUpdaterScheduledTask(
+  public DownloadsUpdaterScheduledTask(
       DownloadLauncher jobManager,
-      DownloadUpdaterService downloadStatusUpdaterService,
+      DownloadUpdaterService downloadUpdaterService,
       LockerService lockerService) {
     this.jobManager = jobManager;
-    this.downloadStatusUpdaterService = downloadStatusUpdaterService;
+    this.downloadUpdaterService = downloadUpdaterService;
     this.lockerService = lockerService;
   }
 
   @Scheduled(cron = "${downloads.taskCron}")
   public void renewedDownloadsStatuses() {
     log.info("Running scheduled checker...");
-    List<Download> downloads = downloadStatusUpdaterService.getExecutingDownloads();
+    List<Download> downloads = downloadUpdaterService.getExecutingDownloads();
 
     log.info("Found running downloads - {}", downloads.size());
 
@@ -54,11 +54,14 @@ public class DownloadsStatusUpdaterScheduledTask {
       List<Download> renewedDownloads = jobManager.renewRunningDownloadsStatuses(downloads);
       renewedDownloads.forEach(
           download -> {
-            downloadStatusUpdaterService.updateDownload(download);
+            downloadUpdaterService.updateDownload(download);
             if (Status.FINISH_STATUSES.contains(download.getStatus())) {
               lockerService.unlock(download.getKey());
             }
           });
     }
+
+    // Print all locked downloads
+    lockerService.printLocks();
   }
 }

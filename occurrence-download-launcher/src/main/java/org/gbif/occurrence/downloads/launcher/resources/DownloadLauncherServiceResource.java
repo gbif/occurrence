@@ -13,9 +13,12 @@
  */
 package org.gbif.occurrence.downloads.launcher.resources;
 
+import static org.gbif.ws.security.UserRoles.ADMIN_ROLE;
+
 import io.swagger.v3.oas.annotations.Hidden;
 import org.gbif.api.service.occurrence.DownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,17 +31,17 @@ public class DownloadLauncherServiceResource implements DownloadLauncherService 
     this.lockerService = lockerService;
   }
 
-  // TODO: ADD SECURITY: ADMIN ONLY
   @Override
   @Hidden
+  @Secured(ADMIN_ROLE)
   @DeleteMapping("/unlock")
   public void unlockAll() {
     lockerService.unlockAll();
   }
 
-  // TODO: ADD SECURITY: ADMIN ONLY
   @Override
   @Hidden
+  @Secured(ADMIN_ROLE)
   @DeleteMapping("/unlock/{downloadKey}")
   public void unlock(@PathVariable String downloadKey) {
     lockerService.unlock(downloadKey);

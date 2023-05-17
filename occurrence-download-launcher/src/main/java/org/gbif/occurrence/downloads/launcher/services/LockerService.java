@@ -60,4 +60,8 @@ public class LockerService {
       lockMap.clear();
     }
   }
+
+  public void printLocks() {
+    lockMap.keySet().forEach(id -> log.info("Found a lock for id {}", id));
+  }
 }
