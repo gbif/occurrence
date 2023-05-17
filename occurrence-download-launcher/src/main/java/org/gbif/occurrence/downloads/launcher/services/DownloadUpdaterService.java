@@ -24,8 +24,8 @@ import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.springframework.stereotype.Service;
 
 /**
- * Service to be called from a SparkOutputListener to update a status of a download or called by
- * CRON to get list of unfinished downloads and check their status
+ * Service is to be called to update the status of a download or to work with the
+ * OccurrenceDownloadClient.
  */
 @Slf4j
 @Service

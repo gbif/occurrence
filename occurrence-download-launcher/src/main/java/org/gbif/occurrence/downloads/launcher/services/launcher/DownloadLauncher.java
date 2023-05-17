@@ -18,6 +18,9 @@ import java.util.Optional;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 
+/**
+ * Generig service to launch, cancel or get status about a download job
+ */
 public interface DownloadLauncher {
 
   JobStatus create(DownloadLauncherMessage message);

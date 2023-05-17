@@ -16,6 +16,7 @@ package org.gbif.occurrence.downloads.launcher.pojo;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 
+/** Configuration class for the download service. */
 @Data
 public class DownloadServiceConfiguration {
 
@@ -27,7 +28,9 @@ public class DownloadServiceConfiguration {
 
   private String pathToYarnSite;
 
+  // DownloadsStatusUpdaterScheduledTask cron expression
   @NotNull private String taskCron;
 
+  // Specify the launcher qualifier: oozie,spark or kubernetes
   @NotNull private String launcherQualifier;
 }

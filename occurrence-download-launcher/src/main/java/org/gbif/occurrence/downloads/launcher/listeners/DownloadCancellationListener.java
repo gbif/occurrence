@@ -24,7 +24,7 @@ import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-/** Listen MQ to receive and run a download */
+/** Listener that cancels a download job. */
 @Slf4j
 @Component
 public class DownloadCancellationListener extends AbstractMessageCallback<DownloadCancelMessage> {

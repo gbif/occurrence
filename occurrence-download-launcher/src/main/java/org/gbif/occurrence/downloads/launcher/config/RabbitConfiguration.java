@@ -15,8 +15,11 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/** Configuration for the RabbitMQ connection and queues. */
 @Configuration
 public class RabbitConfiguration {
+
+  private static final String DOWNLOADS_EXCHANGE = "occurrence";
 
   @Bean
   Queue launcherDeadQueue(DownloadServiceConfiguration configuration) {
@@ -41,14 +44,14 @@ public class RabbitConfiguration {
   @Bean
   public Binding launcherQueueBinding(Queue launcherQueue) {
     return BindingBuilder.bind(launcherQueue)
-        .to(new DirectExchange("occurrence"))
+        .to(new DirectExchange(DOWNLOADS_EXCHANGE))
         .with(DownloadLauncherMessage.ROUTING_KEY);
   }
 
   @Bean
   public Binding cancellationQueueBinding(Queue cancellationQueue) {
     return BindingBuilder.bind(cancellationQueue)
-        .to(new DirectExchange("occurrence"))
+        .to(new DirectExchange(DOWNLOADS_EXCHANGE))
         .with(DownloadCancelMessage.ROUTING_KEY);
   }
 

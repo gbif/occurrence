@@ -19,6 +19,12 @@ import java.util.concurrent.locks.LockSupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+/**
+ * The service is used to lock and unlock threads. It is particularly useful for avoiding the use of
+ * a while-sleep loop in certain implementations of the {@link
+ * org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher}, especially when
+ * running the download.
+ */
 @Slf4j
 @Component
 public class LockerService {

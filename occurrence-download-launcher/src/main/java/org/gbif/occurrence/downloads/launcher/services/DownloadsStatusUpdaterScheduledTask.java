@@ -21,6 +21,10 @@ import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * Scheduled task is used to update the statuses of the running downloads and unlock those that have
+ * updated their statuses.
+ */
 @Slf4j
 @Component
 public class DownloadsStatusUpdaterScheduledTask {

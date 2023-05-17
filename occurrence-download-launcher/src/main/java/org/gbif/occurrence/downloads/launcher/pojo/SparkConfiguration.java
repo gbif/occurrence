@@ -17,6 +17,9 @@ import java.util.Set;
 import javax.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * Configuration class for the spark job launcher.
+ */
 @Data
 public class SparkConfiguration {
 

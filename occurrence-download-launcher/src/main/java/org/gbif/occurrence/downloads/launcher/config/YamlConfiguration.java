@@ -16,12 +16,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/** Configuration for the services used by the launcher. */
 @Configuration
 public class YamlConfiguration {
 
   @Bean
   @Qualifier("oozie.properties")
-  public Map<String, String> providesDefaultParameters(
+  public Map<String, String> oozieProperties(
       @Value("${occurrence.download.environment}") String environment,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.hdfs.namenode}") String nameNode,
