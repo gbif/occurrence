@@ -14,6 +14,7 @@
 package org.gbif.occurrence.downloads.launcher.services;
 
 import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
 
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +38,14 @@ public class DownloadUpdaterService {
     this.occurrenceDownloadClient = occurrenceDownloadClient;
   }
 
+  public boolean isStatusFinihsed(String downloadKey) {
+    Download download = occurrenceDownloadClient.get(downloadKey);
+    return FINISH_STATUSES.contains(download.getStatus());
+  }
+
   public List<Download> getExecutingDownloads() {
     return occurrenceDownloadClient
-        .list(new PagingRequest(0, 20), EXECUTING_STATUSES, null)
+        .list(new PagingRequest(0, 48), EXECUTING_STATUSES, null)
         .getResults();
   }
 
