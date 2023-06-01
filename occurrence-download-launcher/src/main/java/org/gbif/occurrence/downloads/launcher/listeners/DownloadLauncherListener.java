@@ -68,7 +68,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
       if (jobStatus == JobStatus.FAILED) {
         downloadUpdaterService.updateStatus(downloadKey, Status.FAILED);
         log.error("Failed to process message: {}", downloadsMessage);
-        throw new AmqpRejectAndDontRequeueException("Failed to process message");
+        throw new IllegalStateException("Failed to process message");
       }
 
     } catch (Exception ex) {
@@ -80,7 +80,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
   private void ignoreFinishedDownload(String downloadKey) {
     if (downloadUpdaterService.isStatusFinihsed(downloadKey)) {
       log.warn("Download {} has one of finished statuses, ignore further actions", downloadKey);
-      throw new AmqpRejectAndDontRequeueException(
+      throw new IllegalStateException(
           "Download has one of finished statuses, ingore futher actions");
     }
   }
