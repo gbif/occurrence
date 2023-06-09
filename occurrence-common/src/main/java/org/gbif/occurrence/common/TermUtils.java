@@ -283,7 +283,8 @@ public class TermUtils {
       DwcTerm.recordedBy,
       DwcTerm.identifiedBy,
       DwcTerm.preparations,
-      DwcTerm.samplingProtocol);
+      DwcTerm.samplingProtocol,
+      GbifTerm.projectId);
   }
 
   /**

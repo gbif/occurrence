@@ -50,7 +50,7 @@ public enum OccurrenceEventEsField implements EsField {
   NETWORK_KEY(new BaseEsField("metadata.networkKeys", GbifInternalTerm.networkKey)),
   PROTOCOL(new BaseEsField("metadata.protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("metadata.license", DcTerm.license)),
-  PROJECT_ID(new BaseEsField("metadata.projectId", GbifInternalTerm.projectId)),
+  PROJECT_ID(new BaseEsField("metadata.projectId", GbifTerm.projectId)),
   PROGRAMME(new BaseEsField("metadata.programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
