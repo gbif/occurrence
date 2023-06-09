@@ -6,7 +6,7 @@ set -o pipefail
 
 P=$1
 TOKEN=$2
-SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/occurrence/}
+SOURCE_DIR=${3:-hdfs://ha-nn/data/hdfsview/}
 TABLE_NAME=${4:-occurrence}
 CORE_TERM_NAME="${TABLE_NAME^}"
 
@@ -40,6 +40,20 @@ java -classpath "target/${TABLE_NAME}-download-workflows-$ENV/lib/*" org.gbif.oc
 echo "Copy to hadoop"
 sudo -u hdfs hdfs dfs -rm -r /${TABLE_NAME}-download-workflows-$ENV/ || echo "No old workflow to remove"
 sudo -u hdfs hdfs dfs -copyFromLocal target/${TABLE_NAME}-download-workflows-$ENV/ /
-echo -e "oozie.use.system.libpath=true\noozie.launcher.mapreduce.user.classpath.first=true\noozie.coord.application.path=$NAME_NODE/${TABLE_NAME}-download-workflows-$ENV/create-tables\nhiveDB=$HIVE_DB\noozie.libpath=/${TABLE_NAME}-download-workflows-$ENV/lib/,/user/oozie/share/lib/gbif/hive\noozie.launcher.mapreduce.task.classpath.user.precedence=true\nuser.name=hdfs\nenv=$ENV\nsource_data_dir=$SOURCE_DIR\ntable_name=${TABLE_NAME}\nschema_change=false\ntable_swap=false"  > job.properties
+
+cat > job.properties <<EOF
+oozie.use.system.libpath=true
+oozie.launcher.mapreduce.user.classpath.first=true
+oozie.coord.application.path=$NAME_NODE/$TABLE_NAME-download-workflows-$ENV/create-tables
+hiveDB=$HIVE_DB
+oozie.libpath=/$TABLE_NAME-download-workflows-$ENV/lib/,/user/oozie/share/lib/gbif/hive
+oozie.launcher.mapreduce.task.classpath.user.precedence=true
+user.name=hdfs
+env=$ENV
+source_data_dir=$SOURCE_DIR
+table_name=$TABLE_NAME
+schema_change=false
+table_swap=false
+EOF
 
 sudo -u hdfs oozie job --oozie $OOZIE -config job.properties -run

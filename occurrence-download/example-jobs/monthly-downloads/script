@@ -15,8 +15,7 @@ for i in \
   monthly-everything-mol.json \
     cloud-upload-simple-parquet.json \
     monthly-georeferenced-csv.json monthly-present-csv.json monthly-everything-csv.json monthly-ebird-csv.json \
-    monthly-georeferenced-dwc.json monthly-present-dwc.json monthly-everything-dwc.json \
-    monthly-everything-avro.json
+    monthly-georeferenced-dwc.json monthly-present-dwc.json monthly-everything-dwc.json
 do
   echo "Starting download '$i'"
   curl -Ssi --user $GBIF_AUTH -H "Content-Type: application/json" -X POST -d @$i 'https://api.gbif.org/v1/occurrence/download/request'
@@ -27,4 +26,4 @@ do
 done
 
 echo
-echo "Monthly downloads completed.  Now upload the MoL one to GCS."
+echo "Monthly downloads completed."

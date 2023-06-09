@@ -39,17 +39,17 @@ import com.google.common.collect.Sets;
 /**
  * This class serves to document the terms used in various stages of processing.  Please note that changes to this
  * class do not influence processing, although they define the formats for various Hive tables.
- * <p/>
- * Processing is complex procedure where, e.g. several verbatim fields are inspected, and depending on their content
+ *
+ * <p>Processing is a complex procedure where, e.g. several verbatim fields are inspected, and depending on their content
  * will influence different fields in the interpreted view.  One example might be a verbatim view with dwc:eventDate
  * populated, but in the interpreted view dwc:eventDate, dwc:day, dwc:month and dwc:year are present.
  */
 public class TermUtils {
 
   /**
-   * The list of only the Dublin Core properties, excluding classes, such as Location.
+   * The list of only the Dublin Core properties, excluding classes, used in Darwin Core or by GBIF.
    */
-  private static final List<DcTerm> DC_PROPERTIES = dcPropertyTerms();
+  private static final List<DcTerm> DwC_DC_PROPERTIES = dwcDcPropertyTerms();
 
   /**
    * The list of Darwin Core properties applicable to occurrence records, excluding classes such as Taxon and terms
@@ -98,13 +98,25 @@ public class TermUtils {
     Sets.difference(TERMS_SUBJECT_TO_INTERPRETATION, TERMS_POPULATED_BY_INTERPRETATION);
 
   /**
-   * Utility to strip out classes from the complete Dublin Core enumeration.
+   * Utility to strip out classes and non-DwC non-GBIF terms from the complete Dublin Core enumeration.
    *
-   * @return the complete list of property terms of Dublin Core, excluding any "class" terms such as Location.
+   * @return the complete list of property terms of Dublin Core used in Darwin Core or by GBIF.
    */
-  private static List<DcTerm> dcPropertyTerms() {
-    return Arrays.stream(DcTerm.values()).filter(t -> !t.isClass())
-      .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+  private static List<DcTerm> dwcDcPropertyTerms() { // set to just dwc ones?
+    // Note that DcTerm.identifier (perhaps unwisely) is used internally to hold the DwC-A id/coreId.
+    // Its only purpose is to join the records within the archive, and is therefore not included here
+    // as it has no meaning outside the archive.
+    return ImmutableList.of(
+      DcTerm.accessRights,
+      DcTerm.bibliographicCitation,
+      DcTerm.language,
+      DcTerm.license,
+      DcTerm.modified,
+      DcTerm.publisher, // Not DwC, but used by GBIF
+      DcTerm.references,
+      DcTerm.rightsHolder,
+      DcTerm.type
+    );
   }
 
   /**
@@ -114,8 +126,8 @@ public class TermUtils {
    * relevant to occurrences.
    */
   private static List<GbifTerm> gbifPropertyTerms() {
-    // the following have no place on occurrence
     final Set<GbifTerm> exclusions = ImmutableSet.of(
+      // the following have no place on occurrence
       GbifTerm.infraspecificMarker,
       GbifTerm.isExtinct,
       GbifTerm.isFreshwater,
@@ -136,10 +148,13 @@ public class TermUtils {
       GbifTerm.canonicalName,
       GbifTerm.nameType,
       GbifTerm.verbatimLabel,
-      GbifTerm.infraspecificMarker,
-      GbifTerm.eventType);
+      GbifTerm.eventType,
 
-    //We should handle deprecated terms here. Waiting for https://dev.gbif.org/issues/browse/GBIF-132/
+      // And these have been superseded by other terms or otherwise deprecated and removed
+      GbifTerm.distanceAboveSurface,
+      GbifTerm.distanceAboveSurfaceAccuracy
+      );
+
     return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
   }
@@ -253,8 +268,6 @@ public class TermUtils {
       DwcTerm.recordedByID,
       DwcTerm.identifiedByID,
       DcTerm.references,
-      GbifTerm.datasetKey,
-      GbifTerm.publishingCountry,
       GbifTerm.protocol,
       GbifTerm.lastCrawled,
       GbifTerm.lastParsed,
@@ -340,7 +353,7 @@ public class TermUtils {
 
   /**
    * Term list of the extension excluding the coreid just as defined by:
-   * http://rs.gbif.org/extension/gbif/1.0/multimedia.xml
+   * <a href="http://rs.gbif.org/terms/1.0/Multimedia">the multimedia extension</a>
    */
   private static final List<DcTerm> MULTIMEDIA_TERMS = ImmutableList.of(DcTerm.type,
                                                                         DcTerm.format,
@@ -382,14 +395,14 @@ public class TermUtils {
    * Returns the list of all terms which can be present in the verbatim view of an Occurrence.  This is defined as:
    * <ul>
    * <li>The GBIF ID</li>
-   * <li>The complete Darwin Core terms excluding "class" terms</li>
-   * <li>The Darwin Core terms excluding "class" terms and any not suitable for occurrence records</li>
+   * <li>The Dublin Core terms that are part of Darwin Core (and excluding potential "class" terms)</li>
+   * <li>The Darwin Core terms excluding "class" terms and excluding any not suitable for occurrence records</li>
    * </ul>
    */
   public static List<Term> verbatimTerms() {
     return ImmutableList.<Term>builder()
       .add(GbifTerm.gbifID)
-      .addAll(DC_PROPERTIES)
+      .addAll(DwC_DC_PROPERTIES)
       .addAll(DwC_PROPERTIES)
       .build();
   }
@@ -398,7 +411,7 @@ public class TermUtils {
    * Returns the list of all terms which can be present in the interpreted view of an Occurrence.  This is defined as
    * <ul>
    * <li>The GBIF ID</li>
-   * <li>DC terms that are not removed during interpretation</li>
+   * <li>DwC-DC terms that are not removed during interpretation</li>
    * <li>DwC terms that are not removed during interpretation</li>
    * <li>The remaining GBIF terms not removed during interpretation and not deprecated</li>
    * </ul>
@@ -407,7 +420,7 @@ public class TermUtils {
     return ImmutableList.<Term>builder().add(GbifTerm.gbifID)
       .addAll(
         // add all Dublin Core terms that are not stripped during interpretation
-        DC_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
+        DwC_DC_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       .addAll(
         // add all Darwin Core terms that are not stripped during interpretation
         DwC_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
@@ -435,7 +448,7 @@ public class TermUtils {
 
   /**
    * Lists all terms relevant for a multimedia extension record.
-   * gbifID is included and comes first as its the foreign key to the core record.
+   * gbifID is included and comes first as it is the foreign key to the core record.
    */
   public static Iterable<Term> multimediaTerms() {
     return Iterables.concat(Collections.singletonList(GbifTerm.gbifID), MULTIMEDIA_TERMS);

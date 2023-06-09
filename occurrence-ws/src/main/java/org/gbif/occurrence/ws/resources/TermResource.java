@@ -29,10 +29,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 /**
  * List {@link Term} used in the context of an occurrence.
- *
  */
+@Tag(name = "Occurrences")
 @RestController
 @RequestMapping(
   value = "occurrence/term",
@@ -50,11 +53,15 @@ public class TermResource {
                                                                       .thenComparing(TermWrapper::getGroup, Comparator.nullsLast(String::compareTo))
                                                                       .thenComparing(TermWrapper::getSimpleName))
                                                             .collect(Collectors.toList());
+
+  @Operation(
+    operationId = "occurrenceTerms",
+    summary = "Occurrence terms",
+    description = "Lists the definitions of the terms (JSON properties, field names) of occurrences.")
   @GetMapping
   public List<TermWrapper> getInterpretation() {
     return OCCURRENCE_TERMS;
   }
-
 
   public static class TermWrapper {
 
@@ -68,7 +75,7 @@ public class TermResource {
       qualifiedName = term.qualifiedName();
       source = term.getClass().getSimpleName();
 
-      // Not too clean but we can't override the Term's @JsonSerialize
+      // Not too clean, but we can't override the Term's @JsonSerialize
       if (DwcTerm.class.equals(term.getClass())) {
         group = ((DwcTerm)term).getGroup();
       } else if (GbifTerm.class.equals(term.getClass())) {
@@ -93,7 +100,5 @@ public class TermResource {
     public String getSource() {
       return source;
     }
-
   }
-
 }

@@ -1,0 +1,19 @@
+hdfsLock:
+  zkConnectionString: "list of zk nodes"
+  namespace: lock namespace
+  path: zk path
+  name: lock name
+  connectionSleepTimeMs: 100
+  connectionMaxRetries: 3
+
+hiveDatabase: databaseName
+
+tablePartitions: 200
+
+sourceDirectory: /path_to_occurrence_avro_data/
+
+coreName: occurrence
+
+tableName: table_name
+
+warehouseLocation: /path_to_hive_warehouse/

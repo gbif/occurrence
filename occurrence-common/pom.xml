@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.189-SNAPSHOT</version>
+    <version>0.193.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-common</artifactId>

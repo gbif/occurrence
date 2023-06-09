@@ -31,8 +31,6 @@ import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
-import com.google.common.annotations.VisibleForTesting;
-import lombok.SneakyThrows;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
@@ -57,6 +55,10 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+
+import com.google.common.annotations.VisibleForTesting;
+
+import lombok.SneakyThrows;
 
 import static org.gbif.api.util.SearchTypeValidator.isRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
@@ -120,12 +122,15 @@ public class EsSearchRequestBuilder {
     }
 
     // sort
-    if (Boolean.TRUE.equals(searchRequest.isShuffle())) {
+    if (!Strings.isNullOrEmpty(searchRequest.getShuffle())) {
       // random score
       searchSourceBuilder.sort(
           SortBuilders.scriptSort(
               new Script(
-                  ScriptType.INLINE, "painless", getShuffleScript(searchRequest), new HashMap<>()),
+                  ScriptType.INLINE,
+                  "painless",
+                  "(doc['_id'].value + params['seed']).hashCode()",
+                  Collections.singletonMap("seed", searchRequest.getShuffle())),
               ScriptSortBuilder.ScriptSortType.NUMBER));
     } else if (Strings.isNullOrEmpty(searchRequest.getQ())) {
       occurrenceBaseEsFieldMapper.getDefaultSort().forEach(searchSourceBuilder::sort);
@@ -142,14 +147,6 @@ public class EsSearchRequestBuilder {
         .ifPresent(searchSourceBuilder::postFilter);
 
     return esRequest;
-  }
-
-  private String getShuffleScript(OccurrenceSearchRequest searchRequest) {
-    if (searchRequest.getShuffleSeed() != null) {
-      return "(doc['_id'].value + '" + searchRequest.getShuffleSeed() + "').hashCode()";
-    } else {
-      return "Math.random()";
-    }
   }
 
   public Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {

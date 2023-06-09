@@ -23,7 +23,6 @@ import java.util.regex.Pattern;
  */
 public class DownloadUtils {
 
-  private static final String OOZIE_SUFFIX = "-oozie-oozi-W";
   public static final String DOWNLOAD_ID_PLACEHOLDER = "_DOWNLOAD_ID_";
 
   public static final String DELIMETERS_MATCH =
@@ -65,17 +64,6 @@ public class DownloadUtils {
    */
   public static String downloadLink(String baseUrl, String downloadId, DownloadType downloadType, String extension) {
     return concatUrlPaths(baseUrl, String.format(DOWNLOAD_LINK_FMT, downloadType.name().toLowerCase(), downloadId, extension));
-  }
-
-  public static String downloadToWorkflowId(String downloadId) {
-    return downloadId + OOZIE_SUFFIX;
-  }
-
-  public static String workflowToDownloadId(String workflowId) {
-    if (workflowId.contains(OOZIE_SUFFIX)) {
-      return workflowId.replace(OOZIE_SUFFIX, "");
-    }
-    throw new IllegalArgumentException("WorkflowId given in unknown format: " + workflowId);
   }
 
   public static String downloadTableName(String downloadKey) {

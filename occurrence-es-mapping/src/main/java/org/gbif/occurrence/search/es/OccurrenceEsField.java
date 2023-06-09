@@ -229,6 +229,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
       .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
+      .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(OccurrenceSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
       .put(OccurrenceSearchParameter.PHYLUM_KEY, PHYLUM_KEY)
       .put(OccurrenceSearchParameter.CLASS_KEY, CLASS_KEY)

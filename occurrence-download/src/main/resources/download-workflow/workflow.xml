@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<workflow-app name="${occurrence.environment}-${table_name}-download" xmlns="uri:oozie:workflow:0.4.5">
+<workflow-app name="${occurrence.environment}-${table_name}-download-${download_key}" xmlns="uri:oozie:workflow:0.4.5">
 
   <global>
     <job-tracker>${hadoop.jobtracker}</job-tracker>
@@ -26,7 +26,7 @@
     <java>
       <main-class>org.gbif.occurrence.download.oozie.DownloadPrepareAction</main-class>
       <arg>${gbif_filter}</arg>
-      <arg>${wf:id()}</arg>
+      <arg>${download_key}</arg>
       <arg>${download_format}</arg>
       <arg>${core_term_name}</arg>
       <arg>${wf:appPath()}</arg>
@@ -487,9 +487,9 @@
 
   <action name="notify-error">
     <email xmlns="uri:oozie:email-action:0.2">
-      <to>fmendez@gbif.org</to>
-      <subject>${occurrence.environment} download ${wf:id()} failed</subject>
-      <body>${core_term_name} download workflow ${wf:id()} failed:[${wf:errorMessage(wf:lastErrorNode())}]</body>
+      <to>informatics@gbif.org</to>
+      <subject>${occurrence.environment} download ${download_key} failed</subject>
+      <body>${core_term_name} download workflow ${download_key} failed, oozie job id ${wf:id()}:[${wf:errorMessage(wf:lastErrorNode())}]</body>
     </email>
     <ok to="kill"/>
     <error to="kill"/>
