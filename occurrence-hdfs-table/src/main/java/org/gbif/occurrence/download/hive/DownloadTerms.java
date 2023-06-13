@@ -50,7 +50,7 @@ public class DownloadTerms {
     GbifTerm.numberOfOccurrences
   );
 
-  // This set is used fot the HDFS table definition
+  // This set is used for the HDFS table definition
   public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>()
     .addAll(EXCLUSIONS_INTERPRETED)
     .add(GbifTerm.verbatimScientificName).build();
@@ -63,6 +63,9 @@ public class DownloadTerms {
 
   public static final Set<Term> DOWNLOAD_VERBATIM_TERMS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.verbatimTerms()), EXCLUSIONS).immutableCopy();
+
+  public static final Set<Term> DOWNLOAD_MULTIMEDIA_TERMS =
+    Sets.difference(ImmutableSet.copyOf(TermUtils.multimediaTerms()), EXCLUSIONS).immutableCopy();
 
   /**
    * The terms that will be included in the interpreted table if also present in ${@link

@@ -3,7 +3,7 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.192.7-H3-SNAPSHOT</version>
+    <version>0.192.6-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -16,7 +16,6 @@
     <guava.version>27.0.1-jre</guava.version>
     <jersey-servlet.version>1.10</jersey-servlet.version>
   </properties>
-
 
   <dependencies>
 

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import org.apache.spark.sql.types.DataTypes;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.StructType;
@@ -178,10 +181,19 @@ public class TableBackfill {
      if(configuration.isUsePartitionedTable()) {
        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
      }
-     spark.read()
+     Dataset<Row> input  = spark.read()
        .format("com.databricks.spark.avro")
        .load(fromSourceDir + "/*.avro")
-       .select(select)
+       .select(select);
+
+     if (configuration.getTablePartitions() != null &&  input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
+       input = input
+                .withColumn("_salted_key", col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
+                .repartition(configuration.getTablePartitions())
+                .drop("_salted_key");
+     }
+
+     input
        .write()
        .format("parquet")
        .option("compression", "GZ")
@@ -309,7 +321,7 @@ public class TableBackfill {
   private String createPartitionedTableIfNotExists() {
     return String.format("CREATE EXTERNAL TABLE IF NOT EXISTS %s ("
                          + OccurrenceHDFSTableDefinition.definition().stream()
-                           .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
+                           .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                            .collect(Collectors.joining(", "))
                          + ") "
@@ -324,7 +336,7 @@ public class TableBackfill {
 
   private Column[] selectFromAvro() {
     List<Column> columns = OccurrenceHDFSTableDefinition.definition().stream()
-      .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
+      .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
       .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
       .collect(Collectors.toList());
 

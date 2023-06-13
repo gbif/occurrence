@@ -85,7 +85,6 @@
     <module>occurrence-download-launcher</module>
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
-    <module>occurrence-download-cli</module>
     <module>occurrence-table-build-trino</module>
   </modules>
 
@@ -135,7 +134,7 @@
     <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
     <!--
-      Important! Guava is highly fragile across webservices, YARN MR jobs, downloads and
+      Important! Guava is highly fragile across webservices, YARN MR jobs, downloads
       and the CLIs.  Be very sure that all environments are tested thoroughly before
       changing.
     -->
@@ -200,14 +199,14 @@
     <gbif-common-ws.version>1.24</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-metadata-profile.version>2.1</gbif-metadata-profile.version>
+    <gbif-metadata-profile.version>2.2-SNAPSHOT</gbif-metadata-profile.version>
     <gbif-parsers.version>0.59</gbif-parsers.version>
-    <gbif-postal-service.version>1.4</gbif-postal-service.version>
-    <gbif-registry.version>3.88</gbif-registry.version>
+    <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
+    <gbif-registry.version>3.94.4</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <pipelines.version>2.13.0</pipelines.version>
+    <pipelines.version>2.15.0</pipelines.version>
     <gbif.kvs.version>1.26-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.0</gbif-predicates.version>

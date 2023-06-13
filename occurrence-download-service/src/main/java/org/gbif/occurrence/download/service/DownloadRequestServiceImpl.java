@@ -13,37 +13,8 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParametersBuilder;
-import org.gbif.occurrence.mail.BaseEmailModel;
-import org.gbif.occurrence.mail.EmailSender;
-import org.gbif.occurrence.mail.OccurrenceEmailManager;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
+import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
+import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
@@ -53,11 +24,39 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
-
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
-import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
+import org.apache.oozie.client.Job;
+import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.OozieClientException;
+import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
+import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
+import org.gbif.occurrence.mail.BaseEmailModel;
+import org.gbif.occurrence.mail.EmailSender;
+import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 @Component
 @Slf4j
@@ -97,36 +96,39 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private static final Counter CANCELLED_DOWNLOADS =
       Metrics.newCounter(CallbackService.class, "cancelled_downloads");
 
+  private final OozieClient client;
   private final DownloadIdService downloadIdService;
   private final String portalUrl;
   private final String wsUrl;
   private final File downloadMount;
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final DownloadWorkflowParametersBuilder parametersBuilder;
   private final OccurrenceEmailManager emailManager;
   private final EmailSender emailSender;
 
   private final DownloadLimitsService downloadLimitsService;
+  private final MessagePublisher messagePublisher;
 
   @Autowired
   public DownloadRequestServiceImpl(
-      @Qualifier("oozie.default_properties") Map<String, String> defaultProperties,
+      OozieClient client,
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
-      EmailSender emailSender) {
+      EmailSender emailSender,
+      MessagePublisher messagePublisher) {
     this.downloadIdService = new DownloadIdService();
+    this.client = client;
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.parametersBuilder = new DownloadWorkflowParametersBuilder(defaultProperties);
     this.downloadLimitsService = downloadLimitsService;
     this.emailManager = emailManager;
     this.emailSender = emailSender;
+    this.messagePublisher = messagePublisher;
   }
 
   @Override
@@ -136,7 +138,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       if (download != null) {
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
-          //client.kill(DownloadUtils.downloadToWorkflowId(downloadKey));
+
+          messagePublisher.send(new DownloadCancelMessage(downloadKey));
+
           log.info("Download {} cancelled", downloadKey);
         }
       } else {
@@ -150,7 +154,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Override
   public String create(DownloadRequest request, String source) {
-    log.debug("Trying to create download from request [{}]", request);
+    LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
@@ -158,7 +162,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     try {
       String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
       if (exceedComplexityLimit != null) {
-        log.info("Download request refused as it would exceed complexity limits");
+        LOG.info("Download request refused as it would exceed complexity limits");
         throw new ResponseStatusException(
             HttpStatus.PAYLOAD_TOO_LARGE,
             "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
@@ -167,20 +171,23 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       String exceedSimultaneousLimit =
           downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
       if (exceedSimultaneousLimit != null) {
-        log.info("Download request refused as it would exceed simultaneous limits");
+        LOG.info("Download request refused as it would exceed simultaneous limits");
         // Keep HTTP 420 ("Enhance your calm") here.
         throw new ResponseStatusException(
             HttpStatus.METHOD_FAILURE,
             "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
       }
 
-      String jobId = downloadIdService.generateId();
-      log.debug("Download job id is: [{}]", jobId);
-      String downloadId = DownloadUtils.workflowToDownloadId(jobId);
+      String downloadId = downloadIdService.generateId();
+      log.debug("Download id is: [{}]", downloadId);
       persistDownload(request, downloadId, source);
+
+      log.debug("Send message to the download launcher queue");
+      messagePublisher.send(new DownloadLauncherMessage(downloadId, request));
+
       return downloadId;
     } catch (Exception e) {
-      log.error("Failed to create download job", e);
+      LOG.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
@@ -229,7 +236,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public InputStream getResult(String downloadKey) {
     File localFile = getResultFile(downloadKey);
     try {
-      return new FileInputStream(localFile);
+      return Files.newInputStream(localFile.toPath());
     } catch (IOException e) {
       throw new IllegalStateException(
           "Failed to read download " + downloadKey + " from " + localFile.getAbsolutePath(), e);
@@ -242,16 +249,22 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
     Preconditions.checkArgument(
         !Strings.isNullOrEmpty(status), "<status> may not be null or empty");
-    Optional<JobStatus> opStatus = Enums.getIfPresent(JobStatus.class, status.toUpperCase());
+    Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
-    String downloadId = DownloadUtils.workflowToDownloadId(jobId);
 
-    log.debug("Processing callback for jobId [{}] with status [{}]", jobId, status);
+    String downloadId;
+    try {
+      downloadId = client.getJobInfo(jobId).getExternalId();
+    } catch (OozieClientException e) {
+      throw new RuntimeException(e);
+    }
+
+    LOG.debug("Processing callback for downloadId [{}] with status [{}]", downloadId, status);
 
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
       // Download can be null if the oozie reports status before the download is persisted
-      log.info(
+      LOG.info(
           "Download {} not found. [Oozie may be issuing callback before download persisted.]",
           downloadId);
       return;
@@ -262,7 +275,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         || Download.Status.KILLED.equals(download.getStatus())) {
       // Download has already completed, so perhaps callbacks in rapid succession have been
       // processed out-of-order
-      log.warn(
+      LOG.warn(
           "Download {} has finished, but Oozie has sent a RUNNING callback. Ignoring it.",
           downloadId);
       return;
@@ -279,8 +292,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         }
 
       case FAILED:
-        log.error(
-            NOTIFY_ADMIN, "Got callback for failed query. JobId [{}], Status [{}]", jobId, status);
+        LOG.error(
+            NOTIFY_ADMIN,
+            "Got callback for failed query. downloadId [{}], Status [{}]",
+            downloadId,
+            status);
         updateDownloadStatus(download, newStatus);
         emailModel = emailManager.generateFailedDownloadEmailModel(download, portalUrl);
         emailSender.send(emailModel);
@@ -304,7 +320,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   }
 
   /**
-   * Tries to get the size of a download file. logs as warning if the size is 0 or if the file can't
+   * Tries to get the size of a download file. Logs as warning if the size is 0 or if the file can't
    * be read.
    */
   private Long getDownloadSize(Download download) {
@@ -312,12 +328,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (file.canRead()) {
       long size = file.length();
       if (size == 0) {
-        log.warn(
+        LOG.warn(
             "Download file {} size not read accurately, 0 length returned", file.getAbsolutePath());
       }
       return size;
     } else {
-      log.warn("Can't read download file {}", file.getAbsolutePath());
+      LOG.warn("Can't read download file {}", file.getAbsolutePath());
     }
     return 0L;
   }
@@ -337,8 +353,10 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   /** Updates the download status and file size. */
   private void updateDownloadStatus(Download download, Download.Status newStatus) {
-    download.setStatus(newStatus);
-    occurrenceDownloadService.update(download);
+    if (download.getStatus() != newStatus) {
+      download.setStatus(newStatus);
+      occurrenceDownloadService.update(download);
+    }
   }
 
   private void updateDownloadStatus(Download download, Download.Status newStatus, long size) {

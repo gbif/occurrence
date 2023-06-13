@@ -14,7 +14,6 @@
 package org.gbif.occurrence.ws.resources;
 
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
@@ -36,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.ImmutableSet;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,7 +48,8 @@ import lombok.Data;
 
 /**
  * Resource to describe file/table formats use in GBIF occurrence downloads.
- * Project specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.IUCN, DownloadFormat.MAP_OF_LIFE.
+ *
+ * <p>Project-specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.IUCN, DownloadFormat.MAP_OF_LIFE.
  */
 @Tag(
   name = "Occurrence download formats",
@@ -62,7 +63,7 @@ import lombok.Data;
   "application/x-javascript"}, value = "occurrence/download/describe")
 public class OccurrenceDownloadDescribeResource {
 
-  //Required fields in downloads
+  // Required fields in downloads
   private static final Set<Term> REQUIRED_FIELD = new ImmutableSet.Builder<Term>()
                                                     .add(GbifTerm.gbifID, GbifTerm.datasetKey)
                                                     .build();
@@ -86,34 +87,18 @@ public class OccurrenceDownloadDescribeResource {
       return "yyyy-MM-ddTHH:mm:ssZ";
     } else if(TermUtils.isInterpretedLocalDate(term)) {
       return "yyyy-MM-ddTHH:mm:ss";
-    } else if( HiveColumnsUtils.isHiveArray(term)) {
-      return "Array elements are delimited by ;";
     }
     return null;
   }
 
   /**
-   * Transforms a InitializableField to Field.
+   * Delimiter for array values.
    */
-  private static Field toTableField(InitializableField initializableField, boolean interpreted) {
-    Field.FieldBuilder builder = Field.builder()
-                                  .name(initializableField.getHiveField())
-                                  .type(interpreted? fieldType(initializableField.getTerm()) : initializableField.getHiveDataType())
-                                  .term(initializableField.getTerm())
-                                  .required(REQUIRED_FIELD.contains(initializableField.getTerm()));
-    if (interpreted) {
-      builder.typeFormat(fieldTypeFormat(initializableField.getTerm()));
+  private static String fieldDelimiter(Term term) {
+    if (HiveColumnsUtils.isHiveArray(term)) {
+      return ";";
     }
-    return builder.build();
-  }
-
-  /**
-   * Transforms Map<String,InitializableField> queryFields into a List<Field>.
-   */
-  private static List<Field> toFieldList(Map<String,InitializableField> queryFields, boolean interpreted) {
-    return queryFields.values().stream()
-      .map(initializableField -> toTableField(initializableField, interpreted))
-      .collect(Collectors.toList());
+    return null;
   }
 
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
@@ -128,7 +113,7 @@ public class OccurrenceDownloadDescribeResource {
   @Data
   @Builder
   public static class Field {
-    @Schema(description = "The field name.")
+    @Schema(description = "The column name in download files.")
     private final String name;
 
     @Schema(description = "The data type.")
@@ -137,10 +122,13 @@ public class OccurrenceDownloadDescribeResource {
     @Schema(description = "A pattern showing the format of the field data.")
     private String typeFormat;
 
+    @Schema(description = "The character used to delimit array values.")
+    private String delimiter;
+
     @Schema(description = "The URI for the term (e.g. Darwin Core term) for the field.")
     private final Term term;
 
-    @Schema(description = "Whether the field is required.")
+    @Schema(description = "Whether the field is required and therefore present on all records.")
     private boolean required;
   }
 
@@ -154,53 +142,110 @@ public class OccurrenceDownloadDescribeResource {
   }
 
   /**
-   * DwcA download description.
+   * DwCA download description.
    */
   @Data
   public static class DwcDownload {
-
     private final Table verbatim = Table.builder()
-                                     .fields(toFieldList(HIVE_QUERIES.selectVerbatimFields(), false))
-                                     .build();
-
-    private final Table interpreted = Table.builder()
-                                        .fields(toFieldList(HIVE_QUERIES.selectInterpretedFields(false), true))
-                                        .build();
-  }
-
-  //Static cached definitions
-  private static final DwcDownload DWC_DOWNLOAD = new DwcDownload();
-
-  private static final Table SIMPLE_CSV = Table.builder()
-                                            .fields(toFieldList(HIVE_QUERIES.selectSimpleDownloadFields(false), true))
-                                            .build();
-
-  private static final Table SPECIES_LIST = Table.builder()
-    .fields(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS
-              .stream().map(p -> Field.builder()
-                                  .type(fieldType(p.getRight()))
-                                  .typeFormat(fieldTypeFormat(p.getRight()))
-                                  .term(p.getRight())
-                                  .name(HiveColumnsUtils.getHiveQueryColumn(p.getRight()))
-                                  .required(GbifTerm.taxonKey.equals(p.getRight()))
-                                  .build())
-              .filter(f -> f.getTerm() != IucnTerm.iucnRedListCategory)
-              .collect(Collectors.toList()))
+      .fields(toFieldList(HIVE_QUERIES.selectVerbatimFields(), false))
       .build();
 
+    private final Table multimedia = Table.builder()
+      .fields(toFieldList(HIVE_QUERIES.selectMultimediaFields(false), true))
+      .build();
+
+    private final Table interpreted = Table.builder()
+      .fields(toFieldList(HIVE_QUERIES.selectInterpretedFields(false), true))
+      .build();
+
+    /**
+     * Transforms Map<String,InitializableField> queryFields into a List<Field>.
+     */
+    private static List<Field> toFieldList(Map<String,InitializableField> queryFields, boolean interpreted) {
+      return queryFields.values().stream()
+        .map(initializableField -> {
+          Field.FieldBuilder builder = Field.builder()
+            .name(initializableField.getTerm().simpleName())
+            .type(interpreted ? fieldType(initializableField.getTerm()) : initializableField.getHiveDataType())
+            .term(initializableField.getTerm())
+            .required(REQUIRED_FIELD.contains(initializableField.getTerm()));
+          if (interpreted) {
+            builder.typeFormat(fieldTypeFormat(initializableField.getTerm()));
+            builder.delimiter(fieldDelimiter(initializableField.getTerm()));
+          }
+          return builder.build();
+        })
+        .collect(Collectors.toList());
+    }
+  }
+
+  // Static cached definitions
+  // These are all slightly different!
+  private static final DwcDownload DWC_DOWNLOAD = new DwcDownload();
+
+  // Simple CSV — names like "gbifID" and "verbatimScientificName", text delimiters.
+  private static final Table SIMPLE_CSV = Table.builder()
+    .fields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS
+      .stream()
+      .map(termPair -> Field.builder()
+        .name(DownloadTerms.simpleName(termPair))
+        .type(fieldType(termPair.getRight()))
+        .typeFormat(fieldTypeFormat(termPair.getRight()))
+        .delimiter(fieldDelimiter(termPair.getRight()))
+        .term(termPair.getRight())
+        .required(REQUIRED_FIELD.contains(termPair.getRight()))
+        .build())
+      .collect(Collectors.toList()))
+    .build();
+
+  // Species List — names like "gbifID", possible delimiters, different required term.
+  private static final Table SPECIES_LIST = Table.builder()
+    .fields(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS
+      .stream().map(p -> p.getRight())
+      .map(term -> Field.builder()
+        .name(term.simpleName())
+        .type(fieldType(term))
+        .typeFormat(fieldTypeFormat(term))
+        .delimiter(fieldDelimiter(term))
+        .term(term)
+        .required(GbifTerm.taxonKey.equals(term))
+        .build())
+      .collect(Collectors.toList()))
+    .build();
+
+  // Simple CSV — names like "gbifID" and "verbatimScientificName", no text delimiters.
   private static final Table SIMPLE_AVRO = Table.builder()
-                                            .fields(toFieldList(AVRO_QUERIES.selectSimpleDownloadFields(false), true))
-                                            .build();
+    .fields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS
+      .stream()
+      .map(termPair -> Field.builder()
+        .name(DownloadTerms.simpleName(termPair))
+        .type(fieldType(termPair.getRight()))
+        .typeFormat(fieldTypeFormat(termPair.getRight()))
+        .term(termPair.getRight())
+        .required(REQUIRED_FIELD.contains(termPair.getRight()))
+        .build())
+      .collect(Collectors.toList()))
+    .build();
 
+  // Simple with verbatim Avro — names like "gbifID" and "v_scientificName", no text delimiters.
+  // TODO: This isn't quite right, as it is lowercasing the names.
   private static final Table SIMPLE_WITH_VERBATIM_AVRO = Table.builder()
-                                                          .fields(toFieldList(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(false), true))
-                                                          .build();
-
-  //End of static cached definitions
+    .fields(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(false).values()
+      .stream()
+      .map(initializableField -> Field.builder()
+        .name(initializableField.getHiveField())
+        .type(fieldType(initializableField.getTerm()))
+        .typeFormat(fieldTypeFormat(initializableField.getTerm()))
+        .term(initializableField.getTerm())
+        .required(REQUIRED_FIELD.contains(initializableField.getTerm()))
+        .build())
+      .collect(Collectors.toList()))
+    .build();
+  // End of static cached definitions
 
   @Operation(
     operationId = "describeDwcaDownload",
-    summary = "Describes the fields present in a Darwin Core Archive format download")
+    summary = "**Experimental.** Describes the fields present in a Darwin Core Archive format download")
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -219,7 +264,7 @@ public class OccurrenceDownloadDescribeResource {
 
   @Operation(
     operationId = "describeSimpleCsvDownload",
-    summary = "Describes the fields present in a Simple CSV format download")
+    summary = "**Experimental.** Describes the fields present in a Simple CSV format download")
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -238,7 +283,7 @@ public class OccurrenceDownloadDescribeResource {
 
   @Operation(
     operationId = "describeSpeciesListDownload",
-    summary = "Describes the fields present in a Species List format download")
+    summary = "**Experimental.** Describes the fields present in a Species List format download")
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -257,7 +302,7 @@ public class OccurrenceDownloadDescribeResource {
 
   @Operation(
     operationId = "describeSimpleAvroDownload",
-    summary = "Describes the fields present in a Simple Avro format download")
+    summary = "**Experimental.** Describes the fields present in a Simple Avro format download")
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -274,9 +319,10 @@ public class OccurrenceDownloadDescribeResource {
     return SIMPLE_AVRO;
   }
 
+  @Hidden // Not yet correct.
   @Operation(
     operationId = "describeSimpleWithVerbatimAvroDownload",
-    summary = "Describes the fields present in a Simple With Verbatim Avro format download")
+    summary = "**Experimental.** Describes the fields present in a Simple With Verbatim Avro format download")
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -295,7 +341,7 @@ public class OccurrenceDownloadDescribeResource {
 
   @Operation(
     operationId = "describeSimpleParquetDownload",
-    summary = "Describes the fields present in a Simple Parquet format download")
+    summary = "**Experimental.** Describes the fields present in a Simple Parquet format download")
   @ApiResponses(
     value = {
       @ApiResponse(

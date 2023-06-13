@@ -135,6 +135,7 @@ public class OccurrenceDwcXMLConverter {
 
       appendIfNotNull(dwcXMLDocument, GbifTerm.datasetKey, occurrence.getDatasetKey());
       //append(dwcXMLDocument, GbifTerm., occurrence.getPublishingOrgKey());
+      appendIfNotNull(dwcXMLDocument, GbifTerm.projectId, occurrence.getProjectId());
 
       appendIfNotNull(dwcXMLDocument, GbifTerm.protocol, occurrence.getProtocol());
       dwcXMLDocument.append(GbifTerm.lastCrawled, toISODateTime(occurrence.getLastCrawled()));

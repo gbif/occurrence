@@ -42,7 +42,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     "### Occurrence Download Predicates\n\n" +
     "For the API reference for download predicates expand the `predicate` section of the request body schema on the " +
     "[creation API call](#operation/requestDownload).\n\n" +
-    "For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads.html)" +
+    "For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads.html)\n\n" +
     "### Occurrence Download Limits\n\n" +
     "Occurrence downloads demand significant computational resources, and are monitored and limited according to the " +
     "GBIF platform load. In order to avoid that downloads requested by a single user utilize most of the resources " +
