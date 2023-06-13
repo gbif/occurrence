@@ -50,8 +50,6 @@ import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -154,7 +152,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Override
   public String create(DownloadRequest request, String source) {
-    LOG.debug("Trying to create download from request [{}]", request);
+    log.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
@@ -162,7 +160,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     try {
       String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
       if (exceedComplexityLimit != null) {
-        LOG.info("Download request refused as it would exceed complexity limits");
+        log.info("Download request refused as it would exceed complexity limits");
         throw new ResponseStatusException(
             HttpStatus.PAYLOAD_TOO_LARGE,
             "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
@@ -171,7 +169,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       String exceedSimultaneousLimit =
           downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
       if (exceedSimultaneousLimit != null) {
-        LOG.info("Download request refused as it would exceed simultaneous limits");
+        log.info("Download request refused as it would exceed simultaneous limits");
         // Keep HTTP 420 ("Enhance your calm") here.
         throw new ResponseStatusException(
             HttpStatus.METHOD_FAILURE,
@@ -187,7 +185,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
       return downloadId;
     } catch (Exception e) {
-      LOG.error("Failed to create download job", e);
+      log.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
@@ -259,12 +257,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       throw new RuntimeException(e);
     }
 
-    LOG.debug("Processing callback for downloadId [{}] with status [{}]", downloadId, status);
+    log.debug("Processing callback for downloadId [{}] with status [{}]", downloadId, status);
 
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
       // Download can be null if the oozie reports status before the download is persisted
-      LOG.info(
+      log.info(
           "Download {} not found. [Oozie may be issuing callback before download persisted.]",
           downloadId);
       return;
@@ -275,7 +273,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         || Download.Status.KILLED.equals(download.getStatus())) {
       // Download has already completed, so perhaps callbacks in rapid succession have been
       // processed out-of-order
-      LOG.warn(
+      log.warn(
           "Download {} has finished, but Oozie has sent a RUNNING callback. Ignoring it.",
           downloadId);
       return;
@@ -292,7 +290,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         }
 
       case FAILED:
-        LOG.error(
+        log.error(
             NOTIFY_ADMIN,
             "Got callback for failed query. downloadId [{}], Status [{}]",
             downloadId,
@@ -320,7 +318,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   }
 
   /**
-   * Tries to get the size of a download file. Logs as warning if the size is 0 or if the file can't
+   * Tries to get the size of a download file. logs as warning if the size is 0 or if the file can't
    * be read.
    */
   private Long getDownloadSize(Download download) {
@@ -328,12 +326,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (file.canRead()) {
       long size = file.length();
       if (size == 0) {
-        LOG.warn(
+        log.warn(
             "Download file {} size not read accurately, 0 length returned", file.getAbsolutePath());
       }
       return size;
     } else {
-      LOG.warn("Can't read download file {}", file.getAbsolutePath());
+      log.warn("Can't read download file {}", file.getAbsolutePath());
     }
     return 0L;
   }

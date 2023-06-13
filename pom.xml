@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.192.7-H3-SNAPSHOT</version>
+  <version>0.193.0-H3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -41,6 +41,10 @@
 
   <repositories>
     <repository>
+      <id>gbif-all</id>
+      <url>https://repository.gbif.org/content/groups/gbif/</url>
+    </repository>
+    <repository>
       <id>gbif-central</id>
       <url>https://repository.gbif.org/repository/central/</url>
     </repository>
@@ -57,9 +61,22 @@
       <url>https://repository.gbif.org/repository/thirdparty/</url>
     </repository>
     <repository>
+      <id>typesafe</id>
+      <name>Typesafe Repository</name>
+      <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
+    </repository>
+    <repository>
       <id>osgeo</id>
       <name>Open Source Geospatial Foundation Repository</name>
       <url>https://repo.osgeo.org/repository/release/</url>
+    </repository>
+    <repository>
+      <id>ALA</id>
+      <url>https://nexus.ala.org.au/content/repositories/releases</url>
+    </repository>
+    <repository>
+      <id>ALA-snapshots</id>
+      <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
     </repository>
   </repositories>
 
@@ -244,7 +261,7 @@
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
 
     <!-- Tools-->
-    <lombok.version>1.18.20</lombok.version>
+    <lombok.version>1.18.28</lombok.version>
 
     <!-- Extensions -->
     <wagon-ssh.version>2.4</wagon-ssh.version>
