@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services.launcher.kubernetes;
+package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +23,9 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-@Service("kubernetes")
+@Service("stackable")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class KubernetesDownloadLauncherService implements DownloadLauncher {
+public class StackableDownloadLauncherService implements DownloadLauncher {
 
   @Override
   public JobStatus create(DownloadLauncherMessage message) {

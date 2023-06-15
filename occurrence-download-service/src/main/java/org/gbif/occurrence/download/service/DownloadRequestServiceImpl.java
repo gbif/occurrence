@@ -35,7 +35,6 @@ import java.util.EnumSet;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
 import org.gbif.api.exception.ServiceUnavailableException;
@@ -71,20 +70,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   protected static final ImmutableMap<JobStatus, Download.Status> STATUSES_MAP =
       new ImmutableMap.Builder<JobStatus, Download.Status>()
           .put(JobStatus.PREP, Download.Status.PREPARING)
-          .put(JobStatus.PREPPAUSED, Download.Status.PREPARING)
-          .put(JobStatus.PREMATER, Download.Status.PREPARING)
-          .put(JobStatus.PREPSUSPENDED, Download.Status.SUSPENDED)
           .put(JobStatus.RUNNING, Download.Status.RUNNING)
-          .put(JobStatus.KILLED, Download.Status.KILLED)
-          .put(JobStatus.RUNNINGWITHERROR, Download.Status.RUNNING)
-          .put(JobStatus.DONEWITHERROR, Download.Status.FAILED)
-          .put(JobStatus.FAILED, Download.Status.FAILED)
-          .put(JobStatus.PAUSED, Download.Status.RUNNING)
-          .put(JobStatus.PAUSEDWITHERROR, Download.Status.RUNNING)
           .put(JobStatus.SUCCEEDED, Download.Status.SUCCEEDED)
           .put(JobStatus.SUSPENDED, Download.Status.SUSPENDED)
-          .put(JobStatus.SUSPENDEDWITHERROR, Download.Status.SUSPENDED)
-          .put(JobStatus.IGNORED, Download.Status.FAILED)
+          .put(JobStatus.KILLED, Download.Status.KILLED)
+          .put(JobStatus.FAILED, Download.Status.FAILED)
           .build();
 
   private static final Counter SUCCESSFUL_DOWNLOADS =
@@ -247,7 +237,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
     Preconditions.checkArgument(
         !Strings.isNullOrEmpty(status), "<status> may not be null or empty");
-    Optional<Job.Status> opStatus = Enums.getIfPresent(Job.Status.class, status.toUpperCase());
+    Optional<JobStatus> opStatus = Enums.getIfPresent(JobStatus.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
 
     String downloadId;
