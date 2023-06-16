@@ -87,6 +87,7 @@
     <module>occurrence-download-spark</module>
     <module>occurrence-download-cli</module>
     <module>occurrence-table-build-trino</module>
+    <module>occurrence-k8-submit</module>
   </modules>
 
   <properties>
