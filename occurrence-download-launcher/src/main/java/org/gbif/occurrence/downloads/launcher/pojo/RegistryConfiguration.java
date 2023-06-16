@@ -11,27 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.config;
+package org.gbif.occurrence.downloads.launcher.pojo;
 
 import javax.validation.constraints.NotNull;
-
 import lombok.Data;
 
+/**
+ * Configuration class for the registry.
+ */
 @Data
-public class DownloadServiceConfiguration {
+public class RegistryConfiguration {
 
-  @NotNull
-  private String queueName;
-
-  @NotNull
-  private String deadQueueName;
-
-  @NotNull
-  private String pathToYarnSite;
-
-  @NotNull
-  private String taskCron;
-
-  @NotNull
-  private String managerQualifier;
+  @NotNull private String apiUrl;
+  @NotNull private String userName;
+  @NotNull private String password;
 }

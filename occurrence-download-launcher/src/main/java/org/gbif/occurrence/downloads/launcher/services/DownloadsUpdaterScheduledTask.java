@@ -13,37 +13,39 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
-
-import java.util.List;
-
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
+/**
+ * Scheduled task is used to update the statuses of the running downloads and unlock those that have
+ * updated their statuses.
+ */
 @Slf4j
 @Component
-public class DownloadsStatusUpdaterScheduledTask {
+public class DownloadsUpdaterScheduledTask {
 
-  private final DownloadStatusUpdaterService downloadStatusUpdaterService;
-  private final JobManager jobManager;
+  private final DownloadUpdaterService downloadUpdaterService;
+  private final DownloadLauncher jobManager;
   private final LockerService lockerService;
 
-  public DownloadsStatusUpdaterScheduledTask(
-    JobManager jobManager,
-    DownloadStatusUpdaterService downloadStatusUpdaterService,
-    LockerService lockerService) {
+  public DownloadsUpdaterScheduledTask(
+      DownloadLauncher jobManager,
+      DownloadUpdaterService downloadUpdaterService,
+      LockerService lockerService) {
     this.jobManager = jobManager;
-    this.downloadStatusUpdaterService = downloadStatusUpdaterService;
+    this.downloadUpdaterService = downloadUpdaterService;
     this.lockerService = lockerService;
   }
 
   @Scheduled(cron = "${downloads.taskCron}")
   public void renewedDownloadsStatuses() {
     log.info("Running scheduled checker...");
-    List<Download> downloads = downloadStatusUpdaterService.getExecutingDownloads();
+    List<Download> downloads = downloadUpdaterService.getExecutingDownloads();
 
     log.info("Found running downloads - {}", downloads.size());
 
@@ -51,12 +53,15 @@ public class DownloadsStatusUpdaterScheduledTask {
       log.info("Found {} running downloads", downloads.size());
       List<Download> renewedDownloads = jobManager.renewRunningDownloadsStatuses(downloads);
       renewedDownloads.forEach(
-        download -> {
-          downloadStatusUpdaterService.updateDownload(download);
-          if (Status.FINISH_STATUSES.contains(download.getStatus())) {
-            lockerService.unlock(download.getKey());
-          }
-        });
+          download -> {
+            downloadUpdaterService.updateDownload(download);
+            if (Status.FINISH_STATUSES.contains(download.getStatus())) {
+              lockerService.unlock(download.getKey());
+            }
+          });
     }
+
+    // Print all locked downloads
+    lockerService.printLocks();
   }
 }

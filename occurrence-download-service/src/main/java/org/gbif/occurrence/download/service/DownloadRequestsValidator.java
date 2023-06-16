@@ -40,6 +40,6 @@ public class DownloadRequestsValidator {
     JSONObject object = new JSONObject(jsonPredicateDownloadRequest);
     if (!object.has("predicate")) {
       LOG.warn("Download request without a predicate: {}", jsonPredicateDownloadRequest);
-    };
+    }
   }
 }

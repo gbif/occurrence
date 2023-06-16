@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import org.apache.spark.sql.types.DataTypes;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.StructType;
@@ -178,10 +181,21 @@ public class TableBackfill {
      if(configuration.isUsePartitionedTable()) {
        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
      }
+     Dataset<Row> input  = spark.read()
+       .format("com.databricks.spark.avro")
      spark.read()
        .format("avro")
        .load(fromSourceDir + "/*.avro")
-       .select(select)
+       .select(select);
+
+     if (configuration.getTablePartitions() != null &&  input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
+       input = input
+                .withColumn("_salted_key", col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
+                .repartition(configuration.getTablePartitions())
+                .drop("_salted_key");
+     }
+
+     input
        .write()
        .format("parquet")
        .option("compression", "Snappy")
@@ -189,6 +203,7 @@ public class TableBackfill {
        .insertInto(saveToTable);
    }
   }
+
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
     spark.sql(configuration.isUsePartitionedTable()? createExtensionExternalTable(extensionTable) : createExtensionTable(extensionTable));
 

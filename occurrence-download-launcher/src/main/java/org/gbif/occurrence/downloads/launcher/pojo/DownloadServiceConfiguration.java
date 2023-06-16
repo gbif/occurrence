@@ -11,24 +11,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher;
+package org.gbif.occurrence.downloads.launcher.pojo;
 
-import java.io.Serializable;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+import javax.validation.constraints.NotNull;
 import lombok.Data;
 
-// TODO Move to postal service
+/** Configuration class for the download service. */
 @Data
-public class DownloadsMessage implements Serializable {
+public class DownloadServiceConfiguration {
 
-  private final String jobId;
+  @NotNull private String launcherQueueName;
 
-  @JsonCreator
-  public DownloadsMessage(@JsonProperty("jobId") String jobId) {
-    this.jobId = jobId;
-  }
+  @NotNull private String deadLauncherQueueName;
 
+  @NotNull private String cancellationQueueName;
+
+  private String pathToYarnSite;
+
+  // DownloadsStatusUpdaterScheduledTask cron expression
+  @NotNull private String taskCron;
+
+  // Specify the launcher qualifier: oozie,spark or kubernetes
+  @NotNull private String launcherQualifier;
 }

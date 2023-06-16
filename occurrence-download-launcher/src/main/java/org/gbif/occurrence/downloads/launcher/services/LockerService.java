@@ -16,11 +16,15 @@ package org.gbif.occurrence.downloads.launcher.services;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.LockSupport;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
+/**
+ * The service is used to lock and unlock threads. It is particularly useful for avoiding the use of
+ * a while-sleep loop in certain implementations of the {@link
+ * org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher}, especially when
+ * running the download.
+ */
 @Slf4j
 @Component
 public class LockerService {
@@ -28,18 +32,18 @@ public class LockerService {
   private final Map<String, Thread> lockMap = new ConcurrentHashMap<>();
 
   public void lock(String id, Thread thread) {
-    log.info("Lock the thread for {}", id);
+    log.info("Lock the thread for id {}", id);
     lockMap.put(id, thread);
     LockSupport.park(thread);
   }
 
   public void unlock(String id) {
-    log.info("Unlock the thread for {}", id);
+    log.info("Unlock the thread for id {}", id);
     Thread thread = lockMap.get(id);
     if (thread != null) {
       LockSupport.unpark(thread);
       lockMap.remove(id);
-      log.info("The thread for {} is unlocked", id);
+      log.info("The thread for id {} is unlocked", id);
     }
   }
 
@@ -48,12 +52,16 @@ public class LockerService {
     if (!lockMap.isEmpty()) {
 
       lockMap.forEach(
-        (id, thread) -> {
-          log.info("Unpark thread for id {}", id);
-          LockSupport.unpark(thread);
-        });
+          (id, thread) -> {
+            log.info("Unpark thread for id {}", id);
+            LockSupport.unpark(thread);
+          });
 
       lockMap.clear();
     }
+  }
+
+  public void printLocks() {
+    lockMap.keySet().forEach(id -> log.info("Found a lock for id {}", id));
   }
 }

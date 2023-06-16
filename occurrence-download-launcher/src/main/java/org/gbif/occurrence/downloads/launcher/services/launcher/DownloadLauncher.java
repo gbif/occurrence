@@ -11,21 +11,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services;
-
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.occurrence.downloads.launcher.DownloadsMessage;
+package org.gbif.occurrence.downloads.launcher.services.launcher;
 
 import java.util.List;
 import java.util.Optional;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 
-public interface JobManager {
+/**
+ * Generig service to launch, cancel or get status about a download job
+ */
+public interface DownloadLauncher {
 
-  JobStatus createJob(DownloadsMessage message);
+  JobStatus create(DownloadLauncherMessage message);
 
-  JobStatus cancelJob(String jobId);
+  JobStatus cancel(String downloadKey);
 
-  Optional<Download.Status> getStatusByName(String name);
+  Optional<Download.Status> getStatusByName(String downloadKey) throws Exception;
 
   List<Download> renewRunningDownloadsStatuses(List<Download> downloads);
 
