@@ -16,8 +16,10 @@ package org.gbif.occurrence.downloads.launcher.services;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.LockSupport;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The service is used to lock and unlock threads. It is particularly useful for avoiding the use of

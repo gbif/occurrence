@@ -13,30 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
-import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Set;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
@@ -49,11 +25,40 @@ import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Set;
+
+import javax.annotation.Nullable;
+
+import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.OozieClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
+import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 @Component
 @Slf4j

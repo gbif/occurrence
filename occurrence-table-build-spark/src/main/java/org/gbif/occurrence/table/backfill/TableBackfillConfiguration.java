@@ -16,6 +16,8 @@ package org.gbif.occurrence.table.backfill;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 import org.yaml.snakeyaml.parser.ParserException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,8 +30,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.Nullable;
 
 @Data
 @Builder

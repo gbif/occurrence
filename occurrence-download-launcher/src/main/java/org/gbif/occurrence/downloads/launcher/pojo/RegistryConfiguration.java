@@ -14,6 +14,7 @@
 package org.gbif.occurrence.downloads.launcher.pojo;
 
 import javax.validation.constraints.NotNull;
+
 import lombok.Data;
 
 /**

@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
@@ -21,9 +20,12 @@ import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
+
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /** Listen MQ to receive and run a download */
 @Slf4j

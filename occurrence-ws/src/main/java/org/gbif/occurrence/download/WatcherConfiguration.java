@@ -11,18 +11,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.pojo;
+package org.gbif.occurrence.download;
 
-import com.beust.jcommander.Parameter;
+import java.util.Collections;
+import java.util.Map;
 
-public class StackableConfiguration {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-  @Parameter(names = "-kube-config-file")
-  public String kubeConfigFile;
+/**
+ * Simple configuration class for the K8 Stackable watcher.
+ */
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class WatcherConfiguration {
 
-  @Parameter(names = "-stackable-spark-crd-file")
-  public String sparkCrdConfigFile;
+  @Builder.Default
+  private Map<String,String> labelSelectors = Collections.emptyMap();
 
-  @Parameter(names = "-delete-pods-on-finish")
-  public boolean deletePodsOnFinish;
+  @Builder.Default
+  private Map<String,String> fieldSelectors = Collections.emptyMap();
+
 }

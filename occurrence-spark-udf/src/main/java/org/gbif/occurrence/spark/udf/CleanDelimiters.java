@@ -17,8 +17,9 @@ package org.gbif.occurrence.spark.udf;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import lombok.SneakyThrows;
 import org.cache2k.Cache;
+
+import lombok.SneakyThrows;
 
 public class CleanDelimiters implements Function<String,String> {
 

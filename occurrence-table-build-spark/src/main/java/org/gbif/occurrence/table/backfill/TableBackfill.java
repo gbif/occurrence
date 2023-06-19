@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.table.backfill;
 
-import org.apache.spark.sql.types.DataTypes;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
@@ -32,6 +31,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
 import lombok.AllArgsConstructor;

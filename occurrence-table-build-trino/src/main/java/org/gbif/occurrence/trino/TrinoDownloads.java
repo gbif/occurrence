@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.trino;
 
-import lombok.SneakyThrows;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
@@ -21,6 +20,8 @@ import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.util.Properties;
+
+import lombok.SneakyThrows;
 
 public class TrinoDownloads {
 

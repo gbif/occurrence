@@ -13,10 +13,11 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher;
 
-import java.util.List;
-import java.util.Optional;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Generig service to launch, cancel or get status about a download job

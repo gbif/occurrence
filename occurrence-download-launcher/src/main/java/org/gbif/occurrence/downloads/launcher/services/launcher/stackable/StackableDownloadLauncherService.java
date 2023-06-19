@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
-import io.kubernetes.client.openapi.ApiException;
-import java.util.List;
-import java.util.Optional;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
@@ -25,9 +22,15 @@ import org.gbif.occurrence.downloads.launcher.pojo.SparkConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.stackable.K8StackableSparkController;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
+import io.kubernetes.client.openapi.ApiException;
 
 @Service("stackable")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
