@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher;
 
-import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
 import org.gbif.ws.remoteauth.RestTemplateRemoteAuthClient;
@@ -34,7 +32,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
@@ -70,13 +67,6 @@ public class OccurrenceDownloadsLauncherApplication {
 
   public static void main(String... args) {
     SpringApplication.run(OccurrenceDownloadsLauncherApplication.class, args);
-  }
-
-  @Bean
-  @Primary
-  DownloadLauncher downloadLauncher(
-      ApplicationContext context, DownloadServiceConfiguration configuration) {
-    return context.getBean(configuration.getLauncherQualifier(), DownloadLauncher.class);
   }
 
   @Bean

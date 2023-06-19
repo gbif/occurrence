@@ -14,6 +14,8 @@
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
 import io.kubernetes.client.openapi.ApiException;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.gbif.api.model.occurrence.Download;
@@ -24,26 +26,21 @@ import org.gbif.occurrence.downloads.launcher.pojo.MainSparkSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
-import org.gbif.stackable.K8StackableSparkController;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-@Service("stackable")
+@Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class StackableDownloadLauncherService implements DownloadLauncher {
-
-  private final K8StackableSparkController sparkController;
   private final DistributedConfiguration distributedConfiguration;
   private final SparkConfiguration sparkConfiguration;
   private final StackableConfiguration stackableConfiguration;
 
   public StackableDownloadLauncherService(
-      K8StackableSparkController sparkController,
       DistributedConfiguration distributedConfiguration,
       SparkConfiguration sparkConfiguration,
       StackableConfiguration stackableConfiguration) {
-    this.sparkController = sparkController;
     this.distributedConfiguration = distributedConfiguration;
     this.sparkConfiguration = sparkConfiguration;
     this.stackableConfiguration = stackableConfiguration;
@@ -53,32 +50,31 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
   public JobStatus create(DownloadLauncherMessage message) {
 
     MainSparkSettings sparkSettings =
-        MainSparkSettings.builder().executorMemory("?").parallelism(-1).executorNumbers(-1).build();
+        MainSparkSettings.builder().executorMemory("1GB").parallelism(1).executorNumbers(1).build();
 
-    StackableSparkRunner.StackableSparkRunnerBuilder builder =
-        StackableSparkRunner.builder()
-            .distributedConfig(distributedConfiguration)
-            .sparkConfig(sparkConfiguration)
-            .kubeConfigFile(stackableConfiguration.kubeConfigFile)
-            .sparkCrdConfigFile(stackableConfiguration.sparkCrdConfigFile)
-            .sparkAppName(message.getDownloadKey())
-            .deleteOnFinish(stackableConfiguration.deletePodsOnFinish)
-            .sparkSettings(sparkSettings);
-
-    // Assembles a terminal java process and runs it
-    builder.build().start().waitFor();
+    StackableSparkRunner.builder()
+        .distributedConfig(distributedConfiguration)
+        .sparkConfig(sparkConfiguration)
+        .kubeConfigFile(stackableConfiguration.kubeConfigFile)
+        .sparkCrdConfigFile(stackableConfiguration.sparkCrdConfigFile)
+        .sparkAppName(message.getDownloadKey())
+        .deleteOnFinish(stackableConfiguration.deletePodsOnFinish)
+        .sparkSettings(sparkSettings)
+        .build()
+        .start()
+        .waitFor();
 
     return JobStatus.RUNNING;
   }
 
   @Override
   public JobStatus cancel(String downloadKey) {
-    try {
-      sparkController.stopSparkApplication(downloadKey);
-      return JobStatus.CANCELLED;
-    } catch (ApiException e) {
-      return JobStatus.FAILED;
-    }
+//    try {
+//      sparkController.stopSparkApplication(downloadKey);
+//      return JobStatus.CANCELLED;
+//    } catch (ApiException e) {
+        return JobStatus.FAILED;
+//    }
   }
 
   @Override
@@ -88,6 +84,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
   @Override
   public List<Download> renewRunningDownloadsStatuses(List<Download> downloads) {
-    throw new UnsupportedOperationException("The method is not implemented!");
+    return Collections.emptyList();
+    //throw new UnsupportedOperationException("The method is not implemented!");
   }
 }
