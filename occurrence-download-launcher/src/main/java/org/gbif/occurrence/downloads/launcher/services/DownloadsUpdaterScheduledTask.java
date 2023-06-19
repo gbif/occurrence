@@ -13,13 +13,16 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+
+import java.util.List;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Scheduled task is used to update the statuses of the running downloads and unlock those that have

@@ -11,18 +11,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.pojo;
+package org.gbif.occurrence.download;
 
+import java.util.Collections;
+import java.util.Map;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * Simple configuration class for the K8 Stackable watcher.
+ */
 @Data
 @Builder
-public class MainSparkSettings {
+@AllArgsConstructor
+@NoArgsConstructor
+public class WatcherConfiguration {
 
-  private int parallelism;
+  @Builder.Default
+  private Map<String,String> labelSelectors = Collections.emptyMap();
 
-  private String executorMemory;
+  @Builder.Default
+  private Map<String,String> fieldSelectors = Collections.emptyMap();
 
-  private int executorNumbers;
 }

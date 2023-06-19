@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.table.backfill;
 
-import org.apache.spark.sql.types.DataTypes;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
@@ -32,6 +31,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
 import lombok.AllArgsConstructor;
@@ -182,9 +182,9 @@ public class TableBackfill {
        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
      }
      Dataset<Row> input  = spark.read()
-       .format("com.databricks.spark.avro")
-       .load(fromSourceDir + "/*.avro")
-       .select(select);
+                                 .format("avro")
+                                 .load(fromSourceDir + "/*.avro")
+                                 .select(select);
 
      if (configuration.getTablePartitions() != null &&  input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
        input = input
@@ -196,11 +196,12 @@ public class TableBackfill {
      input
        .write()
        .format("parquet")
-       .option("compression", "GZ")
+       .option("compression", "Snappy")
        .mode("overwrite")
        .insertInto(saveToTable);
    }
   }
+
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
     spark.sql(configuration.isUsePartitionedTable()? createExtensionExternalTable(extensionTable) : createExtensionTable(extensionTable));
 
@@ -227,7 +228,7 @@ public class TableBackfill {
    return String.format("CREATE TABLE IF NOT EXISTS %s\n"
                         + '(' + extensionTable.getSchema().getFields().stream().map(f -> f.name() + " STRING").collect(
                           Collectors.joining(",\n")) + ')'
-                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")\n",
+                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")\n",
                         extensionTableName(extensionTable));
   }
 
@@ -237,7 +238,7 @@ public class TableBackfill {
                            Collectors.joining(",\n")) + ')'
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "LOCATION '%s'"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")\n",
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")\n",
                          extensionTableName(extensionTable),
                          Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
@@ -258,7 +259,7 @@ public class TableBackfill {
                          + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
                          + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
                          + "publisher STRING, license STRING, rightsHolder STRING)\n"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")", configuration.getTableName());
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")", configuration.getTableName());
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
@@ -314,21 +315,21 @@ public class TableBackfill {
                          + OccurrenceHDFSTableDefinition.definition().stream()
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                            .collect(Collectors.joining(", \n"))
-                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")",
+                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")",
                          configuration.getTableName());
   }
 
   private String createPartitionedTableIfNotExists() {
     return String.format("CREATE EXTERNAL TABLE IF NOT EXISTS %s ("
                          + OccurrenceHDFSTableDefinition.definition().stream()
-                           .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
+                           .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                            .collect(Collectors.joining(", "))
                          + ") "
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "STORED AS PARQUET "
                          + "LOCATION '%s'"
-                         + "TBLPROPERTIES (\"parquet.compression\"=\"GZ\", \"auto.purge\"=\"true\")",
+                         + "TBLPROPERTIES (\"parquet.compression\"=\"Snappy\", \"auto.purge\"=\"true\")",
                          configuration.getTableName(),
                          Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
 
@@ -336,7 +337,7 @@ public class TableBackfill {
 
   private Column[] selectFromAvro() {
     List<Column> columns = OccurrenceHDFSTableDefinition.definition().stream()
-      .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
+      .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
       .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
       .collect(Collectors.toList());
 

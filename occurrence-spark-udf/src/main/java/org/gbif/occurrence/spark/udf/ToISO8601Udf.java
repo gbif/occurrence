@@ -16,8 +16,6 @@ package org.gbif.occurrence.spark.udf;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.spark.sql.api.java.UDF1;
 import org.cache2k.Cache;

@@ -15,11 +15,11 @@ package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
-
-import lombok.experimental.UtilityClass;
 import org.cache2k.Cache;
 import org.cache2k.config.Cache2kConfig;
 import org.cache2k.io.CacheLoader;
+
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class UDFS {

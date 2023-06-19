@@ -13,16 +13,19 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
-import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
-import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
-
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+
+import java.util.List;
+
 import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
 
 /**
  * Service is to be called to update the status of a download or to work with the

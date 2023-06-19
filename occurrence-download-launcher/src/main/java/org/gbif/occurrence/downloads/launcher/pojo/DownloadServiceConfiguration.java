@@ -14,6 +14,7 @@
 package org.gbif.occurrence.downloads.launcher.pojo;
 
 import javax.validation.constraints.NotNull;
+
 import lombok.Data;
 
 /** Configuration class for the download service. */
