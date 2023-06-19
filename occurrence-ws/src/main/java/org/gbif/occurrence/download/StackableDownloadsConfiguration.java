@@ -34,7 +34,7 @@ public class StackableDownloadsConfiguration {
   }
 
   @Bean
-  public KubeConfig watcherConfiguration(@Value("${occurrence.kubeConfigFile}") String  kubeConfigFile) {
+  public KubeConfig watcherConfiguration(@Value("${stackable.kubeConfigFile}") String  kubeConfigFile) {
     return ConfigUtils.loadKubeConfig(kubeConfigFile);
   }
 

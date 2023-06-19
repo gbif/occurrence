@@ -90,7 +90,6 @@
     <module>occurrence-download-launcher</module>
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
-    <module>occurrence-download-cli</module>
     <module>occurrence-table-build-trino</module>
   </modules>
 
@@ -266,7 +265,7 @@
       </activation>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>3.2.4</hadoop.version>
+        <hadoop.version>3.3.4</hadoop.version>
         <hbase.version>2.5.3-hadoop3</hbase.version>
         <hive.version>3.1.3</hive.version>
         <oozie.version>4.1.0</oozie.version>
@@ -996,6 +995,11 @@
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-hadoop2-compat</artifactId>
         <version>${hbase.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-auth</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
       <!-- end hadoop -->
 
