@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <version>0.192.6-SNAPSHOT</version>
+  <version>0.193.0-H3-SNAPSHOT</version>
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-trino-udf</artifactId>
 
