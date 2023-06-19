@@ -40,8 +40,6 @@ public final class StackableSparkRunner {
 
   @NonNull private final String kubeConfigFile;
 
-  @Builder.Default private Consumer<StringJoiner> beamConfigFn = j -> {};
-
   @NonNull private final String sparkCrdConfigFile;
 
   @NonNull private final SparkConfiguration sparkConfig;
@@ -68,7 +66,6 @@ public final class StackableSparkRunner {
       @NonNull DistributedConfiguration distributedConfig,
       @NonNull @Size(min = 10, max = 63) String sparkAppName,
       @NonNull MainSparkSettings sparkSettings,
-      @NonNull Consumer<StringJoiner> beamConfigFn,
       @NonNull boolean deleteOnFinish) {
     this.kubeConfigFile = kubeConfigFile;
     this.sparkCrdConfigFile = sparkCrdConfigFile;
@@ -76,7 +73,6 @@ public final class StackableSparkRunner {
     this.distributedConfig = distributedConfig;
     this.sparkAppName = normalize(sparkAppName);
     this.sparkSettings = sparkSettings;
-    this.beamConfigFn = beamConfigFn;
     this.k8StackableSparkController =
         K8StackableSparkController.builder()
             .kubeConfig(ConfigUtils.loadKubeConfig(kubeConfigFile))
@@ -192,13 +188,6 @@ public final class StackableSparkRunner {
 
     Map<String, String> newSparkConf = new HashMap<>(sparkConf);
 
-    Optional.ofNullable(distributedConfig.metricsPropertiesPath)
-        .ifPresent(x -> newSparkConf.put("spark.metrics.conf", x));
-    Optional.ofNullable(distributedConfig.extraClassPath)
-        .ifPresent(x -> newSparkConf.put("spark.driver.extraClassPath", x));
-    Optional.ofNullable(distributedConfig.driverJavaOptions)
-        .ifPresent(x -> newSparkConf.put("driver-java-options", x));
-
     if (sparkSettings.getParallelism() < 1) {
       throw new IllegalArgumentException("sparkParallelism can't be 0");
     }
@@ -210,12 +199,6 @@ public final class StackableSparkRunner {
     return newSparkConf;
   }
 
-  public List<String> buildArgs() {
-    StringJoiner joiner = new StringJoiner(DELIMITER);
-    beamConfigFn.accept(joiner);
-    return Arrays.asList(joiner.toString().split(DELIMITER));
-  }
-
   private SparkCrd loadSparkCrd() {
     SparkCrd sparkCrd = ConfigUtils.loadSparkCdr(sparkCrdConfigFile);
     return sparkCrd.toBuilder()
@@ -224,7 +207,7 @@ public final class StackableSparkRunner {
             sparkCrd.getSpec().toBuilder()
                 .mainClass(distributedConfig.mainClass)
                 .mainApplicationFile(distributedConfig.jarPath)
-                .args(buildArgs())
+                .args(Collections.singletonList(sparkAppName))
                 .driver(mergeDriverSettings(sparkCrd.getSpec().getDriver()))
                 .sparkConf(mergeSparkConfSettings(sparkCrd.getSpec().getSparkConf()))
                 .executor(mergeExecutorSettings(sparkCrd.getSpec().getExecutor()))

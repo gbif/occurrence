@@ -27,11 +27,6 @@ public class DownloadServiceConfiguration {
 
   @NotNull private String cancellationQueueName;
 
-  private String pathToYarnSite;
-
   // DownloadsStatusUpdaterScheduledTask cron expression
   @NotNull private String taskCron;
-
-  // Specify the launcher qualifier: oozie,spark or kubernetes
-  @NotNull private String launcherQualifier;
 }
