@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
-import io.kubernetes.client.openapi.ApiException;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +23,7 @@ import org.gbif.occurrence.downloads.launcher.pojo.DistributedConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.MainSparkSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
+import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -36,55 +35,71 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
   private final DistributedConfiguration distributedConfiguration;
   private final SparkConfiguration sparkConfiguration;
   private final StackableConfiguration stackableConfiguration;
+  private final LockerService lockerService;
 
   public StackableDownloadLauncherService(
       DistributedConfiguration distributedConfiguration,
       SparkConfiguration sparkConfiguration,
-      StackableConfiguration stackableConfiguration) {
+      StackableConfiguration stackableConfiguration,
+      LockerService lockerService) {
     this.distributedConfiguration = distributedConfiguration;
     this.sparkConfiguration = sparkConfiguration;
     this.stackableConfiguration = stackableConfiguration;
+    this.lockerService = lockerService;
   }
 
   @Override
   public JobStatus create(DownloadLauncherMessage message) {
 
-    MainSparkSettings sparkSettings =
-        MainSparkSettings.builder().executorMemory("1GB").parallelism(1).executorNumbers(1).build();
+    try {
+      MainSparkSettings sparkSettings =
+          MainSparkSettings.builder().executorMemory("4").parallelism(4).executorNumbers(2).build();
 
-    StackableSparkRunner.builder()
-        .distributedConfig(distributedConfiguration)
-        .sparkConfig(sparkConfiguration)
-        .kubeConfigFile(stackableConfiguration.kubeConfigFile)
-        .sparkCrdConfigFile(stackableConfiguration.sparkCrdConfigFile)
-        .sparkAppName(message.getDownloadKey())
-        .deleteOnFinish(stackableConfiguration.deletePodsOnFinish)
-        .sparkSettings(sparkSettings)
-        .build()
-        .start()
-        .waitFor();
+      StackableSparkRunner.builder()
+          .distributedConfig(distributedConfiguration)
+          .sparkConfig(sparkConfiguration)
+          .kubeConfigFile(stackableConfiguration.kubeConfigFile)
+          .sparkCrdConfigFile(stackableConfiguration.sparkCrdConfigFile)
+          .sparkAppName(message.getDownloadKey())
+          .deleteOnFinish(stackableConfiguration.deletePodsOnFinish)
+          .sparkSettings(sparkSettings)
+          .lockerService(lockerService)
+          .build()
+          .start()
+          .asyncStatusCheck();
 
-    return JobStatus.RUNNING;
+      return JobStatus.RUNNING;
+    } catch (Exception ex) {
+      return JobStatus.FAILED;
+    }
   }
 
   @Override
   public JobStatus cancel(String downloadKey) {
-//    try {
-//      sparkController.stopSparkApplication(downloadKey);
-//      return JobStatus.CANCELLED;
-//    } catch (ApiException e) {
-        return JobStatus.FAILED;
-//    }
+    //    try {
+    //      sparkController.stopSparkApplication(downloadKey);
+    //      return JobStatus.CANCELLED;
+    //    } catch (ApiException e) {
+    return JobStatus.FAILED;
+    //    }
   }
 
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
+    //    K8StackableSparkController.Phase phase =
+    //        k8StackableSparkController.getApplicationPhase(downloadKey);
+    //    if (phase == Phase.RUNNING) {
+    //      return Optional.of(Status.RUNNING);
+    //    }
+    //    if (phase == Phase.SUCCEEDED) {
+    //      return Optional.of(Status.SUCCEEDED);
+    //    }
     return Optional.empty();
   }
 
   @Override
   public List<Download> renewRunningDownloadsStatuses(List<Download> downloads) {
     return Collections.emptyList();
-    //throw new UnsupportedOperationException("The method is not implemented!");
+    // throw new UnsupportedOperationException("The method is not implemented!");
   }
 }

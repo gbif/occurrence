@@ -13,49 +13,38 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import javax.validation.constraints.Size;
+import lombok.Builder;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.downloads.launcher.pojo.DistributedConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.MainSparkSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.stackable.ConfigUtils;
 import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.SparkCrd;
 import org.gbif.stackable.ToBuilder;
-
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import javax.validation.constraints.Size;
-
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /** Class to build an instance of ProcessBuilder for direct or spark command */
 @SuppressWarnings("all")
 @Slf4j
 public final class StackableSparkRunner {
   private static final String DELIMITER = " ";
-
   @NonNull private final String kubeConfigFile;
-
   @NonNull private final String sparkCrdConfigFile;
-
   @NonNull private final SparkConfiguration sparkConfig;
-
   @NonNull private final DistributedConfiguration distributedConfig;
-
   @NonNull private final String sparkAppName;
-
   @NonNull private final MainSparkSettings sparkSettings;
-
+  @NonNull private final LockerService lockerService;
   private final K8StackableSparkController k8StackableSparkController;
-
-  @Builder.Default private final int sleepTimeInMills = 1_000;
-
+  @Builder.Default private final int sleepTimeInSec = 3;
   private AbstractMap<String, Object> sparkApplicationData;
-
   private boolean deleteOnFinish;
 
   @Builder
@@ -66,6 +55,7 @@ public final class StackableSparkRunner {
       @NonNull DistributedConfiguration distributedConfig,
       @NonNull @Size(min = 10, max = 63) String sparkAppName,
       @NonNull MainSparkSettings sparkSettings,
+      @NonNull LockerService lockerService,
       @NonNull boolean deleteOnFinish) {
     this.kubeConfigFile = kubeConfigFile;
     this.sparkCrdConfigFile = sparkCrdConfigFile;
@@ -73,6 +63,7 @@ public final class StackableSparkRunner {
     this.distributedConfig = distributedConfig;
     this.sparkAppName = normalize(sparkAppName);
     this.sparkSettings = sparkSettings;
+    this.lockerService = lockerService;
     this.k8StackableSparkController =
         K8StackableSparkController.builder()
             .kubeConfig(ConfigUtils.loadKubeConfig(kubeConfigFile))
@@ -221,26 +212,29 @@ public final class StackableSparkRunner {
     return this;
   }
 
-  @SneakyThrows
-  public int waitFor() {
+  public void asyncStatusCheck() {
+    CompletableFuture.runAsync(
+        () -> {
+          try {
+            while (!hasFinished()) {
+              TimeUnit.SECONDS.sleep(sleepTimeInSec);
+            }
 
-    while (!hasFinished()) {
-      Thread.currentThread().sleep(sleepTimeInMills);
-    }
+            lockerService.unlock(sparkAppName);
 
-    K8StackableSparkController.Phase phase =
-        k8StackableSparkController.getApplicationPhase(sparkAppName);
+            if (deleteOnFinish) {
+              k8StackableSparkController.stopSparkApplication(sparkAppName);
+            }
 
-    log.info("Spark Application {}, finished with status {}", sparkAppName, phase);
+            K8StackableSparkController.Phase phase =
+                k8StackableSparkController.getApplicationPhase(sparkAppName);
 
-    if (deleteOnFinish) {
-      k8StackableSparkController.stopSparkApplication(sparkAppName);
-    }
-
-    if (K8StackableSparkController.Phase.FAILED == phase) {
-      return -1;
-    }
-    return 0;
+            log.info("Spark Application {}, finished with status {}", sparkAppName, phase);
+          } catch (Exception ex) {
+            lockerService.unlock(sparkAppName);
+            log.error(ex.getMessage(), ex);
+          }
+        });
   }
 
   private boolean hasFinished() {
