@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download;
+package org.gbif.occurrence.ws.download;
 
 import org.gbif.stackable.ConfigUtils;
 
@@ -28,13 +28,14 @@ import io.kubernetes.client.util.KubeConfig;
 @Configuration
 public class StackableDownloadsConfiguration {
 
-  @ConfigurationProperties(prefix = "occurrence.download.k8Watcher")
+  @ConfigurationProperties(prefix = "occurrence.download.watcher")
+  @Bean
   public WatcherConfiguration watcherConfiguration() {
     return new WatcherConfiguration();
   }
 
   @Bean
-  public KubeConfig watcherConfiguration(@Value("${stackable.kubeConfigFile}") String  kubeConfigFile) {
+  public KubeConfig kubeConfig(@Value("${stackable.kubeConfigFile}") String  kubeConfigFile) {
     return ConfigUtils.loadKubeConfig(kubeConfigFile);
   }
 

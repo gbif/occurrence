@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download;
+package org.gbif.occurrence.ws.download;
 
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.JobStatus;

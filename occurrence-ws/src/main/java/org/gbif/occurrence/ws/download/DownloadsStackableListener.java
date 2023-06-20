@@ -11,11 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download;
+package org.gbif.occurrence.ws.download;
 
 import org.gbif.stackable.StackableSparkWatcher;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import io.kubernetes.client.util.KubeConfig;
@@ -24,15 +25,16 @@ import io.kubernetes.client.util.KubeConfig;
  * Simple background thread that listens to status change in downloads.
  */
 @Component
-public class DownloadsStackableListener implements DisposableBean, Runnable {
+public class DownloadsStackableListener implements DisposableBean, InitializingBean {
 
   private final StackableSparkWatcher watcher;
 
   public DownloadsStackableListener(KubeConfig kubeConfig, StackableDownloadStatusListener listener, WatcherConfiguration watcherConfiguration) {
     watcher = new StackableSparkWatcher(kubeConfig, listener, watcherConfiguration.getLabelSelectors(), watcherConfiguration.getFieldSelectors());
   }
+
   @Override
-  public void run() {
+  public void afterPropertiesSet() throws Exception {
     watcher.run();
   }
 

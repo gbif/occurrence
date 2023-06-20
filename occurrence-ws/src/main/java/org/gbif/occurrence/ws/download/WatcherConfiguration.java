@@ -11,13 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download;
+package org.gbif.occurrence.ws.download;
 
 import java.util.Collections;
 import java.util.Map;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,15 +22,10 @@ import lombok.NoArgsConstructor;
  * Simple configuration class for the K8 Stackable watcher.
  */
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
 public class WatcherConfiguration {
-
-  @Builder.Default
   private Map<String,String> labelSelectors = Collections.emptyMap();
 
-  @Builder.Default
   private Map<String,String> fieldSelectors = Collections.emptyMap();
 
 }
