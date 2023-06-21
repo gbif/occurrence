@@ -3,7 +3,7 @@ package org.gbif.occurrence.downloads.launcher.pojo;
 import lombok.Data;
 
 @Data
-public class SparkConfiguration {
+public class SparkStaticConfiguration {
 
   public int recordsPerThread;
 

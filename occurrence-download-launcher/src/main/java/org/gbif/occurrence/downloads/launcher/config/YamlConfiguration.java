@@ -16,7 +16,7 @@ package org.gbif.occurrence.downloads.launcher.config;
 import org.gbif.occurrence.downloads.launcher.pojo.DistributedConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.RegistryConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -47,8 +47,8 @@ public class YamlConfiguration {
 
   @ConfigurationProperties(prefix = "spark")
   @Bean
-  public SparkConfiguration sparkConfiguration() {
-    return new SparkConfiguration();
+  public SparkStaticConfiguration sparkConfiguration() {
+    return new SparkStaticConfiguration();
   }
 
   @ConfigurationProperties(prefix = "stackable")

@@ -14,16 +14,26 @@
 package org.gbif.occurrence.downloads.launcher.config;
 
 import org.gbif.occurrence.downloads.launcher.pojo.RegistryConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.stackable.ConfigUtils;
+import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /** Configuration for the clients used by the launcher. */
 @Configuration
 public class ClientConfiguration {
+
+  @Bean
+  public K8StackableSparkController k8StackableSparkController(
+      StackableConfiguration stackableConfiguration) {
+    return K8StackableSparkController.builder()
+        .kubeConfig(ConfigUtils.loadKubeConfig(stackableConfiguration.kubeConfigFile))
+        .build();
+  }
 
   /**
    * Provides an OccurrenceDownloadClient.

@@ -18,11 +18,13 @@ import lombok.Data;
 
 @Data
 @Builder
-public class MainSparkSettings {
+public class SparkDynamicSettings {
 
   private int parallelism;
 
   private String executorMemory;
 
   private int executorNumbers;
+
+  private String sparkAppName;
 }

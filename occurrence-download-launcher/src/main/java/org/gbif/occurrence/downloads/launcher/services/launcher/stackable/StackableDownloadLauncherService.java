@@ -13,60 +13,68 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
-import java.util.Collections;
+import io.kubernetes.client.openapi.ApiException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.downloads.launcher.pojo.DistributedConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.MainSparkSettings;
-import org.gbif.occurrence.downloads.launcher.pojo.SparkConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.stackable.K8StackableSparkController;
+import org.gbif.stackable.K8StackableSparkController.Phase;
+import org.gbif.stackable.SparkCrd;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class StackableDownloadLauncherService implements DownloadLauncher {
-  private final DistributedConfiguration distributedConfiguration;
-  private final SparkConfiguration sparkConfiguration;
+
   private final StackableConfiguration stackableConfiguration;
+  private final K8StackableSparkController sparkController;
   private final LockerService lockerService;
+  private final SparkCrdFactoryService sparkCrdService;
 
   public StackableDownloadLauncherService(
-      DistributedConfiguration distributedConfiguration,
-      SparkConfiguration sparkConfiguration,
       StackableConfiguration stackableConfiguration,
+      K8StackableSparkController sparkController,
+      SparkCrdFactoryService sparkCrdService,
       LockerService lockerService) {
-    this.distributedConfiguration = distributedConfiguration;
-    this.sparkConfiguration = sparkConfiguration;
     this.stackableConfiguration = stackableConfiguration;
+    this.sparkController = sparkController;
     this.lockerService = lockerService;
+    this.sparkCrdService = sparkCrdService;
   }
 
   @Override
   public JobStatus create(DownloadLauncherMessage message) {
 
     try {
-      MainSparkSettings sparkSettings =
-          MainSparkSettings.builder().executorMemory("4").parallelism(4).executorNumbers(2).build();
+      String sparkAppName = normalize(message.getDownloadKey());
 
-      StackableSparkRunner.builder()
-          .distributedConfig(distributedConfiguration)
-          .sparkConfig(sparkConfiguration)
-          .kubeConfigFile(stackableConfiguration.kubeConfigFile)
-          .sparkCrdConfigFile(stackableConfiguration.sparkCrdConfigFile)
-          .sparkAppName(message.getDownloadKey())
-          .deleteOnFinish(stackableConfiguration.deletePodsOnFinish)
-          .sparkSettings(sparkSettings)
-          .lockerService(lockerService)
-          .build()
-          .start()
-          .asyncStatusCheck();
+      // TODO Calculate spark settings
+      SparkDynamicSettings sparkSettings =
+          SparkDynamicSettings.builder()
+              .executorMemory("4")
+              .parallelism(4)
+              .executorNumbers(2)
+              .sparkAppName(sparkAppName)
+              .build();
+
+      SparkCrd sparkCrd = sparkCrdService.createSparkCrd(sparkSettings);
+
+      sparkController.submitSparkApplication(sparkCrd, sparkAppName);
+
+      asyncStatusCheck(sparkAppName);
 
       return JobStatus.RUNNING;
     } catch (Exception ex) {
@@ -76,30 +84,74 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
   @Override
   public JobStatus cancel(String downloadKey) {
-    //    try {
-    //      sparkController.stopSparkApplication(downloadKey);
-    //      return JobStatus.CANCELLED;
-    //    } catch (ApiException e) {
-    return JobStatus.FAILED;
-    //    }
+    try {
+      String normalized = normalize(downloadKey);
+      sparkController.stopSparkApplication(normalized);
+      return JobStatus.CANCELLED;
+    } catch (ApiException e) {
+      return JobStatus.FAILED;
+    }
   }
 
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
-    //    K8StackableSparkController.Phase phase =
-    //        k8StackableSparkController.getApplicationPhase(downloadKey);
-    //    if (phase == Phase.RUNNING) {
-    //      return Optional.of(Status.RUNNING);
-    //    }
-    //    if (phase == Phase.SUCCEEDED) {
-    //      return Optional.of(Status.SUCCEEDED);
-    //    }
+    String normalized = normalize(downloadKey);
+    K8StackableSparkController.Phase phase = sparkController.getApplicationPhase(normalized);
+    if (phase == Phase.RUNNING) {
+      return Optional.of(Status.RUNNING);
+    }
+    if (phase == Phase.SUCCEEDED) {
+      return Optional.of(Status.SUCCEEDED);
+    }
     return Optional.empty();
   }
 
   @Override
   public List<Download> renewRunningDownloadsStatuses(List<Download> downloads) {
-    return Collections.emptyList();
-    // throw new UnsupportedOperationException("The method is not implemented!");
+    List<Download> result = new ArrayList<>(downloads.size());
+    for (Download download : downloads) {
+      String sparkAppName = normalize(download.getKey());
+      getStatusByName(sparkAppName).ifPresent(download::setStatus);
+      result.add(download);
+    }
+    return result;
+  }
+
+  private void asyncStatusCheck(String sparkAppName) {
+    CompletableFuture.runAsync(
+        () -> {
+          try {
+
+            K8StackableSparkController.Phase phase =
+                sparkController.getApplicationPhase(sparkAppName);
+            while (!(K8StackableSparkController.Phase.SUCCEEDED == phase
+                || K8StackableSparkController.Phase.FAILED == phase)) {
+              TimeUnit.SECONDS.sleep(3L);
+              phase = sparkController.getApplicationPhase(sparkAppName);
+            }
+
+            log.info("Spark Application {}, finished with status {}", sparkAppName, phase);
+          } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+          } finally {
+            lockerService.unlock(sparkAppName);
+
+            if (stackableConfiguration.deletePodsOnFinish) {
+              try {
+                sparkController.stopSparkApplication(sparkAppName);
+              } catch (ApiException ex) {
+                log.error("Can't stop Spark application {}", sparkAppName, ex);
+              }
+            }
+          }
+        });
+  }
+
+  /**
+   * A lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'.
+   * Must start and end with an alphanumeric character and its max lentgh is 64 characters.
+   */
+  private static String normalize(String sparkAppName) {
+    return sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");
   }
 }
