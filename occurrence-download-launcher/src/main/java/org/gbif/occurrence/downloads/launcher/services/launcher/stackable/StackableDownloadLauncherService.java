@@ -85,18 +85,20 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus cancel(String downloadKey) {
     try {
-      String normalized = normalize(downloadKey);
-      sparkController.stopSparkApplication(normalized);
+      String sparkAppName = normalize(downloadKey);
+      sparkController.stopSparkApplication(sparkAppName);
+      log.info("Spark application {} has been stopped", sparkAppName);
       return JobStatus.CANCELLED;
-    } catch (ApiException e) {
+    } catch (ApiException ex) {
+      log.error("Cancellig the download {}", downloadKey, ex);
       return JobStatus.FAILED;
     }
   }
 
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
-    String normalized = normalize(downloadKey);
-    K8StackableSparkController.Phase phase = sparkController.getApplicationPhase(normalized);
+    String sparkAppName = normalize(downloadKey);
+    Phase phase = sparkController.getApplicationPhase(sparkAppName);
     if (phase == Phase.RUNNING) {
       return Optional.of(Status.RUNNING);
     }
@@ -122,10 +124,8 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
         () -> {
           try {
 
-            K8StackableSparkController.Phase phase =
-                sparkController.getApplicationPhase(sparkAppName);
-            while (!(K8StackableSparkController.Phase.SUCCEEDED == phase
-                || K8StackableSparkController.Phase.FAILED == phase)) {
+            Phase phase = sparkController.getApplicationPhase(sparkAppName);
+            while (Phase.SUCCEEDED != phase && Phase.FAILED != phase) {
               TimeUnit.SECONDS.sleep(3L);
               phase = sparkController.getApplicationPhase(sparkAppName);
             }
