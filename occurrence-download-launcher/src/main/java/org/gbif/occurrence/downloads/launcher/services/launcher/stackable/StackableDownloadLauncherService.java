@@ -13,12 +13,15 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
+import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
+
 import io.kubernetes.client.openapi.ApiException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
@@ -95,15 +98,22 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
     }
   }
 
+  @SneakyThrows
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
     String sparkAppName = normalize(downloadKey);
-    Phase phase = sparkController.getApplicationPhase(sparkAppName);
-    if (phase == Phase.RUNNING) {
-      return Optional.of(Status.RUNNING);
-    }
-    if (phase == Phase.SUCCEEDED) {
-      return Optional.of(Status.SUCCEEDED);
+    try {
+      Phase phase = sparkController.getApplicationPhase(sparkAppName);
+      if (phase == Phase.RUNNING) {
+        return Optional.of(Status.RUNNING);
+      }
+      if (phase == Phase.SUCCEEDED) {
+        return Optional.of(Status.SUCCEEDED);
+      }
+    } catch (ApiException ex) {
+      if (ex.getCode() != NOT_FOUND) {
+        throw ex;
+      }
     }
     return Optional.empty();
   }
@@ -113,7 +123,12 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
     List<Download> result = new ArrayList<>(downloads.size());
     for (Download download : downloads) {
       String sparkAppName = normalize(download.getKey());
-      getStatusByName(sparkAppName).ifPresent(download::setStatus);
+      Optional<Status> status = getStatusByName(sparkAppName);
+      if (status.isPresent()) {
+        download.setStatus(status.get());
+      } else {
+        log.warn("Can't find spark application status for the download {}", sparkAppName);
+      }
       result.add(download);
     }
     return result;
