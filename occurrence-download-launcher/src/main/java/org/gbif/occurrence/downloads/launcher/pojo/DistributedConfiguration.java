@@ -10,4 +10,6 @@ public class DistributedConfiguration {
   public String mainClass;
 
   public String jarPath;
+
+  public String extraClassPath;
 }

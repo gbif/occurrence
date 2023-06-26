@@ -147,6 +147,9 @@ public class SparkCrdFactoryService {
 
     Map<String, String> newSparkConf = new HashMap<>(sparkConf);
 
+    Optional.ofNullable(distributedConfig.extraClassPath)
+      .ifPresent(x -> newSparkConf.put("spark.driver.extraClassPath", x));
+
     if (parallelism < 1) {
       throw new IllegalArgumentException("sparkParallelism can't be 0");
     }
