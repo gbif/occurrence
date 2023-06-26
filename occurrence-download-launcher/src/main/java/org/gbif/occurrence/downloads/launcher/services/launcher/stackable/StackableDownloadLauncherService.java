@@ -141,7 +141,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
             Phase phase = sparkController.getApplicationPhase(sparkAppName);
             while (Phase.SUCCEEDED != phase && Phase.FAILED != phase) {
-              TimeUnit.SECONDS.sleep(3L);
+              TimeUnit.SECONDS.sleep(stackableConfiguration.apiCheckDelaySec);
               phase = sparkController.getApplicationPhase(sparkAppName);
             }
 

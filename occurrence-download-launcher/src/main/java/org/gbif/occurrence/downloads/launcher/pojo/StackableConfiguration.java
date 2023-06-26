@@ -23,4 +23,6 @@ public class StackableConfiguration {
   public String sparkCrdConfigFile;
 
   public boolean deletePodsOnFinish;
+
+  public long apiCheckDelaySec = 3L;
 }
