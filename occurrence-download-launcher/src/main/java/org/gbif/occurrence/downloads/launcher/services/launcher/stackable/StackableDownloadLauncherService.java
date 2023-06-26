@@ -167,7 +167,6 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
    * Must start and end with an alphanumeric character and its max lentgh is 64 characters.
    */
   private static String normalize(String sparkAppName) {
-    return ("download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-"))
-        .substring(0, 63);
+    return "download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");
   }
 }
