@@ -27,4 +27,6 @@ public class SparkDynamicSettings {
   private int executorNumbers;
 
   private String sparkAppName;
+
+  private String downloadsKey;
 }

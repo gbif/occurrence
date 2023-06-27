@@ -62,7 +62,8 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
   public JobStatus create(DownloadLauncherMessage message) {
 
     try {
-      String sparkAppName = normalize(message.getDownloadKey());
+      String downloadKey = message.getDownloadKey();
+      String sparkAppName = normalize(downloadKey);
 
       // TODO Calculate spark settings
       SparkDynamicSettings sparkSettings =
@@ -71,6 +72,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
               .parallelism(4)
               .executorNumbers(2)
               .sparkAppName(sparkAppName)
+              .downloadsKey(downloadKey)
               .build();
 
       SparkCrd sparkCrd = sparkCrdService.createSparkCrd(sparkSettings);

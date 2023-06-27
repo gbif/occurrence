@@ -43,7 +43,7 @@ public class SparkCrdFactoryService {
             sparkCrdSpec.toBuilder()
                 .mainClass(distributedConfig.mainClass)
                 .mainApplicationFile(distributedConfig.jarPath)
-                .args(Arrays.asList(sparkSettings.getSparkAppName(), "Occurrence"))
+                .args(Arrays.asList(sparkSettings.getDownloadsKey(), "Occurrence"))
                 .driver(mergeDriverSettings(sparkCrdSpec.getDriver()))
                 .sparkConf(
                     mergeSparkConfSettings(
