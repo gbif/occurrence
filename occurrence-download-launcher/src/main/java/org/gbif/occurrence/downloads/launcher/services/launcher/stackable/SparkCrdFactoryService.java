@@ -1,6 +1,6 @@
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +43,7 @@ public class SparkCrdFactoryService {
             sparkCrdSpec.toBuilder()
                 .mainClass(distributedConfig.mainClass)
                 .mainApplicationFile(distributedConfig.jarPath)
-                .args(Collections.singletonList(sparkSettings.getSparkAppName()))
+                .args(Arrays.asList(sparkSettings.getSparkAppName(), "Occurrence"))
                 .driver(mergeDriverSettings(sparkCrdSpec.getDriver()))
                 .sparkConf(
                     mergeSparkConfSettings(
@@ -148,7 +148,9 @@ public class SparkCrdFactoryService {
     Map<String, String> newSparkConf = new HashMap<>(sparkConf);
 
     Optional.ofNullable(distributedConfig.extraClassPath)
-      .ifPresent(x -> newSparkConf.put("spark.driver.extraClassPath", x));
+        .ifPresent(x -> newSparkConf.put("spark.driver.extraClassPath", x));
+    Optional.ofNullable(distributedConfig.extraClassPath)
+        .ifPresent(x -> newSparkConf.put("spark.executor.extraClassPath", x));
 
     if (parallelism < 1) {
       throw new IllegalArgumentException("sparkParallelism can't be 0");
