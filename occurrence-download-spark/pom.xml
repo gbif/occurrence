@@ -15,6 +15,9 @@
     <maven.compiler.source>8</maven.compiler.source>
     <maven.compiler.target>8</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <es.httpclient.version>4.5.10</es.httpclient.version>
+    <hadoop-compress.version>1.4-H3-SNAPSHOT</hadoop-compress.version>
   </properties>
 
   <build>
@@ -187,6 +190,12 @@
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client-sniffer</artifactId>
     </dependency>
+    <!-- Match elasticsearch-rest-high-level-client httpclient version -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${es.httpclient.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -226,7 +235,7 @@
     <dependency>
       <groupId>org.gbif.hadoop</groupId>
       <artifactId>hadoop-compress</artifactId>
-      <version>1.4-H3-SNAPSHOT</version>
+      <version>${hadoop-compress.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.apache.hadoop</groupId>
