@@ -53,20 +53,18 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
-import akka.actor.Actor;
+import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorFactory;
-import akka.routing.RoundRobinRouter;
+import akka.routing.RoundRobinPool;
 import lombok.Builder;
 import lombok.Data;
 
 /**
- * Actor that controls the multi-threaded creation of occurrence downloads.
+ * Actor that controls the multithreaded creation of occurrence downloads.
  */
 @Data
-public class DownloadMaster<T extends Occurrence> extends UntypedActor {
+public class DownloadMaster<T extends Occurrence> extends AbstractActor {
 
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
@@ -119,6 +117,15 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
     this.searchHitConverter = searchHitConverter;
   }
 
+  @Override
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(Start.class, this::runActors)
+      .match(Result.class, this::handleResult)
+      .match(Exception.class, this::handleException)
+      .build();
+  }
+
   /**
    * Aggregates the result and shutdown the system of actors
    */
@@ -149,20 +156,28 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
     }
   }
 
-  @Override
-  public void onReceive(Object message) throws Exception {
-    if (message instanceof Start) {
-      runActors();
-    } else if (message instanceof Result) {
-      results.add((Result) message);
-      nrOfResults += 1;
-      if (nrOfResults == calcNrOfWorkers) {
-        aggregateAndShutdown();
-      }
-    } else if (message instanceof Exception) {
-      LOG.error("Received an exception from a worker. Aborting. {}", message);
-      shutdown();
+  /**
+   * Handles the Result message by aggregating the result and checking if all results have been
+   * received.
+   *
+   * @param result Result message
+   */
+  private void handleResult(Result result) {
+    results.add(result);
+    nrOfResults += 1;
+    if (nrOfResults == calcNrOfWorkers) {
+      aggregateAndShutdown();
     }
+  }
+
+  /**
+   * Handles the Exception message by logging the exception and shutting down the system.
+   *
+   * @param exception Exception message
+   */
+  private void handleException(Exception exception) {
+    LOG.error("Received an exception from a worker. Aborting.", exception);
+    shutdown();
   }
 
   /**
@@ -197,7 +212,7 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
    * If the amount of records is not divisible by the calcNrOfWorkers the remaining records are assigned "evenly" among
    * the first jobs.
    */
-  private void runActors() {
+  private void runActors(Start start) {
     StopWatch stopwatch = new StopWatch();
     stopwatch.start();
     LOG.info("Acquiring Search Index Read Lock");
@@ -217,14 +232,7 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
         conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
 
       ActorRef workerRouter =
-        getContext().actorOf(new Props(DownloadActorsFactory.<T>builder()
-                                         .downloadFormat(jobConfiguration.getDownloadFormat())
-                                         .searchQueryProcessor(new SearchQueryProcessor<>(new EsResponseParser<>(
-                                           occurrenceBaseEsFieldMapper, searchHitConverter)))
-                                         .verbatimMapper(verbatimMapper)
-                                         .interpretedMapper(interpretedMapper)
-                                         .build()
-                                      ).withRouter(new RoundRobinRouter(calcNrOfWorkers)), "downloadWorkerRouter");
+          getContext().actorOf(createDownloadActor(), "downloadWorkerRouter");
 
       // Number of records that will be assigned to each job
       int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
@@ -263,9 +271,9 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
                                                      esIndex,
                                                      jobConfiguration.getExtensions());
 
-        LOG.info("Requesting a lock for job {}, detail: {}", i, work.toString());
+        LOG.info("Requesting a lock for job {}, detail: {}", i, work);
         lock.lock();
-        LOG.info("Lock granted for job {}, detail: {}", i, work.toString());
+        LOG.info("Lock granted for job {}, detail: {}", i, work);
         // Adds the Job to the list. The file name is the output file name + the sequence i
         workerRouter.tell(work, getSelf());
       }
@@ -281,34 +289,37 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
    */
   public static class Start { }
 
-  /**
-   * Creates an instance of the download actor/job to be used.
-   */
-  @Builder
-  private static class DownloadActorsFactory<T extends Occurrence> implements UntypedActorFactory {
+  /** Creates an instance of the download actor/job to be used. */
+  private Props createDownloadActor() {
 
-    private static final long serialVersionUID = 1L;
-    private final DownloadFormat downloadFormat;
-    private final SearchQueryProcessor<T> searchQueryProcessor;
-    private final Function<T,Map<String,String>> verbatimMapper;
-    private final Function<T,Map<String,String>> interpretedMapper;
+    DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();
+    SearchQueryProcessor<T> queryProcessor =
+        new SearchQueryProcessor<>(
+            new EsResponseParser<>(occurrenceBaseEsFieldMapper, searchHitConverter));
 
-    @Override
-    public Actor create() throws Exception {
-      switch (downloadFormat) {
-        case SIMPLE_CSV:
-          return new SimpleCsvDownloadActor<T>(searchQueryProcessor, interpretedMapper);
+    Props props;
+    switch (downloadFormat) {
+      case SIMPLE_CSV:
+        props = Props.create(SimpleCsvDownloadActor.class, queryProcessor, interpretedMapper);
+        break;
 
-        case DWCA:
-          return new DownloadDwcaActor<T>(searchQueryProcessor, verbatimMapper, interpretedMapper);
+      case DWCA:
+        props =
+            Props.create(
+                DownloadDwcaActor.class, queryProcessor, verbatimMapper, interpretedMapper);
+        break;
 
-        case SPECIES_LIST:
-          return new SpeciesListDownloadActor<T>(searchQueryProcessor, interpretedMapper);
+      case SPECIES_LIST:
+        props = Props.create(SpeciesListDownloadActor.class, queryProcessor, interpretedMapper);
+        break;
 
-        default:
-          throw new IllegalStateException("Download format '" + downloadFormat + "' unknown or not supported for small downloads.");
-      }
+      default:
+        throw new IllegalStateException(
+            "Download format '"
+                + downloadFormat
+                + "' unknown or not supported for small downloads.");
     }
+    return props.withRouter(new RoundRobinPool(calcNrOfWorkers));
   }
 
   /**
@@ -331,5 +342,4 @@ public class DownloadMaster<T extends Occurrence> extends UntypedActor {
     // Occurrence download lock/counter name
     private final String lockName;
   }
-
 }

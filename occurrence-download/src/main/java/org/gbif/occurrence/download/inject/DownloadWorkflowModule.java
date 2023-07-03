@@ -67,8 +67,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
 
-;
-
 /**
  * Utility factory class to create instances of common complex objects required by Download Actions.
  */
@@ -243,23 +241,25 @@ public class DownloadWorkflowModule  {
     return  (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record);
   }
 
-  /**
-   * Creates an ActorRef that holds an instance of {@link DownloadMaster}.
-   */
+  /** Creates an ActorRef that holds an instance of {@link DownloadMaster}. */
   public ActorRef downloadMaster(ActorSystem system) {
-    return system.actorOf(new Props(() -> DownloadMaster.builder()
-                                            .workflowConfiguration(workflowConfiguration)
-                                            .masterConfiguration(masterConfiguration())
-                                            .esClient(esClient(workflowConfiguration))
-                                            .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
-                                            .jobConfiguration(downloadJobConfiguration)
-                                            .aggregator(getAggregator())
-                                            .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
-                                            .interpretedMapper(interpreterMapper())
-                                            .verbatimMapper(verbatimMapper())
-                                            .searchHitConverter(searchHitConverter())
-                                            .build()),
-                          "DownloadMaster" + downloadJobConfiguration.getDownloadKey());
+    return system.actorOf(
+        Props.create(
+            DownloadMaster.class,
+            () ->
+                DownloadMaster.builder()
+                    .workflowConfiguration(workflowConfiguration)
+                    .masterConfiguration(masterConfiguration())
+                    .esClient(esClient(workflowConfiguration))
+                    .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
+                    .jobConfiguration(downloadJobConfiguration)
+                    .aggregator(getAggregator())
+                    .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
+                    .interpretedMapper(interpreterMapper())
+                    .verbatimMapper(verbatimMapper())
+                    .searchHitConverter(searchHitConverter())
+                    .build()),
+        "DownloadMaster" + downloadJobConfiguration.getDownloadKey());
   }
 
   /**
