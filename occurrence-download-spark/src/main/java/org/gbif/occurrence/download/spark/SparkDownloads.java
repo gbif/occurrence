@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.spark;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.DownloadWorkflow;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
@@ -42,7 +43,11 @@ public class SparkDownloads {
       .appName("Download job " + downloadKey)
       .config(sparkConf)
       .enableHiveSupport();
-    return sparkBuilder.getOrCreate();
+    SparkSession session = sparkBuilder.getOrCreate();
+
+    UDFS.registerUdfs(session);
+
+    return session;
   }
 
 }
