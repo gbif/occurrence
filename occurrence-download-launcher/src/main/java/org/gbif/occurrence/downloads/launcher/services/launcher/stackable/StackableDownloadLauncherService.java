@@ -147,7 +147,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
               phase = sparkController.getApplicationPhase(sparkAppName);
             }
 
-            log.info("Spark Application {}, finished with status {}", sparkAppName, phase);
+            log.info("Spark Application {} is finished with status {}", sparkAppName, phase);
           } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
           } finally {

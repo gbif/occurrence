@@ -73,6 +73,9 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
         throw new IllegalStateException("Failed to process message");
       }
 
+      // NOTE: Download status for the registry will be set to "FINISHED" in the occurrence-ws
+      // callback when the job download is completed.
+
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
       throw new AmqpRejectAndDontRequeueException(ex.getMessage());
