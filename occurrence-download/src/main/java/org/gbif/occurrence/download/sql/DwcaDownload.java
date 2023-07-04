@@ -77,7 +77,7 @@ public class DwcaDownload {
   @SneakyThrows
   private String dropTablesQuery() {
     if (dropTablesQuery == null) {
-      downloadQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaDropTableQueryHQL);
+      dropTablesQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaDropTableQueryHQL);
     }
     return dropTablesQuery;
   }
