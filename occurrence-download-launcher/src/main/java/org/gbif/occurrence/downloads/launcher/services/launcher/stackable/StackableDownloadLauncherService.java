@@ -79,7 +79,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
       sparkController.submitSparkApplication(sparkCrd, sparkAppName);
 
-      asyncStatusCheck(sparkAppName);
+      asyncStatusCheck(downloadKey, sparkAppName);
 
       return JobStatus.RUNNING;
     } catch (Exception ex) {
@@ -136,7 +136,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
     return result;
   }
 
-  private void asyncStatusCheck(String sparkAppName) {
+  private void asyncStatusCheck(String downloadKey, String sparkAppName) {
     CompletableFuture.runAsync(
         () -> {
           try {
@@ -151,7 +151,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
           } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
           } finally {
-            lockerService.unlock(sparkAppName);
+            lockerService.unlock(downloadKey);
 
             if (stackableConfiguration.deletePodsOnFinish) {
               try {
