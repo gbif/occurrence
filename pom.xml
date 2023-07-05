@@ -72,7 +72,7 @@
   </repositories>
 
   <modules>
-    <module>occurrence-cli</module>
+    <!--<module>occurrence-cli</module>-->
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
     <module>occurrence-persistence</module>
@@ -81,7 +81,7 @@
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
     <module>occurrence-hive</module>
-    <module>occurrence-download</module>
+    <!--<module>occurrence-download</module>-->
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
     <module>occurrence-integration-tests</module>
@@ -93,12 +93,12 @@
     <module>occurrence-download-launcher</module>
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
-    <module>occurrence-download-cli</module>
   </modules>
 
   <properties>
     <jdkLevel>1.8</jdkLevel>
     <release.tagNameBase>occurrence</release.tagNameBase>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud-zookeeper.version>2.2.5.RELEASE</spring-cloud-zookeeper.version>
@@ -136,8 +136,9 @@
     <commons-digester.version>2.1</commons-digester.version>
     <commons-io.version>2.4</commons-io.version>
     <commmons-lang.version>3.12.0</commmons-lang.version>
-    <curator.version>4.3.0</curator.version>
+    <curator.version>5.1.0</curator.version>
     <curator-test.version>4.3.0</curator-test.version>
+    <zookeeper.version>3.6.2</zookeeper.version>
     <dbunit.version>2.4.9</dbunit.version>
     <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
@@ -153,7 +154,7 @@
     <httpclient.version>4.5.2</httpclient.version>
     <httpcore.version>4.4.13</httpcore.version>
 
-    <jackson.version>2.11.3</jackson.version>
+    <jackson.version>2.13.1</jackson.version>
     <json.version>20220320</json.version>
     <jcommander.version>1.35</jcommander.version>
     <logback.version>1.1.5</logback.version>
@@ -193,14 +194,14 @@
     <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
 
-    <avro.version>1.11.1</avro.version>
+    <avro.version>1.11.0</avro.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-H3-SNAPSHOT</hbase-utils.version>
     <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.46-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.3.0-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.3.0</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -214,7 +215,7 @@
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <pipelines.version>2.13.0</pipelines.version>
+    <pipelines.version>2.15.0-H3-SNAPSHOT</pipelines.version>
     <gbif.kvs.version>1.26-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.0</gbif-predicates.version>
@@ -242,7 +243,7 @@
     <spark.version>3.3.0</spark.version>
     <databricks.version>3.4.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
-    <scala.library.version>2.12.17</scala.library.version>
+    <scala.library.version>2.12.15</scala.library.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -271,7 +272,7 @@
         <hbase.version>2.5.3-hadoop3</hbase.version>
         <hive.version>3.1.3</hive.version>
         <oozie.version>4.1.0</oozie.version>
-        <zookeeper.version>3.5.8</zookeeper.version>
+        <zookeeper.version>3.6.2</zookeeper.version>
         <occurrence.environment>dev</occurrence.environment>
         <occurrence.env_prefix>dev</occurrence.env_prefix>
         <!-- Hive table name -->
@@ -290,7 +291,7 @@
         <hbase.version>2.4.12</hbase.version>
         <hive.version>3.1.3</hive.version>
         <oozie.version>4.1.0-cdh5.16.2</oozie.version>
-        <zookeeper.version>3.5.8</zookeeper.version>
+        <zookeeper.version>3.6.2</zookeeper.version>
       </properties>
     </profile>
   </profiles>
@@ -1292,8 +1293,7 @@
       <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-avro_${scala.tools.version}</artifactId>
-        <version>${databricks.version}</version>
-        <scope>runtime</scope>
+        <version>${spark.version}</version>
       </dependency>
 
       <!-- TEST PIECES -->
