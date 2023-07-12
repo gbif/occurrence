@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.192.7-H3-SNAPSHOT</version>
+  <version>0.193.0-H3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -57,22 +57,27 @@
       <url>https://repository.gbif.org/repository/thirdparty/</url>
     </repository>
     <repository>
+      <id>typesafe</id>
+      <name>Typesafe Repository</name>
+      <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
+    </repository>
+    <repository>
       <id>osgeo</id>
       <name>Open Source Geospatial Foundation Repository</name>
       <url>https://repo.osgeo.org/repository/release/</url>
     </repository>
     <repository>
-      <id>ala-release</id>
-      <url>https://repository.gbif.org/repository/ala-release/</url>
+      <id>ALA</id>
+      <url>https://nexus.ala.org.au/content/repositories/releases</url>
     </repository>
     <repository>
-      <id>typesafe-release</id>
-      <url>https://repository.gbif.org/repository/typesafe/</url>
+      <id>ALA-snapshots</id>
+      <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
     </repository>
   </repositories>
 
   <modules>
-    <!--<module>occurrence-cli</module>-->
+    <module>occurrence-cli</module>
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
     <module>occurrence-persistence</module>
@@ -81,7 +86,7 @@
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
     <module>occurrence-hive</module>
-    <!--<module>occurrence-download</module>-->
+    <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
     <module>occurrence-integration-tests</module>
@@ -93,6 +98,7 @@
     <module>occurrence-download-launcher</module>
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
+    <module>occurrence-table-build-trino</module>
   </modules>
 
   <properties>
@@ -143,7 +149,7 @@
     <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
     <!--
-      Important! Guava is highly fragile across webservices, YARN MR jobs, downloads and
+      Important! Guava is highly fragile across webservices, YARN MR jobs, downloads
       and the CLIs.  Be very sure that all environments are tested thoroughly before
       changing.
     -->
@@ -201,24 +207,25 @@
     <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.46-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.3.0</gbif-api.version>
+    <gbif-api.version>1.5.0</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
     <gbif-common-ws.version>1.24</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-metadata-profile.version>2.1</gbif-metadata-profile.version>
+    <gbif-metadata-profile.version>2.2-SNAPSHOT</gbif-metadata-profile.version>
     <gbif-parsers.version>0.59</gbif-parsers.version>
-    <gbif-postal-service.version>1.4</gbif-postal-service.version>
-    <gbif-registry.version>3.88</gbif-registry.version>
+    <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
+    <gbif-registry.version>3.94.4</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
     <pipelines.version>2.15.0-H3-SNAPSHOT</pipelines.version>
     <gbif.kvs.version>1.26-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
-    <gbif-predicates.version>1.0</gbif-predicates.version>
+    <gbif-predicates.version>1.1-SNAPSHOT</gbif-predicates.version>
+    <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -241,7 +248,7 @@
 
     <!-- Spark -->
     <spark.version>3.3.0</spark.version>
-    <databricks.version>3.4.0</databricks.version>
+    <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
     <scala.library.version>2.12.15</scala.library.version>
 
@@ -253,7 +260,7 @@
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
 
     <!-- Tools-->
-    <lombok.version>1.18.20</lombok.version>
+    <lombok.version>1.18.28</lombok.version>
 
     <!-- Extensions -->
     <wagon-ssh.version>2.4</wagon-ssh.version>
@@ -287,7 +294,7 @@
       <id>prod</id>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>3.3.4</hadoop.version>
+        <hadoop.version>3.2.4</hadoop.version>
         <hbase.version>2.4.12</hbase.version>
         <hive.version>3.1.3</hive.version>
         <oozie.version>4.1.0-cdh5.16.2</oozie.version>
@@ -545,6 +552,11 @@
         <groupId>org.gbif.predicates</groupId>
         <artifactId>sql-predicates</artifactId>
         <version>${gbif-predicates.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.stackable</groupId>
+        <artifactId>stackable-spark</artifactId>
+        <version>${stackable-spark.version}</version>
       </dependency>
 
       <!-- Spring dependencies -->
@@ -993,6 +1005,11 @@
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-hadoop2-compat</artifactId>
         <version>${hbase.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-auth</artifactId>
+        <version>${hadoop.version}</version>
       </dependency>
       <!-- end hadoop -->
 

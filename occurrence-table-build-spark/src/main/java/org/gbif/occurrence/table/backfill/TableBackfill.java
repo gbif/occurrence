@@ -27,8 +27,11 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
 import lombok.AllArgsConstructor;
@@ -178,17 +181,27 @@ public class TableBackfill {
      if(configuration.isUsePartitionedTable()) {
        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
      }
-     spark.read()
-       .format("avro")
-       .load(fromSourceDir + "/*.avro")
-       .select(select)
+     Dataset<Row> input  = spark.read()
+                                 .format("avro")
+                                 .load(fromSourceDir + "/*.avro")
+                                 .select(select);
+
+     if (configuration.getTablePartitions() != null &&  input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
+       input = input
+                .withColumn("_salted_key", col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
+                .repartition(configuration.getTablePartitions())
+                .drop("_salted_key");
+     }
+
+     input
        .write()
        .format("parquet")
-       .option("compression", "GZ")
+       .option("compression", "Snappy")
        .mode("overwrite")
        .insertInto(saveToTable);
    }
   }
+
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
     spark.sql(configuration.isUsePartitionedTable()? createExtensionExternalTable(extensionTable) : createExtensionTable(extensionTable));
 
@@ -215,7 +228,7 @@ public class TableBackfill {
    return String.format("CREATE TABLE IF NOT EXISTS %s\n"
                         + '(' + extensionTable.getSchema().getFields().stream().map(f -> f.name() + " STRING").collect(
                           Collectors.joining(",\n")) + ')'
-                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")\n",
+                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")\n",
                         extensionTableName(extensionTable));
   }
 
@@ -225,7 +238,7 @@ public class TableBackfill {
                            Collectors.joining(",\n")) + ')'
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "LOCATION '%s'"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")\n",
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")\n",
                          extensionTableName(extensionTable),
                          Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
@@ -246,7 +259,7 @@ public class TableBackfill {
                          + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
                          + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
                          + "publisher STRING, license STRING, rightsHolder STRING)\n"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")", configuration.getTableName());
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")", configuration.getTableName());
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
@@ -302,7 +315,7 @@ public class TableBackfill {
                          + OccurrenceHDFSTableDefinition.definition().stream()
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                            .collect(Collectors.joining(", \n"))
-                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZ\")",
+                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")",
                          configuration.getTableName());
   }
 
@@ -316,7 +329,7 @@ public class TableBackfill {
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "STORED AS PARQUET "
                          + "LOCATION '%s'"
-                         + "TBLPROPERTIES (\"parquet.compression\"=\"GZ\", \"auto.purge\"=\"true\")",
+                         + "TBLPROPERTIES (\"parquet.compression\"=\"Snappy\", \"auto.purge\"=\"true\")",
                          configuration.getTableName(),
                          Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
 

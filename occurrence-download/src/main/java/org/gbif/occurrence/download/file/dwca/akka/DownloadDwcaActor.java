@@ -35,8 +35,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,7 +60,7 @@ import org.supercsv.util.CsvContext;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
-import akka.actor.UntypedActor;
+import akka.actor.AbstractActor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -72,7 +73,7 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  */
 @Slf4j
 @AllArgsConstructor
-public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActor {
+public class DownloadDwcaActor<T extends VerbatimOccurrence> extends AbstractActor {
 
   private final SearchQueryProcessor<T> searchQueryProcessor;
 
@@ -80,7 +81,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
 
   private final Function<T,Map<String,String>> interpretedMapper;
 
-  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new HashMap<>();
+  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new EnumMap<>(Extension.class);
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -141,12 +142,11 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
    */
   private void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, T record) throws IOException {
     List<MediaObject> multimedia = getMedia(record);
-    if (multimedia != null) {
-      for (MediaObject mediaObject : multimedia) {
-        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, getRecordKey(record)),
-                                  MULTIMEDIA_COLUMNS,
-                                  MEDIA_CELL_PROCESSORS);
-      }
+    for (MediaObject mediaObject : multimedia) {
+      multimediaCsvWriter.write(
+          new InnerMediaObject(mediaObject, getRecordKey(record)),
+          MULTIMEDIA_COLUMNS,
+          MEDIA_CELL_PROCESSORS);
     }
   }
 
@@ -160,14 +160,14 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
     if (record instanceof Occurrence) {
       return ((Occurrence)record).getMedia();
     }
-    return null;
+    return Collections.emptyList();
   }
 
   /**
    * Writes the extensions objects into the file referenced by extensionCsvWriter.
    */
   private void writeExtensions(DownloadFileWork work, T record) throws IOException {
-    if (record.getExtensions() != null && !work.getExtensions().isEmpty()) {
+    if (!work.getExtensions().isEmpty()) {
       Map<String,List<Map<Term, String>>> exportExtensions = record.getExtensions()
         .entrySet().stream()
         .filter(e ->  work.getExtensions().contains(Extension.fromRowType(e.getKey())))
@@ -245,12 +245,10 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
   }
 
   @Override
-  public void onReceive(Object message) throws Exception {
-    if (message instanceof DownloadFileWork) {
-      doWork((DownloadFileWork) message);
-    } else {
-      unhandled(message);
-    }
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(DownloadFileWork.class, this::doWork)
+      .build();
   }
 
   /**

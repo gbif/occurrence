@@ -111,7 +111,7 @@ public class FromSearchDownloadAction {
       Mutex readMutex = module.provideReadLock(curatorIndices);
       readMutex.acquire();
       // start the calculation
-      master.tell(new DownloadMaster.Start());
+      master.tell(new DownloadMaster.Start(), ActorRef.noSender());
       while (!master.isTerminated()) {
         try {
           Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
@@ -119,7 +119,7 @@ public class FromSearchDownloadAction {
           log.error("Thread interrupted", ie);
         }
       }
-      system.shutdown();
+      system.terminate();
       readMutex.release();
     }
   }

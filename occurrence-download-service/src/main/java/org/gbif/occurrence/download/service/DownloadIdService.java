@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class DownloadIdService {
 
-  private final String startTime = new SimpleDateFormat("yyMMddHHmmssSSS").format(new Date());;
+  private final String startTime = new SimpleDateFormat("yyMMddHHmmssSSS").format(new Date());
   private final AtomicLong counter = new AtomicLong();
 
   private static String longPadding(long number) {

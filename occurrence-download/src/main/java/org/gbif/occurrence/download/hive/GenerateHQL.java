@@ -71,7 +71,7 @@ public class GenerateHQL {
       File outDir = new File(args[0]);
       Preconditions.checkState(outDir.exists() && outDir.isDirectory(), "Output directory must exist");
 
-      // create the sub directories into which we will write
+      // create the subdirectories into which we will write
       File createTablesDir = new File(outDir, CREATE_TABLES_DIR);
       File downloadDir = new File(outDir, DOWNLOAD_DIR);
       File simpleCsvDownloadDir = new File(outDir, SIMPLE_CSV_DOWNLOAD_DIR);
@@ -177,12 +177,14 @@ public class GenerateHQL {
 
   public static void generateDwcaQueryHQL(Configuration cfg, Writer writer) throws IOException, TemplateException {
       Template template = cfg.getTemplate("download/execute-query.ftl");
-      Map<String, Object> data = ImmutableMap.of(
-        "verbatimFields", HIVE_QUERIES.selectVerbatimFields().values(),
-        "interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values(),
-        "initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values(),
-        "extensions", ExtensionTable.tableExtensions()
-      );
+      Map<String, Object> data = ImmutableMap.<String, Object>builder()
+        .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
+        .put("interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values())
+        .put("initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values())
+        .put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values())
+        .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
+        .put("extensions", ExtensionTable.tableExtensions())
+        .build();
       template.process(data, writer);
   }
 

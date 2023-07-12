@@ -17,5 +17,3 @@ coreName: occurrence
 tableName: table_name
 
 warehouseLocation: /path_to_hive_warehouse/
-
-hiveThriftAddress: thrift://some-address

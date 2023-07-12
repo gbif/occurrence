@@ -143,12 +143,9 @@ public class  DownloadPrepareAction implements Closeable {
                                                   .workflowConfiguration(new WorkflowConfiguration())
                                                   .build()
                                                     .downloadPrepareAction(DwcTerm.valueOf(args[3]), args[4])) {
-      occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
+      occurrenceCount.updateDownloadData(args[0], args[1], args[2]);
     }
   }
-
-
-
 
   /**
    * Method that determines if the search query produces a "small" download file.

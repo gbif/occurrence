@@ -95,7 +95,6 @@ public class PredicateFactory {
   }
 
   /**
-   * @param name
    * @return the search enum or null if it cant be converted
    */
   private static OccurrenceSearchParameter toEnumParam(String name) {

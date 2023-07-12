@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.192.7-H3-SNAPSHOT</version>
+    <version>0.193.0-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-spark-udf</artifactId>
@@ -85,6 +85,16 @@
       <artifactId>spark-hive_${scala.tools.version}</artifactId>
       <version>${spark.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- Caching -->
+    <dependency>
+      <groupId>org.cache2k</groupId>
+      <artifactId>cache2k-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.cache2k</groupId>
+      <artifactId>cache2k-core</artifactId>
     </dependency>
 
     <!-- Avro -->

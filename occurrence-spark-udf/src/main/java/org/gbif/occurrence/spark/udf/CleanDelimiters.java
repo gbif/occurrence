@@ -14,31 +14,31 @@
 package org.gbif.occurrence.spark.udf;
 
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+
+import org.cache2k.Cache;
 
 import lombok.SneakyThrows;
 
 public class CleanDelimiters implements Function<String,String> {
 
-  private final ConcurrentMap<String,String> cache;
+  private final Cache<String,String> cache;
   public CleanDelimiters() {
-    cache = UDFS.createLRUMap(100_00);
+    cache = UDFS.createLRUMap(100_00, CleanDelimiters::cleanDelimiters);
   }
 
   private static String cleanDelimiters(String value) {
     return DELIMETERS_MATCH_PATTERN.matcher(value).replaceAll(" ").trim();
   }
 
-  public static final String DELIMETERS_MATCH =
+  public static final String DELIMITERS_MATCH =
     "\\t|\\n|\\r|(?:(?>\\u000D\\u000A)|[\\u000A\\u000B\\u000C\\u000D\\u0085\\u2028\\u2029\\u0000])";
 
-  public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMETERS_MATCH);
+  public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMITERS_MATCH);
   @Override
   @SneakyThrows
   public String apply(String value) {
-    return value != null? cache.computeIfAbsent(value, CleanDelimiters::cleanDelimiters) : null;
+    return value != null? cache.get(value) : null;
   }
 }

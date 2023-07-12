@@ -16,6 +16,8 @@ package org.gbif.occurrence.table.backfill;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 import org.yaml.snakeyaml.parser.ParserException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,8 +55,8 @@ public class TableBackfillConfiguration {
 
   private final HdfsLockConfiguration hdfsLock;
 
-  @Builder.Default
-  private int tablePartitions = 200;
+  @Nullable
+  private Integer tablePartitions;
 
   private final String sourceDirectory;
 

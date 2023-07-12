@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.192.7-H3-SNAPSHOT</version>
+    <version>0.193.0-H3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -23,7 +23,7 @@
     <metrics-core.version>2.2.0</metrics-core.version>
     <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <akka-actor.version>2.5.10</akka-actor.version>
+    <akka-actor.version>2.5.19</akka-actor.version>
     <scala.library.version>2.12.15</scala.library.version>
 
     <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
