@@ -115,7 +115,7 @@ public class OccurrenceHDFSTableDefinition {
                                                       .put(GbifInternalTerm.installationKey, columnFor(GbifInternalTerm.installationKey))
                                                       .put(GbifInternalTerm.institutionKey, columnFor(GbifInternalTerm.institutionKey))
                                                       .put(GbifInternalTerm.collectionKey, columnFor(GbifInternalTerm.collectionKey))
-                                                      .put(GbifInternalTerm.projectId, columnFor(GbifInternalTerm.projectId))
+                                                      .put(GbifTerm.projectId, columnFor(GbifTerm.projectId))
                                                       .put(GbifInternalTerm.programmeAcronym, columnFor(GbifInternalTerm.programmeAcronym))
                                                       .put(GbifInternalTerm.hostingOrganizationKey, columnFor(GbifInternalTerm.hostingOrganizationKey))
                                                       .put(GbifInternalTerm.isInCluster, columnFor(GbifInternalTerm.isInCluster))

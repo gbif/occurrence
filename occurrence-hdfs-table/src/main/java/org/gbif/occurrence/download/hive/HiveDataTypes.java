@@ -68,7 +68,7 @@ public final class HiveDataTypes {
       DwcTerm.preparations,
       DwcTerm.samplingProtocol,
       GbifInternalTerm.parentEventGbifId,
-      GbifInternalTerm.projectId
+      GbifTerm.projectId
     );
 
   // dates are all stored as BigInt

@@ -214,7 +214,7 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
     <download-query-tools.version>1.47</download-query-tools.version>
-    <dwc-api.version>1.43</dwc-api.version>
+    <dwc-api.version>1.45-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.15</dwca-io.version>
     <gbif-api.version>1.5.0</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
@@ -233,7 +233,7 @@
     <pipelines.version>2.15.0</pipelines.version>
     <gbif.kvs.version>1.22</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
-    <gbif-predicates.version>1.0</gbif-predicates.version>
+    <gbif-predicates.version>1.1-SNAPSHOT</gbif-predicates.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
