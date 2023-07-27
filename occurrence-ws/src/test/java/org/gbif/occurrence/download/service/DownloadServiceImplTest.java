@@ -13,20 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Pattern;
-import org.apache.oozie.client.OozieClient;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingRequest;
@@ -46,12 +32,28 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.oozie.client.OozieClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DownloadServiceImplTest {
@@ -139,13 +141,27 @@ class DownloadServiceImplTest {
     allDownloads.add(job2);
     // always get 3 job infos until we hit an offset of 100
     when(downloadService.listByUser(
-            any(String.class), any(Pageable.class), ArgumentMatchers.anySet()))
+            any(String.class),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(Date.class),
+            any(Boolean.class)))
         .thenReturn(new PagingResponse<>(0L, 0, 0L, emptyDownloads));
-    when(downloadService.listByUser(eq("peter"), any(Pageable.class), ArgumentMatchers.anySet()))
+    when(downloadService.listByUser(
+            eq("peter"),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(Date.class),
+            any(Boolean.class)))
         .thenReturn(
             new PagingResponse<>(
                 0L, peterDownloads.size(), (long) peterDownloads.size(), peterDownloads));
-    when(downloadService.listByUser(eq("karl"), any(Pageable.class), ArgumentMatchers.anySet()))
+    when(downloadService.listByUser(
+            eq("karl"),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(Date.class),
+            any(Boolean.class)))
         .thenReturn(
             new PagingResponse<>(
                 0L, peterDownloads.size(), (long) peterDownloads.size(), karlDownloads));
@@ -159,13 +175,13 @@ class DownloadServiceImplTest {
     PagingResponse<Download> x = downloadService.list(req, Collections.emptySet(), null);
     assertEquals(2, x.getResults().size());
 
-    x = downloadService.listByUser("harald", req, Collections.emptySet());
+    x = downloadService.listByUser("harald", req, Collections.emptySet(), new Date(), true);
     assertEquals(0, x.getResults().size());
 
-    x = downloadService.listByUser("karl", req, Collections.emptySet());
+    x = downloadService.listByUser("karl", req, Collections.emptySet(), new Date(), true);
     assertEquals(1, x.getResults().size());
 
-    x = downloadService.listByUser("peter", req, Collections.emptySet());
+    x = downloadService.listByUser("peter", req, Collections.emptySet(), new Date(), true);
     assertEquals(1, x.getResults().size());
   }
 
