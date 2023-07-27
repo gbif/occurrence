@@ -18,7 +18,9 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadStatistics;
+import org.gbif.api.model.registry.CountryOccurrenceDownloadUsage;
 import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
+import org.gbif.api.model.registry.OrganizationOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Country;
 
@@ -33,12 +35,16 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
+import org.gbif.api.vocabulary.CountryUsageSortField;
+import org.gbif.api.vocabulary.DatasetUsageSortField;
+import org.gbif.api.vocabulary.OrganizationUsageSortField;
+import org.gbif.api.vocabulary.SortOrder;
+
 public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService {
 
-  private Map<String,Download> downloads = new HashMap<>();
+  private Map<String, Download> downloads = new HashMap<>();
 
-
-  private Map<String,List<DatasetOccurrenceDownloadUsage>> usages = new HashMap<>();
+  private Map<String, List<DatasetOccurrenceDownloadUsage>> usages = new HashMap<>();
 
   private static final String DOI_PREFIX = "10.5072";
 
@@ -70,14 +76,12 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
     if (Objects.nonNull(pageable)) {
       response.setLimit(pageable.getLimit());
       response.setOffset(pageable.getOffset());
-      downloadStream = downloadStream.skip(pageable.getOffset())
-                        .limit(pageable.getLimit());
+      downloadStream = downloadStream.skip(pageable.getOffset()).limit(pageable.getLimit());
     }
-
 
     List<Download> results = downloadStream.collect(Collectors.toList());
 
-    response.setCount((long)results.size());
+    response.setCount((long) results.size());
     response.setResults(results);
     return response;
   }
@@ -93,9 +97,28 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
   }
 
   @Override
-  public PagingResponse<Download> listByUser(@NotNull String user, @Nullable Pageable pageable,
-                                             @Nullable Set<Download.Status> statuses) {
-    return filterDownloads(pageable, d -> user.equals(d.getRequest().getCreator()) && statuses.contains(d.getStatus()));
+  public long count(
+      @org.jetbrains.annotations.Nullable Set<Download.Status> set,
+      @org.jetbrains.annotations.Nullable String s) {
+    return 0;
+  }
+
+  @Override
+  public PagingResponse<Download> listByUser(
+      @NotNull String user,
+      @Nullable Pageable pageable,
+      @Nullable Set<Download.Status> statuses,
+      @Nullable Date from,
+      @Nullable Boolean statistics) {
+    return filterDownloads(
+        pageable,
+        d -> user.equals(d.getRequest().getCreator()) && statuses.contains(d.getStatus()));
+  }
+
+  @Override
+  public long countByUser(
+      @NotNull String s, @org.jetbrains.annotations.Nullable Set<Download.Status> set, Date date) {
+    return 0;
   }
 
   @Override
@@ -105,16 +128,45 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
 
   @Override
   public PagingResponse<DatasetOccurrenceDownloadUsage> listDatasetUsages(
-    @NotNull String downloadKey, @Nullable Pageable pageable
-  ) {
+      @NotNull String downloadKey, @Nullable Pageable pageable) {
     PagingResponse<DatasetOccurrenceDownloadUsage> response = new PagingResponse<>(pageable);
-    List<DatasetOccurrenceDownloadUsage> downloadUsages = usages.get(downloadKey).stream()
-                                                            .skip(pageable.getOffset())
-                                                            .limit(pageable.getLimit())
-                                                            .collect(Collectors.toList());
-    response.setCount((long)downloadUsages.size());
+    List<DatasetOccurrenceDownloadUsage> downloadUsages =
+        usages.get(downloadKey).stream()
+            .skip(pageable.getOffset())
+            .limit(pageable.getLimit())
+            .collect(Collectors.toList());
+    response.setCount((long) downloadUsages.size());
     response.setResults(downloadUsages);
     return response;
+  }
+
+  @Override
+  public PagingResponse<DatasetOccurrenceDownloadUsage> listDatasetUsages(
+      @NotNull String s,
+      @org.jetbrains.annotations.Nullable String s1,
+      @org.jetbrains.annotations.Nullable DatasetUsageSortField datasetUsageSortField,
+      @org.jetbrains.annotations.Nullable SortOrder sortOrder,
+      @org.jetbrains.annotations.Nullable Pageable pageable) {
+    return null;
+  }
+
+  @Override
+  public PagingResponse<OrganizationOccurrenceDownloadUsage> listOrganizationUsages(
+      @NotNull String s,
+      @org.jetbrains.annotations.Nullable String s1,
+      @org.jetbrains.annotations.Nullable OrganizationUsageSortField organizationUsageSortField,
+      @org.jetbrains.annotations.Nullable SortOrder sortOrder,
+      @org.jetbrains.annotations.Nullable Pageable pageable) {
+    return null;
+  }
+
+  @Override
+  public PagingResponse<CountryOccurrenceDownloadUsage> listCountryUsages(
+      @NotNull String s,
+      @org.jetbrains.annotations.Nullable CountryUsageSortField countryUsageSortField,
+      @org.jetbrains.annotations.Nullable SortOrder sortOrder,
+      @org.jetbrains.annotations.Nullable Pageable pageable) {
+    return null;
   }
 
   @Override
@@ -124,75 +176,81 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
   }
 
   @Override
-  public Map<Integer, Map<Integer, Long>> getDownloadsByUserCountry(@Nullable Date fromDate, @Nullable Date toDate, @Nullable Country country) {
+  public Map<Integer, Map<Integer, Long>> getDownloadsByUserCountry(
+      @Nullable Date fromDate, @Nullable Date toDate, @Nullable Country country) {
     return null;
   }
 
   @Override
-  public Map<Integer, Map<Integer, Long>> getDownloadsBySource(@Nullable Date fromDate, @Nullable Date toDate, @Nullable String source) {
-    return null;
-  }
-
-  /**
-   * Retrieves downloaded records monthly stats by country (user and publishing country) and dataset.
-   */
-  @Override
-  public Map<Integer, Map<Integer, Long>> getDownloadedRecordsByDataset(@Nullable Date fromDate,
-                                                                 @Nullable Date toDate,
-                                                                 @Nullable Country publishingCountry,
-                                                                 @Nullable UUID datasetKey,
-                                                                 @Nullable UUID publishingOrgKey) {
+  public Map<Integer, Map<Integer, Long>> getDownloadsBySource(
+      @Nullable Date fromDate, @Nullable Date toDate, @Nullable String source) {
     return null;
   }
 
   /**
-   * Retrieves downloads monthly stats by country (user and publishing country) and dataset.
+   * Retrieves downloaded records monthly stats by country (user and publishing country) and
+   * dataset.
    */
   @Override
-  public Map<Integer, Map<Integer, Long>> getDownloadsByDataset(@Nullable Date fromDate,
-                                                         @Nullable Date toDate,
-                                                         @Nullable Country publishingCountry,
-                                                         @Nullable UUID datasetKey,
-                                                         @Nullable UUID publishingOrgKey) {
+  public Map<Integer, Map<Integer, Long>> getDownloadedRecordsByDataset(
+      @Nullable Date fromDate,
+      @Nullable Date toDate,
+      @Nullable Country publishingCountry,
+      @Nullable UUID datasetKey,
+      @Nullable UUID publishingOrgKey) {
     return null;
   }
 
-  /**
-   * Retrieves downloads monthly stats by country (user and publishing country) and dataset.
-   */
+  /** Retrieves downloads monthly stats by country (user and publishing country) and dataset. */
   @Override
-  public PagingResponse<DownloadStatistics> getDownloadStatistics(@Nullable Date fromDate,
-                                                           @Nullable Date toDate,
-                                                           @Nullable Country publishingCountry,
-                                                           @Nullable UUID datasetKey,
-                                                           @Nullable UUID publishingOrgKey,
-                                                           @Nullable Pageable page) {
+  public Map<Integer, Map<Integer, Long>> getDownloadsByDataset(
+      @Nullable Date fromDate,
+      @Nullable Date toDate,
+      @Nullable Country publishingCountry,
+      @Nullable UUID datasetKey,
+      @Nullable UUID publishingOrgKey) {
+    return null;
+  }
+
+  /** Retrieves downloads monthly stats by country (user and publishing country) and dataset. */
+  @Override
+  public PagingResponse<DownloadStatistics> getDownloadStatistics(
+      @Nullable Date fromDate,
+      @Nullable Date toDate,
+      @Nullable Country publishingCountry,
+      @Nullable UUID datasetKey,
+      @Nullable UUID publishingOrgKey,
+      @Nullable Pageable page) {
     return null;
   }
 
   @Override
   public void createUsages(@NotNull String downloadKey, @NotNull Map<UUID, Long> downloadUsages) {
-    usages.put(downloadKey,
-    downloadUsages.entrySet().stream().map(entry -> {
-      UUID datasetKey = entry.getKey();
-      DatasetOccurrenceDownloadUsage datasetOccurrenceDownloadUsage = new DatasetOccurrenceDownloadUsage();
-      datasetOccurrenceDownloadUsage.setDownloadKey(downloadKey);
-      datasetOccurrenceDownloadUsage.setDatasetKey(datasetKey);
-      datasetOccurrenceDownloadUsage.setNumberRecords(entry.getValue());
-      datasetOccurrenceDownloadUsage.setDownload(downloads.get(downloadKey));
-      datasetOccurrenceDownloadUsage.setDatasetCitation(datasetKey.toString());
-      datasetOccurrenceDownloadUsage.setDatasetTitle(datasetKey.toString());
-      return datasetOccurrenceDownloadUsage;
-    }).collect(Collectors.toList()));
+    usages.put(
+        downloadKey,
+        downloadUsages.entrySet().stream()
+            .map(
+                entry -> {
+                  UUID datasetKey = entry.getKey();
+                  DatasetOccurrenceDownloadUsage datasetOccurrenceDownloadUsage =
+                      new DatasetOccurrenceDownloadUsage();
+                  datasetOccurrenceDownloadUsage.setDownloadKey(downloadKey);
+                  datasetOccurrenceDownloadUsage.setDatasetKey(datasetKey);
+                  datasetOccurrenceDownloadUsage.setNumberRecords(entry.getValue());
+                  datasetOccurrenceDownloadUsage.setDownload(downloads.get(downloadKey));
+                  datasetOccurrenceDownloadUsage.setDatasetCitation(datasetKey.toString());
+                  datasetOccurrenceDownloadUsage.setDatasetTitle(datasetKey.toString());
+                  return datasetOccurrenceDownloadUsage;
+                })
+            .collect(Collectors.toList()));
   }
 
   @Override
   public PagingResponse<Download> listByEraseAfter(
-    @Nullable Pageable page,
-    @Nullable String eraseAfter,
-    @Nullable Long size,
-    @Nullable String erasureNotification
-  ) {
+      @Nullable Pageable page,
+      @Nullable String eraseAfter,
+      @Nullable Long size,
+      @Nullable String erasureNotification) {
     return null;
   }
 }

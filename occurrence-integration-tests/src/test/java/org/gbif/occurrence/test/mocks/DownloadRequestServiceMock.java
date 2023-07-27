@@ -89,4 +89,11 @@ public class DownloadRequestServiceMock implements DownloadRequestService {
   public File getResultFile(String s) {
     return resourceLoader.getResource(TEST_FILE).getFile();
   }
+
+  @Nullable
+  @Override
+  @SneakyThrows
+  public File getResultFile(Download download) {
+    return resourceLoader.getResource(TEST_FILE).getFile();
+  }
 }
