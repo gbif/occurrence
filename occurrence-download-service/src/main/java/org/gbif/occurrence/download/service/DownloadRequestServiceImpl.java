@@ -50,6 +50,8 @@ import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -208,21 +210,53 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             HttpStatus.NOT_FOUND, "Download " + downloadKey + " doesn't exist");
       }
 
-      if (d.getStatus() == Download.Status.FILE_ERASED) {
-        throw new ResponseStatusException(
-            HttpStatus.GONE, "Download " + downloadKey + " has been erased\n");
-      }
-
-      if (!d.isAvailable()) {
-        throw new ResponseStatusException(
-            HttpStatus.NOT_FOUND, "Download " + downloadKey + " is not ready yet");
-      }
+      checkDownloadPreConditions(downloadKey, d);
 
       filename = getDownloadFilename(d);
     } else {
       filename = downloadKey + ".zip";
     }
 
+    return getDownloadFile(filename, downloadKey);
+  }
+
+  @Override
+  public File getResultFile(Download download) {
+    String filename;
+
+    if (download == null || download.getKey() == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Download can't be null");
+    }
+
+    String downloadKey = download.getKey();
+
+    // avoid check for download in the registry if we have secret non download files with a magic
+    // prefix!
+    if (!downloadKey.toLowerCase().startsWith(NON_DOWNLOAD_PREFIX)) {
+      checkDownloadPreConditions(downloadKey, download);
+
+      filename = getDownloadFilename(download);
+    } else {
+      filename = downloadKey + ".zip";
+    }
+
+    return getDownloadFile(filename, downloadKey);
+  }
+
+  private static void checkDownloadPreConditions(String downloadKey, Download d) {
+    if (d.getStatus() == Download.Status.FILE_ERASED) {
+      throw new ResponseStatusException(
+          HttpStatus.GONE, "Download " + downloadKey + " has been erased\n");
+    }
+
+    if (!d.isAvailable()) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "Download " + downloadKey + " is not ready yet");
+    }
+  }
+
+  @NotNull
+  private File getDownloadFile(String filename, String downloadKey) {
     File localFile = new File(downloadMount, filename);
     if (localFile.canRead()) {
       return localFile;

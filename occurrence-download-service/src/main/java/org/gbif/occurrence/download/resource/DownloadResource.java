@@ -200,7 +200,7 @@ public class DownloadResource {
     }
 
     LOG.debug("Get download data: [{}]", downloadKey);
-    File downloadFile = requestService.getResultFile(downloadKey);
+    File downloadFile = requestService.getResultFile(download);
 
     String location = archiveServerUrl + downloadKey + extension;
     return ResponseEntity.status(HttpStatus.FOUND)
@@ -297,12 +297,11 @@ public class DownloadResource {
             occurrenceDownloadService.listByUser(
                 "download.gbif.org",
                 new PagingRequest(0, 50),
-                EnumSet.of(PREPARING, RUNNING, SUCCEEDED));
+                EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
+                Date.from(Instant.now().minus(35, ChronoUnit.DAYS)),
+                false);
         String existingMonthlyDownload =
-            matchExistingDownload(
-                monthlyDownloads,
-                predicateDownloadRequest,
-                Date.from(Instant.now().minus(35, ChronoUnit.DAYS)));
+            matchExistingDownload(monthlyDownloads, predicateDownloadRequest);
         if (existingMonthlyDownload != null) {
           return existingMonthlyDownload;
         }
@@ -313,12 +312,10 @@ public class DownloadResource {
           occurrenceDownloadService.listByUser(
               userAuthenticated.getName(),
               new PagingRequest(0, 50),
-              EnumSet.of(PREPARING, RUNNING, SUCCEEDED));
-      String existingUserDownload =
-          matchExistingDownload(
-              userDownloads,
-              predicateDownloadRequest,
-              Date.from(Instant.now().minus(4, ChronoUnit.HOURS)));
+              EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
+              Date.from(Instant.now().minus(4, ChronoUnit.HOURS)),
+              false);
+      String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
       if (existingUserDownload != null) {
         return existingUserDownload;
       }
@@ -386,14 +383,8 @@ public class DownloadResource {
    */
   private String matchExistingDownload(
       PagingResponse<Download> existingDownloads,
-      PredicateDownloadRequest newDownload,
-      Date cutoff) {
+      PredicateDownloadRequest newDownload) {
     for (Download existingDownload : existingDownloads.getResults()) {
-      // Downloads are in descending order by creation date
-      if (existingDownload.getCreated().before(cutoff)) {
-        return null;
-      }
-
       if (existingDownload.getRequest() instanceof PredicateDownloadRequest) {
         PredicateDownloadRequest existingPredicateDownload =
             (PredicateDownloadRequest) existingDownload.getRequest();
