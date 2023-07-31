@@ -298,7 +298,8 @@ public class DownloadResource {
                 "download.gbif.org",
                 new PagingRequest(0, 50),
                 EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
-                Date.from(Instant.now().minus(35, ChronoUnit.DAYS)),
+//                Date.from(Instant.now().minus(35, ChronoUnit.DAYS)),
+              null,
                 false);
         String existingMonthlyDownload =
             matchExistingDownload(monthlyDownloads, predicateDownloadRequest);
@@ -313,7 +314,8 @@ public class DownloadResource {
               userAuthenticated.getName(),
               new PagingRequest(0, 50),
               EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
-              Date.from(Instant.now().minus(4, ChronoUnit.HOURS)),
+//              Date.from(Instant.now().minus(4, ChronoUnit.HOURS)),
+            null,
               false);
       String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
       if (existingUserDownload != null) {

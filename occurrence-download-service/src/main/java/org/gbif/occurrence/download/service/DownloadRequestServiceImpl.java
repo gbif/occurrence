@@ -162,25 +162,38 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
     }
+
+    String exceedComplexityLimit = null;
     try {
-      String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
-      if (exceedComplexityLimit != null) {
-        LOG.info("Download request refused as it would exceed complexity limits");
-        throw new ResponseStatusException(
-            HttpStatus.PAYLOAD_TOO_LARGE,
-            "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
-      }
+      exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
+    } catch (Exception e) {
+      throw new ServiceUnavailableException(
+          "Failed to create download job while checking download complexity", e);
+    }
+    if (exceedComplexityLimit != null) {
+      LOG.info("Download request refused as it would exceed complexity limits");
+      throw new ResponseStatusException(
+          HttpStatus.PAYLOAD_TOO_LARGE,
+          "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
+    }
 
-      String exceedSimultaneousLimit =
+    String exceedSimultaneousLimit = null;
+    try {
+      exceedSimultaneousLimit =
           downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
-      if (exceedSimultaneousLimit != null) {
-        LOG.info("Download request refused as it would exceed simultaneous limits");
-        // Keep HTTP 420 ("Enhance your calm") here.
-        throw new ResponseStatusException(
-            HttpStatus.METHOD_FAILURE,
-            "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
-      }
+    } catch (Exception e) {
+      throw new ServiceUnavailableException(
+          "Failed to create download job while checking simultaneous download limit", e);
+    }
+    if (exceedSimultaneousLimit != null) {
+      LOG.info("Download request refused as it would exceed simultaneous limits");
+      // Keep HTTP 420 ("Enhance your calm") here.
+      throw new ResponseStatusException(
+          HttpStatus.METHOD_FAILURE,
+          "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
+    }
 
+    try {
       String downloadId = downloadIdService.generateId();
       log.debug("Download id is: [{}]", downloadId);
       persistDownload(request, downloadId, source);
@@ -190,7 +203,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
       return downloadId;
     } catch (Exception e) {
-      LOG.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
