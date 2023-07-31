@@ -46,6 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -120,7 +121,7 @@ class DownloadServiceImplTest {
     try {
       requestService.create(dl, null);
       fail();
-    } catch (ServiceUnavailableException e) {
+    } catch (ResponseStatusException e) {
       // NOP
     }
   }
