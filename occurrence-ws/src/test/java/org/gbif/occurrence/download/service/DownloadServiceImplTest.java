@@ -33,6 +33,7 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -145,14 +146,14 @@ class DownloadServiceImplTest {
             any(String.class),
             any(Pageable.class),
             ArgumentMatchers.anySet(),
-            any(Date.class),
+            any(LocalDateTime.class),
             any(Boolean.class)))
         .thenReturn(new PagingResponse<>(0L, 0, 0L, emptyDownloads));
     when(downloadService.listByUser(
             eq("peter"),
             any(Pageable.class),
             ArgumentMatchers.anySet(),
-            any(Date.class),
+            any(LocalDateTime.class),
             any(Boolean.class)))
         .thenReturn(
             new PagingResponse<>(
@@ -161,7 +162,7 @@ class DownloadServiceImplTest {
             eq("karl"),
             any(Pageable.class),
             ArgumentMatchers.anySet(),
-            any(Date.class),
+            any(LocalDateTime.class),
             any(Boolean.class)))
         .thenReturn(
             new PagingResponse<>(
@@ -176,13 +177,15 @@ class DownloadServiceImplTest {
     PagingResponse<Download> x = downloadService.list(req, Collections.emptySet(), null);
     assertEquals(2, x.getResults().size());
 
-    x = downloadService.listByUser("harald", req, Collections.emptySet(), new Date(), true);
+    x =
+        downloadService.listByUser(
+            "harald", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(0, x.getResults().size());
 
-    x = downloadService.listByUser("karl", req, Collections.emptySet(), new Date(), true);
+    x = downloadService.listByUser("karl", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(1, x.getResults().size());
 
-    x = downloadService.listByUser("peter", req, Collections.emptySet(), new Date(), true);
+    x = downloadService.listByUser("peter", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(1, x.getResults().size());
   }
 
