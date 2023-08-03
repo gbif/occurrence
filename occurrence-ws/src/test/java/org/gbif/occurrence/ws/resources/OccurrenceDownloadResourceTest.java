@@ -63,7 +63,7 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testStartDownload() {
     prepareMocks(USER);
-    ResponseEntity<String> response = resource.startDownload(dl,null,  principal, null);
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
     assertThat(response.getBody(), equalTo(JOB_ID));
   }
 
@@ -87,13 +87,22 @@ public class OccurrenceDownloadResourceTest {
     Authentication auth = mock(Authentication.class);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    resource = new OccurrenceDownloadResource(archiveServerUrl, service, callbackService, downloadService, false);
-    dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false), USER, null, true,
-                                      DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
+    resource =
+        new OccurrenceDownloadResource(
+            archiveServerUrl, service, callbackService, downloadService, false);
+    dl =
+        new PredicateDownloadRequest(
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false),
+            USER,
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            Collections.singleton(Extension.AUDUBON));
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.emptyList());
-    when(downloadService.listByUser(any(), any(), any())).thenReturn(empty);
+    when(downloadService.listByUser(any(), any(), any(), any(), any())).thenReturn(empty);
     when(service.create(dl, null)).thenReturn(JOB_ID);
   }
 }
