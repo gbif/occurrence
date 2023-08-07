@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.193.0-H3-SNAPSHOT</version>
+    <version>0.193.1-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-cli</artifactId>
@@ -43,7 +43,7 @@
       <!-- Override default configuration to fix compilation error:
      Failed to load existing service definition files: java.nio.file.NoSuchFileException:
      .../occurrence/occurrence-cli/target/classes/META-INF/services/org.gbif.cli.Command -->
-      <plugin>
+      <!--<plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration combine.self="override">
           <source>1.8</source>
@@ -51,7 +51,7 @@
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>
         </configuration>
-      </plugin>
+      </plugin>-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -242,6 +242,7 @@
     <dependency>
       <groupId>org.kohsuke.metainf-services</groupId>
       <artifactId>metainf-services</artifactId>
+      <version>1.7</version>
       <!-- This is the proper declaration. For details see the homepage of the project. -->
       <optional>true</optional>
     </dependency>

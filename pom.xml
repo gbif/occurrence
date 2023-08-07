@@ -2,15 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.gbif</groupId>
-    <artifactId>motherpom</artifactId>
-    <version>56</version>
-  </parent>
-
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.193.0-H3-SNAPSHOT</version>
+  <version>0.193.1-H3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -105,7 +99,7 @@
     <jdkLevel>1.8</jdkLevel>
     <release.tagNameBase>occurrence</release.tagNameBase>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+    <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud-zookeeper.version>2.2.5.RELEASE</spring-cloud-zookeeper.version>
     <spring-cloud-openfeign.version>2.2.6.RELEASE</spring-cloud-openfeign.version>
@@ -133,7 +127,7 @@
     <amqp-client.version>3.0.2</amqp-client.version>
     <freemarker.version>2.3.31</freemarker.version>
     <netty.version>3.9.9.Final</netty.version>
-    <netty-all.version>4.1.48.Final</netty-all.version>
+    <netty-all.version>4.1.74.Final</netty-all.version>
 
     <!-- Fixing to the version JUnit and Mockito are depending on -->
     <aopalliance.version>1.0</aopalliance.version>
@@ -204,7 +198,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-H3-SNAPSHOT</hbase-utils.version>
-    <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
+    <download-query-tools.version>1.48-H3-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.46-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
     <gbif-api.version>1.5.0</gbif-api.version>
@@ -1403,6 +1397,14 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>11</release>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>

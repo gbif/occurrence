@@ -83,6 +83,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
       return JobStatus.RUNNING;
     } catch (Exception ex) {
+      log.error("Something failed while creating CRD", ex);
       return JobStatus.FAILED;
     }
   }
