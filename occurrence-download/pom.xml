@@ -579,7 +579,7 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>${scala.library.version}</version>
+      <!-- TODO: provided vesrion throws some relocated scala issues-->
       <scope>compile</scope>
     </dependency>
 
