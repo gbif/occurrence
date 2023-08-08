@@ -23,8 +23,7 @@
     <metrics-core.version>2.2.0</metrics-core.version>
     <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <akka-actor.version>2.5.19</akka-actor.version>
-    <scala.library.version>2.12.2</scala.library.version>
+    <akka-actor.version>2.6.19</akka-actor.version>
 
     <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
     <!-- We want the coordinator to run at 05:00 UTC -->
