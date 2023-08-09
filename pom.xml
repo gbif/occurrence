@@ -223,7 +223,7 @@
     <gbif-common-ws.version>1.24</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-metadata-profile.version>2.2-SNAPSHOT</gbif-metadata-profile.version>
+    <gbif-metadata-profile.version>2.1</gbif-metadata-profile.version>
     <gbif-parsers.version>0.59</gbif-parsers.version>
     <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
     <gbif-registry.version>3.94.15</gbif-registry.version>
