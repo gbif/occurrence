@@ -395,7 +395,7 @@ public class DownloadResource {
   @GetMapping(produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @Secured(USER_ROLE)
   @ResponseBody
-  public String download(
+  public ResponseEntity<String> download(
       @Autowired HttpServletRequest httpRequest,
       @RequestParam(name = "notification_address", required = false) String emails,
       @RequestParam("format") String format,
@@ -405,11 +405,17 @@ public class DownloadResource {
       @RequestHeader(value = "User-Agent") String userAgent) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return createDownload(
-        downloadPredicate(httpRequest, emails, format, extensions, principal),
-        authentication,
-        principal,
-        parseSource(source, userAgent));
+
+    try {
+      return ResponseEntity.ok(
+          createDownload(
+              downloadPredicate(httpRequest, emails, format, extensions, principal),
+              authentication,
+              principal,
+              parseSource(source, userAgent)));
+    } catch (ResponseStatusException rse) {
+      return ResponseEntity.status(rse.getStatus()).body(rse.getReason());
+    }
   }
 
   @Hidden
