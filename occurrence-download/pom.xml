@@ -113,28 +113,6 @@
                   </excludes>
                 </filter>
               </filters>
-              <relocations>
-                <relocation>
-                  <pattern>com.google.common</pattern>
-                  <shadedPattern>g14.com.google.common</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.joda.time</pattern>
-                  <shadedPattern>j21.org.joda.time</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.curator</pattern>
-                  <shadedPattern>shadedocc.org.apache.curator</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.logging</pattern>
-                  <shadedPattern>shadedspringjcl.org.apache.commons.logging</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>scala</pattern>
-                  <shadedPattern>shadedscala</shadedPattern>
-                </relocation>
-              </relocations>
             </configuration>
           </execution>
         </executions>
@@ -371,6 +349,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -579,8 +563,7 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <!-- TODO: provided vesrion throws some relocated scala issues-->
-      <scope>compile</scope>
+      <scope>provided</scope>
     </dependency>
 
     <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
