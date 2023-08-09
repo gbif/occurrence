@@ -47,13 +47,6 @@
               </excludes>
             </filter>
           </filters>
-          <relocations>
-            <!--TODO: Delete relocation-->
-            <relocation>
-              <pattern>com.fasterxml</pattern>
-              <shadedPattern>shaded.com.fasterxml</shadedPattern>
-            </relocation>
-          </relocations>
         </configuration>
         <executions>
           <execution>
