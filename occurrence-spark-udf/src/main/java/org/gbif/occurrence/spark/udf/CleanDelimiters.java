@@ -22,11 +22,6 @@ import lombok.SneakyThrows;
 
 public class CleanDelimiters implements Function<String,String> {
 
-  private final Map<String,String> cache;
-  public CleanDelimiters() {
-    cache = UDFS.createLRUMap(10_000, CleanDelimiters::cleanDelimiters);
-  }
-
   private static String cleanDelimiters(String value) {
     return DELIMETERS_MATCH_PATTERN.matcher(value).replaceAll(" ").trim();
   }
@@ -38,6 +33,6 @@ public class CleanDelimiters implements Function<String,String> {
   @Override
   @SneakyThrows
   public String apply(String value) {
-    return value != null? cache.get(value) : null;
+    return value != null? cleanDelimiters(value) : null;
   }
 }

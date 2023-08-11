@@ -35,22 +35,4 @@ public class UDFS {
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("joinArray", new JoinArrayUdf(), DataTypes.StringType);
   }
-
-  public static <K, V> Map<K, V> createLRUMap(final int maxEntries, Function<K,V> loader) {
-    return new LinkedHashMap<K, V>(maxEntries*10/7, 0.7f, true) {
-      @Override
-      protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-        return size() > maxEntries;
-      }
-
-      @Override
-      public V get(Object key) {
-        V value = super.get(key);
-        if (value == null) {
-          return put((K)key, loader.apply((K)key));
-        }
-        return value;
-      }
-    };
-  }
 }
