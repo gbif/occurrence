@@ -16,13 +16,13 @@ package org.gbif.occurrence.spark.udf;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import org.apache.spark.sql.api.java.UDF1;
-import org.cache2k.Cache;
 
 public class ToISO8601Udf implements UDF1<Long,String> {
 
-  private final Cache<Long,String> cache = UDFS.createLRUMap(100_00, ToISO8601Udf::toIso8601);
+  private final Map<Long,String> cache = UDFS.createLRUMap(100_00, ToISO8601Udf::toIso8601);
 
   private static String toIso8601(Long value) {
     return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochMilli(value).atZone(ZoneOffset.UTC));

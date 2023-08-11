@@ -14,18 +14,17 @@
 package org.gbif.occurrence.spark.udf;
 
 
+import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-
-import org.cache2k.Cache;
 
 import lombok.SneakyThrows;
 
 public class CleanDelimiters implements Function<String,String> {
 
-  private final Cache<String,String> cache;
+  private final Map<String,String> cache;
   public CleanDelimiters() {
-    cache = UDFS.createLRUMap(100_00, CleanDelimiters::cleanDelimiters);
+    cache = UDFS.createLRUMap(10_000, CleanDelimiters::cleanDelimiters);
   }
 
   private static String cleanDelimiters(String value) {
