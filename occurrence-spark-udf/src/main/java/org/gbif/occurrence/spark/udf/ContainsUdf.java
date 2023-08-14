@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.spark.udf;
 
+
 import org.apache.spark.sql.api.java.UDF3;
-import org.cache2k.Cache;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
 import org.locationtech.spatial4j.io.WKTReader;
@@ -27,8 +27,6 @@ import lombok.SneakyThrows;
 public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
 
   private final WKTReader wktReader;
-
-  private final Cache<String, Shape> geometryCache = UDFS.createLRUMap(10_000, this::toShape );
 
   private final JtsShapeFactory shapeFactory;
 
@@ -61,7 +59,7 @@ public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
       return false;
     }
 
-    Shape geom = geometryCache.get(geometryAsWKT);
+    Shape geom = toShape(geometryAsWKT);
 
     // support any geometry - up to the user to make a sensible query
     Point point = shapeFactory.pointXY(longitude, latitude);

@@ -13,11 +13,12 @@
  */
 package org.gbif.occurrence.spark.udf;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
-import org.cache2k.Cache;
-import org.cache2k.config.Cache2kConfig;
-import org.cache2k.io.CacheLoader;
 
 import lombok.experimental.UtilityClass;
 
@@ -33,13 +34,5 @@ public class UDFS {
     sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("joinArray", new JoinArrayUdf(), DataTypes.StringType);
-  }
-
-  public static <K, V> Cache<K, V> createLRUMap(final int maxEntries, CacheLoader<K,V> loader) {
-    return new Cache2kConfig<K,V>().builder()
-      .entryCapacity(maxEntries)
-      .permitNullValues(true)
-      .loader(loader)
-      .build();
   }
 }

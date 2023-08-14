@@ -18,11 +18,8 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 import org.apache.spark.sql.api.java.UDF1;
-import org.cache2k.Cache;
 
 public class ToLocalISO8601Udf implements UDF1<Long,String> {
-
-  private final Cache<Long,String> cache = UDFS.createLRUMap(100_000, ToLocalISO8601Udf::toLocalIso8601);
 
   private static String toLocalIso8601(Long value) {
     return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochMilli(value).atZone(ZoneOffset.UTC));
@@ -30,6 +27,6 @@ public class ToLocalISO8601Udf implements UDF1<Long,String> {
 
   @Override
   public String call(Long field) throws Exception {
-    return field != null? cache.computeIfAbsent(field, ToLocalISO8601Udf::toLocalIso8601) : null;
+    return field != null? toLocalIso8601(field) : null;
   }
 }

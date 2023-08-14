@@ -23,8 +23,8 @@
     <metrics-core.version>2.2.0</metrics-core.version>
     <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <akka-actor.version>2.5.19</akka-actor.version>
-    <scala.library.version>2.12.15</scala.library.version>
+    <akka-actor.version>2.6.19</akka-actor.version>
+    <es.httpclient.version>4.5.10</es.httpclient.version>
 
     <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
     <!-- We want the coordinator to run at 05:00 UTC -->
@@ -351,6 +351,12 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -485,6 +491,12 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>jsr311-api</artifactId>
+        </exclusion>
+      </exclusions>
       <scope>provided</scope>
       <version>3.3.1</version>
     </dependency>
@@ -539,6 +551,14 @@
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client-sniffer</artifactId>
     </dependency>
+
+    <!-- Match elasticsearch-rest-high-level-client httpclient version -->
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${es.httpclient.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-framework</artifactId>
@@ -559,7 +579,6 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
-      <version>${scala.library.version}</version>
       <scope>provided</scope>
     </dependency>
 

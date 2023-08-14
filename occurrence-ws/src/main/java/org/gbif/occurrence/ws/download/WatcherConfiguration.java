@@ -15,6 +15,7 @@ package org.gbif.occurrence.ws.download;
 
 import java.util.Collections;
 import java.util.Map;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
