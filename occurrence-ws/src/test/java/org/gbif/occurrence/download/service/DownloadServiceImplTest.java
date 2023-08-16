@@ -33,6 +33,7 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -46,9 +47,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -120,7 +122,7 @@ class DownloadServiceImplTest {
     try {
       requestService.create(dl, null);
       fail();
-    } catch (ServiceUnavailableException e) {
+    } catch (ResponseStatusException e) {
       // NOP
     }
   }
@@ -141,13 +143,27 @@ class DownloadServiceImplTest {
     allDownloads.add(job2);
     // always get 3 job infos until we hit an offset of 100
     when(downloadService.listByUser(
-            any(String.class), any(Pageable.class), ArgumentMatchers.anySet()))
+            any(String.class),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(LocalDateTime.class),
+            any(Boolean.class)))
         .thenReturn(new PagingResponse<>(0L, 0, 0L, emptyDownloads));
-    when(downloadService.listByUser(eq("peter"), any(Pageable.class), ArgumentMatchers.anySet()))
+    when(downloadService.listByUser(
+            eq("peter"),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(LocalDateTime.class),
+            any(Boolean.class)))
         .thenReturn(
             new PagingResponse<>(
                 0L, peterDownloads.size(), (long) peterDownloads.size(), peterDownloads));
-    when(downloadService.listByUser(eq("karl"), any(Pageable.class), ArgumentMatchers.anySet()))
+    when(downloadService.listByUser(
+            eq("karl"),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(LocalDateTime.class),
+            any(Boolean.class)))
         .thenReturn(
             new PagingResponse<>(
                 0L, peterDownloads.size(), (long) peterDownloads.size(), karlDownloads));
@@ -161,13 +177,15 @@ class DownloadServiceImplTest {
     PagingResponse<Download> x = downloadService.list(req, Collections.emptySet(), null);
     assertEquals(2, x.getResults().size());
 
-    x = downloadService.listByUser("harald", req, Collections.emptySet());
+    x =
+        downloadService.listByUser(
+            "harald", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(0, x.getResults().size());
 
-    x = downloadService.listByUser("karl", req, Collections.emptySet());
+    x = downloadService.listByUser("karl", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(1, x.getResults().size());
 
-    x = downloadService.listByUser("peter", req, Collections.emptySet());
+    x = downloadService.listByUser("peter", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(1, x.getResults().size());
   }
 

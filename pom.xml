@@ -41,20 +41,24 @@
 
   <repositories>
     <repository>
-      <id>gbif-central</id>
-      <url>https://repository.gbif.org/repository/central/</url>
-    </repository>
-    <repository>
-      <id>gbif-release</id>
-      <url>https://repository.gbif.org/repository/releases/</url>
-    </repository>
-    <repository>
-      <id>gbif-snapshot</id>
-      <url>https://repository.gbif.org/repository/snapshots/</url>
+      <id>gbif-all</id>
+      <url>https://repository.gbif.org/content/groups/gbif/</url>
     </repository>
     <repository>
       <id>gbif-thirdparty</id>
-      <url>https://repository.gbif.org/repository/thirdparty/</url>
+      <url>https://repository.gbif.org/content/repositories/thirdparty/</url>
+    </repository>
+    <repository>
+      <id>cloudera-repos</id>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>osgeo</id>
+      <name>Open Source Geospatial Foundation Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
     </repository>
     <repository>
       <id>typesafe</id>
@@ -62,9 +66,13 @@
       <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
     </repository>
     <repository>
-      <id>osgeo</id>
-      <name>Open Source Geospatial Foundation Repository</name>
-      <url>https://repo.osgeo.org/repository/release/</url>
+      <id>maven-restlet</id>
+      <name>Restlet repository</name>
+      <url>http://maven.restlet.com</url>
+    </repository>
+    <repository>
+      <id>datanucleus</id>
+      <url>http://www.datanucleus.org/downloads/maven2/</url>
     </repository>
     <repository>
       <id>ALA</id>
@@ -205,7 +213,7 @@
     <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.46-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.5.0</gbif-api.version>
+    <gbif-api.version>1.9.0</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
