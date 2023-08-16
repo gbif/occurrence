@@ -37,6 +37,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
@@ -55,7 +56,6 @@ import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 
-import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;

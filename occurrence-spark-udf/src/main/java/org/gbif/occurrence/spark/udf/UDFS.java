@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.spark.udf;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Function;
 
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;

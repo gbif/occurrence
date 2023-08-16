@@ -23,6 +23,10 @@ import org.gbif.api.model.registry.DatasetOccurrenceDownloadUsage;
 import org.gbif.api.model.registry.OrganizationOccurrenceDownloadUsage;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.CountryUsageSortField;
+import org.gbif.api.vocabulary.DatasetUsageSortField;
+import org.gbif.api.vocabulary.OrganizationUsageSortField;
+import org.gbif.api.vocabulary.SortOrder;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -35,11 +39,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.RandomStringUtils;
-
-import org.gbif.api.vocabulary.CountryUsageSortField;
-import org.gbif.api.vocabulary.DatasetUsageSortField;
-import org.gbif.api.vocabulary.OrganizationUsageSortField;
-import org.gbif.api.vocabulary.SortOrder;
 
 public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService {
 

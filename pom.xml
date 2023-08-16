@@ -41,24 +41,20 @@
 
   <repositories>
     <repository>
-      <id>gbif-all</id>
-      <url>https://repository.gbif.org/content/groups/gbif/</url>
+      <id>gbif-central</id>
+      <url>https://repository.gbif.org/repository/central/</url>
+    </repository>
+    <repository>
+      <id>gbif-release</id>
+      <url>https://repository.gbif.org/repository/releases/</url>
+    </repository>
+    <repository>
+      <id>gbif-snapshot</id>
+      <url>https://repository.gbif.org/repository/snapshots/</url>
     </repository>
     <repository>
       <id>gbif-thirdparty</id>
-      <url>https://repository.gbif.org/content/repositories/thirdparty/</url>
-    </repository>
-    <repository>
-      <id>cloudera-repos</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>osgeo</id>
-      <name>Open Source Geospatial Foundation Repository</name>
-      <url>https://repo.osgeo.org/repository/release/</url>
+      <url>https://repository.gbif.org/repository/thirdparty/</url>
     </repository>
     <repository>
       <id>typesafe</id>
@@ -66,13 +62,9 @@
       <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
     </repository>
     <repository>
-      <id>maven-restlet</id>
-      <name>Restlet repository</name>
-      <url>http://maven.restlet.com</url>
-    </repository>
-    <repository>
-      <id>datanucleus</id>
-      <url>http://www.datanucleus.org/downloads/maven2/</url>
+      <id>osgeo</id>
+      <name>Open Source Geospatial Foundation Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
     </repository>
     <repository>
       <id>ALA</id>
