@@ -4,5 +4,5 @@ RUN apk update && \
     apk add bash
 
 RUN mkdir /jobs
-COPY ./target/occurrence-table-build-spark-0.192.7-H3-SNAPSHOT.jar /jobs/gbif-occurrence-table.jar
+COPY ./target/occurrence-table-build-spark-0.193.0-H3-SNAPSHOT.jar /jobs/gbif-occurrence-table.jar
 
