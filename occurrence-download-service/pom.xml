@@ -273,20 +273,6 @@
 
     <!-- hadoop -->
     <dependency>
-      <groupId>org.apache.oozie</groupId>
-      <artifactId>oozie-client</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-simple</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.guava</groupId>
-          <artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-client</artifactId>
       <exclusions>

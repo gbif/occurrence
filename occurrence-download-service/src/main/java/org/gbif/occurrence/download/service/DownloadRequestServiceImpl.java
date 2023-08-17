@@ -39,8 +39,6 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -89,8 +87,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       Metrics.newCounter(CallbackService.class, "failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS =
       Metrics.newCounter(CallbackService.class, "cancelled_downloads");
-
-  private final OozieClient client;
   private final DownloadIdService downloadIdService;
   private final String portalUrl;
   private final String wsUrl;
@@ -104,7 +100,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Autowired
   public DownloadRequestServiceImpl(
-      OozieClient client,
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
@@ -114,7 +109,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       EmailSender emailSender,
       MessagePublisher messagePublisher) {
     this.downloadIdService = new DownloadIdService();
-    this.client = client;
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
@@ -283,19 +277,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   /** Processes a callback from Oozie which update the download status. */
   @Override
-  public void processCallback(String jobId, String status) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
+  public void processCallback(String downloadId, String status) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(downloadId), "<downloadId> may not be null or empty");
     Preconditions.checkArgument(
         !Strings.isNullOrEmpty(status), "<status> may not be null or empty");
     Optional<JobStatus> opStatus = Enums.getIfPresent(JobStatus.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
-
-    String downloadId;
-    try {
-      downloadId = client.getJobInfo(jobId).getExternalId();
-    } catch (OozieClientException e) {
-      throw new RuntimeException(e);
-    }
 
     log.debug("Processing callback for downloadId [{}] with status [{}]", downloadId, status);
 

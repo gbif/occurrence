@@ -26,7 +26,7 @@
     <akka-actor.version>2.6.19</akka-actor.version>
     <es.httpclient.version>4.5.10</es.httpclient.version>
 
-    <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
+    <!-- The timestamp is used to set the start date for the coordinator job -->
     <!-- We want the coordinator to run at 05:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T05:00Z'</maven.build.timestamp.format>
@@ -277,7 +277,7 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-tomcat</artifactId>
         </exclusion>
-        <!-- Excluded to avoid log4j collisions in Oozie/Hadoop-->
+        <!-- Excluded to avoid log4j collisions in Hadoop-->
         <exclusion>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-logging</artifactId>

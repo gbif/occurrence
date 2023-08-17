@@ -183,6 +183,10 @@
       <artifactId>occurrence-persistence</artifactId>
       <exclusions>
         <exclusion>
+          <artifactId>org.slf4j</artifactId>
+          <groupId>slf4j-log4j12</groupId>
+        </exclusion>
+        <exclusion>
           <artifactId>log4j</artifactId>
           <groupId>log4j</groupId>
         </exclusion>
@@ -245,12 +249,6 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-hdfs-table</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-reload4j</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -440,20 +438,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.apache.oozie</groupId>
-      <artifactId>oozie-client</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-simple</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-client</artifactId>
       <exclusions>
@@ -512,10 +496,10 @@
     </dependency>
 
     <!-- logging -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>ch.qos.logback</groupId>-->
+<!--      <artifactId>logback-classic</artifactId>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>

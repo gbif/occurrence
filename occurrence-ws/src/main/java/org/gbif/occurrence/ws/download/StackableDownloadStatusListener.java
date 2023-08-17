@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StackableDownloadStatusListener implements StackableSparkWatcher.EventsListener {
 
-  Map<K8StackableSparkController.Phase, JobStatus> PHASE_STATUS_MAP = new ImmutableMap.Builder<K8StackableSparkController.Phase, JobStatus>()
+  private static final Map<K8StackableSparkController.Phase, JobStatus> PHASE_STATUS_MAP = new ImmutableMap.Builder<K8StackableSparkController.Phase, JobStatus>()
     .put(K8StackableSparkController.Phase.INITIATING, JobStatus.PREP)
     .put(K8StackableSparkController.Phase.PENDING, JobStatus.PREP)
     .put(K8StackableSparkController.Phase.UNKNOWN, JobStatus.PREP)
