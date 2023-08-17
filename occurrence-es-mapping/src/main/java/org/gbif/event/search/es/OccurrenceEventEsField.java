@@ -41,8 +41,6 @@ public enum OccurrenceEventEsField implements EsField {
 
   ID(new BaseEsField("id", DcTerm.identifier)),
 
-  GBIF_ID(new BaseEsField("gbifId", GbifTerm.gbifID)),
-
   //Dataset derived
   DATASET_KEY(new BaseEsField("metadata.datasetKey", GbifTerm.datasetKey)),
   PUBLISHING_COUNTRY(new BaseEsField("metadata.publishingCountry", GbifTerm.publishingCountry)),
