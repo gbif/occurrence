@@ -42,6 +42,8 @@ public enum EventEsField implements EsField {
 
   ID(new BaseEsField("id", DcTerm.identifier)),
 
+  GBIF_ID(new BaseEsField("gbifId", GbifTerm.gbifID)),
+
   //Dataset derived
   DATASET_KEY(new BaseEsField("metadata.datasetKey", GbifTerm.datasetKey)),
   PUBLISHING_COUNTRY(new BaseEsField("metadata.publishingCountry", GbifTerm.publishingCountry)),
@@ -296,6 +298,7 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
       .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
       .put(OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS, DISTANCE_FROM_CENTROID_IN_METERS)
+      .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
 
   private static final Set<EsField> DATE_FIELDS =
