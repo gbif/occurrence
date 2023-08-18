@@ -82,6 +82,8 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-download</artifactId>
+      <version>${project.version}</version>
+      <classifier>shaded</classifier>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
