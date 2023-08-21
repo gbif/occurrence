@@ -38,7 +38,7 @@ public class DownloadUpdaterService {
     this.occurrenceDownloadClient = occurrenceDownloadClient;
   }
 
-  public boolean isStatusFinihsed(String downloadKey) {
+  public boolean isStatusFinished(String downloadKey) {
     Download download = occurrenceDownloadClient.get(downloadKey);
     return FINISH_STATUSES.contains(download.getStatus());
   }
