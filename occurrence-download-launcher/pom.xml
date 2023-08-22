@@ -13,7 +13,6 @@
 
   <properties>
     <amqp-client.version>5.9.0</amqp-client.version>
-    <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
 
     <start-class>org.gbif.occurrence.downloads.launcher.OccurrenceDownloadsLauncherApplication</start-class>
   </properties>
@@ -131,7 +130,6 @@
     <dependency>
       <groupId>org.gbif.stackable</groupId>
       <artifactId>stackable-spark</artifactId>
-      <version>${stackable-spark.version}</version>
     </dependency>
 
     <!-- Spring dependencies -->
