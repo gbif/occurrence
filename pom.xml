@@ -89,7 +89,6 @@
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
     <module>occurrence-persistence</module>
-    <module>occurrence-processor</module>
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
@@ -415,11 +414,6 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-hive</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-processor</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
