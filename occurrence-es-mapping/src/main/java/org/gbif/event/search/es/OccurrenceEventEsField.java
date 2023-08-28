@@ -191,7 +191,7 @@ public enum OccurrenceEventEsField implements EsField {
   //Event
   START_DAY_OF_YEAR(new BaseEsField("occurrence.startDayOfYear", DwcTerm.startDayOfYear)),
   END_DAY_OF_YEAR(new BaseEsField("occurrence.endDayOfYear", DwcTerm.startDayOfYear)),
-  EVENT_TYPE(new BaseEsField("occurrence.eventType", GbifTerm.eventType)),
+  EVENT_TYPE(new BaseEsField("occurrence.eventType", DwcTerm.eventType)),
   LOCATION_ID(new BaseEsField("occurrence.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("occurrence.parentsLineage", EsField.PARENTS_LINEAGE)),
 

@@ -79,7 +79,6 @@ public class TermUtils {
 
   /**
    * The map of term→value for terms that, after interpretation, have the same value for all occurrences.
-   *
    * For example, coordinates are reprojected to WGS84, so dwc:geodeticDatum is "WGS84" for all occurrences.
    */
   private static final Map<Term,String> TERMS_IDENTICAL_AFTER_INTERPRETATION = termsIdenticalAfterInterpretation();
@@ -147,8 +146,6 @@ public class TermUtils {
       GbifTerm.typeDesignationType,
       GbifTerm.canonicalName,
       GbifTerm.nameType,
-      GbifTerm.verbatimLabel,
-      GbifTerm.eventType,
 
       // And these have been superseded by other terms or otherwise deprecated and removed
       GbifTerm.distanceAboveSurface,
@@ -434,7 +431,7 @@ public class TermUtils {
       //IUCN RedList Category
       .add(IucnTerm.iucnRedListCategory)
       //EventType
-      .add(GbifTerm.eventType)
+      .add(DwcTerm.eventType)
       .build();
   }
 

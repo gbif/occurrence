@@ -86,7 +86,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
-                                      .put(GbifTerm.eventType, columnFor(GbifTerm.eventType))
+                                      .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
                                       .build();
 
