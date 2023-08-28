@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.193.0-H3-SNAPSHOT</version>
+  <version>0.194.0-H3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -204,7 +204,7 @@
     <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.46-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.11.0-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.11.0</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -214,14 +214,14 @@
     <gbif-metadata-profile.version>2.2-SNAPSHOT</gbif-metadata-profile.version>
     <gbif-parsers.version>0.59</gbif-parsers.version>
     <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
-    <gbif-registry.version>3.94.17-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>3.94.17</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
     <pipelines.version>2.15.0-H3-SNAPSHOT</pipelines.version>
     <gbif.kvs.version>1.26-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
-    <gbif-predicates.version>1.1-SNAPSHOT</gbif-predicates.version>
+    <gbif-predicates.version>1.1</gbif-predicates.version>
     <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
 
     <!-- Sonar -->
