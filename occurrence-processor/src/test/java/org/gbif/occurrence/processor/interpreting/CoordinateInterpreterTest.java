@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Disabled("Shouldn't be run by Jenkins, it uses an external service")
+@SuppressWarnings("UnicodeInCode")
 public class CoordinateInterpreterTest {
 
   static final ApiClientConfiguration cfg = new ApiClientConfiguration();

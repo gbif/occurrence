@@ -99,10 +99,10 @@
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
     <module>occurrence-table-build-trino</module>
+    <module>occurrence-table-build-spark-launcher</module>
   </modules>
 
   <properties>
-    <jdkLevel>1.8</jdkLevel>
     <release.tagNameBase>occurrence</release.tagNameBase>
 
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
@@ -464,6 +464,11 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-spark-udf</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-table-build-spark</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
