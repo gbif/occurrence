@@ -18,7 +18,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.query.TitleLookupService;
 

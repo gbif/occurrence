@@ -41,18 +41,8 @@ public class PredicateUtil {
   }
 
   @SneakyThrows
-  private Predicate toPredicateApi(org.gbif.api.model.occurrence.predicate.Predicate predicate) {
-    return OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(predicate), Predicate.class);
-  }
-
-  @SneakyThrows
   public static String toSqlQuery(Predicate predicate) {
     return QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate);
-  }
-
-  @SneakyThrows
-  public static String toSqlQuery(org.gbif.api.model.occurrence.predicate.Predicate predicate) {
-    return QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(toPredicateApi(predicate));
   }
 
   @SneakyThrows
@@ -65,9 +55,5 @@ public class PredicateUtil {
       return query;
     }
     return esFieldMapper.getDefaultFilter().orElse(QueryBuilders.matchAllQuery());
-  }
-
-  public static QueryBuilder searchQuery(org.gbif.api.model.occurrence.predicate.Predicate predicate, OccurrenceBaseEsFieldMapper esFieldMapper) {
-    return searchQuery(toPredicateApi(predicate), esFieldMapper);
   }
 }

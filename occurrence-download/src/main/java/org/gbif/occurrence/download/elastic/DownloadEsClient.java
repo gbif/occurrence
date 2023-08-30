@@ -50,22 +50,14 @@ public class DownloadEsClient implements Closeable {
 
   private final String esIndex;
 
-
   private final OccurrenceBaseEsFieldMapper esFieldMapper;
-
-  @SneakyThrows
-  private Predicate toPredicateApi(org.gbif.api.model.occurrence.predicate.Predicate predicate) {
-    return OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(predicate), Predicate.class);
-  }
 
   /**
    * Executes the ElasticSearch query and returns the number of records found.
    * If an error occurs 'ERROR_COUNT' is returned.
    */
   @SneakyThrows
-  public long getRecordCount(org.gbif.api.model.occurrence.predicate.Predicate requestPredicate) {
-
-    Predicate predicate = toPredicateApi(requestPredicate);
+  public long getRecordCount(Predicate predicate) {
     CountResponse response = esClient.count(new CountRequest().indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
       RequestOptions.DEFAULT);
     log.info("Download record count {}", response.getCount());

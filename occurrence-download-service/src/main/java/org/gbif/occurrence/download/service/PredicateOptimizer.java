@@ -13,23 +13,23 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
-import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanPredicate;
-import org.gbif.api.model.occurrence.predicate.InPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNullPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanPredicate;
-import org.gbif.api.model.occurrence.predicate.LikePredicate;
-import org.gbif.api.model.occurrence.predicate.NotPredicate;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.model.occurrence.predicate.SimplePredicate;
-import org.gbif.api.model.occurrence.predicate.WithinPredicate;
+import org.gbif.api.model.predicate.CompoundPredicate;
+import org.gbif.api.model.predicate.ConjunctionPredicate;
+import org.gbif.api.model.predicate.DisjunctionPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.GeoDistancePredicate;
+import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
+import org.gbif.api.model.predicate.GreaterThanPredicate;
+import org.gbif.api.model.predicate.InPredicate;
+import org.gbif.api.model.predicate.IsNotNullPredicate;
+import org.gbif.api.model.predicate.IsNullPredicate;
+import org.gbif.api.model.predicate.LessThanOrEqualsPredicate;
+import org.gbif.api.model.predicate.LessThanPredicate;
+import org.gbif.api.model.predicate.LikePredicate;
+import org.gbif.api.model.predicate.NotPredicate;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.model.predicate.SimplePredicate;
+import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 
 import java.lang.reflect.InvocationTargetException;
@@ -37,6 +37,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -102,11 +103,13 @@ public class PredicateOptimizer {
    */
   private static Map<OccurrenceSearchParameter, List<EqualsPredicate>> groupEqualsPredicate(DisjunctionPredicate predicate) {
     return predicate.getPredicates().stream()
-      .filter(p -> p instanceof EqualsPredicate)
-      .map(p -> (EqualsPredicate)p)
-      .collect(Collectors.groupingBy(EqualsPredicate::getKey))
-      .entrySet().stream()
-      .filter( e -> e.getValue().size() > 1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        .filter(EqualsPredicate.class::isInstance)
+        .map(p -> (EqualsPredicate) p)
+        .collect(Collectors.groupingBy(EqualsPredicate::getKey))
+        .entrySet()
+        .stream()
+        .filter(e -> e.getValue().size() > 1)
+        .collect(Collectors.toMap(t -> (OccurrenceSearchParameter) t.getKey(), Entry::getValue));
   }
 
   /**
@@ -143,7 +146,6 @@ public class PredicateOptimizer {
    * handles not predicate
    *
    * @param predicate NOT predicate
-   * @param queryBuilder  root query builder
    */
   public void visit(NotPredicate predicate) {
     return;
@@ -153,7 +155,6 @@ public class PredicateOptimizer {
    * handles within predicate
    *
    * @param within   Within predicate
-   * @param queryBuilder toor query builderCompoundPredicate
    */
   public void visit(WithinPredicate within) {
     return;

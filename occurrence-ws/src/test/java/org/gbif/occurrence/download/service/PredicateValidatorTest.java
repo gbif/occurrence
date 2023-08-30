@@ -13,9 +13,9 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.WithinPredicate;
+import org.gbif.api.model.predicate.ConjunctionPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 
 import java.util.Arrays;
