@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.service;
 
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.CompoundPredicate;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
 import org.gbif.api.model.predicate.DisjunctionPredicate;
@@ -30,7 +31,6 @@ import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.api.model.predicate.WithinPredicate;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -73,7 +73,7 @@ public class PredicateOptimizer {
 
 
   public Predicate visit(DisjunctionPredicate predicate) {
-    Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalsPredicates = groupEqualsPredicate(predicate);
+    Map<SearchParameter, List<EqualsPredicate>> equalsPredicates = groupEqualsPredicate(predicate);
     if (!equalsPredicates.isEmpty()) {
       List<Predicate> predicates = new ArrayList<>(predicate.getPredicates());
       List<Predicate> exclude = predicates.stream()
@@ -89,7 +89,7 @@ public class PredicateOptimizer {
   /**
    * Checks if a predicate has in grouped and can be replaced later by a InPredicate.
    */
-  private static boolean isReplaceableByInPredicate(Predicate predicate, Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalsPredicatesReplaceableByIn) {
+  private static boolean isReplaceableByInPredicate(Predicate predicate, Map<SearchParameter, List<EqualsPredicate>> equalsPredicatesReplaceableByIn) {
     if (!equalsPredicatesReplaceableByIn.isEmpty() && predicate instanceof EqualsPredicate) {
       EqualsPredicate equalsPredicate = (EqualsPredicate)predicate;
       return equalsPredicatesReplaceableByIn.containsKey(equalsPredicate.getKey()) && equalsPredicatesReplaceableByIn.get(equalsPredicate.getKey()).contains(equalsPredicate);
@@ -100,7 +100,7 @@ public class PredicateOptimizer {
   /**
    * Groups all equals predicates by search parameter.
    */
-  private static Map<OccurrenceSearchParameter, List<EqualsPredicate>> groupEqualsPredicate(DisjunctionPredicate predicate) {
+  private static Map<SearchParameter, List<EqualsPredicate>> groupEqualsPredicate(DisjunctionPredicate predicate) {
     return predicate.getPredicates().stream()
       .filter(p -> p instanceof EqualsPredicate)
       .map(p -> (EqualsPredicate)p)
@@ -112,7 +112,7 @@ public class PredicateOptimizer {
   /**
    * Transforms the grouped EqualsPredicates into InPredicates.
    */
-  private static List<InPredicate> toInPredicates(Map<OccurrenceSearchParameter, List<EqualsPredicate>> equalPredicates) {
+  private static List<InPredicate> toInPredicates(Map<SearchParameter, List<EqualsPredicate>> equalPredicates) {
     return equalPredicates.entrySet()
       .stream()
       .map(e -> new InPredicate(e.getKey(), e.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), false))
@@ -143,7 +143,6 @@ public class PredicateOptimizer {
    * handles not predicate
    *
    * @param predicate NOT predicate
-   * @param queryBuilder  root query builder
    */
   public void visit(NotPredicate predicate) {
     return;
@@ -153,7 +152,6 @@ public class PredicateOptimizer {
    * handles within predicate
    *
    * @param within   Within predicate
-   * @param queryBuilder toor query builderCompoundPredicate
    */
   public void visit(WithinPredicate within) {
     return;
