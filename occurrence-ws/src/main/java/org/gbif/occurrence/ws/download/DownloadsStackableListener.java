@@ -34,12 +34,12 @@ public class DownloadsStackableListener implements DisposableBean, InitializingB
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
-    watcher.run();
+  public void afterPropertiesSet() {
+    watcher.start();
   }
 
   @Override
-  public void destroy() throws Exception {
+  public void destroy() {
     watcher.stop();
   }
 }
