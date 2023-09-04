@@ -60,7 +60,8 @@ import com.google.common.annotations.VisibleForTesting;
 
 import lombok.SneakyThrows;
 
-import static org.gbif.api.util.SearchTypeValidator.isRange;
+import static org.gbif.api.util.SearchTypeValidator.isDateRange;
+import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
@@ -538,7 +539,20 @@ public class EsSearchRequestBuilder {
     // collect queries for each value
     List<String> parsedValues = new ArrayList<>();
     for (String value : values) {
-      if (isRange(value)) {
+      if (isNumericRange(value)) {
+        RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
+        if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
+          queries.add(
+            QueryBuilders.boolQuery()
+              .should(buildRangeQuery(esField, value))
+              .should(
+                QueryBuilders.boolQuery()
+                  .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
+        } else {
+          queries.add(buildRangeQuery(esField, value));
+        }
+        continue;
+      } else if (occurrenceBaseEsFieldMapper.isDateField(esField) && isDateRange(value)) {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
         if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
           queries.add(

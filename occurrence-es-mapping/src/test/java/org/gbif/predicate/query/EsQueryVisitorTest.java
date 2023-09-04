@@ -31,6 +31,7 @@ import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 
@@ -44,7 +45,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
-/** Test cases for the Elasticsearch query visitor. */
+/**
+ * Test cases for the Elasticsearch query visitor.
+ *
+ * TODO: It's not clear to me why we have this and https://github.com/gbif/gbif-predicates/blob/dev/es-predicates/src/test/java/org/gbif/predicate/query/EsQueryVisitorTest.java,
+ * which is similar but has different casing of the ES parameters.
+ */
 public class EsQueryVisitorTest {
 
   private static final OccurrenceSearchParameter PARAM = OccurrenceSearchParameter.CATALOG_NUMBER;
@@ -112,9 +118,13 @@ public class EsQueryVisitorTest {
             + "  \"bool\" : {\n"
             + "    \"filter\" : [\n"
             + "      {\n"
-            + "        \"term\" : {\n"
-            + "          \"eventDateSingle\" : {\n"
-            + "            \"value\" : \"2021-09-16\",\n"
+            + "        \"range\" : {\n"
+            + "          \"eventDate\" : {\n"
+            + "            \"from\" : \"2021-09-16\",\n"
+            + "            \"to\" : \"2021-09-17\",\n"
+            + "            \"include_lower\" : true,\n"
+            + "            \"include_upper\" : false,\n"
+            + "            \"relation\" : \"within\",\n"
             + "            \"boost\" : 1.0\n"
             + "          }\n"
             + "        }\n"
@@ -204,50 +214,105 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testEqualsDateRangePredicate() throws QueryBuildingException {
+    // Occurrences will be returned if the occurrence date/date range is
+    // *completely within* the query date or date range.
     Predicate p =
-        new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
+      new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-11", false);
     String query = visitor.buildQuery(p);
     String expectedQuery =
-        "{\n"
-            + "  \"bool\" : {\n"
-            + "    \"filter\" : [\n"
-            + "      {\n"
-            + "        \"range\" : {\n"
-            + "          \"eventDateSingle\" : {\n"
-            + "            \"from\" : \"1980-02-01\",\n"
-            + "            \"to\" : \"2021-09-17\",\n"
-            + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : false,\n"
-            + "            \"boost\" : 1.0\n"
-            + "          }\n"
-            + "        }\n"
-            + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
-            + "  }\n"
-            + "}";
+      "{\n"
+        + "  \"bool\" : {\n"
+        + "    \"filter\" : [\n"
+        + "      {\n"
+        + "        \"range\" : {\n"
+        + "          \"eventDate\" : {\n"
+        + "            \"gte\" : \"2023-01-11\",\n"
+        + "            \"lt\" : \"2023-01-12\",\n"
+        + "            \"relation\" : \"WITHIN\",\n"
+        + "            \"boost\" : 1.0\n"
+        + "          }\n"
+        + "        }\n"
+        + "      }\n"
+        + "    ],\n"
+        + "    \"adjust_pure_negative\" : true,\n"
+        + "    \"boost\" : 1.0\n"
+        + "  }\n"
+        + "}";
+    //assertEquals(expectedQuery, query);
+
+    p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
+    query = visitor.buildQuery(p);
+    expectedQuery =
+      "{\n"
+        + "  \"bool\" : {\n"
+        + "    \"filter\" : [\n"
+        + "      {\n"
+        + "        \"range\" : {\n"
+        + "          \"eventDate\" : {\n"
+        + "            \"from\" : \"1980-02-01\",\n"
+        + "            \"to\" : \"2021-09-17\",\n"
+        + "            \"include_lower\" : true,\n"
+        + "            \"include_upper\" : false,\n"
+        + "            \"relation\" : \"within\",\n"
+        + "            \"boost\" : 1.0\n"
+        + "          }\n"
+        + "        }\n"
+        + "      }\n"
+        + "    ],\n"
+        + "    \"adjust_pure_negative\" : true,\n"
+        + "    \"boost\" : 1.0\n"
+        + "  }\n"
+        + "}";
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980", false);
     query = visitor.buildQuery(p);
     expectedQuery =
-        "{\n"
-            + "  \"bool\" : {\n"
-            + "    \"filter\" : [\n"
-            + "      {\n"
-            + "        \"term\" : {\n"
-            + "          \"eventDateSingle\" : {\n"
-            + "            \"value\" : \"1980\",\n"
-            + "            \"boost\" : 1.0\n"
-            + "          }\n"
-            + "        }\n"
-            + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
-            + "  }\n"
-            + "}";
+      "{\n"
+        + "  \"bool\" : {\n"
+        + "    \"filter\" : [\n"
+        + "      {\n"
+        + "        \"range\" : {\n"
+        + "          \"eventDate\" : {\n"
+        + "            \"from\" : \"1980-01-01\",\n"
+        + "            \"to\" : \"1981-01-01\",\n"
+        + "            \"include_lower\" : true,\n"
+        + "            \"include_upper\" : false,\n"
+        + "            \"relation\" : \"within\",\n"
+        + "            \"boost\" : 1.0\n"
+        + "          }\n"
+        + "        }\n"
+        + "      }\n"
+        + "    ],\n"
+        + "    \"adjust_pure_negative\" : true,\n"
+        + "    \"boost\" : 1.0\n"
+        + "  }\n"
+        + "}";
+    assertEquals(expectedQuery, query);
+
+    p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980,1990-05-06", false);
+    query = visitor.buildQuery(p);
+    expectedQuery =
+      "{\n"
+        + "  \"bool\" : {\n"
+        + "    \"filter\" : [\n"
+        + "      {\n"
+        + "        \"range\" : {\n"
+        + "          \"eventDate\" : {\n"
+        + "            \"from\" : \"1980-01-01\",\n"
+        + "            \"to\" : \"1990-05-07\",\n"
+        + "            \"include_lower\" : true,\n"
+        + "            \"include_upper\" : false,\n"
+        + "            \"relation\" : \"within\",\n"
+        + "            \"boost\" : 1.0\n"
+        + "          }\n"
+        + "        }\n"
+        + "      }\n"
+        + "    ],\n"
+        + "    \"adjust_pure_negative\" : true,\n"
+        + "    \"boost\" : 1.0\n"
+        + "  }\n"
+        + "}";
     assertEquals(expectedQuery, query);
   }
 
@@ -1525,6 +1590,8 @@ public class EsQueryVisitorTest {
             value = param.type().getEnumConstants()[0];
           } else if (param.type().isAssignableFrom(Date.class)) {
             value = "2023-03-02";
+          } else if (param.type().isAssignableFrom(IsoDateInterval.class)) {
+            value = "2023-03";
           } else {
             // String, Integer and Double
             value = "1";
