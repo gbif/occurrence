@@ -28,6 +28,8 @@ import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.api.vocabulary.License;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceStatus;
+import org.gbif.api.vocabulary.TaxonomicStatus;
+import org.gbif.api.vocabulary.ThreatStatus;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.occurrence.search.SearchTermService;
 
@@ -178,32 +180,33 @@ public class OccurrenceSearchResource {
     value = {
       @Parameter(
         name = "facet",
-        description =
-          "A facet name used to retrieve the most frequent values for a field. Facets are allowed for all the parameters except for: eventDate, geometry, lastInterpreted, locality, organismId, stateProvince, waterBody. This parameter may by repeated to request multiple facets, as in this example /occurrence/search?facet=datasetKey&facet=basisOfRecord&limit=0",
+        description = "A facet name used to retrieve the most frequent values for a field. Facets are allowed for " +
+          "all search parameters except geometry and geoDistance. This parameter may by repeated to request multiple " +
+          "facets, as in [this example](https://api.gbif.org/v1/occurrence/search?facet=datasetKey&facet=basisOfRecord&limit=0).",
         schema = @Schema(implementation = String.class),
         in = ParameterIn.QUERY),
       @Parameter(
         name = "facetMincount",
-        description =
-          "Used in combination with the facet parameter. Set facetMincount={#} to exclude facets with a count less than {#}, e.g. /search?facet=type&limit=0&facetMincount=10000 only shows the type value 'OCCURRENCE' because 'CHECKLIST' and 'METADATA' have counts less than 10000.",
+        description = "Used in combination with the facet parameter. Set facetMincount={#} to exclude facets with a " +
+          "count less than {#}, e.g. [/search?facet=basisOfRecord&limit=0&facetMincount=10000](https://api.gbif.org/v1/occurrence/search?facet=basisOfRecord&limit=0&facetMincount=1000000].",
         schema = @Schema(implementation = Integer.class),
         in = ParameterIn.QUERY),
       @Parameter(
         name = "facetMultiselect",
-        description =
-          "Used in combination with the facet parameter. Set facetMultiselect=true to still return counts for values that are not currently filtered, e.g. /search?facet=type&limit=0&type=CHECKLIST&facetMultiselect=true still shows type values 'OCCURRENCE' and 'METADATA' even though type is being filtered by type=CHECKLIST",
+        description = "Used in combination with the facet parameter. Set facetMultiselect=true to still return counts " +
+          "for values that are not currently filtered, e.g. [/search?facet=basisOfRecord&limit=0&basisOfRecord=HUMAN_OBSERVATION&facetMultiselect=true]" +
+          "(https://api.gbif.org/v1/occurrence/search?facet=basisOfRecord&limit=0&basisOfRecord=HUMAN_OBSERVATION&facetMultiselect=true) " +
+          "still shows Basis of Record values 'PRESERVED_SPECIMEN' and so on, even though Basis of Record is being filtered.",
         schema = @Schema(implementation = Boolean.class),
         in = ParameterIn.QUERY),
       @Parameter(
         name = "facetLimit",
-        description =
-          "Facet parameters allow paging requests using the parameters facetOffset and facetLimit",
+        description = "Facet parameters allow paging requests using the parameters facetOffset and facetLimit",
         schema = @Schema(implementation = Integer.class),
         in = ParameterIn.QUERY),
       @Parameter(
         name = "facetOffset",
-        description =
-          "Facet parameters allow paging requests using the parameters facetOffset and facetLimit",
+        description = "Facet parameters allow paging requests using the parameters facetOffset and facetLimit",
         schema = @Schema(implementation = Integer.class, minimum = "0"),
         in = ParameterIn.QUERY)
     }
@@ -221,6 +224,14 @@ public class OccurrenceSearchResource {
     extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0000")))
   @Parameters(
     value = {
+      @Parameter(
+        name = "acceptedTaxonKey",
+        description = "A taxon key from the GBIF backbone. Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird." +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2476674"),
       @Parameter(
         name = "basisOfRecord",
         description = "Basis of record, as defined in our BasisOfRecord vocabulary.\n\n" +
@@ -256,6 +267,15 @@ public class OccurrenceSearchResource {
         explode = Explode.TRUE,
         in = ParameterIn.QUERY,
         example = "F"),
+      @Parameter(
+        name = "collectionKey",
+        description = "A key (UUID) for a collection registered in the [Global Registry of Scientific Collections]" +
+          "(https://www.gbif.org/grscicoll).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "dceb8d52-094c-4c2c-8960-75e0097c6861"),
       @Parameter(
         name = "continent",
         description = "Continent, as defined in our Continent vocabulary.\n\n" +
@@ -319,6 +339,15 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "40.5,45"),
       @Parameter(
+        name = "degreeOfEstablishment",
+        description = "The degree to which an organism survives, reproduces and expands its range at the given " +
+          "place and time, as defined in the [GBIF DegreeOfEstablishment vocabulary](https://registry.gbif.org/vocabulary/DegreeOfEstablishment/concepts).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Invasive"),
+      @Parameter(
         name = "decimalLongitude",
         description = "Longitude in decimals between -180 and 180 based on WGS 84.\n\n" +
           API_PARAMETER_RANGE_QUERIES,
@@ -333,6 +362,25 @@ public class OccurrenceSearchResource {
         schema = @Schema(implementation = Range.class),
         in = ParameterIn.QUERY,
         example = "10,20"),
+      @Parameter(
+        name = "distanceFromCentroidInMeters",
+        description = "The horizontal distance (in metres) of the occurrence from the nearest centroid known to be used " +
+          "in automated georeferencing procedures, if that distance is 5000m or less.  Occurrences (especially specimens) " +
+          "near a country centroid may have a poor-quality georeference, especially if coordinateUncertaintyInMeters is " +
+          "blank or large.\n\n" +
+          API_PARAMETER_RANGE_QUERIES,
+        schema = @Schema(implementation = Range.class),
+        in = ParameterIn.QUERY,
+        example = "0,500"),
+      @Parameter(
+        name = "dwcaExtension",
+        description = "A known Darwin Core Archive extension RowType.  Limits the search to occurrences which have " +
+          "this extension, although they will not necessarily have any useful data recorded using the extension.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "http://rs.tdwg.org/ac/terms/Multimedia"),
       @Parameter(
         name = "elevation",
         description = "Elevation (altitude) in metres above sea level.\n\n" +
@@ -413,403 +461,497 @@ public class OccurrenceSearchResource {
         explode = Explode.TRUE,
         in = ParameterIn.QUERY,
         example = "AFG.1.1.1_1"),
-     @Parameter(
-       name = "genusKey",
-       description = "Genus classification key.",
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "2877951"),
-     @Parameter(
-       name = "geoDistance", // TODO: Not working.
-       description = "Filters to match occurrence records with coordinate values within a specified distance of " +
-         "a coordinate.\n\nDistance may be specified in kilometres (km) or metres (m).",
-       schema = @Schema(implementation = String.class),
-       in = ParameterIn.QUERY,
-       example = "90,100,5km"),
-     @Parameter(
-       name = "geometry",
-       description = "Searches for occurrences inside a polygon described in Well Known Text (WKT) format. " +
-         "Only `POINT`, `LINESTRING`, `LINEARRING`, `POLYGON` and `MULTIPOLYGON` are accepted WKT types.\n\n" +
-         "For example, a shape written as `POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))` would be queried " +
-         "as is.\n\n" +
-         "_Polygons must have *anticlockwise* ordering of points, or will give unpredictable results._ " +
-         "(A clockwise polygon represents the opposite area: the Earth's surface with a 'hole' in it. " +
-         "Such queries are not supported.)\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))"),
-     @Parameter(
-       name = "hasCoordinate",
-       description = "Limits searches to occurrence records which contain a value in both latitude and " +
-         "longitude (i.e. `hasCoordinate=true` limits to occurrence records with coordinate values and " +
-         "`hasCoordinate=false` limits to occurrence records without coordinate values).",
-       schema = @Schema(implementation = Boolean.class),
-       in = ParameterIn.QUERY,
-       example = "true"),
-     @Parameter(
-       name = "identifiedBy",
-       description = "The person who provided the taxonomic identification of the occurrence.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "Allison"),
-     @Parameter(
-       name = "identifiedByID",
-       description = "Identifier (e.g. ORCID) for the person who provided the taxonomic identification of the occurrence.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "https://orcid.org/0000-0001-6492-4016"),
-     @Parameter(
-       name = "institutionCode",
-       description = "An identifier of any form assigned by the source to identify the institution the " +
-         "record belongs to. Not guaranteed to be unique.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "K"),
-     @Parameter(
-       name = "issue",
-       description = "A specific interpretation issue as defined in our OccurrenceIssue enumeration.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = OccurrenceIssue.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "COUNTRY_COORDINATE_MISMATCH"),
-     @Parameter(
-       name = "kingdomKey",
-       description = "Kingdom classification key.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "5"),
-     @Parameter(
-       name = "lastInterpreted",
-       description = "This date the record was last modified in GBIF, in ISO 8601 format: yyyy, yyyy-MM, yyyy-MM-dd, " +
-         "or MM-dd.\n\n" +
-         "Note that this is the date the record was last changed in GBIF, not necessarily the date the record was " +
-         "first/last changed by the publisher. Data is re-interpreted when we change the taxonomic backbone, " +
-         "geographic data sources, or interpretation processes.\n\n" +
-         API_PARAMETER_RANGE_OR_REPEAT,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "2023-02"),
-     @Parameter(
-       name = "license",
-       description = "The licence applied to the dataset or record by the publisher.\n\n" +
-         API_PARAMETER_RANGE_OR_REPEAT,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = License.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "CC0_1_0"),
-     @Parameter(
-       name = "locality",
-       description = "The specific description of the place.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY),
-     @Parameter(
-       name = "mediaType",
-       description = "The kind of multimedia associated with an occurrence as defined in our MediaType enumeration.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = MediaType.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY),
-     @Parameter(
-       name = "modified",
-       description = "The most recent date-time on which the occurrnce was changed, according to the publisher.\n\n" +
-         API_PARAMETER_RANGE_OR_REPEAT,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "2023-02-20"),
-     @Parameter(
-       name = "month",
-       description = "The month of the year, starting with 1 for January.\n\n" +
-         API_PARAMETER_RANGE_OR_REPEAT,
-       array = @ArraySchema(uniqueItems = true,  schema = @Schema(implementation = Short.class, minimum = "1", maximum = "12")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "5"),
       @Parameter(
-        name = "networkKey",
-        description = "The network's GBIF key (a UUID).\n\n" +
+        name = "gbifId",
+        description = "The unique GBIF key for a single occurrence.",
+        schema = @Schema(implementation = Long.class),
+        in = ParameterIn.QUERY,
+        example = "2005380410"),
+      @Parameter(
+        name = "genusKey",
+        description = "Genus classification key.",
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2877951"),
+      @Parameter(
+        name = "geoDistance",
+        description = "Filters to match occurrence records with coordinate values within a specified distance of " +
+          "a coordinate.\n\nDistance may be specified in kilometres (km) or metres (m).",
+        schema = @Schema(implementation = String.class),
+        in = ParameterIn.QUERY,
+        example = "90,100,5km"),
+      @Parameter(
+        name = "geometry",
+        description = "Searches for occurrences inside a polygon described in Well Known Text (WKT) format. " +
+          "Only `POINT`, `LINESTRING`, `LINEARRING`, `POLYGON` and `MULTIPOLYGON` are accepted WKT types.\n\n" +
+          "For example, a shape written as `POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))` would be queried " +
+          "as is.\n\n" +
+          "_Polygons must have *anticlockwise* ordering of points, or will give unpredictable results._ " +
+          "(A clockwise polygon represents the opposite area: the Earth's surface with a 'hole' in it. " +
+          "Such queries are not supported.)\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))"),
+      @Parameter(
+        name = "hasCoordinate",
+        description = "Limits searches to occurrence records which contain a value in both latitude and " +
+          "longitude (i.e. `hasCoordinate=true` limits to occurrence records with coordinate values and " +
+          "`hasCoordinate=false` limits to occurrence records without coordinate values).",
+        schema = @Schema(implementation = Boolean.class),
+        in = ParameterIn.QUERY,
+        example = "true"),
+      @Parameter(
+        name = "hasGeospatialIssue",
+        description = "Includes/excludes occurrence records which contain spatial issues (as determined in our " +
+          "record interpretation), i.e. hasGeospatialIssue=true returns only those records with spatial issues " +
+          "while hasGeospatialIssue=false includes only records without spatial issues.\n\n" +
+          "The absence of this parameter returns any record with or without spatial issues.",
+        schema = @Schema(implementation = Boolean.class),
+        in = ParameterIn.QUERY,
+        example = "true"),
+      @Parameter(
+        name = "hostingOrganizationKey",
+        description = "The key (UUID) of the publishing organization whose installation (server) hosts the original " +
+          "dataset.\n\n" +
+          "(This is of little interest to most data users.)\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
         explode = Explode.TRUE,
         in = ParameterIn.QUERY,
-        example = "2b7c7b4f-4d4f-40d3-94de-c28b6fa054a6"),
-     @Parameter(
-       name = "occurrenceId",
-       description = "A globally unique identifier for the occurrence record as provided by the publisher.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "URN:catalog:UWBM:Bird:126493"),
-     @Parameter(
-       name = "occurrenceStatus",
-       description = "Either `ABSENT` or `PRESENT`; the presence or absence of the occurrence.",
-       schema = @Schema(implementation = OccurrenceStatus.class),
-       in = ParameterIn.QUERY,
-       example = "PRESENT"),
-     @Parameter(
-       name = "orderKey",
-       description = "Order classification key.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "1448"),
-     @Parameter(
-       name = "organismId",
-       description = "An identifier for the organism instance (as opposed to a particular digital record " +
-         "of the organism). May be a globally unique identifier or an identifier specific to the data set.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY),
-     @Parameter(
-       name = "organismQuantity",
-       description = "A number or enumeration value for the quantity of organisms.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "1"),
-     @Parameter(
-       name = "organismQuantityType",
-       description = "The type of quantification system used for the quantity of organisms.\n\n" +
-         "*Note this term is not aligned to a vocabulary.*\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "individuals"),
-     @Parameter(
-       name = "otherCatalogNumbers",
-       description = "Previous or alternate fully qualified catalog numbers.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY),
-     @Parameter(
-       name = "phylumKey",
-       description = "Phylum classification key.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "44"),
-     @Parameter(
-       name = "preparations",
-       description = "Preparation or preservation method for a specimen.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "pinned"),
-     @Parameter(
-       name = "programme",
-       description = "A group of activities, often associated with a specific funding stream, such as the " +
-         "GBIF BID programme.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "BID"),
-     @Parameter(
-       name = "projectId",
-       description = "The identifier for a project, which is often assigned by a funded programme.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "bid-af2020-039-reg"),
-     @Parameter(
-       name = "protocol",
-       description = "Protocol or mechanism used to provide the occurrence record.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = EndpointType.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "DWC_ARCHIVE"),
-     @Parameter(
-       name = "publishingCountry",
-       description = "The 2-letter country code (as per ISO-3166-1) of the owning organization's country.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Country.class)),
-       explode = Explode.TRUE,
-       example = "AD"),
-     @Parameter(
-       name = "publishingOrg",
-       description = "The publishing organization's GBIF key (a UUID).\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "e2e717bf-551a-4917-bdc9-4fa0f342c530"),
-     @Parameter(
-       name = "recordedBy",
-       description = "The person who recorded the occurrence.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "MiljoStyrelsen"),
-     @Parameter(
-       name = "recordedByID",
-       description = "Identifier (e.g. ORCID) for the person who recorded the occurrence.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "https://orcid.org/0000-0003-0623-6682"),
-     @Parameter(
-       name = "recordNumber",
-       description = "An identifier given to the record at the time it was recorded in the field.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "1"),
-     @Parameter(
-       name = "relativeOrganismQuantity",
-       description = "The relative measurement of the quantity of the organism (i.e. without absolute units).\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY),
-     @Parameter(
-       name = "repatriated",
-       description = "Searches for records whose publishing country is different to the country in which the " +
-         "record was recorded.",
-       schema = @Schema(implementation = Boolean.class),
-       in = ParameterIn.QUERY,
-       example = "true"),
-     @Parameter(
-       name = "sampleSizeUnit",
-       description = "The unit of measurement of the size (time duration, length, area, or volume) of a sample in a " +
-         "sampling event.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "hectares"),
-     @Parameter(
-       name = "sampleSizeValue",
-       description = "A numeric value for a measurement of the size (time duration, length, area, or volume) of a " +
-         "sample in a sampling event.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "50.50"),
-     @Parameter(
-       name = "samplingProtocol",
-       description = "The name of, reference to, or description of the method or protocol used during a sampling event.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "malaise trap"),
-     @Parameter(
-       name = "scientificName",
-       description = "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c). " +
-         "All included and synonym taxa are included in the search.\n\n" +
-         "Under the hood a call to the [species match service](https://www.gbif.org/developer/species#searching) " +
-         "is done first to retrieve a taxonKey. Only unique scientific names will return results, homonyms " +
-         "(many monomials) return nothing! Consider to use the taxonKey parameter instead and the species match " +
-         "service directly.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "Quercus robur"),
-     @Parameter(
-       name = "speciesKey",
-       description = "Species classification key." +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "2476674"),
-     @Parameter(
-       name = "stateProvince",
-       description = "The name of the next smaller administrative region than country (state, province, canton, " +
-         "department, region, etc.) in which the Location occurs.\n\n" +
-         "This term does not have any data quality checks; see also the GADM parameters.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "Leicestershire"),
-     @Parameter(
-       name = "subgenusKey",
-       hidden = true, // Not yet implemented
-       description = "Subgenus classification key.",
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "0"),
-     @Parameter(
-       name = "taxonKey",
-       description = "A taxon key from the GBIF backbone. All included and synonym taxa are included in the search, so a search for aves with taxonKey=212 (i.e. /occurrence/search?taxonKey=212) will match all birds, no matter which species." +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "2476674"),
-     @Parameter(
-       name = "taxonId",
-       description = "The taxon identifier provided to GBIF by the data publisher.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "urn:lsid:dyntaxa.se:Taxon:103026"),
-     @Parameter(
-       name = "typeStatus",
-       description = "Nomenclatural type (type status, typified scientific name, publication) applied to the subject.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = TypeStatus.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "HOLOTYPE"),
-     @Parameter(
-       name = "verbatimScientificName",
-       description = "The scientific name provided to GBIF by the data publisher, before interpretation and " +
-         "processing by GBIF.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "Quercus robur L."),
-     @Parameter(
-       name = "waterBody",
-       description = "The name of the water body in which the Locations occurs.\n\n" +
-         API_PARAMETER_MAY_BE_REPEATED,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "Lake Michigan"),
-     @Parameter(
-       name = "year",
-       description = "The 4 digit year. A year of 98 will be interpreted as AD 98.\n\n" +
-         API_PARAMETER_RANGE_OR_REPEAT,
-       array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
-       explode = Explode.TRUE,
-       in = ParameterIn.QUERY,
-       example = "1998"),
+        example = "fbca90e3-8aed-48b1-84e3-369afbd000ce"),
+      @Parameter(
+        name = "identifiedBy",
+        description = "The person who provided the taxonomic identification of the occurrence.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Allison"),
+      @Parameter(
+        name = "identifiedByID",
+        description = "Identifier (e.g. ORCID) for the person who provided the taxonomic identification of the occurrence.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "https://orcid.org/0000-0001-6492-4016"),
+      @Parameter(
+        name = "installationKey",
+        description = "The occurrence installation key (a UUID).\n\n" +
+          "(This is of little interest to most data users.  It is the identifier for the server that provided the data " +
+          "to GBIF.)\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "17a83780-3060-4851-9d6f-029d5fcb81c9"),
+      @Parameter(
+        name = "institutionCode",
+        description = "An identifier of any form assigned by the source to identify the institution the " +
+          "record belongs to. Not guaranteed to be unique.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "K"),
+      @Parameter(
+        name = "institutionKey",
+        description = "A key (UUID) for an institution registered in the [Global Registry of Scientific Collections]" +
+          "(https://www.gbif.org/grscicoll).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "fa252605-26f6-426c-9892-94d071c2c77f"),
+      @Parameter(
+        name = "issue",
+        description = "A specific interpretation issue as defined in our OccurrenceIssue enumeration.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = OccurrenceIssue.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "COUNTRY_COORDINATE_MISMATCH"),
+      @Parameter(
+        name = "isInCluster",
+        description = "*Experimental.* Searches for records which are part of a cluster.  See the documentation on " +
+          "[clustering](/en/data-processing/clustering-occurrences).",
+        schema = @Schema(implementation = Boolean.class),
+        in = ParameterIn.QUERY,
+        example = "true"),
+      @Parameter(
+        name = "iucnRedListCategory",
+        description = "A threat status category from the IUCN Red List.  The two-letter code for the status should " +
+          "be used.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = ThreatStatus.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "EX"),
+      @Parameter(
+        name = "kingdomKey",
+        description = "Kingdom classification key.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "5"),
+      @Parameter(
+        name = "lastInterpreted",
+        description = "This date the record was last modified in GBIF, in ISO 8601 format: yyyy, yyyy-MM, yyyy-MM-dd, " +
+          "or MM-dd.\n\n" +
+          "Note that this is the date the record was last changed in GBIF, not necessarily the date the record was " +
+          "first/last changed by the publisher. Data is re-interpreted when we change the taxonomic backbone, " +
+          "geographic data sources, or interpretation processes.\n\n" +
+          API_PARAMETER_RANGE_OR_REPEAT,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2023-02"),
+      @Parameter(
+        name = "license",
+        description = "The licence applied to the dataset or record by the publisher.\n\n" +
+          API_PARAMETER_RANGE_OR_REPEAT,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = License.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "CC0_1_0"),
+      @Parameter(
+        name = "lifeStage",
+        description = "The age class or life stage of an organism at the time the occurrence was recorded, as defined " +
+          "in the GBIF LifeStage vocabulary](https://registry.gbif.org/vocabulary/LifeStage/concepts).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Juvenile"),
+      @Parameter(
+        name = "locality",
+        description = "The specific description of the place.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY),
+      @Parameter(
+        name = "mediaType",
+        description = "The kind of multimedia associated with an occurrence as defined in our MediaType enumeration.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = MediaType.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY),
+      @Parameter(
+        name = "modified",
+        description = "The most recent date-time on which the occurrnce was changed, according to the publisher.\n\n" +
+          API_PARAMETER_RANGE_OR_REPEAT,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2023-02-20"),
+      @Parameter(
+        name = "month",
+        description = "The month of the year, starting with 1 for January.\n\n" +
+          API_PARAMETER_RANGE_OR_REPEAT,
+        array = @ArraySchema(uniqueItems = true,  schema = @Schema(implementation = Short.class, minimum = "1", maximum = "12")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "5"),
+       @Parameter(
+         name = "networkKey",
+         description = "The network's GBIF key (a UUID).\n\n" +
+           API_PARAMETER_MAY_BE_REPEATED,
+         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
+         explode = Explode.TRUE,
+         in = ParameterIn.QUERY,
+         example = "2b7c7b4f-4d4f-40d3-94de-c28b6fa054a6"),
+      @Parameter(
+        name = "occurrenceId",
+        description = "A globally unique identifier for the occurrence record as provided by the publisher.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "URN:catalog:UWBM:Bird:126493"),
+      @Parameter(
+        name = "occurrenceStatus",
+        description = "Either `ABSENT` or `PRESENT`; the presence or absence of the occurrence.",
+        schema = @Schema(implementation = OccurrenceStatus.class),
+        in = ParameterIn.QUERY,
+        example = "PRESENT"),
+      @Parameter(
+        name = "orderKey",
+        description = "Order classification key.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "1448"),
+      @Parameter(
+        name = "organismId",
+        description = "An identifier for the organism instance (as opposed to a particular digital record " +
+          "of the organism). May be a globally unique identifier or an identifier specific to the data set.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY),
+      @Parameter(
+        name = "organismQuantity",
+        description = "A number or enumeration value for the quantity of organisms.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "1"),
+      @Parameter(
+        name = "organismQuantityType",
+        description = "The type of quantification system used for the quantity of organisms.\n\n" +
+          "*Note this term is not aligned to a vocabulary.*\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "individuals"),
+      @Parameter(
+        name = "otherCatalogNumbers",
+        description = "Previous or alternate fully qualified catalog numbers.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY),
+      @Parameter(
+        name = "parentEventId",
+        description = "An identifier for the information associated with a sampling event.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "A 123"),
+      @Parameter(
+        name = "pathway",
+        description = "The process by which an organism came to be in a given place at a given time, as defined in the " +
+          "[GBIF Pathway vocabulary](https://registry.gbif.org/vocabulary/Pathway/concepts).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Agriculture"),
+      @Parameter(
+        name = "phylumKey",
+        description = "Phylum classification key.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "44"),
+      @Parameter(
+        name = "preparations",
+        description = "Preparation or preservation method for a specimen.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "pinned"),
+      @Parameter(
+        name = "programme",
+        description = "A group of activities, often associated with a specific funding stream, such as the " +
+          "GBIF BID programme.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "BID"),
+      @Parameter(
+        name = "projectId",
+        description = "The identifier for a project, which is often assigned by a funded programme.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "bid-af2020-039-reg"),
+      @Parameter(
+        name = "protocol",
+        description = "Protocol or mechanism used to provide the occurrence record.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = EndpointType.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "DWC_ARCHIVE"),
+      @Parameter(
+        name = "publishingCountry",
+        description = "The 2-letter country code (as per ISO-3166-1) of the owning organization's country.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Country.class)),
+        explode = Explode.TRUE,
+        example = "AD"),
+      @Parameter(
+        name = "publishingOrg",
+        description = "The publishing organization's GBIF key (a UUID).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "e2e717bf-551a-4917-bdc9-4fa0f342c530"),
+      @Parameter(
+        name = "recordedBy",
+        description = "The person who recorded the occurrence.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "MiljoStyrelsen"),
+      @Parameter(
+        name = "recordedByID",
+        description = "Identifier (e.g. ORCID) for the person who recorded the occurrence.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "https://orcid.org/0000-0003-0623-6682"),
+      @Parameter(
+        name = "recordNumber",
+        description = "An identifier given to the record at the time it was recorded in the field.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "1"),
+      @Parameter(
+        name = "relativeOrganismQuantity",
+        description = "The relative measurement of the quantity of the organism (i.e. without absolute units).\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY),
+      @Parameter(
+        name = "repatriated",
+        description = "Searches for records whose publishing country is different to the country in which the " +
+          "record was recorded.",
+        schema = @Schema(implementation = Boolean.class),
+        in = ParameterIn.QUERY,
+        example = "true"),
+      @Parameter(
+        name = "sampleSizeUnit",
+        description = "The unit of measurement of the size (time duration, length, area, or volume) of a sample in a " +
+          "sampling event.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "hectares"),
+      @Parameter(
+        name = "sampleSizeValue",
+        description = "A numeric value for a measurement of the size (time duration, length, area, or volume) of a " +
+          "sample in a sampling event.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "50.50"),
+      @Parameter(
+        name = "samplingProtocol",
+        description = "The name of, reference to, or description of the method or protocol used during a sampling event.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "malaise trap"),
+      @Parameter(
+        name = "scientificName",
+        description = "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c). " +
+          "All included and synonym taxa are included in the search.\n\n" +
+          "Under the hood a call to the [species match service](https://www.gbif.org/developer/species#searching) " +
+          "is done first to retrieve a taxonKey. Only unique scientific names will return results, homonyms " +
+          "(many monomials) return nothing! Consider to use the taxonKey parameter instead and the species match " +
+          "service directly.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Quercus robur"),
+      @Parameter(
+        name = "speciesKey",
+        description = "Species classification key." +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2476674"),
+      @Parameter(
+        name = "stateProvince",
+        description = "The name of the next smaller administrative region than country (state, province, canton, " +
+          "department, region, etc.) in which the Location occurs.\n\n" +
+          "This term does not have any data quality checks; see also the GADM parameters.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Leicestershire"),
+      @Parameter(
+        name = "subgenusKey",
+        hidden = true, // Not yet implemented
+        description = "Subgenus classification key.",
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "0"),
+      @Parameter(
+        name = "taxonKey",
+        description = "A taxon key from the GBIF backbone. All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?taxonKey=212)) will match all birds, no matter which species." +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2476674"),
+      @Parameter(
+        name = "taxonId",
+        description = "The taxon identifier provided to GBIF by the data publisher.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "urn:lsid:dyntaxa.se:Taxon:103026"),
+      @Parameter(
+        name = "taxonomicStatus",
+        description = "A taxonomic status from our TaxonomicStatus enumeration.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = TaxonomicStatus.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "SYNONYM"),
+      @Parameter(
+        name = "typeStatus",
+        description = "Nomenclatural type (type status, typified scientific name, publication) applied to the subject.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = TypeStatus.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "HOLOTYPE"),
+      @Parameter(
+        name = "verbatimScientificName",
+        description = "The scientific name provided to GBIF by the data publisher, before interpretation and " +
+          "processing by GBIF.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Quercus robur L."),
+      @Parameter(
+        name = "waterBody",
+        description = "The name of the water body in which the Locations occurs.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Lake Michigan"),
+      @Parameter(
+        name = "year",
+        description = "The 4 digit year. A year of 98 will be interpreted as AD 98.\n\n" +
+          API_PARAMETER_RANGE_OR_REPEAT,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "1998"),
 
       @Parameter(
         name = "hl",
