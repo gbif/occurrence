@@ -50,7 +50,7 @@ public enum OccurrenceEventEsField implements EsField {
   NETWORK_KEY(new BaseEsField("metadata.networkKeys", GbifInternalTerm.networkKey)),
   PROTOCOL(new BaseEsField("metadata.protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("metadata.license", DcTerm.license)),
-  PROJECT_ID(new BaseEsField("metadata.projectId", GbifInternalTerm.projectId)),
+  PROJECT_ID(new BaseEsField("metadata.projectId", GbifTerm.projectId)),
   PROGRAMME(new BaseEsField("metadata.programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
@@ -191,7 +191,7 @@ public enum OccurrenceEventEsField implements EsField {
   //Event
   START_DAY_OF_YEAR(new BaseEsField("occurrence.startDayOfYear", DwcTerm.startDayOfYear)),
   END_DAY_OF_YEAR(new BaseEsField("occurrence.endDayOfYear", DwcTerm.startDayOfYear)),
-  EVENT_TYPE(new BaseEsField("occurrence.eventType", GbifTerm.eventType)),
+  EVENT_TYPE(new BaseEsField("occurrence.eventType", DwcTerm.eventType)),
   LOCATION_ID(new BaseEsField("occurrence.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("occurrence.parentsLineage", EsField.PARENTS_LINEAGE)),
 
@@ -293,6 +293,7 @@ public enum OccurrenceEventEsField implements EsField {
       .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
       .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
       .put(OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS, DISTANCE_FROM_CENTROID_IN_METERS)
+      .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
 
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED,LAST_PARSED);

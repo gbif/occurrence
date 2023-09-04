@@ -14,16 +14,16 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
-import org.gbif.api.model.occurrence.predicate.ConjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.GeoDistancePredicate;
-import org.gbif.api.model.occurrence.predicate.GreaterThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.InPredicate;
-import org.gbif.api.model.occurrence.predicate.IsNotNullPredicate;
-import org.gbif.api.model.occurrence.predicate.LessThanOrEqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.Predicate;
-import org.gbif.api.model.occurrence.predicate.WithinPredicate;
+import org.gbif.api.model.predicate.ConjunctionPredicate;
+import org.gbif.api.model.predicate.DisjunctionPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.GeoDistancePredicate;
+import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
+import org.gbif.api.model.predicate.InPredicate;
+import org.gbif.api.model.predicate.IsNotNullPredicate;
+import org.gbif.api.model.predicate.LessThanOrEqualsPredicate;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
@@ -95,7 +95,6 @@ public class PredicateFactory {
   }
 
   /**
-   * @param name
    * @return the search enum or null if it cant be converted
    */
   private static OccurrenceSearchParameter toEnumParam(String name) {

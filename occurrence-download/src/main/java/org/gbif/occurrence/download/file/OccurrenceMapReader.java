@@ -105,6 +105,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.identifiedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getIdentifiedBy()));
     interpretedOccurrence.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getPreparations()));
     interpretedOccurrence.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getSamplingProtocol()));
+    interpretedOccurrence.put(GbifTerm.projectId.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getProjectId()));
 
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
@@ -289,7 +290,7 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DwcTerm.parentEventID.simpleName(), event.getParentEventID());
     interpretedEvent.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(event.getStartDayOfYear()));
     interpretedEvent.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
-    interpretedEvent.put(GbifTerm.eventType.simpleName(), getConcept(event.getEventType()));
+    interpretedEvent.put(DwcTerm.eventType.simpleName(), getConcept(event.getEventType()));
 
     event.getVerbatimFields().forEach( (term, value) -> {
       if (!INTERPRETED_SOURCE_TERMS.contains(term)) {

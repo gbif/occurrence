@@ -15,12 +15,15 @@ package org.gbif.occurrence.download.resource;
 
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
-import org.gbif.api.model.occurrence.*;
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.DownloadType;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 
@@ -32,9 +35,14 @@ import java.lang.annotation.Target;
 import java.net.URI;
 import java.security.Principal;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,7 +62,14 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.google.common.base.Preconditions;
@@ -67,11 +82,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
-import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static org.gbif.api.model.occurrence.Download.Status.FILE_ERASED;
 import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
 import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
 import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
@@ -131,29 +153,38 @@ public class DownloadResource {
     }
   }
 
-  /**
-   * A download key (example is the oldest download).
-   */
+  /** A download key (example is the oldest download). */
   @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   @Inherited
   @Parameter(
-    name = "key",
-    required = true,
-    description = "An identifier for a download.",
-    schema = @Schema(implementation = String.class, format = "NNNNNNN-NNNNNNNNNNNNNNN"),
-    example = "0001005-130906152512535",
-    in = ParameterIn.PATH)
+      name = "key",
+      required = true,
+      description = "An identifier for a download.",
+      schema = @Schema(implementation = String.class, format = "NNNNNNN-NNNNNNNNNNNNNNN"),
+      example = "0001005-130906152512535",
+      in = ParameterIn.PATH)
   @interface DownloadIdentifierPathParameter {}
 
   @Operation(
-    operationId = "cancelDownload",
-    summary = "Cancel a running download",
-    description = "Cancel a running download",
-    responses = @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))))
+      operationId = "cancelDownload",
+      summary = "Cancel a running download",
+      description = "Cancel a running download",
+      responses =
+          @ApiResponse(responseCode = "204", content = @Content(schema = @Schema(hidden = true))),
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0030")))
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Occurrence download cancelled."),
+        @ApiResponse(responseCode = "404", description = "Invalid occurrence download key.")
+      })
   @DeleteMapping("{key}")
-  public void delDownload(@PathVariable("key") @DownloadIdentifierPathParameter String jobId,
-                          @Autowired Principal principal) {
+  public void delDownload(
+      @PathVariable("key") @DownloadIdentifierPathParameter String jobId,
+      @Autowired Principal principal) {
     // service.get returns a download or throws NotFoundException
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Download download = occurrenceDownloadService.get(jobId);
@@ -173,10 +204,26 @@ public class DownloadResource {
    * <p>(The commit introducing this comment removed an implementation of Range requests.)
    */
   @Operation(
-    operationId = "retrieveDownload",
-    summary = "Retrieve the resulting download file",
-    description = "Retrieves the download file if it is available.",
-    responses = @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))))
+      operationId = "retrieveDownload",
+      summary = "Retrieve the resulting download file",
+      description = "Retrieves the download file if it is available.",
+      responses =
+          @ApiResponse(responseCode = "200", content = @Content(schema = @Schema(hidden = true))),
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0020")))
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "302",
+            description =
+                "Occurrence download found, follow the redirect to the data file (e.g. zip file)."),
+        @ApiResponse(responseCode = "404", description = "Invalid occurrence download key."),
+        @ApiResponse(
+            responseCode = "410",
+            description = "Occurrence download file was erased and is no longer available.")
+      })
   @GetMapping(
       value = "{key}",
       produces = {
@@ -184,24 +231,31 @@ public class DownloadResource {
         MediaType.APPLICATION_JSON_VALUE,
         "application/x-javascript"
       })
-  public ResponseEntity<String> getResult(@PathVariable("key") @DownloadIdentifierPathParameter String downloadKey) {
+  public ResponseEntity<String> getResult(
+      @PathVariable("key") @DownloadIdentifierPathParameter String downloadKey) {
 
     // if key contains avro or zip suffix remove it as we intend to work with the pure key
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, AVRO_EXT);
     downloadKey = StringUtils.removeEndIgnoreCase(downloadKey, ZIP_EXT);
 
     Download download = occurrenceDownloadService.get(downloadKey);
-    String extension =
-        Optional.ofNullable(download)
-            .map(d -> d.getRequest().getFormat().getExtension())
-            .orElse(ZIP_EXT);
 
-    if (download != null) {
-      assertDownloadType(download);
+    if (download == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body("\"Download with this key not found.\"\n");
     }
 
+    assertDownloadType(download);
+
+    if (download.getStatus() == FILE_ERASED) {
+      return ResponseEntity.status(HttpStatus.GONE)
+          .body("\"This download was erased, but the metadata is retained.\"\n");
+    }
+
+    String extension = download.getRequest().getFormat().getExtension();
+
     LOG.debug("Get download data: [{}]", downloadKey);
-    File downloadFile = requestService.getResultFile(downloadKey);
+    File downloadFile = requestService.getResultFile(download);
 
     String location = archiveServerUrl + downloadKey + extension;
     return ResponseEntity.status(HttpStatus.FOUND)
@@ -223,22 +277,35 @@ public class DownloadResource {
 
   /** Request a new predicate download (POST method, public API). */
   @Operation(
-    operationId = "requestDownload",
-    summary = "Requests the creation of a download file.",
-    description = "Starts the process of creating a download file. See the predicates section to consult the requests accepted by this service and the limits section to refer for information of how this service is limited per user.",
-    responses = @ApiResponse(responseCode = "201", content = @Content(schema = @Schema(hidden = true))))
+      operationId = "requestDownload",
+      summary = "Requests the creation of a download file.",
+      description =
+          "Starts the process of creating a download file. See the predicates "
+              + "section to consult the requests accepted by this service and the limits section to refer "
+              + "for information of how this service is limited per user.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0010")))
   @Parameters(
-    value = {
-      @Parameter(
-        name = "source",
-        hidden = true
-      ),
-      @Parameter(
-        name = "User-Agent",
-        in = ParameterIn.HEADER,
-        hidden = true
-      )
-    })
+      value = {
+        @Parameter(name = "source", hidden = true),
+        @Parameter(name = "User-Agent", in = ParameterIn.HEADER, hidden = true)
+      })
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "Occurrence download requested, key returned."),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid query, see [predicates](#operations-tag-Occurrence_downloads)."),
+        @ApiResponse(
+            responseCode = "429",
+            description =
+                "Too many downloads, wait for one of your downloads to complete. "
+                    + "See [limits](#operations-tag-Occurrence_downloads)")
+      })
   @PostMapping(
       produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
@@ -258,11 +325,7 @@ public class DownloadResource {
       request.setType(downloadType);
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       return ResponseEntity.ok(
-          createDownload(
-              request,
-              authentication,
-              principal,
-              parseSource(source, userAgent)));
+          createDownload(request, authentication, principal, parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
       return ResponseEntity.status(rse.getStatus()).body(rse.getReason());
     }
@@ -298,12 +361,11 @@ public class DownloadResource {
             occurrenceDownloadService.listByUser(
                 "download.gbif.org",
                 new PagingRequest(0, 50),
-                EnumSet.of(PREPARING, RUNNING, SUCCEEDED));
+                EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
+                LocalDateTime.now().minus(35, ChronoUnit.DAYS),
+                false);
         String existingMonthlyDownload =
-            matchExistingDownload(
-                monthlyDownloads,
-                predicateDownloadRequest,
-                Date.from(Instant.now().minus(35, ChronoUnit.DAYS)));
+            matchExistingDownload(monthlyDownloads, predicateDownloadRequest);
         if (existingMonthlyDownload != null) {
           return existingMonthlyDownload;
         }
@@ -314,12 +376,10 @@ public class DownloadResource {
           occurrenceDownloadService.listByUser(
               userAuthenticated.getName(),
               new PagingRequest(0, 50),
-              EnumSet.of(PREPARING, RUNNING, SUCCEEDED));
-      String existingUserDownload =
-          matchExistingDownload(
-              userDownloads,
-              predicateDownloadRequest,
-              Date.from(Instant.now().minus(4, ChronoUnit.HOURS)));
+              EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
+              LocalDateTime.now().minus(4, ChronoUnit.HOURS),
+              false);
+      String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
       if (existingUserDownload != null) {
         return existingUserDownload;
       }
@@ -335,7 +395,7 @@ public class DownloadResource {
   @GetMapping(produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE})
   @Secured(USER_ROLE)
   @ResponseBody
-  public String download(
+  public ResponseEntity<String> download(
       @Autowired HttpServletRequest httpRequest,
       @RequestParam(name = "notification_address", required = false) String emails,
       @RequestParam("format") String format,
@@ -345,11 +405,17 @@ public class DownloadResource {
       @RequestHeader(value = "User-Agent") String userAgent) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return createDownload(
-        downloadPredicate(httpRequest, emails, format, extensions, principal),
-        authentication,
-        principal,
-        parseSource(source, userAgent));
+
+    try {
+      return ResponseEntity.ok(
+          createDownload(
+              downloadPredicate(httpRequest, emails, format, extensions, principal),
+              authentication,
+              principal,
+              parseSource(source, userAgent)));
+    } catch (ResponseStatusException rse) {
+      return ResponseEntity.status(rse.getStatus()).body(rse.getReason());
+    }
   }
 
   @Hidden
@@ -364,9 +430,13 @@ public class DownloadResource {
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
-    Set<Extension> requestExtensions =
+    Set<org.gbif.api.vocabulary.Extension> requestExtensions =
         Optional.ofNullable(asSet(extensions))
-            .map(exts -> exts.stream().map(Extension::fromRowType).collect(Collectors.toSet()))
+            .map(
+                exts ->
+                    exts.stream()
+                        .map(org.gbif.api.vocabulary.Extension::fromRowType)
+                        .collect(Collectors.toSet()))
             .orElse(Collections.emptySet());
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
@@ -387,15 +457,8 @@ public class DownloadResource {
    * @return The download key, if there's a match.
    */
   private String matchExistingDownload(
-      PagingResponse<Download> existingDownloads,
-      PredicateDownloadRequest newDownload,
-      Date cutoff) {
+      PagingResponse<Download> existingDownloads, PredicateDownloadRequest newDownload) {
     for (Download existingDownload : existingDownloads.getResults()) {
-      // Downloads are in descending order by creation date
-      if (existingDownload.getCreated().before(cutoff)) {
-        return null;
-      }
-
       if (existingDownload.getRequest() instanceof PredicateDownloadRequest) {
         PredicateDownloadRequest existingPredicateDownload =
             (PredicateDownloadRequest) existingDownload.getRequest();

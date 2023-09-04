@@ -29,6 +29,8 @@ import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nullable;
+
 @Data
 @Builder
 @Slf4j
@@ -53,8 +55,8 @@ public class TableBackfillConfiguration {
 
   private final HdfsLockConfiguration hdfsLock;
 
-  @Builder.Default
-  private int tablePartitions = 200;
+  @Nullable
+  private Integer tablePartitions;
 
   private final String sourceDirectory;
 

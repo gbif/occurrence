@@ -20,7 +20,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -35,6 +35,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.server.ResponseStatusException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,26 +56,33 @@ public class OccurrenceDownloadResourceTest {
 
   @Test
   public void testCallback() {
-    prepareMocks(USER);
+    prepareMocks(USER, false);
     ResponseEntity<?> response = resource.oozieCallback(JOB_ID, STATUS);
     assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
   }
 
   @Test
   public void testStartDownload() {
-    prepareMocks(USER);
-    ResponseEntity<String> response = resource.startDownload(dl,null,  principal, null);
+    prepareMocks(USER, false);
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
     assertThat(response.getBody(), equalTo(JOB_ID));
   }
 
   @Test
   public void testStartDownloadNotAuthenticated() {
-    prepareMocks("foo");
+    prepareMocks("foo", false);
     ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
     assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
   }
 
-  private void prepareMocks(String user) {
+  @Test
+  public void testStartDownloadFailedCreation() {
+    prepareMocks(USER, true);
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
+    assertEquals(HttpStatus.METHOD_FAILURE, response.getStatusCode());
+  }
+
+  private void prepareMocks(String user, boolean failedCreation) {
     String archiveServerUrl = "http://test/";
     CallbackService callbackService = mock(CallbackService.class);
     DownloadRequestService service = mock(DownloadRequestService.class);
@@ -87,13 +95,29 @@ public class OccurrenceDownloadResourceTest {
     Authentication auth = mock(Authentication.class);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    resource = new OccurrenceDownloadResource(archiveServerUrl, service, callbackService, downloadService, false);
-    dl = new PredicateDownloadRequest(new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false), USER, null, true,
-                                      DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
+    resource =
+        new OccurrenceDownloadResource(
+            archiveServerUrl, service, callbackService, downloadService, false);
+    dl =
+        new PredicateDownloadRequest(
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false),
+            USER,
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            Collections.singleton(Extension.AUDUBON));
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.emptyList());
-    when(downloadService.listByUser(any(), any(), any())).thenReturn(empty);
-    when(service.create(dl, null)).thenReturn(JOB_ID);
+    when(downloadService.listByUser(any(), any(), any(), any(), any())).thenReturn(empty);
+    if (!failedCreation) {
+      when(service.create(dl, null)).thenReturn(JOB_ID);
+    } else {
+      when(service.create(dl, null))
+          .thenThrow(
+              new ResponseStatusException(
+                  HttpStatus.METHOD_FAILURE, "A download limitation is exceeded"));
+    }
   }
 }

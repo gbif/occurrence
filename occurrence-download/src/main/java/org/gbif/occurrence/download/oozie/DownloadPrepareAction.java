@@ -17,7 +17,7 @@ import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.query.QueryBuildingException;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -143,12 +143,9 @@ public class  DownloadPrepareAction implements Closeable {
                                                   .workflowConfiguration(new WorkflowConfiguration())
                                                   .build()
                                                     .downloadPrepareAction(DwcTerm.valueOf(args[3]), args[4])) {
-      occurrenceCount.updateDownloadData(args[0], DownloadUtils.workflowToDownloadId(args[1]), args[2]);
+      occurrenceCount.updateDownloadData(args[0], args[1], args[2]);
     }
   }
-
-
-
 
   /**
    * Method that determines if the search query produces a "small" download file.

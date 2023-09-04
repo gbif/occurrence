@@ -46,7 +46,7 @@ public class TermResourceIT {
   }
 
   /**
-   * Test that all verbatim and interpreted Terms are returned by the termResource.getInterpretation methdd.
+   * Test that all verbatim and interpreted Terms are returned by the termResource.getInterpretation method.
    */
   @Test
   public void testGetInterpretation() {

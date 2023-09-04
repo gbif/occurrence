@@ -23,104 +23,116 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.regex.Pattern;
 
 import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class DownloadServiceImplTest {
-
-  private static final String DOWNLOAD_ID = "123456789";
-  private static final String JOB_ID = DOWNLOAD_ID + "-oozie-oozi-W";
+class DownloadServiceImplTest {
+  private static final Pattern REGEX = Pattern.compile("0000000-\\d{15}");
   private static final OccurrenceSearchParameter PARAM = OccurrenceSearchParameter.CATALOG_NUMBER;
-  private static final String TEST_EMAIL = "test@test.gbif.org";
 
-  @Mock
-  private OozieClient oozieClient;
-
-  private final Map<String, String> props = Maps.newHashMap();
+  @Mock private OozieClient oozieClient;
+  @Mock private OccurrenceDownloadService downloadService;
+  @Mock private DownloadLimitsService downloadLimitsService;
+  @Mock private OccurrenceEmailManager emailManager;
+  @Mock private EmailSender emailSender;
 
   private DownloadRequestService requestService;
-
-  private OccurrenceDownloadService downloadService;
-
-  private DownloadLimitsService downloadLimitsService;
 
   private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(PARAM, "bar", false);
 
   @BeforeEach
   public void setup() {
-    props.clear();
-    downloadService = mock(OccurrenceDownloadService.class);
-    downloadLimitsService = mock(DownloadLimitsService.class);
+    MessagePublisher messagePublisher = mock(MessagePublisher.class);
     requestService =
-      new DownloadRequestServiceImpl(oozieClient, props, "", "", "", downloadService, downloadLimitsService, mock(OccurrenceEmailManager.class), mock(EmailSender.class));
+        new DownloadRequestServiceImpl(
+            oozieClient,
+            "",
+            "",
+            "",
+            downloadService,
+            downloadLimitsService,
+            emailManager,
+            emailSender,
+            messagePublisher);
   }
 
-
   @Test
-  public void testCreate() throws OozieClientException {
-    when(oozieClient.run(any(Properties.class))).thenReturn(JOB_ID);
-    DownloadRequest dl = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null, true, DownloadFormat.DWCA, DownloadType.OCCURRENCE,
-                                                      Collections.singleton(Extension.AUDUBON));
+  void testCreate() {
+
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            DEFAULT_TEST_PREDICATE,
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            Collections.singleton(Extension.AUDUBON));
     String id = requestService.create(dl, null);
 
-    assertThat(id, equalTo(DOWNLOAD_ID));
+    assertTrue(REGEX.matcher(id).matches());
   }
 
   @Test
-  public void testFailedCreate() throws OozieClientException {
-    doThrow(new OozieClientException("foo", "bar")).when(oozieClient).run(any(Properties.class));
-    DownloadRequest dl = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus", null, true, DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
+  void testLimitationIsExceeded() {
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            DEFAULT_TEST_PREDICATE,
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            Collections.singleton(Extension.AUDUBON));
+
+    when(downloadLimitsService.exceedsDownloadComplexity(any())).thenReturn("test");
 
     try {
       requestService.create(dl, null);
       fail();
-    } catch (ServiceUnavailableException e) {
+    } catch (ResponseStatusException e) {
+      // NOP
     }
   }
 
   @Test
-  public void testList() {
-    List<Download> peterDownloads = Lists.newArrayList();
-    List<Download> karlDownloads = Lists.newArrayList();
-    List<Download> allDownloads = Lists.newArrayList();
-    List<Download> emptyDownloads = Lists.newArrayList();
+  void testList() {
+    List<Download> peterDownloads = new ArrayList<>();
+    List<Download> karlDownloads = new ArrayList<>();
+    List<Download> allDownloads = new ArrayList<>();
+    List<Download> emptyDownloads = new ArrayList<>();
 
     Download job1 = mockDownload("1-oozie-oozi-W", "peter");
     peterDownloads.add(job1);
@@ -130,53 +142,69 @@ public class DownloadServiceImplTest {
     allDownloads.add(job1);
     allDownloads.add(job2);
     // always get 3 job infos until we hit an offset of 100
-    when(downloadService.listByUser(any(String.class), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
-      new PagingResponse<>(0L, 0, 0L, emptyDownloads));
-    when(downloadService.listByUser(eq("peter"), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
-      new PagingResponse<>(0L, peterDownloads.size(), (long)peterDownloads.size(), peterDownloads));
-    when(downloadService.listByUser(eq("karl"), any(Pageable.class), ArgumentMatchers.anySet())).thenReturn(
-      new PagingResponse<>(0L, peterDownloads.size(), (long)peterDownloads.size(), karlDownloads));
-    when(downloadService.list(any(Pageable.class), ArgumentMatchers.anySet(), any())).thenReturn(
-      new PagingResponse<>(0L, allDownloads.size(), (long)allDownloads.size(), allDownloads));
+    when(downloadService.listByUser(
+            any(String.class),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(LocalDateTime.class),
+            any(Boolean.class)))
+        .thenReturn(new PagingResponse<>(0L, 0, 0L, emptyDownloads));
+    when(downloadService.listByUser(
+            eq("peter"),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(LocalDateTime.class),
+            any(Boolean.class)))
+        .thenReturn(
+            new PagingResponse<>(
+                0L, peterDownloads.size(), (long) peterDownloads.size(), peterDownloads));
+    when(downloadService.listByUser(
+            eq("karl"),
+            any(Pageable.class),
+            ArgumentMatchers.anySet(),
+            any(LocalDateTime.class),
+            any(Boolean.class)))
+        .thenReturn(
+            new PagingResponse<>(
+                0L, peterDownloads.size(), (long) peterDownloads.size(), karlDownloads));
+    when(downloadService.list(any(Pageable.class), ArgumentMatchers.anySet(), any()))
+        .thenReturn(
+            new PagingResponse<>(
+                0L, allDownloads.size(), (long) allDownloads.size(), allDownloads));
 
     // test
     PagingRequest req = new PagingRequest(0, 2);
     PagingResponse<Download> x = downloadService.list(req, Collections.emptySet(), null);
     assertEquals(2, x.getResults().size());
 
-    x = downloadService.listByUser("harald", req, Collections.emptySet());
+    x =
+        downloadService.listByUser(
+            "harald", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(0, x.getResults().size());
 
-    x = downloadService.listByUser("karl", req, Collections.emptySet());
+    x = downloadService.listByUser("karl", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(1, x.getResults().size());
 
-    x = downloadService.listByUser("peter", req, Collections.emptySet());
+    x = downloadService.listByUser("peter", req, Collections.emptySet(), LocalDateTime.now(), true);
     assertEquals(1, x.getResults().size());
-  }
-
-  @Test
-  public void testNotification() throws OozieClientException {
-    when(oozieClient.run(any(Properties.class))).thenReturn(JOB_ID);
-    DownloadRequest dl =
-      new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, "markus", Lists.newArrayList(TEST_EMAIL), true, DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
-
-    String downloadKey = requestService.create(dl, null);
-    assertThat(downloadKey, equalTo(DOWNLOAD_ID));
-
-    ArgumentCaptor<Properties> argument = ArgumentCaptor.forClass(Properties.class);
-    verify(oozieClient).run(argument.capture());
-    assertThat(argument.getValue().getProperty(Constants.NOTIFICATION_PROPERTY), equalTo(TEST_EMAIL));
   }
 
   private Download mockDownload(String downloadKey, String creator) {
-    DownloadRequest downloadRequest = new PredicateDownloadRequest(DEFAULT_TEST_PREDICATE, creator, null, true, DownloadFormat.DWCA, DownloadType.OCCURRENCE, Collections.singleton(Extension.AUDUBON));
+    DownloadRequest downloadRequest =
+        new PredicateDownloadRequest(
+            DEFAULT_TEST_PREDICATE,
+            creator,
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            Collections.singleton(Extension.AUDUBON));
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(downloadKey);
     download.setCreated(new Date());
     download.setModified(new Date());
-    download.setStatus(Status.SUCCEEDED);
+    download.setStatus(Status.RUNNING);
     return download;
   }
-
 }

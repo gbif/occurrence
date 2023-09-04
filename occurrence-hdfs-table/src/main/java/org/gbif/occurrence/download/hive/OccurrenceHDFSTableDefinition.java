@@ -86,7 +86,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
-                                      .put(GbifTerm.eventType, columnFor(GbifTerm.eventType))
+                                      .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
                                       .build();
 
@@ -115,7 +115,7 @@ public class OccurrenceHDFSTableDefinition {
                                                       .put(GbifInternalTerm.installationKey, columnFor(GbifInternalTerm.installationKey))
                                                       .put(GbifInternalTerm.institutionKey, columnFor(GbifInternalTerm.institutionKey))
                                                       .put(GbifInternalTerm.collectionKey, columnFor(GbifInternalTerm.collectionKey))
-                                                      .put(GbifInternalTerm.projectId, columnFor(GbifInternalTerm.projectId))
+                                                      .put(GbifTerm.projectId, columnFor(GbifTerm.projectId))
                                                       .put(GbifInternalTerm.programmeAcronym, columnFor(GbifInternalTerm.programmeAcronym))
                                                       .put(GbifInternalTerm.hostingOrganizationKey, columnFor(GbifInternalTerm.hostingOrganizationKey))
                                                       .put(GbifInternalTerm.isInCluster, columnFor(GbifInternalTerm.isInCluster))

@@ -15,7 +15,7 @@ package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.model.registry.Identifier;

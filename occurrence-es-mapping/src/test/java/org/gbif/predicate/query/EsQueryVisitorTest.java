@@ -30,7 +30,7 @@ import org.gbif.api.model.predicate.LikePredicate;
 import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
-import org.gbif.api.query.QueryBuildingException;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 
