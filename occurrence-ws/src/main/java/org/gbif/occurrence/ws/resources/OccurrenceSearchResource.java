@@ -400,7 +400,7 @@ public class OccurrenceSearchResource {
         example = "Native"),
       @Parameter(
         name = "eventDate",
-        description = "Occurrence date in ISO 8601 format: yyyy, yyyy-MM, yyyy-MM-dd, or MM-dd.\n\n" +
+        description = "Occurrence date in ISO 8601 format: yyyy, yyyy-MM or yyyy-MM-dd.\n\n" +
           API_PARAMETER_RANGE_OR_REPEAT,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
         explode = Explode.TRUE,
