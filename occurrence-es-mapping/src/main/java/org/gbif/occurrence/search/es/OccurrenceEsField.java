@@ -73,7 +73,7 @@ public enum OccurrenceEsField implements EsField {
   YEAR(new BaseEsField("year", DwcTerm.year)),
   MONTH(new BaseEsField("month", DwcTerm.month)),
   DAY(new BaseEsField("day", DwcTerm.day)),
-  EVENT_DATE(new BaseEsField("eventDateSingle", DwcTerm.eventDate)),
+  EVENT_DATE(new BaseEsField("eventDate", DwcTerm.eventDate)),
 
   //Location
   COORDINATE_SHAPE(new BaseEsField("scoordinates", null)),
@@ -186,7 +186,7 @@ public enum OccurrenceEsField implements EsField {
 
   //Event
   START_DAY_OF_YEAR(new BaseEsField("startDayOfYear", DwcTerm.startDayOfYear)),
-  END_DAY_OF_YEAR(new BaseEsField("endDayOfYear", DwcTerm.startDayOfYear)),
+  END_DAY_OF_YEAR(new BaseEsField("endDayOfYear", DwcTerm.endDayOfYear)),
   EVENT_TYPE(new BaseEsField("eventType", DwcTerm.eventType)),
   LOCATION_ID(new BaseEsField("locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("parentsLineage", EsField.PARENTS_LINEAGE)),

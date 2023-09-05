@@ -25,6 +25,7 @@ import org.gbif.api.model.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
@@ -43,7 +44,7 @@ import java.util.Optional;
  * query object to pass into the service.
  * This parses the URL params which should be from something like the following
  * into a predicate suitable for launching a download service.
- * It understands multi valued parameters and interprets the range format *,100
+ * It understands multivalued parameters and interprets the range format *,100
  * {@literal TAXON_KEY=12&ELEVATION=1000,2000
  * (ELEVATION >= 1000 AND ELEVATION <= 1000)}
  */
@@ -152,41 +153,30 @@ public class PredicateFactory {
     }
 
     // test for ranges
-    if (SearchTypeValidator.isRange(value)) {
-      Range<?> range;
+    if (SearchTypeValidator.isNumericRange(value) && (Double.class.equals(param.type()) || Integer.class.equals(param.type()))) {
+      Range<?> range = null;
       if (Double.class.equals(param.type())) {
         range = SearchTypeValidator.parseDecimalRange(value);
       } else if (Integer.class.equals(param.type())) {
         range = SearchTypeValidator.parseIntegerRange(value);
-      } else if (Date.class.equals(param.type())) {
-        range = SearchTypeValidator.parseDateRange(value);
-        // convert date instances back to strings, but keep the new precision which is now always up to the day!
-        range = Range.closed(
-          range.hasLowerBound() ? toIsoDate((LocalDate) range.lowerEndpoint()) : null,
-          range.hasUpperBound() ? toIsoDate((LocalDate) range.upperEndpoint()) : null
-          );
-      } else {
-        throw new IllegalArgumentException(
-          "Ranges are only supported for numeric or date parameter types but received " + param);
       }
 
+      return rangePredicate(param, range);
 
-      List<Predicate> rangePredicates = new ArrayList<>();
-      if (range.hasLowerBound()) {
-        rangePredicates.add(new GreaterThanOrEqualsPredicate(param, range.lowerEndpoint().toString()));
-      }
-      if (range.hasUpperBound()) {
-        rangePredicates.add(new LessThanOrEqualsPredicate(param, range.upperEndpoint().toString()));
-      }
+    } else if (SearchTypeValidator.isDateRange(value) && (Date.class.equals(param.type()) || IsoDateInterval.class.equals(param.type()))) {
+      Range<?> range;
+      range = SearchTypeValidator.parseDateRange(value);
+      // convert date instances back to strings, but keep the new precision which is now always up to the day!
+      range = Range.closed(
+        range.hasLowerBound() ? toIsoDate((LocalDate) range.lowerEndpoint()) : null,
+        range.hasUpperBound() ? toIsoDate((LocalDate) range.upperEndpoint()) : null
+      );
 
-      if (rangePredicates.size() == 1) {
-        return rangePredicates.get(0);
-      }
-      if (rangePredicates.size() > 1) {
-        return new ConjunctionPredicate(rangePredicates);
-      }
-      return null;
+      return rangePredicate(param, range);
 
+    } else if (SearchTypeValidator.isNumericRange(value)) {
+      throw new IllegalArgumentException(
+        "Ranges are only supported for numeric or date parameter types but received " + param);
     } else {
       if (WILDCARD.equals(value)) {
         return new IsNotNullPredicate(param);
@@ -195,5 +185,23 @@ public class PredicateFactory {
         return new EqualsPredicate(param, value, matchCase);
       }
     }
+  }
+
+  private static Predicate rangePredicate(OccurrenceSearchParameter param, Range<?> range) {
+    List<Predicate> rangePredicates = new ArrayList<>();
+    if (range.hasLowerBound()) {
+      rangePredicates.add(new GreaterThanOrEqualsPredicate(param, range.lowerEndpoint().toString()));
+    }
+    if (range.hasUpperBound()) {
+      rangePredicates.add(new LessThanOrEqualsPredicate(param, range.upperEndpoint().toString()));
+    }
+
+    if (rangePredicates.size() == 1) {
+      return rangePredicates.get(0);
+    }
+    if (rangePredicates.size() > 1) {
+      return new ConjunctionPredicate(rangePredicates);
+    }
+    return null;
   }
 }
