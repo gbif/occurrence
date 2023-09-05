@@ -61,20 +61,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
 
         log.info("Locking the thread until downloads job is finished");
         lockerService.lock(downloadKey, Thread.currentThread());
-
-        jobManager
-            .getStatusByName(downloadKey)
-            .ifPresent(status -> downloadUpdaterService.updateStatus(downloadKey, status));
       }
-
-      if (jobStatus == JobStatus.FAILED) {
-        downloadUpdaterService.updateStatus(downloadKey, Status.FAILED);
-        log.error("Failed to process message: {}", downloadsMessage);
-        throw new IllegalStateException("Failed to process message");
-      }
-
-      // NOTE: Download status for the registry will be set to "FINISHED" in the occurrence-ws
-      // callback when the job download is completed.
 
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);

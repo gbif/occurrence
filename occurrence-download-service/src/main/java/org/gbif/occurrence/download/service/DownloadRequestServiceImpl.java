@@ -295,6 +295,17 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       return;
     }
 
+    if (Download.Status.SUCCEEDED.equals(download.getStatus())
+        || Download.Status.FAILED.equals(download.getStatus())
+        || Download.Status.KILLED.equals(download.getStatus())) {
+      // Download has already completed, so perhaps callbacks in rapid succession have been
+      // processed out-of-order
+      log.warn(
+          "Download {} has finished, but k8s has sent a RUNNING callback. Ignoring it.",
+          downloadId);
+      return;
+    }
+
     BaseEmailModel emailModel;
     Download.Status newStatus = STATUSES_MAP.get(opStatus.get());
     switch (newStatus) {
