@@ -24,22 +24,24 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.base.CaseFormat;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.springframework.test.util.AssertionErrors.assertTrue;
 
 public class OccurrenceSearchResourceTest {
 
   @Test
   public void searchParametersDocumented() throws Exception {
-    Set documentedParameters =
-      Arrays.stream(
-          OccurrenceSearchResource.class
-            .getMethod("search", OccurrenceSearchRequest.class)
-            .getAnnotation(Parameters.class)
-            .value())
-        .map(p -> p.name())
-        .collect(Collectors.toSet());
+
+    Set<String> documentedParameters =
+        Arrays.stream(
+                OccurrenceSearchResource.class
+                    .getMethod("search", OccurrenceSearchRequest.class)
+                    .getAnnotation(Parameters.class)
+                    .value())
+            .map(Parameter::name)
+            .collect(Collectors.toSet());
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
       String name;
