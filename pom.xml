@@ -81,7 +81,6 @@
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
     <module>occurrence-persistence</module>
-    <module>occurrence-processor</module>
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
@@ -204,7 +203,7 @@
     <download-query-tools.version>1.48-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.48-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.12.0-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.13.0-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -412,11 +411,6 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-processor</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-deleter</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -537,11 +531,6 @@
         <groupId>org.gbif.common</groupId>
         <artifactId>gbif-cli</artifactId>
         <version>${gbif-cli.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.predicates</groupId>
-        <artifactId>predicates-api</artifactId>
-        <version>${gbif-predicates.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.predicates</groupId>
@@ -1380,6 +1369,17 @@
         <artifactId>ingest-gbif-fragmenter</artifactId>
         <version>${pipelines.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.pipelines</groupId>
+        <artifactId>core</artifactId>
+        <version>${pipelines.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.gbif.occurrence</groupId>
+            <artifactId>occurrence-hdfs-table</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.codehaus.janino</groupId>

@@ -79,6 +79,7 @@ public class TermUtils {
 
   /**
    * The map of term→value for terms that, after interpretation, have the same value for all occurrences.
+   *
    * For example, coordinates are reprojected to WGS84, so dwc:geodeticDatum is "WGS84" for all occurrences.
    */
   private static final Map<Term,String> TERMS_IDENTICAL_AFTER_INTERPRETATION = termsIdenticalAfterInterpretation();
@@ -430,8 +431,6 @@ public class TermUtils {
         GADM_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       //IUCN RedList Category
       .add(IucnTerm.iucnRedListCategory)
-      //EventType
-      .add(DwcTerm.eventType)
       .build();
   }
 

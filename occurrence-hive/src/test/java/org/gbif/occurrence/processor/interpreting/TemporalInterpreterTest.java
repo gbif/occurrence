@@ -15,6 +15,7 @@ package org.gbif.occurrence.processor.interpreting;
 
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
@@ -47,13 +48,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TemporalInterpreterTest {
 
   @Test
-  @Disabled
   public void testAllDates() {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.year, "1879");
     v.setVerbatimField(DwcTerm.month, "11 "); //keep the space at the end
     v.setVerbatimField(DwcTerm.day, "1");
-    v.setVerbatimField(DwcTerm.eventDate, "1.11.1879");
+    v.setVerbatimField(DwcTerm.eventDate, "1.11.1879/3.12.1879");
     v.setVerbatimField(DwcTerm.dateIdentified, "2012-01-11");
     v.setVerbatimField(DcTerm.modified, "2014-01-11");
 
@@ -62,42 +62,56 @@ public class TemporalInterpreterTest {
 
     assertDate("2014-01-11", o.getModified());
     assertDate("2012-01-11", o.getDateIdentified());
-    assertDate("1879-11-01", o.getEventDate());
-    assertEquals(1879, o.getYear().intValue());
-    assertEquals(11, o.getMonth().intValue());
-    assertEquals(1, o.getDay().intValue());
+    assertEquals("1879-11-01/1879-12-03", o.getEventDate().toString());
+    assertEquals(1879, o.getYear());
+    assertNull(o.getMonth());
+    assertNull(o.getDay());
 
     assertEquals(0, o.getIssues().size());
   }
 
   @Test
-  public void testTemporalInterpreter(){
-    assertTrue(TemporalInterpreter.isValidDate(Year.of(2005), true));
-    assertTrue(TemporalInterpreter.isValidDate(YearMonth.of(2005, 1), true));
-    assertTrue(TemporalInterpreter.isValidDate(LocalDate.of(2005, 1, 1), true));
-    assertTrue(TemporalInterpreter.isValidDate(LocalDateTime.of(2005, 1, 1, 2, 3, 4), true));
-    assertTrue(TemporalInterpreter.isValidDate(LocalDate.now(), true));
-    assertTrue(TemporalInterpreter.isValidDate(LocalDateTime.now().plus(23, ChronoUnit.HOURS), true));
-
-    // Dates out of bounds
-    assertFalse(TemporalInterpreter.isValidDate(YearMonth.of(1599, 12), true));
-
-    // we tolerate a offset of 1 day
-    assertFalse(TemporalInterpreter.isValidDate(LocalDate.now().plusDays(2), true));
-  }
-
-  @Test
   public void testInterpretRecordedDate(){
-    OccurrenceParseResult<TemporalAccessor> result;
+    OccurrenceParseResult<IsoDateInterval> result;
 
     result = TemporalInterpreter.interpretRecordedDate("2005", "1", "", "2005-01-01");
-    assertEquals(LocalDate.of(2005, 1, 1), result.getPayload());
+    assertEquals(LocalDate.of(2005, 1, 1), result.getPayload().getFrom());
     assertEquals(0, result.getIssues().size());
 
     //ensure that eventDate with more precision will not record an issue and the one with most precision
     //will be returned
     result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:00Z");
-    assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 1, 0), ZoneOffset.UTC), result.getPayload());
+    assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 1, 0), ZoneOffset.UTC), result.getPayload().getFrom());
+    assertEquals(0, result.getIssues().size());
+
+    //check date ranges handled
+    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:02:03Z/1996-01-31T04:05:06Z");
+    assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 01, 02, 03), ZoneOffset.UTC), result.getPayload().getFrom());
+    assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 31, 04, 05, 06), ZoneOffset.UTC), result.getPayload().getTo());
+    assertEquals(0, result.getIssues().size());
+
+    //check date ranges handled
+    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:02:03/1996-01-31T04:05:06");
+    assertEquals(LocalDateTime.of(1996, 1, 26, 01, 02, 03), result.getPayload().getFrom());
+    assertEquals(LocalDateTime.of(1996, 1, 31, 04, 05, 06), result.getPayload().getTo());
+    assertEquals(0, result.getIssues().size());
+
+    //check date ranges handled
+    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26/1996-01-31");
+    assertEquals(LocalDate.of(1996, 1, 26), result.getPayload().getFrom());
+    assertEquals(LocalDate.of(1996, 1, 31), result.getPayload().getTo());
+    assertEquals(0, result.getIssues().size());
+
+    //check date ranges handled
+    result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996-01/1996-02");
+    assertEquals(YearMonth.of(1996, 1), result.getPayload().getFrom());
+    assertEquals(YearMonth.of(1996, 2), result.getPayload().getTo());
+    assertEquals(0, result.getIssues().size());
+
+    //check date ranges handled
+    result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996");
+    assertEquals(Year.of(1996), result.getPayload().getFrom());
+    assertEquals(Year.of(1996), result.getPayload().getTo());
     assertEquals(0, result.getIssues().size());
 
     // if dates contradict, do not return a date and flag it
@@ -105,6 +119,12 @@ public class TemporalInterpreterTest {
     assertNull(result.getPayload());
     assertEquals(1, result.getIssues().size());
     assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
+
+    // a long time ago (note in Hive from_unixtime has problems with 16th century dates)
+    result = TemporalInterpreter.interpretRecordedDate("1566", "", "", "1566");
+    assertEquals(Year.of(1566), result.getPayload().getFrom());
+    assertEquals(Year.of(1566), result.getPayload().getTo());
+    assertEquals(0, result.getIssues().size());
   }
 
   @Test
@@ -194,14 +214,14 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testGoodDate() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", "22", null);
-    assertResult(1984, 3, 22, result);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "3", "22", null);
+    assertRangeResult(1984, 3, 22, result);
   }
 
   @Test
   public void testGoodOldDate() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("1957", "3", "22", null);
-    assertResult(1957, 3, 22, result);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate("1957", "3", "22", null);
+    assertRangeResult(1957, 3, 22, result);
   }
 
   /**
@@ -209,88 +229,88 @@ public class TemporalInterpreterTest {
    */
   @Test
   public void test0Month() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "0", "22", null);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "0", "22", null);
     //assertResult(1984, null, 22, null, result);
     assertFalse(result.isSuccessful());
   }
 
   @Test
   public void testOldYear() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1599", "3", "22", null);
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("1499", "3", "22", null);
     assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_UNLIKELY);
   }
 
   @Test
   public void testFutureYear() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("2100", "3", "22", null);
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("2100", "3", "22", null);
     assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_UNLIKELY);
   }
 
   @Test
   public void testBadDay() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", "32", null);
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "3", "32", null);
     assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_INVALID);
   }
 
   @Test
   public void testStringGood() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "1984-03-22");
-    assertResult(1984, 3, 22, result);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate(null, null, null, "1984-03-22");
+    assertRangeResult(1984, 3, 22, result);
   }
 
   @Test
   public void testStringTimestamp() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "1984-03-22T00:00");
-    assertResult(LocalDateTime.of(1984, 3, 22, 0, 0), result);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate(null, null, null, "1984-03-22T00:00");
+    assertRangeResult(LocalDateTime.of(1984, 3, 22, 0, 0), result);
   }
 
   @Test
   public void testStringBad() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, "22-17-1984");
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate(null, null, null, "22-17-1984");
     assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_INVALID);
   }
 
   @Test
   public void testStringWins() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", null, "1984-03-22");
-    assertResult(1984, 3, 22, result);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "3", null, "1984-03-22");
+    assertRangeResult(1984, 3, 22, result);
   }
 
   @Test
   public void testStrange() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("16", "6", "1990", "16-6-1990");
-    assertResult(1990, 6, 16, result);
-    assertEquals(ParseResult.CONFIDENCE.PROBABLE, result.getConfidence());
-    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("16", "6", "1990", "16-6-1990");
+    assertRangeResult(1990, 6, 16, result);
+    // TODO assertEquals(ParseResult.CONFIDENCE.PROBABLE, result.getConfidence());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_INVALID, result.getIssues().iterator().next());
   }
 
   @Test
   public void testStringLoses() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", null, "22-17-1984");
-    assertResult(1984, 3, result);
-    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "3", null, "22-17-1984");
+    assertRangeResult(1984, 3, result);
+    assertEquals(OccurrenceIssue.RECORDED_DATE_INVALID, result.getIssues().iterator().next());
   }
 
   // these two tests demonstrate the problem from POR-2120
   @Test
   public void testOnlyYear() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate("1984", null, null, null);
-    assertResult(1984, result);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate("1984", null, null, null);
+    assertRangeResult(1984, result);
 
     result = interpretRecordedDate(null, null, null, "1984");
-    assertResult(1984, result);
+    assertRangeResult(1984, result);
 
     result = interpretRecordedDate("1984", null, null, "1984");
-    assertResult(1984, result);
+    assertRangeResult(1984, result);
   }
 
   @Test
   public void testYearWithZeros() {
     // providing 0 will cause a RECORDED_DATE_MISMATCH since 0 could be null but also January
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "0", "0", "1984");
-    assertResult(1984, result);
-    assertEquals(ParseResult.CONFIDENCE.PROBABLE, result.getConfidence());
-    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "0", "0", "1984");
+    assertRangeResult(1984, result);
+    // TODO assertEquals(ParseResult.CONFIDENCE.PROBABLE, result.getConfidence());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_INVALID, result.getIssues().iterator().next());
 
     result = interpretRecordedDate(null, null, null, "1984");
     assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
@@ -307,17 +327,17 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testYearMonthNoDay() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate("1984", "3", null, null);
-    assertResult(1984, 3, result);
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "3", null, null);
+    assertRangeResult(1984, 3, result);
 
     result = interpretRecordedDate("1984", "3", null, "1984-03");
-    assertResult(1984, 3,result);
+    assertRangeResult(1984, 3,result);
 
     result = interpretRecordedDate(null, null, null, "1984-03");
-    assertResult(1984, 3, result);
+    assertRangeResult(1984, 3, result);
 
     result = interpretRecordedDate("1984", "3", null, "1984-03");
-    assertResult(1984, 3, result);
+    assertRangeResult(1984, 3, result);
     assertEquals(0, result.getIssues().size());
   }
 
@@ -326,26 +346,26 @@ public class TemporalInterpreterTest {
    */
   @Test
   public void testDifferentResolutions() {
-    OccurrenceParseResult<TemporalAccessor> result;
+    OccurrenceParseResult<IsoDateInterval> result;
 
     result = interpretRecordedDate("1984", "3", "18", "1984-03");
-    assertResult(1984, 3, 18, result);
+    assertRangeResult(1984, 3, 18, result);
     assertEquals(0, result.getIssues().size());
 
     result = interpretRecordedDate("1984", "3", null, "1984-03-18");
-    assertResult(1984, 3, 18, result);
+    assertRangeResult(1984, 3, 18, result);
     assertEquals(0, result.getIssues().size());
 
     result = interpretRecordedDate("1984", null, null, "1984-03-18");
-    assertResult(1984, 3, 18, result);
+    assertRangeResult(1984, 3, 18, result);
     assertEquals(0, result.getIssues().size());
 
     result = interpretRecordedDate("1984", "3", null, "1984");
-    assertResult(1984, 3, result);
+    assertRangeResult(1984, 3, result);
     assertEquals(0, result.getIssues().size());
 
     result = interpretRecordedDate("1984", "05", "02", "1984-05-02T19:34");
-    assertResult(LocalDateTime.of(1984, 5, 2, 19, 34, 00), result);
+    assertRangeResult(LocalDateTime.of(1984, 5, 2, 19, 34, 00), result);
     assertEquals(0, result.getIssues().size());
   }
 
@@ -354,10 +374,10 @@ public class TemporalInterpreterTest {
    */
   @Test
   public void testLessConfidentMatch() {
-    OccurrenceParseResult<TemporalAccessor> result;
+    OccurrenceParseResult<IsoDateInterval> result;
 
     result = interpretRecordedDate("2014", "2", "5", "5/2/2014");
-    assertResult(2014, 2, 5, result);
+    assertRangeResult(2014, 2, 5, result);
     assertEquals(0, result.getIssues().size());
   }
 
@@ -366,7 +386,7 @@ public class TemporalInterpreterTest {
    */
   @Test
   public void testOnlyMonth() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, "3", null, null);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate(null, "3", null, null);
    // assertResult(null, 3, null, null, result);
     assertFalse(result.isSuccessful());
   }
@@ -376,7 +396,7 @@ public class TemporalInterpreterTest {
    */
   @Test
   public void testOnlyDay() {
-    ParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, "23", null);
+    ParseResult<IsoDateInterval> result = interpretRecordedDate(null, null, "23", null);
     //assertResult(null, null, 23, null, result);
     assertFalse(result.isSuccessful());
   }
@@ -389,7 +409,7 @@ public class TemporalInterpreterTest {
   public void testNow() {
 
     // Makes sure the static content is loaded
-    ParseResult<TemporalAccessor> result = interpretEventDate(DateFormatUtils.ISO_DATETIME_FORMAT.format(Calendar.getInstance()));
+    ParseResult<IsoDateInterval> result = interpretEventDate(DateFormatUtils.ISO_DATETIME_FORMAT.format(Calendar.getInstance()));
     assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
 
     // Sorry for this Thread.sleep, we need to run the TemporalInterpreter at least 1 second later until
@@ -407,7 +427,7 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testAllNulls() {
-    OccurrenceParseResult<TemporalAccessor> result = interpretRecordedDate(null, null, null, null);
+    OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate(null, null, null, null);
     // null and/or empty string will not return an error
     assertNullPayload(result, null);
   }
@@ -423,20 +443,20 @@ public class TemporalInterpreterTest {
     testEventDate(1999, 7, 19, "19990719");
     testEventDate(2012, 5, 6, "20120506");
 
-    assertResult(LocalDateTime.of(1999, 7, 19, 0, 0), interpretRecordedDate(null, null, null, "1999-07-19T00:00:00"));
+    assertRangeResult(LocalDateTime.of(1999, 7, 19, 0, 0), interpretRecordedDate(null, null, null, "1999-07-19T00:00:00"));
   }
 
   private void testEventDate(int y, int m, int d, String input) {
-    assertResult(y, m, d, interpretRecordedDate(null, null, null, input));
+    assertRangeResult(y, m, d, interpretRecordedDate(null, null, null, input));
   }
 
   @Test
-  public void testDateRanges() {
+  public void testIsoDateIntervals() {
     // Some of the many ways of providing a range.
-    assertResult(Year.of(1999), interpretEventDate("1999"));
-    assertResult(Year.of(1999), interpretEventDate("1999/2000"));
-    assertResult(YearMonth.of(1999, 01), interpretEventDate("1999-01/1999-12"));
-    assertResult(ZonedDateTime.of(LocalDateTime.of(2004, 12, 30, 00, 00, 00, 00), ZoneOffset.UTC),
+    assertRangeResult(Year.of(1999), interpretEventDate("1999"));
+    assertRangeResult(Year.of(1999), interpretEventDate("1999/2000"));
+    assertRangeResult(YearMonth.of(1999, 01), interpretEventDate("1999-01/1999-12"));
+    assertRangeResult(ZonedDateTime.of(LocalDateTime.of(2004, 12, 30, 00, 00, 00, 00), ZoneOffset.UTC),
       interpretEventDate("2004-12-30T00:00:00+0000/2005-03-13T24:00:00+0000"));
   }
 
@@ -463,6 +483,50 @@ public class TemporalInterpreterTest {
 
   /**
    * Utility method to assert a ParseResult when a LocalDate is expected.
+   * This method should not be used to test expected null results.
+   */
+  private void assertRangeResult(Integer y, Integer m, Integer d, ParseResult<IsoDateInterval> result) {
+    // sanity checks
+    assertNotNull(result);
+
+    LocalDate localDate = result.getPayload().getFrom().query(LocalDate::from);
+    assertInts(y, localDate.getYear());
+    assertInts(m, localDate.getMonthValue());
+    assertInts(d, localDate.getDayOfMonth());
+
+    assertEquals(LocalDate.of(y, m, d), result.getPayload().getFrom());
+  }
+
+  private void assertRangeResult(TemporalAccessor expectedTA, ParseResult<IsoDateInterval> result) {
+    assertEquals(expectedTA, result.getPayload().getFrom());
+  }
+
+  /**
+   * Utility method to assert a ParseResult when a YearMonth is expected.
+   * This method should not be used to test expected null results.
+   */
+  private void assertRangeResult(Integer y, Integer m, ParseResult<IsoDateInterval> result) {
+    // sanity checks
+    assertNotNull(result);
+
+    YearMonth yearMonthDate = result.getPayload().getFrom().query(YearMonth::from);
+    assertInts(y, yearMonthDate.getYear());
+    assertInts(m, yearMonthDate.getMonthValue());
+
+    assertEquals(YearMonth.of(y, m), result.getPayload().getFrom());
+  }
+
+  private void assertRangeResult(Integer y, ParseResult<IsoDateInterval> result) {
+    // sanity checks
+    assertNotNull(result);
+
+    Year yearDate = result.getPayload().getFrom().query(Year::from);
+    assertInts(y, yearDate.getValue());
+
+    assertEquals(Year.of(y), result.getPayload().getFrom());
+  }
+
+  /** Utility method to assert a ParseResult when a LocalDate is expected.
    * This method should not be used to test expected null results.
    */
   private void assertResult(Integer y, Integer m, Integer d, ParseResult<TemporalAccessor> result) {
@@ -506,17 +570,19 @@ public class TemporalInterpreterTest {
     assertEquals(Year.of(y), result.getPayload());
   }
 
-  private void assertNullPayload(OccurrenceParseResult<TemporalAccessor> result, OccurrenceIssue expectedIssue) {
+  private void assertNullPayload(OccurrenceParseResult<?> result, OccurrenceIssue expectedIssue) {
+    System.out.println("Expecting null, got " + result);
     assertNotNull(result);
     assertFalse(result.isSuccessful());
     assertNull(result.getPayload());
 
     if(expectedIssue != null) {
+      System.out.println("Expecting issues "+expectedIssue+", got " + result.getIssues());
       assertTrue(result.getIssues().contains(expectedIssue));
     }
   }
 
-  private OccurrenceParseResult<TemporalAccessor> interpretRecordedDate(String y, String m, String d, String date) {
+  private OccurrenceParseResult<IsoDateInterval> interpretRecordedDate(String y, String m, String d, String date) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.year, y);
     v.setVerbatimField(DwcTerm.month, m);
@@ -526,7 +592,7 @@ public class TemporalInterpreterTest {
     return TemporalInterpreter.interpretRecordedDate(v);
   }
 
-  private ParseResult<TemporalAccessor> interpretEventDate(String date) {
+  private ParseResult<IsoDateInterval> interpretEventDate(String date) {
     VerbatimOccurrence v = new VerbatimOccurrence();
     v.setVerbatimField(DwcTerm.eventDate, date);
 

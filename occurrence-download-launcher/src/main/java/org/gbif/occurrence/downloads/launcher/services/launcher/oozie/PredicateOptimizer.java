@@ -11,8 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.service;
+package org.gbif.occurrence.downloads.launcher.services.launcher.oozie;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.CompoundPredicate;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
@@ -37,28 +41,60 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Throwables;
-
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PredicateOptimizer {
 
-  private static Logger LOG = LoggerFactory.getLogger(PredicateOptimizer.class);
-
-  private PredicateOptimizer() {
-
-  }
-
   public static Predicate optimize(Predicate predicate) {
-    if (Objects.nonNull(predicate)) {
+    if (predicate != null) {
       Object v = new PredicateOptimizer().visit(predicate);
       return v instanceof Predicate ? (Predicate) v : predicate;
     }
     return predicate;
+  }
+
+  /** Checks if a predicate has in grouped and can be replaced later by a InPredicate. */
+  private static boolean isReplaceableByInPredicate(
+      Predicate predicate,
+      Map<SearchParameter, List<EqualsPredicate>> equalsPredicatesReplaceableByIn) {
+    if (!equalsPredicatesReplaceableByIn.isEmpty() && predicate instanceof EqualsPredicate) {
+      EqualsPredicate equalsPredicate = (EqualsPredicate) predicate;
+      return equalsPredicatesReplaceableByIn.containsKey(equalsPredicate.getKey())
+          && equalsPredicatesReplaceableByIn
+              .get(equalsPredicate.getKey())
+              .contains(equalsPredicate);
+    }
+    return false;
+  }
+
+  /** Groups all equals predicates by search parameter. */
+  private static Map<SearchParameter, List<EqualsPredicate>> groupEqualsPredicate(
+      DisjunctionPredicate predicate) {
+    return predicate.getPredicates().stream()
+        .filter(EqualsPredicate.class::isInstance)
+        .map(p -> (EqualsPredicate) p)
+        .collect(Collectors.groupingBy(EqualsPredicate::getKey))
+        .entrySet()
+        .stream()
+        .filter(e -> e.getValue().size() > 1)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  /** Transforms the grouped EqualsPredicates into InPredicates. */
+  private static List<InPredicate> toInPredicates(
+      Map<SearchParameter, List<EqualsPredicate>> equalPredicates) {
+    return equalPredicates.entrySet().stream()
+        .map(
+            e ->
+                new InPredicate(
+                    e.getKey(),
+                    e.getValue().stream()
+                        .map(EqualsPredicate::getValue)
+                        .collect(Collectors.toSet()),
+                    false))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -71,199 +107,140 @@ public class PredicateOptimizer {
     predicate.getPredicates().forEach(this::visit);
   }
 
-
   public Predicate visit(DisjunctionPredicate predicate) {
-    Map<SearchParameter, List<EqualsPredicate>> equalsPredicates = groupEqualsPredicate(predicate);
-    if (!equalsPredicates.isEmpty()) {
-      List<Predicate> predicates = new ArrayList<>(predicate.getPredicates());
-      List<Predicate> exclude = predicates.stream()
-        .filter(p -> isReplaceableByInPredicate(p, equalsPredicates))
-        .collect(Collectors.toList());
-      predicates.removeAll(exclude);
-      predicates.addAll(toInPredicates(equalsPredicates));
-      return new DisjunctionPredicate(predicates);
+    Map<SearchParameter, List<EqualsPredicate>> equalsPredicates =
+        groupEqualsPredicate(predicate);
+    if (equalsPredicates.isEmpty()) {
+      return predicate;
     }
-    return predicate;
+    List<Predicate> predicates = new ArrayList<>(predicate.getPredicates());
+    List<Predicate> exclude =
+        predicates.stream()
+            .filter(p -> isReplaceableByInPredicate(p, equalsPredicates))
+            .collect(Collectors.toList());
+    predicates.removeAll(exclude);
+    predicates.addAll(toInPredicates(equalsPredicates));
+    return new DisjunctionPredicate(predicates);
   }
-
-  /**
-   * Checks if a predicate has in grouped and can be replaced later by a InPredicate.
-   */
-  private static boolean isReplaceableByInPredicate(Predicate predicate, Map<SearchParameter, List<EqualsPredicate>> equalsPredicatesReplaceableByIn) {
-    if (!equalsPredicatesReplaceableByIn.isEmpty() && predicate instanceof EqualsPredicate) {
-      EqualsPredicate equalsPredicate = (EqualsPredicate)predicate;
-      return equalsPredicatesReplaceableByIn.containsKey(equalsPredicate.getKey()) && equalsPredicatesReplaceableByIn.get(equalsPredicate.getKey()).contains(equalsPredicate);
-    }
-    return false;
-  }
-
-  /**
-   * Groups all equals predicates by search parameter.
-   */
-  private static Map<SearchParameter, List<EqualsPredicate>> groupEqualsPredicate(DisjunctionPredicate predicate) {
-    return predicate.getPredicates().stream()
-      .filter(p -> p instanceof EqualsPredicate)
-      .map(p -> (EqualsPredicate)p)
-      .collect(Collectors.groupingBy(EqualsPredicate::getKey))
-      .entrySet().stream()
-      .filter( e -> e.getValue().size() > 1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  /**
-   * Transforms the grouped EqualsPredicates into InPredicates.
-   */
-  private static List<InPredicate> toInPredicates(Map<SearchParameter, List<EqualsPredicate>> equalPredicates) {
-    return equalPredicates.entrySet()
-      .stream()
-      .map(e -> new InPredicate(e.getKey(), e.getValue().stream().map(EqualsPredicate::getValue).collect(Collectors.toSet()), false))
-      .collect(Collectors.toList());
-  }
-
 
   /**
    * handle IN Predicate
    *
    * @param predicate InPredicate
    */
-  public void visit(InPredicate predicate) {
-    return;
-  }
-
+  public void visit(InPredicate predicate) {}
 
   /**
    * handles like predicate
    *
    * @param predicate like predicate
    */
-  public void visit(SimplePredicate predicate) {
-    return;
-  }
+  public void visit(SimplePredicate predicate) {}
 
   /**
    * handles not predicate
    *
    * @param predicate NOT predicate
    */
-  public void visit(NotPredicate predicate) {
-    return;
-  }
+  public void visit(NotPredicate predicate) {}
 
   /**
    * handles within predicate
    *
-   * @param within   Within predicate
+   * @param within Within predicate
    */
-  public void visit(WithinPredicate within) {
-    return;
-  }
+  public void visit(WithinPredicate within) {}
 
   /**
    * handles EqualsPredicate Predicate
    *
    * @param predicate EqualsPredicate predicate
    */
-  public void visit(EqualsPredicate predicate) {
-    return;
-  }
+  public void visit(EqualsPredicate predicate) {}
 
   /**
    * handles IsNotNull Predicate
    *
    * @param predicate IsNotNull predicate
    */
-  public void visit(IsNotNullPredicate predicate) {
-    return;
-  }
+  public void visit(IsNotNullPredicate predicate) {}
 
   /**
    * handles IsNull Predicate
    *
    * @param predicate IsNull predicate
    */
-  public void visit(IsNullPredicate predicate) {
-    return;
-  }
+  public void visit(IsNullPredicate predicate) {}
 
   /**
    * handles GreaterThanOrEqualsPredicate Predicate
    *
    * @param predicate GreaterThanOrEqualsPredicate predicate
    */
-  public void visit(GreaterThanOrEqualsPredicate predicate) {
-    return;
-  }
+  public void visit(GreaterThanOrEqualsPredicate predicate) {}
 
   /**
    * handles GreaterThanPredicate Predicate
    *
    * @param predicate GreaterThanPredicate predicate
    */
-  public void visit(GreaterThanPredicate predicate) {
-    return;
-  }
+  public void visit(GreaterThanPredicate predicate) {}
 
   /**
    * handles LessThanOrEqualsPredicate Predicate
    *
    * @param predicate LessThanOrEqualsPredicate predicate
    */
-  public void visit(LessThanOrEqualsPredicate predicate) {
-    return;
-  }
+  public void visit(LessThanOrEqualsPredicate predicate) {}
 
   /**
    * handles LessThanPredicate Predicate
    *
    * @param predicate LessThanPredicate predicate
    */
-  public void visit(LessThanPredicate predicate) {
-    return;
-  }
+  public void visit(LessThanPredicate predicate) {}
 
   /**
    * handles LikePredicate Predicate
    *
    * @param predicate LikePredicate predicate
    */
-  public void visit(LikePredicate predicate) {
-    return;
-  }
+  public void visit(LikePredicate predicate) {}
 
   /**
    * handles CompoundPredicate Predicate
    *
    * @param predicate CompoundPredicate predicate
    */
-  public void visit(CompoundPredicate predicate) {
-    return;
-  }
+  public void visit(CompoundPredicate predicate) {}
 
   /**
    * handles GeoDistancePredicate Predicate
    *
    * @param predicate GeoDistancePredicate predicate
    */
-  public void visit(GeoDistancePredicate predicate) {
-    return;
-  }
+  public void visit(GeoDistancePredicate predicate) {}
 
+  @SneakyThrows
   private Object visit(Object object) {
     Method method;
     try {
       method = getClass().getMethod("visit", object.getClass());
     } catch (NoSuchMethodException e) {
-      LOG.warn("Visit method could not be found. That means a unknown Predicate has been passed", e);
+      log.warn(
+          "Visit method could not be found. That means a unknown Predicate has been passed", e);
       throw new IllegalArgumentException("Unknown Predicate", e);
     }
     try {
       return method.invoke(this, object);
     } catch (IllegalAccessException e) {
-      LOG.error("This error shouldn't occur if all visit methods are public. Probably a programming error", e);
-      Throwables.propagate(e);
+      log.error(
+          "This error shouldn't occur if all visit methods are public. Probably a programming error",
+          e);
+      throw e;
     } catch (InvocationTargetException e) {
-      LOG.info("Exception thrown while building the query", e);
-      throw new RuntimeException(e);
+      log.info("Exception thrown while building the query", e);
+      throw e;
     }
-    throw new RuntimeException("Exception thrown while building the query");
   }
 }
