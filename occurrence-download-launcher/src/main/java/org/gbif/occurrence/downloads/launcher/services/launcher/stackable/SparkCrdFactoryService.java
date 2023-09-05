@@ -54,7 +54,6 @@ public class SparkCrdFactoryService {
         .metadata(
             Metadata.builder()
                 .name(sparkSettings.getSparkAppName())
-                .labels(sparkCrd.getMetadata().getLabels())
                 .namespace(sparkCrd.getMetadata().getNamespace())
                 .build()
         )

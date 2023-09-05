@@ -29,4 +29,5 @@ public class WatcherConfiguration {
 
   private Map<String,String> fieldSelectors = Collections.emptyMap();
 
+  private String nameSelector;
 }

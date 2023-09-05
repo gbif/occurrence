@@ -13,46 +13,53 @@
  */
 package org.gbif.occurrence.ws.download;
 
+import java.util.Map;
+import javax.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.ImmutableMap;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.JobStatus;
 import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.StackableSparkWatcher;
-
-import java.util.Map;
-
-import javax.inject.Inject;
-
-import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.ImmutableMap;
 import org.springframework.stereotype.Component;
 
 /**
  * Downloads status listener. It simply maps the K8 Phase to a JobStatus before calling the Callback Service.
  */
+@Slf4j
 @Component
 public class StackableDownloadStatusListener implements StackableSparkWatcher.EventsListener {
 
-  private static final Map<K8StackableSparkController.Phase, JobStatus> PHASE_STATUS_MAP = new ImmutableMap.Builder<K8StackableSparkController.Phase, JobStatus>()
-    .put(K8StackableSparkController.Phase.INITIATING, JobStatus.PREP)
-    .put(K8StackableSparkController.Phase.PENDING, JobStatus.PREP)
-    .put(K8StackableSparkController.Phase.UNKNOWN, JobStatus.PREP)
-    .put(K8StackableSparkController.Phase.EMPTY, JobStatus.PREP)
-    .put(K8StackableSparkController.Phase.RUNNING, JobStatus.RUNNING)
-    .put(K8StackableSparkController.Phase.FAILED, JobStatus.FAILED)
-    .put(K8StackableSparkController.Phase.SUCCEEDED, JobStatus.SUCCEEDED)
-    .build();
+  private static final Map<K8StackableSparkController.Phase, JobStatus> PHASE_STATUS_MAP =
+      new ImmutableMap.Builder<K8StackableSparkController.Phase, JobStatus>()
+          .put(K8StackableSparkController.Phase.FAILED, JobStatus.FAILED)
+          .put(K8StackableSparkController.Phase.SUCCEEDED, JobStatus.SUCCEEDED)
+          .build();
 
   private final CallbackService callbackService;
+  private final K8StackableSparkController sparkController;
+  private final WatcherConfiguration watcherConfiguration;
 
   @Inject
-  public StackableDownloadStatusListener(CallbackService callbackService) {
+  public StackableDownloadStatusListener(CallbackService callbackService, K8StackableSparkController sparkController, WatcherConfiguration watcherConfiguration) {
     this.callbackService = callbackService;
+    this.watcherConfiguration = watcherConfiguration;
+    this.sparkController = sparkController;
   }
 
   @Override
-  public void onEvent(StackableSparkWatcher.EventType eventType,
-                      String appName,
-                      K8StackableSparkController.Phase phase,
-                      Object payload) {
-    callbackService.processCallback(appName, PHASE_STATUS_MAP.get(phase).name());
+  public void onEvent(
+      StackableSparkWatcher.EventType eventType,
+      String appName,
+      K8StackableSparkController.Phase phase,
+      Object payload) {
+    String selector = watcherConfiguration.getNameSelector().replace(".*", "");
+    String downloadKey = appName.replace(selector, "");
+      try {
+        callbackService.processCallback(downloadKey, PHASE_STATUS_MAP.get(phase).name());
+        sparkController.stopSparkApplication(appName);
+      } catch (Exception ex) {
+        log.error("Can't stop Spark application {}", appName, ex);
+      }
   }
 }

@@ -275,7 +275,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
   }
 
-  /** Processes a callback from Oozie which update the download status. */
+  /** Processes a callback from k8s watcher which update the download status. */
   @Override
   public void processCallback(String downloadId, String status) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(downloadId), "<downloadId> may not be null or empty");
@@ -288,20 +288,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
-      // Download can be null if the oozie reports status before the download is persisted
+      // Download can be null if the k8s reports status before the download is persisted
       log.info(
-          "Download {} not found. [Oozie may be issuing callback before download persisted.]",
-          downloadId);
-      return;
-    }
-
-    if (Download.Status.SUCCEEDED.equals(download.getStatus())
-        || Download.Status.FAILED.equals(download.getStatus())
-        || Download.Status.KILLED.equals(download.getStatus())) {
-      // Download has already completed, so perhaps callbacks in rapid succession have been
-      // processed out-of-order
-      log.warn(
-          "Download {} has finished, but Oozie has sent a RUNNING callback. Ignoring it.",
+          "Download {} not found. [k8s launcher may be issuing callback before download persisted.]",
           downloadId);
       return;
     }
