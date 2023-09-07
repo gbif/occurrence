@@ -16,7 +16,7 @@ package org.gbif.occurrence.ws.download;
 import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.beam.vendor.guava.v26_0_jre.com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.JobStatus;
 import org.gbif.stackable.K8StackableSparkController;

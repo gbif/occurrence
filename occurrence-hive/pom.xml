@@ -104,16 +104,6 @@
       <artifactId>geocode-ws</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gbif.pipelines</groupId>
-      <artifactId>core</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.gbif.occurrence</groupId>
-          <artifactId>occurrence-hdfs-table</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
     </dependency>

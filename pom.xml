@@ -99,6 +99,7 @@
     <module>occurrence-download-spark</module>
     <module>occurrence-table-build-trino</module>
     <module>occurrence-table-build-spark-launcher</module>
+    <module>maven-extension-avsc-schema-generator</module>
   </modules>
 
   <properties>
@@ -217,7 +218,6 @@
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <pipelines.version>2.17.0-H3-SNAPSHOT</pipelines.version>
     <gbif.kvs.version>1.29-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.2.0-SNAPSHOT</gbif-predicates.version>
@@ -254,6 +254,11 @@
     <exec-maven-plugin.version>1.3.2</exec-maven-plugin.version>
     <maven-scala-plugin.version>4.3.1</maven-scala-plugin.version>
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
+
+    <!-- Maven plugin -->
+    <maven-plugin-api.version>3.8.6</maven-plugin-api.version>
+    <maven-plugin-annotations.version>3.6.4</maven-plugin-annotations.version>
+    <maven-plugin-plugin.version>3.6.4</maven-plugin-plugin.version>
 
     <!-- Tools-->
     <lombok.version>1.18.28</lombok.version>
@@ -466,6 +471,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>maven-extension-avsc-schema-generator</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.gbif.registry</groupId>
         <artifactId>registry-ws-client</artifactId>
         <version>${gbif-registry.version}</version>
@@ -511,16 +521,6 @@
         <artifactId>gbif-common-test</artifactId>
         <classifier>tests</classifier>
         <version>${gbif-common-test.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>variables</artifactId>
-        <version>${pipelines.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>models</artifactId>
-        <version>${pipelines.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.kvs</groupId>
@@ -1297,6 +1297,20 @@
         <scope>runtime</scope>
       </dependency>
 
+      <!-- Maven plugin -->
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-plugin-api</artifactId>
+        <version>${maven-plugin-api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>${maven-plugin-annotations.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
       <!-- TEST PIECES -->
       <dependency>
         <groupId>org.hamcrest</groupId>
@@ -1365,23 +1379,6 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>ingest-gbif-fragmenter</artifactId>
-        <version>${pipelines.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>core</artifactId>
-        <version>${pipelines.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.gbif.occurrence</groupId>
-            <artifactId>occurrence-hdfs-table</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>org.codehaus.janino</groupId>
         <artifactId>commons-compiler</artifactId>
         <version>${commons-compiler.version}</version>
@@ -1422,6 +1419,11 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>${exec-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>${maven-plugin-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
