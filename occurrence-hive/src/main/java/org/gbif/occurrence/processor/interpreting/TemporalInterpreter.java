@@ -20,12 +20,12 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.common.parsers.date.EventRange;
+import org.gbif.common.parsers.date.MultiinputTemporalParser;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
+import org.gbif.common.parsers.date.TemporalRangeParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.pipelines.core.parsers.temporal.EventRange;
-import org.gbif.pipelines.core.parsers.temporal.TemporalParser;
-import org.gbif.pipelines.core.parsers.temporal.TemporalRangeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public class TemporalInterpreter {
   static final LocalDate MIN_LOCAL_DATE = LocalDate.of(1600, 1, 1);
   static final LocalDate MIN_EPOCH_LOCAL_DATE = LocalDate.ofEpochDay(0);
 
-  private static final TemporalParser TEMPORAL_PARSER = TemporalParser.create(Arrays.asList(DMY_FORMATS)).create();
+  private static final MultiinputTemporalParser TEMPORAL_PARSER = MultiinputTemporalParser.create(Arrays.asList(DMY_FORMATS)).create();
   private static final TemporalRangeParser TEMPORAL_RANGE_PARSER = TemporalRangeParser.builder().temporalParser(TEMPORAL_PARSER).create();
 
   private TemporalInterpreter() {
