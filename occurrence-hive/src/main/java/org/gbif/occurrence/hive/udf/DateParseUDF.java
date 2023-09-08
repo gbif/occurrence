@@ -42,24 +42,26 @@ import java.util.List;
  */
 @Description(
   name = "parseDate",
-  value = "_FUNC_(year, month, day, event_date)")
+  value = "_FUNC_(year, month, day, event_date, start_day_of_year, end_day_of_year)")
 public class DateParseUDF extends GenericUDF {
 
   private ObjectInspectorConverters.Converter[] converters;
 
   @Override
   public Object evaluate(GenericUDF.DeferredObject[] arguments) throws HiveException {
-    assert arguments.length == 4;
+    assert arguments.length == 6;
 
     String year = getArgument(0, arguments);
     String month = getArgument(1, arguments);
     String day = getArgument(2, arguments);
     String event_date = getArgument(3, arguments);
+    String start_day_of_year = getArgument(4, arguments);
+    String end_day_of_year = getArgument(5, arguments);
     List<Object> result = new ArrayList<Object>(5);
 
     try {
       OccurrenceParseResult<IsoDateInterval> parsed =
-        TemporalInterpreter.interpretRecordedDate(year, month, day, event_date);
+        TemporalInterpreter.interpretRecordedDate(year, month, day, event_date, start_day_of_year, end_day_of_year);
       if (parsed.isSuccessful()) {
         IsoDateInterval dateRange = parsed.getPayload();
         if (dateRange.getTo() != null) {
@@ -151,14 +153,14 @@ public class DateParseUDF extends GenericUDF {
 
   @Override
   public String getDisplayString(String[] strings) {
-    assert strings.length == 4;
-    return "parseDate(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ", " + strings[3] + ')';
+    assert strings.length == 6;
+    return "parseDate(" + strings[0] + ", " + strings[1] + ", " + strings[2] + ", " + strings[3] + ", " + strings[4] + ", " + strings[5] + ')';
   }
 
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
     if (arguments.length != 4) {
-      throw new UDFArgumentException("parseDate takes four arguments");
+      throw new UDFArgumentException("parseDate takes six arguments");
     }
 
     converters = new ObjectInspectorConverters.Converter[arguments.length];
