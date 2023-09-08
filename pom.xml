@@ -103,6 +103,7 @@
   </modules>
 
   <properties>
+    <jdkLevel>1.8</jdkLevel>
     <release.tagNameBase>occurrence</release.tagNameBase>
 
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
