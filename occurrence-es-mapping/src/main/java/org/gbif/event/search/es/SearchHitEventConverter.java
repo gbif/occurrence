@@ -21,6 +21,7 @@ import org.gbif.api.model.occurrence.Gadm;
 import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.AgentIdentifierType;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -306,7 +307,12 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, DAY, Integer::valueOf).ifPresent(event::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(event::setMonth);
     getValue(hit, YEAR, Integer::valueOf).ifPresent(event::setYear);
-    getDateValue(hit, EVENT_DATE).ifPresent(event::setEventDate);
+    getComplexValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate).getSearchFieldName(), m -> {
+      IsoDateInterval dr = new IsoDateInterval();
+      extractStringValue((Map<String, Object>)m, "gte").ifPresent(dr::setFrom);
+      extractStringValue((Map<String, Object>)m, "lte").ifPresent(dr::setTo);
+      return dr;
+    }).ifPresent(event::setEventDate);
   }
 
   private void setLocationFields(SearchHit hit, Event event) {

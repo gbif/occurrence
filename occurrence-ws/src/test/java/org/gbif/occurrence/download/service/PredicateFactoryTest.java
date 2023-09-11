@@ -67,6 +67,7 @@ public class PredicateFactoryTest {
     params.put(OccurrenceSearchParameter.OCCURRENCE_STATUS.name(), new String[] {"present"});
     params.put(OccurrenceSearchParameter.CATALOG_NUMBER.name(), new String[] {"A", "B", "C"});
     params.put(OccurrenceSearchParameter.YEAR.name(), new String[] {"*,1980", "1990", "2000,2010"});
+    params.put(OccurrenceSearchParameter.EVENT_DATE.name(), new String[] {"*,1980", "1990", "2000,2010", "2023-09"});
 
     assertNotNull(PredicateFactory.build(params));
   }

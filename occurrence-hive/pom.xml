@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.193.1-H3-SNAPSHOT</version>
+    <version>0.194.0-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-hive</artifactId>
@@ -16,26 +16,45 @@
   <distributionManagement>
     <site>
       <id>gh-pages</id>
-      <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
+      <url>https://gbif.github.io/occurrence/${project.artifactId}/</url>
     </site>
   </distributionManagement>
 
   <build>
     <plugins>
+      <!-- shade everything that uses old guava (ie anything touching the cluster) -->
       <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
-            <id>make-assembly</id> <!-- this is used for inheritance merges -->
-            <phase>package</phase> <!-- bind to the packaging phase -->
+            <phase>package</phase>
             <goals>
-              <goal>single</goal>
+              <goal>shade</goal>
             </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>*:*</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>g18m.com.google.common</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -77,30 +96,12 @@
       <artifactId>occurrence-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gbif.geocode</groupId>
-      <artifactId>geocode-ws</artifactId>
+      <groupId>org.gbif.kvs</groupId>
+      <artifactId>kvs-gbif</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-processor</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>log4j-over-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>jul-to-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>jcl-over-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>ch.qos.logback</groupId>
-          <artifactId>logback-classic</artifactId>
-        </exclusion>
-      </exclusions>
+      <groupId>org.gbif.geocode</groupId>
+      <artifactId>geocode-ws</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>

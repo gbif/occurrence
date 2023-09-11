@@ -13,13 +13,11 @@
  */
 package org.gbif.occurrence.ws.download;
 
+import io.kubernetes.client.util.KubeConfig;
 import org.gbif.stackable.StackableSparkWatcher;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
-
-import io.kubernetes.client.util.KubeConfig;
 
 /**
  * Simple background thread that listens to status change in downloads.
@@ -30,16 +28,16 @@ public class DownloadsStackableListener implements DisposableBean, InitializingB
   private final StackableSparkWatcher watcher;
 
   public DownloadsStackableListener(KubeConfig kubeConfig, StackableDownloadStatusListener listener, WatcherConfiguration watcherConfiguration) {
-    watcher = new StackableSparkWatcher(kubeConfig, listener, watcherConfiguration.getLabelSelectors(), watcherConfiguration.getFieldSelectors());
+    watcher = new StackableSparkWatcher(kubeConfig, listener, watcherConfiguration.getNameSelector());
   }
 
   @Override
-  public void afterPropertiesSet() throws Exception {
-    watcher.run();
+  public void afterPropertiesSet() {
+    watcher.start();
   }
 
   @Override
-  public void destroy() throws Exception {
+  public void destroy() {
     watcher.stop();
   }
 }

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.client;
 
+import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 
@@ -28,18 +29,13 @@ import org.springframework.web.bind.annotation.*;
 
 import feign.Response;
 
-/**
- * Client-side implementation to the ChecklistService.
- */
+/** Client-side implementation to the ChecklistService. */
 public interface BaseDownloadWsClient extends DownloadRequestService {
 
   // low quality of source to default to JSON
   String OCT_STREAM_QS = ";qs=0.5";
 
-  @RequestMapping(
-    method = RequestMethod.DELETE,
-    value = "{downloadKey}"
-  )
+  @RequestMapping(method = RequestMethod.DELETE, value = "{downloadKey}")
   @Override
   void cancel(@PathVariable("downloadKey") String downloadKey);
 
@@ -63,19 +59,24 @@ public interface BaseDownloadWsClient extends DownloadRequestService {
 
   /**
    * Streams the download file to a InputStream Consumer.
+   *
    * @param downloadKey download identifier
    * @param chunkSize the file is streamed in chunks of this size
    * @param contentConsumer consumers of input streams of sizes of at least chunkSize
    */
-  default void getStreamResult(String downloadKey, long chunkSize, Consumer<InputStream> contentConsumer) {
+  default void getStreamResult(
+      String downloadKey, long chunkSize, Consumer<InputStream> contentConsumer) {
     try {
       long from = 0;
       long to = chunkSize - 1;
       Response response = getDownloadResult(downloadKey, "bytes=" + from + "-" + to);
-      long fileLength = Long.parseLong(response.headers().get(HttpHeaders.CONTENT_RANGE).iterator().next().split("/")[1]) - 1;
+      long fileLength =
+          Long.parseLong(
+                  response.headers().get(HttpHeaders.CONTENT_RANGE).iterator().next().split("/")[1])
+              - 1;
       contentConsumer.accept(response.body().asInputStream());
 
-      while(to < fileLength) {
+      while (to < fileLength) {
         from = to + 1;
         to = Math.min(from + chunkSize - 1, fileLength);
         Response partialResponse = getDownloadResult(downloadKey, "bytes=" + from + "-" + to);
@@ -87,17 +88,23 @@ public interface BaseDownloadWsClient extends DownloadRequestService {
   }
 
   @RequestMapping(
-    method = RequestMethod.GET,
-    value = "{downloadKey}",
-    produces = MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS
-  )
+      method = RequestMethod.GET,
+      value = "{downloadKey}",
+      produces = MediaType.APPLICATION_OCTET_STREAM_VALUE + OCT_STREAM_QS)
   @ResponseBody
-  Response getDownloadResult(@PathVariable("downloadKey") String downloadKey, @Nullable @RequestHeader(HttpHeaders.RANGE) String range);
-
+  Response getDownloadResult(
+      @PathVariable("downloadKey") String downloadKey,
+      @Nullable @RequestHeader(HttpHeaders.RANGE) String range);
 
   @Nullable
   @Override
   default File getResultFile(String downloadKey) {
     throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  default File getResultFile(Download download) {
+    return getResultFile(download.getKey());
   }
 }

@@ -16,8 +16,6 @@ package org.gbif.occurrence.test.extensions;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.test.servers.HBaseServer;
-import org.gbif.pipelines.fragmenter.common.HbaseStore;
-import org.gbif.pipelines.fragmenter.common.RawRecord;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.InputStream;

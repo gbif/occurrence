@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.193.1-H3-SNAPSHOT</version>
+    <version>0.194.0-H3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -26,7 +26,7 @@
     <akka-actor.version>2.6.19</akka-actor.version>
     <es.httpclient.version>4.5.10</es.httpclient.version>
 
-    <!-- The timestamp is used to set the start date for the Oozie coordinator job -->
+    <!-- The timestamp is used to set the start date for the coordinator job -->
     <!-- We want the coordinator to run at 05:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T05:00Z'</maven.build.timestamp.format>
@@ -93,6 +93,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
               <artifactSet>
                 <excludes>
                   <exclude>org.apache.hadoop:*</exclude>
@@ -278,7 +279,7 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-tomcat</artifactId>
         </exclusion>
-        <!-- Excluded to avoid log4j collisions in Oozie/Hadoop-->
+        <!-- Excluded to avoid log4j collisions in Hadoop-->
         <exclusion>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-logging</artifactId>
@@ -315,20 +316,6 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>download-query-tools</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.pipelines</groupId>
-      <artifactId>models</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.predicates</groupId>
-      <artifactId>predicates-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.predicates</groupId>
@@ -397,41 +384,7 @@
       explicitly declared in the assembly.
       START OF WORKFLOW ONLY DEPENDENCIES
     -->
-    <dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-hive</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>curator-client</artifactId>
-          <groupId>org.apache.curator</groupId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.rabbitmq</groupId>
-          <artifactId>amqp-client</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.gbif.common</groupId>
-          <artifactId>gbif-postal-service</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.hbase</groupId>
-          <artifactId>hbase-server</artifactId>
-        </exclusion>
-        <!-- Excluded to avoid log4j collisions with other dependencies in libraries and Hadoop-->
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>log4j-over-slf4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>ch.qos.logback</groupId>
-          <artifactId>logback-classic</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>net.logstash.logback</groupId>
-          <artifactId>logstash-logback-encoder</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+
     <dependency>
       <groupId>org.locationtech.jts</groupId>
       <artifactId>jts-core</artifactId>
@@ -589,6 +542,12 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <scope>compile</scope>
     </dependency>
 
     <!-- END OF WORKFLOW ONLY DEPENDENCIES -->

@@ -5,17 +5,14 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.193.1-H3-SNAPSHOT</version>
+    <version>0.194.0-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-download-launcher</artifactId>
   <name>Occurrence Download Launcher</name>
 
   <properties>
-    <hadoop-yarn-client.version>3.3.1</hadoop-yarn-client.version>
-    <spark.version>3.3.0</spark.version>
     <amqp-client.version>5.9.0</amqp-client.version>
-    <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
 
     <start-class>org.gbif.occurrence.downloads.launcher.OccurrenceDownloadsLauncherApplication</start-class>
   </properties>
@@ -134,7 +131,6 @@
     <dependency>
       <groupId>org.gbif.stackable</groupId>
       <artifactId>stackable-spark</artifactId>
-      <version>${stackable-spark.version}</version>
     </dependency>
 
     <!-- Spring dependencies -->
@@ -210,7 +206,6 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>${hadoop-yarn-client.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>

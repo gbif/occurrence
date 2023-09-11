@@ -22,6 +22,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -166,8 +169,20 @@ public class TableBackfill {
    }
   }
 
+  @SneakyThrows
   private void createExtensionTablesParallel(SparkSession spark) {
-    ExtensionTable.tableExtensions().stream().forEach(extensionTable -> createExtensionTable(spark, extensionTable));
+    CountDownLatch doneSignal = new CountDownLatch(ExtensionTable.tableExtensions().size());
+    ExecutorService executor = Executors.newFixedThreadPool(ExtensionTable.tableExtensions().size());
+    ExtensionTable.tableExtensions()
+      .forEach(extensionTable -> executor.submit(new Runnable() {
+        @Override
+        public void run() {
+          createExtensionTable(spark, extensionTable);
+          doneSignal.countDown();
+        }
+      }));
+    doneSignal.await();
+    executor.shutdown();
   }
 
   @SneakyThrows
@@ -186,6 +201,7 @@ public class TableBackfill {
                                  .select(select);
 
      if (configuration.getTablePartitions() != null &&  input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
+       log.info("Setting partitions options {}", configuration.getTablePartitions());
        input = input
                 .withColumn("_salted_key", col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
                 .repartition(configuration.getTablePartitions())
@@ -205,7 +221,7 @@ public class TableBackfill {
     spark.sql(configuration.isUsePartitionedTable()? createExtensionExternalTable(extensionTable) : createExtensionTable(extensionTable));
 
     List<Column> columns = extensionTable.getFields().stream()
-      .filter(field -> configuration.isUsePartitionedTable() && !field.equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
+      .filter(field -> !configuration.isUsePartitionedTable() || !field.equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
       .map(field -> field.contains(")")? callUDF(field.substring(0, field.indexOf('(')), col(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))).alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')'))) : col(field))
       .collect(Collectors.toList());
 
@@ -227,7 +243,7 @@ public class TableBackfill {
    return String.format("CREATE TABLE IF NOT EXISTS %s\n"
                         + '(' + extensionTable.getSchema().getFields().stream().map(f -> f.name() + " STRING").collect(
                           Collectors.joining(",\n")) + ')'
-                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")\n",
+                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
                         extensionTableName(extensionTable));
   }
 
@@ -237,7 +253,7 @@ public class TableBackfill {
                            Collectors.joining(",\n")) + ')'
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "LOCATION '%s'"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")\n",
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
                          extensionTableName(extensionTable),
                          Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
@@ -258,7 +274,7 @@ public class TableBackfill {
                          + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
                          + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
                          + "publisher STRING, license STRING, rightsHolder STRING)\n"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")", configuration.getTableName());
+                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")", configuration.getTableName());
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
@@ -314,7 +330,7 @@ public class TableBackfill {
                          + OccurrenceHDFSTableDefinition.definition().stream()
                            .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                            .collect(Collectors.joining(", \n"))
-                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"Snappy\")",
+                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
                          configuration.getTableName());
   }
 
@@ -328,7 +344,7 @@ public class TableBackfill {
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "STORED AS PARQUET "
                          + "LOCATION '%s'"
-                         + "TBLPROPERTIES (\"parquet.compression\"=\"Snappy\", \"auto.purge\"=\"true\")",
+                         + "TBLPROPERTIES (\"parquet.compression\"=\"GZIP\", \"auto.purge\"=\"true\")",
                          configuration.getTableName(),
                          Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
 
@@ -336,7 +352,7 @@ public class TableBackfill {
 
   private Column[] selectFromAvro() {
     List<Column> columns = OccurrenceHDFSTableDefinition.definition().stream()
-      .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
+      .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
       .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
       .collect(Collectors.toList());
 
@@ -344,7 +360,9 @@ public class TableBackfill {
     if (configuration.isUsePartitionedTable()) {
       columns.add(col("datasetkey"));
     }
-    return columns.toArray(new Column[]{});
+    Column[] selectColumns = columns.toArray(new Column[]{});
+    log.info("Selecting columns from Avro {}", columns.stream().map(Column::toString).collect(Collectors.joining(", ")));
+    return selectColumns;
   }
 
 

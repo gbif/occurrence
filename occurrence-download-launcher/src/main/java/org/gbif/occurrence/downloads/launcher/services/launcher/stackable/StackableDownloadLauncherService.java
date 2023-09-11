@@ -24,6 +24,7 @@ import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
 import org.gbif.stackable.SparkCrd;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -80,13 +81,13 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
       SparkCrd sparkCrd = sparkCrdService.createSparkCrd(sparkSettings);
 
-      sparkController.submitSparkApplication(sparkCrd, sparkAppName);
+      sparkController.submitSparkApplication(sparkCrd);
 
       asyncStatusCheck(downloadKey, sparkAppName);
 
       return JobStatus.RUNNING;
     } catch (Exception ex) {
-      log.error("Something failed while creating CRD", ex);
+      log.error(ex.getMessage(), ex);
       return JobStatus.FAILED;
     }
   }

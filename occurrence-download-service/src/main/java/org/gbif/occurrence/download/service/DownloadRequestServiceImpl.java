@@ -37,9 +37,8 @@ import java.util.EnumSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -88,8 +87,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       Metrics.newCounter(CallbackService.class, "failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS =
       Metrics.newCounter(CallbackService.class, "cancelled_downloads");
-
-  private final OozieClient client;
   private final DownloadIdService downloadIdService;
   private final String portalUrl;
   private final String wsUrl;
@@ -103,7 +100,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   @Autowired
   public DownloadRequestServiceImpl(
-      OozieClient client,
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
@@ -113,7 +109,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       EmailSender emailSender,
       MessagePublisher messagePublisher) {
     this.downloadIdService = new DownloadIdService();
-    this.client = client;
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
@@ -152,25 +147,38 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
     }
+
+    String exceedComplexityLimit = null;
     try {
-      String exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
-      if (exceedComplexityLimit != null) {
-        log.info("Download request refused as it would exceed complexity limits");
-        throw new ResponseStatusException(
-            HttpStatus.PAYLOAD_TOO_LARGE,
-            "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
-      }
+      exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
+    } catch (Exception e) {
+      throw new ServiceUnavailableException(
+        "Failed to create download job while checking download complexity", e);
+    }
+    if (exceedComplexityLimit != null) {
+      log.info("Download request refused as it would exceed complexity limits");
+      throw new ResponseStatusException(
+        HttpStatus.PAYLOAD_TOO_LARGE,
+        "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
+    }
 
-      String exceedSimultaneousLimit =
-          downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
-      if (exceedSimultaneousLimit != null) {
-        log.info("Download request refused as it would exceed simultaneous limits");
-        // Keep HTTP 420 ("Enhance your calm") here.
-        throw new ResponseStatusException(
-            HttpStatus.METHOD_FAILURE,
-            "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
-      }
+    String exceedSimultaneousLimit = null;
+    try {
+      exceedSimultaneousLimit =
+        downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
+    } catch (Exception e) {
+      throw new ServiceUnavailableException(
+        "Failed to create download job while checking simultaneous download limit", e);
+    }
+    if (exceedSimultaneousLimit != null) {
+      log.info("Download request refused as it would exceed simultaneous limits");
+      // Keep HTTP 420 ("Enhance your calm") here.
+      throw new ResponseStatusException(
+        HttpStatus.METHOD_FAILURE,
+        "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
+    }
 
+    try {
       String downloadId = downloadIdService.generateId();
       log.debug("Download id is: [{}]", downloadId);
       persistDownload(request, downloadId, source);
@@ -180,7 +188,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
       return downloadId;
     } catch (Exception e) {
-      log.error("Failed to create download job", e);
       throw new ServiceUnavailableException("Failed to create download job", e);
     }
   }
@@ -200,21 +207,53 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             HttpStatus.NOT_FOUND, "Download " + downloadKey + " doesn't exist");
       }
 
-      if (d.getStatus() == Download.Status.FILE_ERASED) {
-        throw new ResponseStatusException(
-            HttpStatus.GONE, "Download " + downloadKey + " has been erased\n");
-      }
-
-      if (!d.isAvailable()) {
-        throw new ResponseStatusException(
-            HttpStatus.NOT_FOUND, "Download " + downloadKey + " is not ready yet");
-      }
+      checkDownloadPreConditions(downloadKey, d);
 
       filename = getDownloadFilename(d);
     } else {
       filename = downloadKey + ".zip";
     }
 
+    return getDownloadFile(filename, downloadKey);
+  }
+
+  @Override
+  public File getResultFile(Download download) {
+    String filename;
+
+    if (download == null || download.getKey() == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Download can't be null");
+    }
+
+    String downloadKey = download.getKey();
+
+    // avoid check for download in the registry if we have secret non download files with a magic
+    // prefix!
+    if (!downloadKey.toLowerCase().startsWith(NON_DOWNLOAD_PREFIX)) {
+      checkDownloadPreConditions(downloadKey, download);
+
+      filename = getDownloadFilename(download);
+    } else {
+      filename = downloadKey + ".zip";
+    }
+
+    return getDownloadFile(filename, downloadKey);
+  }
+
+  private static void checkDownloadPreConditions(String downloadKey, Download d) {
+    if (d.getStatus() == Download.Status.FILE_ERASED) {
+      throw new ResponseStatusException(
+          HttpStatus.GONE, "Download " + downloadKey + " has been erased\n");
+    }
+
+    if (!d.isAvailable()) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "Download " + downloadKey + " is not ready yet");
+    }
+  }
+
+  @NotNull
+  private File getDownloadFile(String filename, String downloadKey) {
     File localFile = new File(downloadMount, filename);
     if (localFile.canRead()) {
       return localFile;
@@ -236,29 +275,22 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
   }
 
-  /** Processes a callback from Oozie which update the download status. */
+  /** Processes a callback from k8s watcher which update the download status. */
   @Override
-  public void processCallback(String jobId, String status) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(jobId), "<jobId> may not be null or empty");
+  public void processCallback(String downloadId, String status) {
+    Preconditions.checkArgument(!Strings.isNullOrEmpty(downloadId), "<downloadId> may not be null or empty");
     Preconditions.checkArgument(
         !Strings.isNullOrEmpty(status), "<status> may not be null or empty");
     Optional<JobStatus> opStatus = Enums.getIfPresent(JobStatus.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
 
-    String downloadId;
-    try {
-      downloadId = client.getJobInfo(jobId).getExternalId();
-    } catch (OozieClientException e) {
-      throw new RuntimeException(e);
-    }
-
     log.debug("Processing callback for downloadId [{}] with status [{}]", downloadId, status);
 
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
-      // Download can be null if the oozie reports status before the download is persisted
+      // Download can be null if the k8s reports status before the download is persisted
       log.info(
-          "Download {} not found. [Oozie may be issuing callback before download persisted.]",
+          "Download {} not found. [k8s launcher may be issuing callback before download persisted.]",
           downloadId);
       return;
     }
@@ -269,7 +301,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       // Download has already completed, so perhaps callbacks in rapid succession have been
       // processed out-of-order
       log.warn(
-          "Download {} has finished, but Oozie has sent a RUNNING callback. Ignoring it.",
+          "Download {} has finished, but k8s has sent a RUNNING callback. Ignoring it.",
           downloadId);
       return;
     }

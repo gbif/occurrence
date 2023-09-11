@@ -14,13 +14,13 @@
 package org.gbif.occurrence.spark.udf;
 
 
-import java.util.Map;
+import java.io.Serializable;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import lombok.SneakyThrows;
 
-public class CleanDelimiters implements Function<String,String> {
+public class CleanDelimiters implements Function<String,String>, Serializable {
 
   private static String cleanDelimiters(String value) {
     return DELIMETERS_MATCH_PATTERN.matcher(value).replaceAll(" ").trim();

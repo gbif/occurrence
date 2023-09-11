@@ -3,7 +3,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+<<<<<<< HEAD
   <version>0.193.1-H3-SNAPSHOT</version>
+=======
+  <version>0.194.0-H3-SNAPSHOT</version>
+>>>>>>> spark3_downloads
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-trino-udf</artifactId>
 
@@ -12,7 +16,6 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <gbif-api.version>1.2.0</gbif-api.version>
     <lucene.version>8.7.0</lucene.version>
     <trino.version>414</trino.version>
     <slice.version>0.45</slice.version>
@@ -107,7 +110,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
-      <version>${gbif-api.version}</version>
     </dependency>
 
     <dependency>

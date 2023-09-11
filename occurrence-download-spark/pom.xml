@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.193.1-H3-SNAPSHOT</version>
+    <version>0.194.0-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-download-spark</artifactId>
@@ -82,6 +82,8 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-download</artifactId>
+      <version>${project.version}</version>
+      <classifier>shaded</classifier>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -92,6 +94,19 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
+    </dependency>
+
+    <!-- To avoid classpath clash -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.ws.rs</groupId>
+          <artifactId>jsr311-api</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Spark -->

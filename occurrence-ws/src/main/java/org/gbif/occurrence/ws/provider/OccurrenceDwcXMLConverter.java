@@ -23,6 +23,8 @@ import org.gbif.dwc.terms.Term;
 
 import java.io.StringWriter;
 import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -50,7 +52,7 @@ public class OccurrenceDwcXMLConverter {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceDwcXMLConverter.class);
 
-  private static final FastDateFormat FDF = DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT;
+  private static final FastDateFormat FDF = DateFormatUtils.ISO_8601_EXTENDED_DATETIME_TIME_ZONE_FORMAT;
 
   /**
    * Transforms an {@link Occurrence} object into a byte[] representing a XML document.
@@ -125,7 +127,7 @@ public class OccurrenceDwcXMLConverter {
       appendIfNotNull(dwcXMLDocument, DwcTerm.year, occurrence.getYear());
       appendIfNotNull(dwcXMLDocument, DwcTerm.month, occurrence.getMonth());
       appendIfNotNull(dwcXMLDocument, DwcTerm.day, occurrence.getDay());
-      dwcXMLDocument.append(DwcTerm.eventDate, toISODateTime(occurrence.getEventDate()));
+      dwcXMLDocument.append(DwcTerm.eventDate, Objects.toString(occurrence.getEventDate(), null));
       appendIfNotNull(dwcXMLDocument, DwcTerm.typeStatus, occurrence.getTypeStatus());
 
       dwcXMLDocument.append(GbifTerm.typifiedName, occurrence.getTypifiedName());

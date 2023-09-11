@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
@@ -26,7 +27,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class WatcherConfiguration {
   private Map<String,String> labelSelectors = Collections.emptyMap();
-
   private Map<String,String> fieldSelectors = Collections.emptyMap();
-
+  private String nameSelector;
 }

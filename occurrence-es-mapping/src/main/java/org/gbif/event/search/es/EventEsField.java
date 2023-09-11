@@ -78,7 +78,7 @@ public enum EventEsField implements EsField {
   YEAR(new BaseEsField("event.year", DwcTerm.year)),
   MONTH(new BaseEsField("event.month", DwcTerm.month)),
   DAY(new BaseEsField("event.day", DwcTerm.day)),
-  EVENT_DATE(new BaseEsField("event.eventDateSingle", DwcTerm.eventDate)),
+  EVENT_DATE(new BaseEsField("event.eventDate", DwcTerm.eventDate)),
 
   //Location
   COORDINATE_SHAPE(new BaseEsField("event.scoordinates", null)),
@@ -192,7 +192,7 @@ public enum EventEsField implements EsField {
   //Event
   START_DAY_OF_YEAR(new BaseEsField("event.startDayOfYear", DwcTerm.startDayOfYear)),
   END_DAY_OF_YEAR(new BaseEsField("event.endDayOfYear", DwcTerm.startDayOfYear)),
-  EVENT_TYPE(new BaseEsField("event.eventType", GbifTerm.eventType)),
+  EVENT_TYPE(new BaseEsField("event.eventType", DwcTerm.eventType)),
   LOCATION_ID(new BaseEsField("event.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("event.parentsLineage", UnknownTerm.build("event.parentsLineage"))),
 
@@ -296,6 +296,7 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
       .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
       .put(OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS, DISTANCE_FROM_CENTROID_IN_METERS)
+      .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
 
   private static final Set<EsField> DATE_FIELDS =

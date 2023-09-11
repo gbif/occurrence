@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.service.conf;
 
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.query.PredicateCounter;
 import org.gbif.occurrence.query.PredicateGeometryPointCounter;
 

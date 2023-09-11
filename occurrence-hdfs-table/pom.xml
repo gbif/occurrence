@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.193.1-H3-SNAPSHOT</version>
+    <version>0.194.0-H3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -17,6 +17,12 @@
     </site>
   </distributionManagement>
 
+  <properties>
+    <avro-generated-path>${project.basedir}/src/main/java-generated/</avro-generated-path>
+    <schema-generated-path>${project.basedir}/src/main/resources/table/</schema-generated-path>
+    <namespace>org.gbif.pipelines.io.avro</namespace>
+  </properties>
+
   <build>
     <resources>
       <resource>
@@ -28,6 +34,59 @@
         <filtering>false</filtering>
       </resource>
     </resources>
+    <plugins>
+      <!-- Generate avro schemas from XML extensions-->
+      <plugin>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>maven-extension-avsc-schema-generator</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>avroschemageneration</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>avroschemageneration</goal>
+            </goals>
+            <configuration>
+              <pathToWrite>${schema-generated-path}</pathToWrite>
+              <namespace>${namespace}.extension</namespace>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${avro-generated-path}</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Clean avro generated path -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${avro-generated-path}</directory>
+            </fileset>
+            <fileset>
+              <directory>${schema-generated-path}</directory>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <dependencies>
@@ -47,20 +106,6 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.pipelines</groupId>
-      <artifactId>models</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.predicates</groupId>
-      <artifactId>predicates-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.predicates</groupId>

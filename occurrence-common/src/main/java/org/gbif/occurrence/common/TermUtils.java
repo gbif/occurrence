@@ -147,8 +147,6 @@ public class TermUtils {
       GbifTerm.typeDesignationType,
       GbifTerm.canonicalName,
       GbifTerm.nameType,
-      GbifTerm.verbatimLabel,
-      GbifTerm.eventType,
 
       // And these have been superseded by other terms or otherwise deprecated and removed
       GbifTerm.distanceAboveSurface,
@@ -433,8 +431,6 @@ public class TermUtils {
         GADM_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       //IUCN RedList Category
       .add(IucnTerm.iucnRedListCategory)
-      //EventType
-      .add(GbifTerm.eventType)
       .build();
   }
 

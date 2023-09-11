@@ -10,7 +10,9 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.193.1-H3-SNAPSHOT</version>
+
+  <version>0.194.0-H3-SNAPSHOT</version>
+
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -81,7 +83,6 @@
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
     <module>occurrence-persistence</module>
-    <module>occurrence-processor</module>
     <module>occurrence-search</module>
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
@@ -99,6 +100,8 @@
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
     <module>occurrence-table-build-trino</module>
+    <module>occurrence-table-build-spark-launcher</module>
+    <module>maven-extension-avsc-schema-generator</module>
   </modules>
 
   <properties>
@@ -195,17 +198,16 @@
     <zookeeper.quorum>c3zk1.gbif-dev.org:2181,c3zk2.gbif-dev.org:2181,c3zk3.gbif-dev.org:2181</zookeeper.quorum>
     <hadoop.jobtracker>c3master2-vh.gbif.org:8032</hadoop.jobtracker>
     <hdfs.namenode>hdfs://ha-nn</hdfs.namenode>
-    <oozie.url>http://c3oozie.gbif-dev.org:11000/oozie</oozie.url>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
 
-    <avro.version>1.11.0</avro.version>
+    <avro.version>1.11.1</avro.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-H3-SNAPSHOT</hbase-utils.version>
     <download-query-tools.version>1.48-H3-SNAPSHOT</download-query-tools.version>
-    <dwc-api.version>1.46-H3-SNAPSHOT</dwc-api.version>
+    <dwc-api.version>1.48-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.5.0</gbif-api.version>
+    <gbif-api.version>1.13.0-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -213,16 +215,15 @@
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-metadata-profile.version>2.2-SNAPSHOT</gbif-metadata-profile.version>
-    <gbif-parsers.version>0.59</gbif-parsers.version>
+    <gbif-parsers.version>0.63-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
-    <gbif-registry.version>3.94.4</gbif-registry.version>
+    <gbif-registry.version>3.94.17</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <pipelines.version>2.15.0-H3-SNAPSHOT</pipelines.version>
-    <gbif.kvs.version>1.26-H3-SNAPSHOT</gbif.kvs.version>
+    <gbif.kvs.version>1.29-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
-    <gbif-predicates.version>1.1-SNAPSHOT</gbif-predicates.version>
+    <gbif-predicates.version>1.2.0-SNAPSHOT</gbif-predicates.version>
     <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
 
     <!-- Sonar -->
@@ -248,7 +249,7 @@
     <spark.version>3.4.0</spark.version>
     <databricks.version>3.4.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
-    <scala.library.version>2.12.15</scala.library.version>
+    <scala.library.version>2.12.17</scala.library.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -256,6 +257,11 @@
     <exec-maven-plugin.version>1.3.2</exec-maven-plugin.version>
     <maven-scala-plugin.version>4.3.1</maven-scala-plugin.version>
     <maven-remote-resources-plugin.version>1.5</maven-remote-resources-plugin.version>
+
+    <!-- Maven plugin -->
+    <maven-plugin-api.version>3.8.6</maven-plugin-api.version>
+    <maven-plugin-annotations.version>3.6.4</maven-plugin-annotations.version>
+    <maven-plugin-plugin.version>3.6.4</maven-plugin-plugin.version>
 
     <!-- Tools-->
     <lombok.version>1.18.28</lombok.version>
@@ -276,7 +282,6 @@
         <hadoop.version>3.3.4</hadoop.version>
         <hbase.version>2.5.3-hadoop3</hbase.version>
         <hive.version>3.1.3</hive.version>
-        <oozie.version>4.1.0</oozie.version>
         <zookeeper.version>3.8.1</zookeeper.version>
         <occurrence.environment>dev</occurrence.environment>
         <occurrence.env_prefix>dev</occurrence.env_prefix>
@@ -292,11 +297,10 @@
       <id>prod</id>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>3.3.2</hadoop.version>
+        <hadoop.version>3.3.4</hadoop.version>
         <hbase.version>2.4.12</hbase.version>
         <hive.version>3.1.3</hive.version>
-        <oozie.version>4.1.0-cdh5.16.2</oozie.version>
-        <zookeeper.version>3.6.2</zookeeper.version>
+        <zookeeper.version>3.8.1</zookeeper.version>
       </properties>
     </profile>
   </profiles>
@@ -415,11 +419,6 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-processor</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-deleter</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -470,6 +469,16 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-table-build-spark</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>maven-extension-avsc-schema-generator</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.gbif.registry</groupId>
         <artifactId>registry-ws-client</artifactId>
         <version>${gbif-registry.version}</version>
@@ -517,16 +526,6 @@
         <version>${gbif-common-test.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>variables</artifactId>
-        <version>${pipelines.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>models</artifactId>
-        <version>${pipelines.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.gbif.kvs</groupId>
         <artifactId>kvs-gbif</artifactId>
         <version>${gbif.kvs.version}</version>
@@ -535,11 +534,6 @@
         <groupId>org.gbif.common</groupId>
         <artifactId>gbif-cli</artifactId>
         <version>${gbif-cli.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.predicates</groupId>
-        <artifactId>predicates-api</artifactId>
-        <version>${gbif-predicates.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.predicates</groupId>
@@ -799,17 +793,6 @@
         <groupId>org.gbif</groupId>
         <artifactId>gbif-wrangler</artifactId>
         <version>${gbif-wrangler.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.oozie</groupId>
-        <artifactId>oozie-client</artifactId>
-        <version>${oozie.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>commons-logging</artifactId>
-            <groupId>commons-logging</groupId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
@@ -1338,6 +1321,20 @@
         <version>${spark.version}</version>
       </dependency>
 
+      <!-- Maven plugin -->
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-plugin-api</artifactId>
+        <version>${maven-plugin-api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>${maven-plugin-annotations.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
       <!-- TEST PIECES -->
       <dependency>
         <groupId>org.hamcrest</groupId>
@@ -1406,12 +1403,6 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.gbif.pipelines</groupId>
-        <artifactId>ingest-gbif-fragmenter</artifactId>
-        <version>${pipelines.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
         <groupId>org.codehaus.janino</groupId>
         <artifactId>commons-compiler</artifactId>
         <version>${commons-compiler.version}</version>
@@ -1452,6 +1443,11 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>${exec-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>${maven-plugin-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>

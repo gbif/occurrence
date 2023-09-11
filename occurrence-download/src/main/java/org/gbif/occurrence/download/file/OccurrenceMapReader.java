@@ -20,6 +20,7 @@ import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.ClassificationUtils;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.Rank;
@@ -56,7 +57,7 @@ import com.google.common.collect.ImmutableSet;
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
- * Reads a occurrence record from Elasticsearch and return it in a Map<String,Object>.
+ * Reads an occurrence record from Elasticsearch and return it in a Map<String,Object>.
  */
 public class OccurrenceMapReader {
 
@@ -127,7 +128,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.day.simpleName(), getSimpleValue(occurrence.getDay()));
     interpretedOccurrence.put(DwcTerm.month.simpleName(), getSimpleValue(occurrence.getMonth()));
     interpretedOccurrence.put(DwcTerm.year.simpleName(), getSimpleValue(occurrence.getYear()));
-    interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getLocalDateValue(occurrence.getEventDate()));
+    interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getIsoDateIntervalValue(occurrence.getEventDate()));
 
     // taxonomy terms
     interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
@@ -244,7 +245,7 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DwcTerm.day.simpleName(), getSimpleValue(event.getDay()));
     interpretedEvent.put(DwcTerm.month.simpleName(), getSimpleValue(event.getMonth()));
     interpretedEvent.put(DwcTerm.year.simpleName(), getSimpleValue(event.getYear()));
-    interpretedEvent.put(DwcTerm.eventDate.simpleName(), getLocalDateValue(event.getEventDate()));
+    interpretedEvent.put(DwcTerm.eventDate.simpleName(), getIsoDateIntervalValue(event.getEventDate()));
 
     //location fields
     interpretedEvent.put(DwcTerm.countryCode.simpleName(), getCountryCode(event.getCountry()));
@@ -290,7 +291,7 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DwcTerm.parentEventID.simpleName(), event.getParentEventID());
     interpretedEvent.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(event.getStartDayOfYear()));
     interpretedEvent.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
-    interpretedEvent.put(GbifTerm.eventType.simpleName(), getConcept(event.getEventType()));
+    interpretedEvent.put(DwcTerm.eventType.simpleName(), getConcept(event.getEventType()));
 
     event.getVerbatimFields().forEach( (term, value) -> {
       if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
@@ -386,6 +387,16 @@ public class OccurrenceMapReader {
   private static String getLocalDateValue(Date value) {
     if (value != null) {
       return toLocalISO8601Date(value);
+    }
+    return null;
+  }
+
+  /**
+   * Transform a local date data type into a String.
+   */
+  private static String getIsoDateIntervalValue(IsoDateInterval value) {
+    if (value != null) {
+      return value.toString();
     }
     return null;
   }

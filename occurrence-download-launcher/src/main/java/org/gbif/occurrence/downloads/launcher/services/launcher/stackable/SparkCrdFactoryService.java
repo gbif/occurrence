@@ -13,6 +13,11 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 import org.gbif.occurrence.downloads.launcher.pojo.DistributedConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
@@ -22,13 +27,6 @@ import org.gbif.stackable.SparkCrd;
 import org.gbif.stackable.SparkCrd.Metadata;
 import org.gbif.stackable.SparkCrd.Spec;
 import org.gbif.stackable.ToBuilder;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
-
 import org.springframework.stereotype.Service;
 
 @SuppressWarnings("all")
@@ -53,7 +51,12 @@ public class SparkCrdFactoryService {
     Spec sparkCrdSpec = sparkCrd.getSpec();
 
     return sparkCrd.toBuilder()
-        .metadata(Metadata.builder().name(sparkSettings.getSparkAppName()).build())
+        .metadata(
+            Metadata.builder()
+                .name(sparkSettings.getSparkAppName())
+                .namespace(sparkCrd.getMetadata().getNamespace())
+                .build()
+        )
         .spec(
             sparkCrdSpec.toBuilder()
                 .mainClass(distributedConfig.mainClass)
