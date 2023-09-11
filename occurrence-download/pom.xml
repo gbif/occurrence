@@ -517,6 +517,16 @@
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>logback-classic</artifactId>
+          <groupId>ch.qos.logback</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>logback-core</artifactId>
+          <groupId>ch.qos.logback</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

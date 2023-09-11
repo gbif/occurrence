@@ -244,10 +244,10 @@
     <lucene.version>8.7.0</lucene.version>
 
     <!-- Spark -->
-    <spark.version>3.3.0</spark.version>
-    <databricks.version>3.3.0</databricks.version>
+    <spark.version>3.4.0</spark.version>
+    <databricks.version>3.4.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
-    <scala.library.version>2.12.15</scala.library.version>
+    <scala.library.version>2.12.17</scala.library.version>
 
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
@@ -277,10 +277,10 @@
       </activation>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>3.3.2</hadoop.version>
+        <hadoop.version>3.3.4</hadoop.version>
         <hbase.version>2.5.3-hadoop3</hbase.version>
         <hive.version>3.1.3</hive.version>
-        <zookeeper.version>3.5.8</zookeeper.version>
+        <zookeeper.version>3.8.1</zookeeper.version>
         <occurrence.environment>dev</occurrence.environment>
         <occurrence.env_prefix>dev</occurrence.env_prefix>
         <!-- Hive table name -->
@@ -295,10 +295,10 @@
       <id>prod</id>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>3.3.2</hadoop.version>
+        <hadoop.version>3.3.4</hadoop.version>
         <hbase.version>2.4.12</hbase.version>
         <hive.version>3.1.3</hive.version>
-        <zookeeper.version>3.5.8</zookeeper.version>
+        <zookeeper.version>3.8.1</zookeeper.version>
       </properties>
     </profile>
   </profiles>
