@@ -167,8 +167,7 @@ public class TableBackfill {
   }
 
   private void createExtensionTablesParallel(SparkSession spark) {
-    ExtensionTable.tableExtensions().parallelStream()
-      .forEach(extensionTable -> createExtensionTable(spark, extensionTable));
+    ExtensionTable.tableExtensions().stream().forEach(extensionTable -> createExtensionTable(spark, extensionTable));
   }
 
   @SneakyThrows

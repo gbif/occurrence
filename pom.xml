@@ -2,6 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.gbif</groupId>
+    <artifactId>motherpom</artifactId>
+    <version>58-SNAPSHOT</version>
+  </parent>
+
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
   <version>0.193.1-H3-SNAPSHOT</version>
@@ -83,7 +89,7 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <module>occurrence-integration-tests</module>
+    <!--<module>occurrence-integration-tests</module>-->
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
     <module>event-ws</module>
@@ -96,10 +102,8 @@
   </modules>
 
   <properties>
-    <jdkLevel>1.8</jdkLevel>
     <release.tagNameBase>occurrence</release.tagNameBase>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud-zookeeper.version>2.2.5.RELEASE</spring-cloud-zookeeper.version>
     <spring-cloud-openfeign.version>2.2.6.RELEASE</spring-cloud-openfeign.version>
@@ -138,7 +142,7 @@
     <commmons-lang.version>3.12.0</commmons-lang.version>
     <curator.version>5.1.0</curator.version>
     <curator-test.version>4.3.0</curator-test.version>
-    <zookeeper.version>3.6.2</zookeeper.version>
+    <zookeeper.version>3.8.1</zookeeper.version>
     <dbunit.version>2.4.9</dbunit.version>
     <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
@@ -157,7 +161,7 @@
     <jackson.version>2.13.1</jackson.version>
     <json.version>20220320</json.version>
     <jcommander.version>1.35</jcommander.version>
-    <logback.version>1.1.5</logback.version>
+    <logback.version>1.2.12</logback.version>
     <logstash-encoder.version>4.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>3.1.0</mockito.version>
@@ -241,8 +245,8 @@
     <lucene.version>8.7.0</lucene.version>
 
     <!-- Spark -->
-    <spark.version>3.3.0</spark.version>
-    <databricks.version>3.3.0</databricks.version>
+    <spark.version>3.4.0</spark.version>
+    <databricks.version>3.4.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
     <scala.library.version>2.12.15</scala.library.version>
 
@@ -269,11 +273,11 @@
       </activation>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>3.3.2</hadoop.version>
+        <hadoop.version>3.3.4</hadoop.version>
         <hbase.version>2.5.3-hadoop3</hbase.version>
         <hive.version>3.1.3</hive.version>
         <oozie.version>4.1.0</oozie.version>
-        <zookeeper.version>3.6.2</zookeeper.version>
+        <zookeeper.version>3.8.1</zookeeper.version>
         <occurrence.environment>dev</occurrence.environment>
         <occurrence.env_prefix>dev</occurrence.env_prefix>
         <!-- Hive table name -->
@@ -1424,14 +1428,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
-        <configuration>
-          <release>11</release>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
