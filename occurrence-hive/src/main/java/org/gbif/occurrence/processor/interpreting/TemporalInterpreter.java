@@ -41,6 +41,8 @@ import static org.gbif.common.parsers.date.DateComponentOrdering.DMY_FORMATS;
 
 /**
  * Interprets date representations into a Date.
+ *
+ * Intended to be very close to the Pipelines one.
  */
 public class TemporalInterpreter {
 
@@ -56,12 +58,6 @@ public class TemporalInterpreter {
   }
 
   public static void interpretTemporal(VerbatimOccurrence verbatim, Occurrence occ) {
-
-    final String year = verbatim.getVerbatimField(DwcTerm.year);
-    final String month = verbatim.getVerbatimField(DwcTerm.month);
-    final String day = verbatim.getVerbatimField(DwcTerm.day);
-    final String dateString = verbatim.getVerbatimField(DwcTerm.eventDate);
-
     OccurrenceParseResult<IsoDateInterval> eventResult = interpretRecordedDate(verbatim);
 
     if (eventResult.isSuccessful()) {
@@ -141,8 +137,7 @@ public class TemporalInterpreter {
     String dateString, String startDayOfYear, String endDayOfYear) {
 
     EventRange eventRange =
-      TEMPORAL_RANGE_PARSER.parse(
-        year, month, day, dateString, startDayOfYear, endDayOfYear);
+      TEMPORAL_RANGE_PARSER.parse(year, month, day, dateString, startDayOfYear, endDayOfYear);
 
     Optional<TemporalAccessor> fromTa = eventRange.getFrom();
     Optional<TemporalAccessor> toTa = eventRange.getTo();

@@ -23,6 +23,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
+import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.occurrence.processor.interpreting.TemporalInterpreter;
 
 import java.time.LocalDate;
@@ -39,6 +40,22 @@ import java.util.List;
 
 /**
  * Parses year, month and day only.
+ *
+ * Usage example:
+ *
+ * SELECT
+ *   gbifid, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)), from_unixtime(floor(d.epoch_to/1000)),
+ *   v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear
+ * FROM
+ *   (SELECT
+ *      gbifid, v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear,
+ *      parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear) d
+ *    FROM prod_h.occurrence
+ *    WHERE v_startdayofyear IS NOT NULL
+ *      AND v_eventdate IS NULL
+ *    LIMIT 10000
+ *   ) r
+ *  LIMIT 100000;
  */
 @Description(
   name = "parseDate",
@@ -88,8 +105,16 @@ public class DateParseUDF extends GenericUDF {
           result.add(null);
           result.add(null);
         }
-        result.add(getEarliest(dateRange.getFrom()));
-        result.add(getLatest(dateRange.getTo()));
+        if (dateRange.getFrom() != null) {
+          result.add(TemporalAccessorUtils.toEarliestLocalDateTime(dateRange.getFrom(), true).toEpochSecond(ZoneOffset.UTC));
+        } else {
+          result.add(null);
+        }
+        if (dateRange.getTo() != null) {
+          result.add(TemporalAccessorUtils.toLatestLocalDateTime(dateRange.getTo(), true).toEpochSecond(ZoneOffset.UTC));
+        } else {
+          result.add(null);
+        }
       } else {
         result.add(null);
         result.add(null);
@@ -148,6 +173,10 @@ public class DateParseUDF extends GenericUDF {
       return null;
     }
 
+    if (deferredObject.get() == null) {
+      return null;
+    }
+
     return deferredObject.get().toString();
   }
 
@@ -159,7 +188,7 @@ public class DateParseUDF extends GenericUDF {
 
   @Override
   public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
-    if (arguments.length != 4) {
+    if (arguments.length != 6) {
       throw new UDFArgumentException("parseDate takes six arguments");
     }
 
