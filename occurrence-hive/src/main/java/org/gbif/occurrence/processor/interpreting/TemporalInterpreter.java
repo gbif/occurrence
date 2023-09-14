@@ -19,7 +19,6 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
-import org.gbif.common.parsers.date.EventRange;
 import org.gbif.common.parsers.date.MultiinputTemporalParser;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.common.parsers.date.TemporalRangeParser;
@@ -136,14 +135,14 @@ public class TemporalInterpreter {
   public static OccurrenceParseResult<IsoDateInterval> interpretRecordedDate(String year, String month, String day,
     String dateString, String startDayOfYear, String endDayOfYear) {
 
-    EventRange eventRange =
+    OccurrenceParseResult<IsoDateInterval> eventRange =
       TEMPORAL_RANGE_PARSER.parse(year, month, day, dateString, startDayOfYear, endDayOfYear);
 
-    Optional<TemporalAccessor> fromTa = eventRange.getFrom();
-    Optional<TemporalAccessor> toTa = eventRange.getTo();
+    Optional<TemporalAccessor> fromTa = Optional.ofNullable(eventRange.getPayload()).map(IsoDateInterval::getFrom);
+    Optional<TemporalAccessor> toTa = Optional.ofNullable(eventRange.getPayload()).map(IsoDateInterval::getTo);
     Set<OccurrenceIssue> issues = eventRange.getIssues();
 
-    if (eventRange.getFrom().isPresent()) {
+    if (fromTa.isPresent()) {
       IsoDateInterval di = toTa.isPresent() ?
         new IsoDateInterval((Temporal) fromTa.get(), (Temporal) toTa.get()) :
         new IsoDateInterval((Temporal) fromTa.get());
