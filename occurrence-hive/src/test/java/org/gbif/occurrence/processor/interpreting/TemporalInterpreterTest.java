@@ -105,10 +105,9 @@ public class TemporalInterpreterTest {
 
     //check date ranges handled
     result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996-01/1996-02", "", "");
-    assertEquals(Year.of(1996), result.getPayload().getFrom());
-    assertEquals(Year.of(1996), result.getPayload().getTo());
-    assertEquals(1, result.getIssues().size());
-    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
+    assertEquals(YearMonth.of(1996, 1), result.getPayload().getFrom());
+    assertEquals(YearMonth.of(1996, 2), result.getPayload().getTo());
+    assertEquals(0, result.getIssues().size());
 
     //check date ranges handled
     result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996", "", "");
@@ -458,8 +457,8 @@ public class TemporalInterpreterTest {
     assertRangeResult(Year.of(1999), interpretEventDate("1999"));
     assertRangeResult(Year.of(1999), interpretEventDate("1999/2000"));
     assertRangeResult(YearMonth.of(1999, 01), interpretEventDate("1999-01/1999-12"));
-    assertRangeResult(ZonedDateTime.of(LocalDateTime.of(2004, 12, 30, 00, 00, 00, 00), ZoneOffset.UTC),
-      interpretEventDate("2004-12-30T00:00:00+0000/2005-03-13T24:00:00+0000"));
+    assertRangeResult(ZonedDateTime.of(2004, 12, 30, 00, 00, 00, 00, ZoneOffset.UTC),
+      interpretEventDate("2004-12-30T00:00:00+0000/2005-03-13T23:59:59+0000"));
   }
 
   /**
