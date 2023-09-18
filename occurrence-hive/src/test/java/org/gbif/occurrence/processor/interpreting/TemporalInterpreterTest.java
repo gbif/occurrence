@@ -74,54 +74,56 @@ public class TemporalInterpreterTest {
   public void testInterpretRecordedDate(){
     OccurrenceParseResult<IsoDateInterval> result;
 
-    result = TemporalInterpreter.interpretRecordedDate("2005", "1", "", "2005-01-01");
-    assertEquals(LocalDate.of(2005, 1, 1), result.getPayload().getFrom());
-    assertEquals(0, result.getIssues().size());
+    result = TemporalInterpreter.interpretRecordedDate("2005", "1", "", "2005-01-01", "", "");
+    assertEquals(YearMonth.of(2005, 1), result.getPayload().getFrom());
+    assertEquals(1, result.getIssues().size());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
 
     //ensure that eventDate with more precision will not record an issue and the one with most precision
     //will be returned
-    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:00Z");
+    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:00Z", "", "");
     assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 1, 0), ZoneOffset.UTC), result.getPayload().getFrom());
     assertEquals(0, result.getIssues().size());
 
     //check date ranges handled
-    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:02:03Z/1996-01-31T04:05:06Z");
+    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:02:03Z/1996-01-31T04:05:06Z", "", "");
     assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 26, 01, 02, 03), ZoneOffset.UTC), result.getPayload().getFrom());
     assertEquals(ZonedDateTime.of(LocalDateTime.of(1996, 1, 31, 04, 05, 06), ZoneOffset.UTC), result.getPayload().getTo());
     assertEquals(0, result.getIssues().size());
 
     //check date ranges handled
-    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:02:03/1996-01-31T04:05:06");
+    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26T01:02:03/1996-01-31T04:05:06", "", "");
     assertEquals(LocalDateTime.of(1996, 1, 26, 01, 02, 03), result.getPayload().getFrom());
     assertEquals(LocalDateTime.of(1996, 1, 31, 04, 05, 06), result.getPayload().getTo());
     assertEquals(0, result.getIssues().size());
 
     //check date ranges handled
-    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26/1996-01-31");
+    result = TemporalInterpreter.interpretRecordedDate("1996", "1", "26", "1996-01-26/1996-01-31", "", "");
     assertEquals(LocalDate.of(1996, 1, 26), result.getPayload().getFrom());
     assertEquals(LocalDate.of(1996, 1, 31), result.getPayload().getTo());
     assertEquals(0, result.getIssues().size());
 
     //check date ranges handled
-    result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996-01/1996-02");
+    result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996-01/1996-02", "", "");
     assertEquals(YearMonth.of(1996, 1), result.getPayload().getFrom());
     assertEquals(YearMonth.of(1996, 2), result.getPayload().getTo());
     assertEquals(0, result.getIssues().size());
 
     //check date ranges handled
-    result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996");
+    result = TemporalInterpreter.interpretRecordedDate("1996", "", "", "1996", "", "");
     assertEquals(Year.of(1996), result.getPayload().getFrom());
     assertEquals(Year.of(1996), result.getPayload().getTo());
     assertEquals(0, result.getIssues().size());
 
-    // if dates contradict, do not return a date and flag it
-    result = TemporalInterpreter.interpretRecordedDate("2005", "1", "2", "2005-01-05");
-    assertNull(result.getPayload());
+    // if dates contradict, return the most that agrees
+    result = TemporalInterpreter.interpretRecordedDate("2005", "1", "2", "2005-01-05", "", "");
+    assertEquals(YearMonth.of(2005, 01), result.getPayload().getFrom());
+    assertEquals(YearMonth.of(2005, 01), result.getPayload().getTo());
     assertEquals(1, result.getIssues().size());
     assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
 
     // a long time ago (note in Hive from_unixtime has problems with 16th century dates)
-    result = TemporalInterpreter.interpretRecordedDate("1566", "", "", "1566");
+    result = TemporalInterpreter.interpretRecordedDate("1566", "", "", "1566", "", "");
     assertEquals(Year.of(1566), result.getPayload().getFrom());
     assertEquals(Year.of(1566), result.getPayload().getTo());
     assertEquals(0, result.getIssues().size());
@@ -271,12 +273,6 @@ public class TemporalInterpreterTest {
   }
 
   @Test
-  public void testStringWins() {
-    ParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "3", null, "1984-03-22");
-    assertRangeResult(1984, 3, 22, result);
-  }
-
-  @Test
   public void testStrange() {
     OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("16", "6", "1990", "16-6-1990");
     assertRangeResult(1990, 6, 16, result);
@@ -349,20 +345,24 @@ public class TemporalInterpreterTest {
     OccurrenceParseResult<IsoDateInterval> result;
 
     result = interpretRecordedDate("1984", "3", "18", "1984-03");
-    assertRangeResult(1984, 3, 18, result);
-    assertEquals(0, result.getIssues().size());
+    assertRangeResult(1984, 3, result);
+    assertEquals(1, result.getIssues().size());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
 
     result = interpretRecordedDate("1984", "3", null, "1984-03-18");
-    assertRangeResult(1984, 3, 18, result);
-    assertEquals(0, result.getIssues().size());
+    assertRangeResult(1984, 3, result);
+    assertEquals(1, result.getIssues().size());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
 
     result = interpretRecordedDate("1984", null, null, "1984-03-18");
-    assertRangeResult(1984, 3, 18, result);
-    assertEquals(0, result.getIssues().size());
+    assertRangeResult(1984, result);
+    assertEquals(1, result.getIssues().size());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
 
     result = interpretRecordedDate("1984", "3", null, "1984");
-    assertRangeResult(1984, 3, result);
-    assertEquals(0, result.getIssues().size());
+    assertRangeResult(1984, result);
+    assertEquals(1, result.getIssues().size());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_MISMATCH, result.getIssues().iterator().next());
 
     result = interpretRecordedDate("1984", "05", "02", "1984-05-02T19:34");
     assertRangeResult(LocalDateTime.of(1984, 5, 2, 19, 34, 00), result);
@@ -378,7 +378,8 @@ public class TemporalInterpreterTest {
 
     result = interpretRecordedDate("2014", "2", "5", "5/2/2014");
     assertRangeResult(2014, 2, 5, result);
-    assertEquals(0, result.getIssues().size());
+    assertEquals(1, result.getIssues().size());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_INVALID, result.getIssues().iterator().next());
   }
 
   /**
@@ -456,8 +457,8 @@ public class TemporalInterpreterTest {
     assertRangeResult(Year.of(1999), interpretEventDate("1999"));
     assertRangeResult(Year.of(1999), interpretEventDate("1999/2000"));
     assertRangeResult(YearMonth.of(1999, 01), interpretEventDate("1999-01/1999-12"));
-    assertRangeResult(ZonedDateTime.of(LocalDateTime.of(2004, 12, 30, 00, 00, 00, 00), ZoneOffset.UTC),
-      interpretEventDate("2004-12-30T00:00:00+0000/2005-03-13T24:00:00+0000"));
+    assertRangeResult(ZonedDateTime.of(2004, 12, 30, 00, 00, 00, 00, ZoneOffset.UTC),
+      interpretEventDate("2004-12-30T00:00:00+0000/2005-03-13T23:59:59+0000"));
   }
 
   /**

@@ -14,13 +14,11 @@
 package org.gbif.occurrence.processor.interpreting;
 
 import com.google.common.collect.Range;
-import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
-import org.gbif.common.parsers.date.EventRange;
 import org.gbif.common.parsers.date.MultiinputTemporalParser;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.common.parsers.date.TemporalRangeParser;
@@ -34,6 +32,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.gbif.common.parsers.core.ParseResult.CONFIDENCE.DEFINITE;
@@ -41,6 +40,8 @@ import static org.gbif.common.parsers.date.DateComponentOrdering.DMY_FORMATS;
 
 /**
  * Interprets date representations into a Date.
+ *
+ * Intended to be very close to the Pipelines one.
  */
 public class TemporalInterpreter {
 
@@ -56,12 +57,6 @@ public class TemporalInterpreter {
   }
 
   public static void interpretTemporal(VerbatimOccurrence verbatim, Occurrence occ) {
-
-    final String year = verbatim.getVerbatimField(DwcTerm.year);
-    final String month = verbatim.getVerbatimField(DwcTerm.month);
-    final String day = verbatim.getVerbatimField(DwcTerm.day);
-    final String dateString = verbatim.getVerbatimField(DwcTerm.eventDate);
-
     OccurrenceParseResult<IsoDateInterval> eventResult = interpretRecordedDate(verbatim);
 
     if (eventResult.isSuccessful()) {
@@ -69,15 +64,23 @@ public class TemporalInterpreter {
 
       occ.setEventDate(isoDateInterval);
       if (isoDateInterval.getTo() != null) {
+        // Set dwc:year, dwc:month, dwc:day
         if (isoDateInterval.getFrom().isSupported(ChronoField.YEAR) && isoDateInterval.getFrom().get(ChronoField.YEAR) == isoDateInterval.getTo().get(ChronoField.YEAR)) {
           occ.setYear(isoDateInterval.getFrom().get(ChronoField.YEAR));
           if (isoDateInterval.getFrom().isSupported(ChronoField.MONTH_OF_YEAR) && isoDateInterval.getFrom().get(ChronoField.MONTH_OF_YEAR) == isoDateInterval.getTo().get(ChronoField.MONTH_OF_YEAR)) {
             occ.setMonth(isoDateInterval.getFrom().get(ChronoField.MONTH_OF_YEAR));
-            if (isoDateInterval.getFrom().isSupported(ChronoField.DAY_OF_YEAR) && isoDateInterval.getFrom().get(ChronoField.DAY_OF_YEAR) == isoDateInterval.getTo().get(ChronoField.DAY_OF_YEAR)) {
-              occ.setDay(isoDateInterval.getFrom().get(ChronoField.DAY_OF_YEAR));
+            if (isoDateInterval.getFrom().isSupported(ChronoField.DAY_OF_MONTH) && isoDateInterval.getFrom().get(ChronoField.DAY_OF_MONTH) == isoDateInterval.getTo().get(ChronoField.DAY_OF_MONTH)) {
+              occ.setDay(isoDateInterval.getFrom().get(ChronoField.DAY_OF_MONTH));
             }
           }
         }
+        // Set dwc:startDayOfYear, dwc:endDayOfYear — except these aren't interpreted fields yet.
+        //if (isoDateInterval.getFrom().isSupported(ChronoField.DAY_OF_YEAR)) {
+        //  occ.setStartDayOfYear(isoDateInterval.getFrom().get(ChronoField.DAY_OF_YEAR));
+        //}
+        //if (isoDateInterval.getTo().isSupported(ChronoField.DAY_OF_YEAR)) {
+        //  occ.setEndDayOfYear(isoDateInterval.getTo().get(ChronoField.DAY_OF_YEAR));
+        //}
       }
     }
     occ.getIssues().addAll(eventResult.getIssues());
@@ -114,48 +117,38 @@ public class TemporalInterpreter {
     final String month = verbatim.getVerbatimField(DwcTerm.month);
     final String day = verbatim.getVerbatimField(DwcTerm.day);
     final String dateString = verbatim.getVerbatimField(DwcTerm.eventDate);
+    final String startDayOfYear = verbatim.getVerbatimField(DwcTerm.startDayOfYear);
+    final String endDayOfYear = verbatim.getVerbatimField(DwcTerm.endDayOfYear);
 
-    return interpretRecordedDate(year, month, day, dateString);
+    return interpretRecordedDate(year, month, day, dateString, startDayOfYear, endDayOfYear);
   }
 
   /**
-   * Given possibly both of year, month, day and a dateString, produces a single date.
-   * When year, month and day are all populated and parseable they are given priority,
-   * but if any field is missing or illegal and dateString is parseable dateString is preferred.
-   * Partially valid dates are not supported and null will be returned instead. The only exception is the year alone
-   * which will be used as the last resort if nothing else works.
+   * Given possibly both of year, month, day, a dateString, and start/endDayOfYear, produces a single date.
+   * When dates conflict, the most that agrees is returned, except if year+month+day falls within a range given
+   * by dateString.
+   *
    * Years are verified to be before or next year and after 1600.
-   *x
+   *
    * @return interpretation result, never null
    */
   public static OccurrenceParseResult<IsoDateInterval> interpretRecordedDate(String year, String month, String day,
-    String dateString) {
+    String dateString, String startDayOfYear, String endDayOfYear) {
 
-    boolean atomizedDateProvided = StringUtils.isNotBlank(year) || StringUtils.isNotBlank(month)
-            || StringUtils.isNotBlank(day);
-    boolean dateStringProvided = StringUtils.isNotBlank(dateString);
+    OccurrenceParseResult<IsoDateInterval> eventRange =
+      TEMPORAL_RANGE_PARSER.parse(year, month, day, dateString, startDayOfYear, endDayOfYear);
 
-    if (!atomizedDateProvided && !dateStringProvided) {
-      return OccurrenceParseResult.fail();
-    }
-
-    EventRange eventRange = TEMPORAL_RANGE_PARSER.parse(year, month, day, dateString);
-
-    IsoDateInterval dr = eventRange.isReversed() ?
-      new IsoDateInterval((Temporal) eventRange.getTo().orElse(null), (Temporal) eventRange.getFrom().orElse(null)) :
-      new IsoDateInterval((Temporal) eventRange.getFrom().orElse(null), (Temporal) eventRange.getTo().orElse(null)) ;
-
-    if (dr.getTo() == null) {
-      dr.setTo(dr.getFrom());
-    }
-
+    Optional<TemporalAccessor> fromTa = Optional.ofNullable(eventRange.getPayload()).map(IsoDateInterval::getFrom);
+    Optional<TemporalAccessor> toTa = Optional.ofNullable(eventRange.getPayload()).map(IsoDateInterval::getTo);
     Set<OccurrenceIssue> issues = eventRange.getIssues();
 
-    if (eventRange.getFrom().isPresent()) {
-      return OccurrenceParseResult.success(DEFINITE, dr, issues);
+    if (fromTa.isPresent()) {
+      IsoDateInterval di = toTa.isPresent() ?
+        new IsoDateInterval((Temporal) fromTa.get(), (Temporal) toTa.get()) :
+        new IsoDateInterval((Temporal) fromTa.get());
+      return OccurrenceParseResult.success(DEFINITE, di, issues);
     } else {
       return OccurrenceParseResult.fail(issues);
     }
   }
-
 }
