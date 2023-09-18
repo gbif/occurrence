@@ -55,11 +55,14 @@ public class StackableDownloadStatusListener implements StackableSparkWatcher.Ev
       Object payload) {
     String selector = watcherConfiguration.getNameSelector().replace(".*", "");
     String downloadKey = appName.replace(selector, "");
-      try {
-        callbackService.processCallback(downloadKey, PHASE_STATUS_MAP.get(phase).name());
+    try {
+      JobStatus jobStatus = PHASE_STATUS_MAP.get(phase);
+      if (jobStatus != null) {
+        callbackService.processCallback(downloadKey, jobStatus.name());
         sparkController.stopSparkApplication(appName);
-      } catch (Exception ex) {
-        log.error("Can't stop Spark application {}", appName, ex);
       }
+    } catch (Exception ex) {
+      log.error("Can't stop Spark application {}", appName, ex);
+    }
   }
 }
