@@ -14,6 +14,8 @@
 package org.gbif.occurrence.ws.download;
 
 import java.util.Map;
+
+import io.kubernetes.client.openapi.ApiException;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import com.google.common.collect.ImmutableMap;
@@ -61,8 +63,14 @@ public class StackableDownloadStatusListener implements StackableSparkWatcher.Ev
         callbackService.processCallback(downloadKey, jobStatus.name());
         sparkController.stopSparkApplication(appName);
       }
+    } catch (ApiException ex) {
+      if (ex.getCode() != 404) {
+        log.error("onEvent K8S API issue {}", appName, ex);
+      } else {
+        log.debug("K8S API: Can't find appName {}", appName);
+      }
     } catch (Exception ex) {
-      log.error("Can't stop Spark application {}", appName, ex);
+      log.error("onEvent K8S issue {}", appName, ex);
     }
   }
 }
