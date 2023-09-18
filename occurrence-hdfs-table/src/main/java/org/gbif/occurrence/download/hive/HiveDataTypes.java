@@ -73,13 +73,14 @@ public final class HiveDataTypes {
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(
-    DwcTerm.eventDate,
     DwcTerm.dateIdentified,
     GbifTerm.lastInterpreted,
     GbifTerm.lastParsed,
     GbifTerm.lastCrawled,
     DcTerm.modified,
-    GbifInternalTerm.fragmentCreated);
+    GbifInternalTerm.fragmentCreated,
+    GbifInternalTerm.eventDateGte,
+    GbifInternalTerm.eventDateLte);
 
   private static final Set<Term> INT_TERMS = ImmutableSet.of(
     DwcTerm.year,
@@ -146,7 +147,7 @@ public final class HiveDataTypes {
       return TYPE_STRING;
     } else if (verbatimContext) {
       return TYPE_STRING; // verbatim are always string
-    } else if (GbifInternalTerm.parentEventGbifId == term){
+    } else if (GbifInternalTerm.parentEventGbifId == term) {
       return TYPE_ARRAY_PARENT_STRUCT;
     } else if (isVocabulary(term)) {
       return TYPE_VOCABULARY_STRUCT;

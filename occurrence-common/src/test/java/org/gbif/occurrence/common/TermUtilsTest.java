@@ -17,6 +17,7 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
@@ -80,10 +81,14 @@ public class TermUtilsTest {
 
   @Test
   public void testIsInterpretedDate() throws Exception {
-    assertTrue(TermUtils.isInterpretedLocalDate(DwcTerm.eventDate));
+    assertTrue(TermUtils.isInterpretedLocalDate(DwcTerm.dateIdentified));
     assertTrue(TermUtils.isInterpretedUtcDate(DcTerm.modified));
     assertFalse(TermUtils.isInterpretedLocalDate(DwcTerm.occurrenceID));
     assertFalse(TermUtils.isInterpretedUtcDate(DwcTerm.occurrenceID));
+    // This is an interval, stored as a string and not used for calculations
+    assertFalse(TermUtils.isInterpretedLocalDate(DwcTerm.eventDate));
+    assertTrue(TermUtils.isInterpretedLocalDate(GbifInternalTerm.eventDateGte));
+    assertTrue(TermUtils.isInterpretedLocalDate(GbifInternalTerm.eventDateLte));
   }
 
   @Test
