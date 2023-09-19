@@ -74,6 +74,7 @@ public enum OccurrenceEsField implements EsField {
   MONTH(new BaseEsField("month", DwcTerm.month)),
   DAY(new BaseEsField("day", DwcTerm.day)),
   EVENT_DATE(new BaseEsField("eventDate", DwcTerm.eventDate)),
+  EVENT_DATE_INTERVAL(new BaseEsField("eventDateInterval", EsField.EVENT_DATE_INTERVAL)),
 
   //Location
   COORDINATE_SHAPE(new BaseEsField("scoordinates", null)),

@@ -38,6 +38,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 
@@ -308,7 +309,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, DAY, Integer::valueOf).ifPresent(event::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(event::setMonth);
     getValue(hit, YEAR, Integer::valueOf).ifPresent(event::setYear);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate)).ifPresent(m -> {
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(EsField.EVENT_DATE_INTERVAL)).ifPresent(m -> {
       try {
         event.setEventDate(IsoDateInterval.fromString(m));
       } catch (ParseException e) {}

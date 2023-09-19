@@ -24,6 +24,7 @@ public interface EsField {
   UnknownTerm ALL = UnknownTerm.build("all");
   UnknownTerm FACTS = UnknownTerm.build("measurementOrFactItems");
   UnknownTerm PARENTS_LINEAGE = UnknownTerm.build("parentsLineage");
+  UnknownTerm EVENT_DATE_INTERVAL = UnknownTerm.build("eventDateInterval");
 
   String getSearchFieldName();
 
