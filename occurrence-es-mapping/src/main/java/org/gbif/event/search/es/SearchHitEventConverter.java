@@ -314,6 +314,8 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
         event.setEventDate(IsoDateInterval.fromString(m));
       } catch (ParseException e) {}
     });
+    getValue(hit, START_DAY_OF_YEAR, Integer::valueOf).ifPresent(event::setStartDayOfYear);
+    getValue(hit, END_DAY_OF_YEAR, Integer::valueOf).ifPresent(event::setEndDayOfYear);
   }
 
   private void setLocationFields(SearchHit hit, Event event) {
