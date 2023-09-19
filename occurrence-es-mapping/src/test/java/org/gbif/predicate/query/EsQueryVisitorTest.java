@@ -226,9 +226,11 @@ public class EsQueryVisitorTest {
         + "      {\n"
         + "        \"range\" : {\n"
         + "          \"eventDate\" : {\n"
-        + "            \"gte\" : \"2023-01-11\",\n"
-        + "            \"lt\" : \"2023-01-12\",\n"
-        + "            \"relation\" : \"WITHIN\",\n"
+        + "            \"from\" : \"2023-01-11\",\n"
+        + "            \"to\" : \"2023-01-12\",\n"
+        + "            \"include_lower\" : true,\n"
+        + "            \"include_upper\" : false,\n"
+        + "            \"relation\" : \"within\",\n"
         + "            \"boost\" : 1.0\n"
         + "          }\n"
         + "        }\n"
@@ -238,7 +240,7 @@ public class EsQueryVisitorTest {
         + "    \"boost\" : 1.0\n"
         + "  }\n"
         + "}";
-    //assertEquals(expectedQuery, query);
+    assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
     query = visitor.buildQuery(p);
@@ -276,6 +278,56 @@ public class EsQueryVisitorTest {
         + "          \"eventDate\" : {\n"
         + "            \"from\" : \"1980-01-01\",\n"
         + "            \"to\" : \"1981-01-01\",\n"
+        + "            \"include_lower\" : true,\n"
+        + "            \"include_upper\" : false,\n"
+        + "            \"relation\" : \"within\",\n"
+        + "            \"boost\" : 1.0\n"
+        + "          }\n"
+        + "        }\n"
+        + "      }\n"
+        + "    ],\n"
+        + "    \"adjust_pure_negative\" : true,\n"
+        + "    \"boost\" : 1.0\n"
+        + "  }\n"
+        + "}";
+    assertEquals(expectedQuery, query);
+
+    p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01", false);
+    query = visitor.buildQuery(p);
+    expectedQuery =
+      "{\n"
+        + "  \"bool\" : {\n"
+        + "    \"filter\" : [\n"
+        + "      {\n"
+        + "        \"range\" : {\n"
+        + "          \"eventDate\" : {\n"
+        + "            \"from\" : \"2023-01-01\",\n"
+        + "            \"to\" : \"2023-02-01\",\n"
+        + "            \"include_lower\" : true,\n"
+        + "            \"include_upper\" : false,\n"
+        + "            \"relation\" : \"within\",\n"
+        + "            \"boost\" : 1.0\n"
+        + "          }\n"
+        + "        }\n"
+        + "      }\n"
+        + "    ],\n"
+        + "    \"adjust_pure_negative\" : true,\n"
+        + "    \"boost\" : 1.0\n"
+        + "  }\n"
+        + "}";
+    assertEquals(expectedQuery, query);
+
+    p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-1", false);
+    query = visitor.buildQuery(p);
+    expectedQuery =
+      "{\n"
+        + "  \"bool\" : {\n"
+        + "    \"filter\" : [\n"
+        + "      {\n"
+        + "        \"range\" : {\n"
+        + "          \"eventDate\" : {\n"
+        + "            \"from\" : \"2023-01-01\",\n"
+        + "            \"to\" : \"2023-01-02\",\n"
         + "            \"include_lower\" : true,\n"
         + "            \"include_upper\" : false,\n"
         + "            \"relation\" : \"within\",\n"
