@@ -309,7 +309,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, DAY, Integer::valueOf).ifPresent(event::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(event::setMonth);
     getValue(hit, YEAR, Integer::valueOf).ifPresent(event::setYear);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(EsField.EVENT_DATE_INTERVAL)).ifPresent(m -> {
+    getStringValue(hit, EVENT_DATE_INTERVAL).ifPresent(m -> {
       try {
         event.setEventDate(IsoDateInterval.fromString(m));
       } catch (ParseException e) {}

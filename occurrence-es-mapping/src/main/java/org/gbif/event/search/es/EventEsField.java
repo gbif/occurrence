@@ -79,6 +79,7 @@ public enum EventEsField implements EsField {
   MONTH(new BaseEsField("event.month", DwcTerm.month)),
   DAY(new BaseEsField("event.day", DwcTerm.day)),
   EVENT_DATE(new BaseEsField("event.eventDate", DwcTerm.eventDate)),
+  EVENT_DATE_INTERVAL(new BaseEsField("event.eventDateInterval", EsField.EVENT_DATE_INTERVAL)),
 
   //Location
   COORDINATE_SHAPE(new BaseEsField("event.scoordinates", null)),
