@@ -34,7 +34,7 @@ AS SELECT
   -- Interpreted terms
   countryCode,
   toLocalISO8601(dateidentified) AS dateIdentified,
-  toLocalISO8601(eventdate) AS eventDate,
+  toLocalISO8601(eventdategte) AS eventDate,
   array_contains(mediaType, 'StillImage') AS hasImage,
   kingdom,
   family,

@@ -42,6 +42,7 @@ import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 
 import java.net.URI;
+import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -307,12 +308,11 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, DAY, Integer::valueOf).ifPresent(event::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(event::setMonth);
     getValue(hit, YEAR, Integer::valueOf).ifPresent(event::setYear);
-    getComplexValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate).getSearchFieldName(), m -> {
-      IsoDateInterval dr = new IsoDateInterval();
-      extractStringValue((Map<String, Object>)m, "gte").ifPresent(dr::setFrom);
-      extractStringValue((Map<String, Object>)m, "lte").ifPresent(dr::setTo);
-      return dr;
-    }).ifPresent(event::setEventDate);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate)).ifPresent(m -> {
+      try {
+        event.setEventDate(IsoDateInterval.fromString(m));
+      } catch (ParseException e) {}
+    });
   }
 
   private void setLocationFields(SearchHit hit, Event event) {

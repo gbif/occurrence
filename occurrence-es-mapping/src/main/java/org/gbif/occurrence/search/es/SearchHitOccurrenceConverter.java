@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.search.es;
 
+import com.google.common.collect.Maps;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.AgentIdentifier;
@@ -46,6 +49,7 @@ import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
+import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,11 +61,6 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
-
-import com.google.common.collect.Maps;
 
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
@@ -300,12 +299,11 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.day), Integer::valueOf).ifPresent(occ::setDay);
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.month), Integer::valueOf).ifPresent(occ::setMonth);
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.year), Integer::valueOf).ifPresent(occ::setYear);
-    getComplexValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate).getSearchFieldName(), m -> {
-      IsoDateInterval dr = new IsoDateInterval();
-      extractStringValue((Map<String, Object>)m, "gte").ifPresent(dr::setFrom);
-      extractStringValue((Map<String, Object>)m, "lte").ifPresent(dr::setTo);
-      return dr;
-    }).ifPresent(occ::setEventDate);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate)).ifPresent(m -> {
+      try {
+        occ.setEventDate(IsoDateInterval.fromString(m));
+      } catch (ParseException e) {}
+    });
   }
 
   private void setLocationFields(SearchHit hit, Occurrence occ) {
