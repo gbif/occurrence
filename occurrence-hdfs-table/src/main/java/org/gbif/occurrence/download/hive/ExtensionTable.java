@@ -16,18 +16,18 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
-import java.lang.reflect.InvocationTargetException;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.ToString;
 import org.apache.avro.Schema;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.BiMap;
+
+import lombok.ToString;
 
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
 

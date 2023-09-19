@@ -24,7 +24,6 @@ import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
 import org.gbif.stackable.SparkCrd;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

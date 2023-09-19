@@ -13,6 +13,7 @@
  */
 package org.gbif.predicate.query;
 
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
@@ -30,7 +31,6 @@ import org.gbif.api.model.predicate.LikePredicate;
 import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
-import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;

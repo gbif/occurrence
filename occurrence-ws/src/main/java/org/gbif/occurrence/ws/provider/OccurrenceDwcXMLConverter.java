@@ -24,7 +24,6 @@ import org.gbif.dwc.terms.Term;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;

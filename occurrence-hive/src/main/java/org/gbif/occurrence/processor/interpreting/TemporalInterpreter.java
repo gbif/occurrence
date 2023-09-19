@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.processor.interpreting;
 
-import com.google.common.collect.Range;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
@@ -24,8 +23,6 @@ import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.common.parsers.date.TemporalRangeParser;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
@@ -34,6 +31,11 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Range;
 
 import static org.gbif.common.parsers.core.ParseResult.CONFIDENCE.DEFINITE;
 import static org.gbif.common.parsers.date.DateComponentOrdering.DMY_FORMATS;

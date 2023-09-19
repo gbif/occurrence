@@ -27,7 +27,6 @@ import org.gbif.predicate.query.EsQueryVisitor;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
