@@ -65,6 +65,7 @@ public class StackableDownloadStatusListener implements StackableSparkWatcher.Ev
       JobStatus jobStatus = PHASE_STATUS_MAP.get(phase);
       if (jobStatus != null && eventType != EventType.DELETED) {
         callbackService.processCallback(downloadKey, jobStatus.name());
+        log.info("Stopping K8s Spark job with name {}", appName);
         sparkController.stopSparkApplication(appName);
       }
     } catch (Exception ex) {
