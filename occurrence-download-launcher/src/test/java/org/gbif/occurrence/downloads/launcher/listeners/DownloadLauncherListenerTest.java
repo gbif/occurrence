@@ -29,22 +29,28 @@ import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 
 public class DownloadLauncherListenerTest {
 
+  @Mock
   private DownloadLauncher jobManager;
+  @Mock
   private DownloadUpdaterService downloadUpdaterService;
+
+  @Mock
   private LockerService lockerService;
+
+  @InjectMocks
   private DownloadLauncherListener listener;
 
   @Before
   public void setUp() {
-    jobManager = Mockito.mock(DownloadLauncher.class);
-    downloadUpdaterService = Mockito.mock(DownloadUpdaterService.class);
-    lockerService = Mockito.mock(LockerService.class);
-    listener = new DownloadLauncherListener(jobManager, downloadUpdaterService, lockerService);
+    MockitoAnnotations.initMocks(this);
   }
 
   @Test
@@ -90,9 +96,12 @@ public class DownloadLauncherListenerTest {
     Mockito.when(jobManager.create(downloadLauncherMessage))
         .thenReturn(DownloadLauncher.JobStatus.FAILED);
 
+    Mockito.when(downloadUpdaterService.isStatusFinished(downloadKey))
+        .thenReturn(Boolean.TRUE);
+
     listener.handleMessage(downloadLauncherMessage);
 
     Mockito.verify(jobManager).create(downloadLauncherMessage);
-    Mockito.verify(downloadUpdaterService).updateStatus(downloadKey, Status.FAILED);
+    Mockito.verify(downloadUpdaterService).isStatusFinished(downloadKey);
   }
 }

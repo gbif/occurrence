@@ -73,7 +73,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
     if (downloadUpdaterService.isStatusFinished(downloadKey)) {
       log.warn("Download {} has one of finished statuses, ignore further actions", downloadKey);
       throw new IllegalStateException(
-          "Download has one of finished statuses, ingore futher actions");
+          "Download has one of finished statuses, ignore further actions");
     }
   }
 }
