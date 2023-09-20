@@ -69,9 +69,9 @@ public class TableBackfillConfiguration {
   private final String hiveDatabase;
 
   private final String tableName;
-
+  @Nullable
   private final String warehouseLocation;
-
+  @Nullable
   private final String hiveThriftAddress;
 
   @Data

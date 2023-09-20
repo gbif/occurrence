@@ -89,11 +89,17 @@ public class TableBackfill {
   }
 
   private SparkSession createSparkSession() {
+   // Removed the hive configs to see if it loads properly from the hive-site.xml
+   //           .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+    //           .config("hive.metastore.uris", configuration.getHiveThriftAddress())
     SparkSession.Builder sparkBuilder = SparkSession.builder()
            .appName(configuration.getTableName() + " table build")
-           .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
-           .config("hive.metastore.uris", configuration.getHiveThriftAddress())
            .enableHiveSupport();
+
+    if (configuration.getHiveThriftAddress() != null) {
+      sparkBuilder.config("hive.metastore.uris", configuration.getHiveThriftAddress())
+        .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation());
+    }
 
     if (configuration.isUsePartitionedTable()) {
       sparkBuilder.config("spark.sql.sources.partitionOverwriteMode","dynamic");
