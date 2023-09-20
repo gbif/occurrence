@@ -17,6 +17,7 @@ import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
@@ -554,7 +555,7 @@ public class EsSearchRequestBuilder {
           queries.add(buildRangeQuery(esField, value));
         }
         continue;
-      } else if (occurrenceBaseEsFieldMapper.isDateField(esField) && isDateRange(value)) {
+      } else if (occurrenceBaseEsFieldMapper.isDateField(esField)) {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
         if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
           queries.add(
@@ -602,8 +603,13 @@ public class EsSearchRequestBuilder {
       }
 
       if (dateRange.hasUpperBound()) {
-        builder.lte(dateRange.upperEndpoint());
+        builder.lt(dateRange.upperEndpoint());
       }
+      // For a match, the occurrence's date range must be entirely within the search query date
+      // range.
+      // i.e. Q:eventDate=1980 will match rec:eventDate=1980-02, but not
+      // rec:eventDate=1980-10-01/1982-02-02.
+      builder.relation("within");
     } else {
       String[] values = value.split(RANGE_SEPARATOR);
       if (!RANGE_WILDCARD.equals(values[0])) {

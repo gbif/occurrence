@@ -299,11 +299,13 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.day), Integer::valueOf).ifPresent(occ::setDay);
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.month), Integer::valueOf).ifPresent(occ::setMonth);
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.year), Integer::valueOf).ifPresent(occ::setYear);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.eventDate)).ifPresent(m -> {
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(EsField.EVENT_DATE_INTERVAL)).ifPresent(m -> {
       try {
         occ.setEventDate(IsoDateInterval.fromString(m));
       } catch (ParseException e) {}
     });
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.startDayOfYear), Integer::valueOf).ifPresent(occ::setStartDayOfYear);
+    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.endDayOfYear), Integer::valueOf).ifPresent(occ::setEndDayOfYear);
   }
 
   private void setLocationFields(SearchHit hit, Occurrence occ) {

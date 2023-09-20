@@ -330,6 +330,8 @@ public class TermUtils {
         DwcTerm.year,
         DwcTerm.month,
         DwcTerm.day,
+        DwcTerm.startDayOfYear,
+        DwcTerm.endDayOfYear,
         DwcTerm.minimumDepthInMeters,
         DwcTerm.maximumDepthInMeters,
         DwcTerm.minimumElevationInMeters,
