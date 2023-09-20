@@ -17,10 +17,7 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
@@ -68,8 +65,11 @@ public class ExtensionTable {
   }
 
   public ExtensionTable(Extension extension) {
-    this.extension = extension;
     schema = EXTENSION_TABLES.get(extension);
+    if (Objects.isNull(schema)) {
+      throw new IllegalArgumentException("Extension " + extension + " not supported");
+    }
+    this.extension = extension;
     leafNamespace = schema.getNamespace().replace(EXT_PACKAGE + '.', "").replace('.', '_');
     term = TERM_FACTORY.findTerm(extension.getRowType());
   }
