@@ -21,7 +21,6 @@ import org.gbif.stackable.StackableSparkWatcher.EventType;
 
 import java.util.Map;
 
-import io.kubernetes.client.openapi.ApiException;
 import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
@@ -68,12 +67,6 @@ public class StackableDownloadStatusListener implements StackableSparkWatcher.Ev
         callbackService.processCallback(downloadKey, jobStatus.name());
         log.info("Stopping K8s Spark job with name {}", appName);
         sparkController.stopSparkApplication(appName);
-      }
-    } catch (ApiException ex) {
-      if (ex.getCode() == 404) {
-        log.debug("Can't stop pod {}, pod doesn't exist", appName, ex);
-      } else {
-        log.error("onEvent K8S API issue {}", appName, ex);
       }
     } catch (Exception ex) {
       log.error("onEvent K8S issue {}", appName, ex);
