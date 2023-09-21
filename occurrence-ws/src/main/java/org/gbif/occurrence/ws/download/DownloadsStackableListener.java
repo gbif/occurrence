@@ -17,34 +17,24 @@ import org.gbif.stackable.StackableSparkWatcher;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.kubernetes.client.util.KubeConfig;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Simple background thread that listens to status change in downloads.
  */
-@Slf4j
 @Component
 public class DownloadsStackableListener implements DisposableBean, InitializingBean {
 
-  private StackableSparkWatcher watcher;
+  private final StackableSparkWatcher watcher;
 
-  @Autowired private KubeConfig kubeConfig;
-  @Autowired private StackableDownloadStatusListener listener;
-  @Autowired private WatcherConfiguration watcherConfiguration;
-
-  public void reinint(){
-    log.info("Reinitializing K8StackableSpark Watcher");
-    destroy();
-    afterPropertiesSet();
+  public DownloadsStackableListener(KubeConfig kubeConfig, StackableDownloadStatusListener listener, WatcherConfiguration watcherConfiguration) {
+    watcher = new StackableSparkWatcher(kubeConfig, listener, watcherConfiguration.getNameSelector());
   }
 
   @Override
   public void afterPropertiesSet() {
-    watcher = new StackableSparkWatcher(kubeConfig, listener, watcherConfiguration.getNameSelector());
     watcher.start();
   }
 
