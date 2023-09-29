@@ -97,6 +97,7 @@ import static org.gbif.api.model.occurrence.Download.Status.FILE_ERASED;
 import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
 import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
 import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
+import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMonthlyDownloadBypass;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
@@ -361,7 +362,7 @@ public class DownloadResource {
             occurrenceDownloadService.listByUser(
                 "download.gbif.org",
                 new PagingRequest(0, 50),
-                EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
+                EnumSet.of(PREPARING, RUNNING, SUCCEEDED, SUSPENDED),
                 LocalDateTime.now().minus(35, ChronoUnit.DAYS),
                 false);
         String existingMonthlyDownload =
@@ -376,7 +377,7 @@ public class DownloadResource {
           occurrenceDownloadService.listByUser(
               userAuthenticated.getName(),
               new PagingRequest(0, 50),
-              EnumSet.of(PREPARING, RUNNING, SUCCEEDED),
+              EnumSet.of(PREPARING, RUNNING, SUCCEEDED, SUSPENDED),
               LocalDateTime.now().minus(4, ChronoUnit.HOURS),
               false);
       String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
@@ -472,11 +473,27 @@ public class DownloadResource {
               existingDownload.getKey(),
               existingPredicateDownload.getCreator());
           return existingDownload.getKey();
+        } else {
+          LOG.info(
+              "Download {} didn't match with new download with creator {}, format {}, type {} and predicate {}",
+              existingDownload.getKey(),
+              newDownload.getCreator(),
+              newDownload.getFormat(),
+              newDownload.getType(),
+              newDownload.getPredicate());
         }
       } else {
         LOG.warn("Unexpected download type {}", existingDownload.getClass());
       }
     }
+
+    LOG.info(
+        "{} downloads found but none of them matched for user {}, format {}, type {} and predicate {}",
+        existingDownloads.getCount(),
+        newDownload.getCreator(),
+        newDownload.getFormat(),
+        newDownload.getType(),
+        newDownload.getPredicate());
 
     return null;
   }
