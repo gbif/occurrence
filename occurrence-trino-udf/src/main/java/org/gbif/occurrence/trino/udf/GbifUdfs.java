@@ -19,11 +19,17 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-
 public class GbifUdfs implements Plugin {
 
   @Override
   public Set<Class<?>> getFunctions() {
-    return new HashSet<>(Arrays.asList(DataCleanUdfs.class, DateTimeUdfs.class, ContainsUdf.class, GeoDistanceUdf.class));
+    return new HashSet<>(
+        Arrays.asList(
+            DataCleanUdfs.class,
+            DateTimeUdfs.class,
+            ContainsUdf.class,
+            GeoDistanceUdf.class,
+            BasisOfRecordParseUDF.class,
+            DateParseUDF.class));
   }
 }

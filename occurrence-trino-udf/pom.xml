@@ -12,11 +12,12 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <gbif-api.version>1.2.0</gbif-api.version>
+    <gbif-api.version>1.13.0-SNAPSHOT</gbif-api.version>
     <lucene.version>8.7.0</lucene.version>
     <trino.version>414</trino.version>
     <slice.version>0.45</slice.version>
     <lombok.version>1.18.20</lombok.version>
+    <gbif-parsers.version>0.63-SNAPSHOT</gbif-parsers.version>
   </properties>
 
   <repositories>
@@ -127,6 +128,12 @@
       <groupId>io.airlift</groupId>
       <artifactId>slice</artifactId>
       <version>${slice.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-parsers</artifactId>
+      <version>${gbif-parsers.version}</version>
     </dependency>
 
   </dependencies>
