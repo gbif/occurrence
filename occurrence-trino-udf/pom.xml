@@ -18,12 +18,20 @@
     <slice.version>0.45</slice.version>
     <lombok.version>1.18.20</lombok.version>
     <gbif-parsers.version>0.63-SNAPSHOT</gbif-parsers.version>
+    <geocode.version>1.1</geocode.version>
+    <gbif-common-ws.version>1.24</gbif-common-ws.version>
+    <gbif.kvs.version>1.31-H3-SNAPSHOT</gbif.kvs.version>
+    <cache2k.version>2.4.1.Final</cache2k.version>
   </properties>
 
   <repositories>
     <repository>
       <id>gbif-all</id>
       <url>https://repository.gbif.org/content/groups/gbif/</url>
+    </repository>
+    <repository>
+      <id>gbif-release</id>
+      <url>https://repository.gbif.org/repository/releases/</url>
     </repository>
     <repository>
       <id>gbif-thirdparty</id>
@@ -33,6 +41,14 @@
       <id>osgeo</id>
       <name>Open Source Geospatial Foundation Repository</name>
       <url>https://repo.osgeo.org/repository/release/</url>
+    </repository>
+    <repository>
+      <id>ALA</id>
+      <url>https://nexus.ala.org.au/content/repositories/releases</url>
+    </repository>
+    <repository>
+      <id>ALA-snapshots</id>
+      <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
     </repository>
   </repositories>
 
@@ -45,6 +61,11 @@
           <configuration>
             <createDependencyReducedPom>false</createDependencyReducedPom>
             <keepDependenciesWithProvidedScope>false</keepDependenciesWithProvidedScope>
+            <artifactSet>
+              <includes>
+                <include>*:*</include>
+              </includes>
+            </artifactSet>
             <filters>
               <filter>
                 <artifact>*:*</artifact>
@@ -134,6 +155,36 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-parsers</artifactId>
       <version>${gbif-parsers.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.gbif.geocode</groupId>
+      <artifactId>geocode-ws-client</artifactId>
+      <version>${geocode.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.gbif.geocode</groupId>
+      <artifactId>geocode-ws</artifactId>
+      <version>${geocode.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common-ws</artifactId>
+      <version>${gbif-common-ws.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cache2k</groupId>
+      <artifactId>cache2k-core</artifactId>
+      <version>${cache2k.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.gbif.kvs</groupId>
+      <artifactId>kvs-gbif</artifactId>
+      <version>${gbif.kvs.version}</version>
     </dependency>
 
   </dependencies>

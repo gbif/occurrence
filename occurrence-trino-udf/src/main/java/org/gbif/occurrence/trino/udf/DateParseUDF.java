@@ -26,7 +26,7 @@ import io.trino.spi.type.StandardTypes;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
-import org.gbif.occurrence.trino.interpreters.TemporalInterpreter;
+import org.gbif.occurrence.trino.processor.interpreters.TemporalInterpreter;
 
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;

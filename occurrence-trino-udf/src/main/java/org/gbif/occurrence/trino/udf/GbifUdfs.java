@@ -30,6 +30,8 @@ public class GbifUdfs implements Plugin {
             ContainsUdf.class,
             GeoDistanceUdf.class,
             BasisOfRecordParseUDF.class,
-            DateParseUDF.class));
+            DateParseUDF.class,
+            CoordinateCountryParseUDF.class,
+            SpeciesMatchUDF.class));
   }
 }

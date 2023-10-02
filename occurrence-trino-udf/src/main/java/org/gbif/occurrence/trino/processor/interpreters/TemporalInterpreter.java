@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.trino.interpreters;
+package org.gbif.occurrence.trino.processor.interpreters;
 
 import com.google.common.collect.Range;
 
