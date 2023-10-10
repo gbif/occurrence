@@ -81,7 +81,7 @@ public class DownloadWorkflow {
 
   @SneakyThrows
   private void runFromElastic() {
-    Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    Properties settings = workflowConfiguration.getDownloadSettings();
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, download.getRequest().getFormat().toString());
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
     FromSearchDownloadAction.run(workflowConfiguration, DownloadJobConfiguration.builder()

@@ -11,52 +11,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
+package org.gbif.occurrence.download.stackable;
 
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.util.KubeConfig;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
-import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.LockerService;
-import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.occurrence.download.stackable.config.LauncherConfiguration;
+import org.gbif.occurrence.download.stackable.config.SparkDynamicSettings;
+import org.gbif.occurrence.download.stackable.config.StackableConfiguration;
 import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
 import org.gbif.stackable.SparkCrd;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import io.kubernetes.client.openapi.ApiException;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
 import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
 
 @Slf4j
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class StackableDownloadLauncherService implements DownloadLauncher {
 
   private final StackableConfiguration stackableConfiguration;
   private final K8StackableSparkController sparkController;
-  private final LockerService lockerService;
   private final SparkCrdFactoryService sparkCrdService;
 
   public StackableDownloadLauncherService(
       StackableConfiguration stackableConfiguration,
       K8StackableSparkController sparkController,
-      SparkCrdFactoryService sparkCrdService,
-      LockerService lockerService) {
+      SparkCrdFactoryService sparkCrdService) {
     this.stackableConfiguration = stackableConfiguration;
     this.sparkController = sparkController;
-    this.lockerService = lockerService;
     this.sparkCrdService = sparkCrdService;
   }
 
@@ -153,7 +145,6 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
           } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
           } finally {
-            lockerService.unlock(downloadKey);
 
             if (stackableConfiguration.deletePodsOnFinish) {
               try {
@@ -172,5 +163,16 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
    */
   private static String normalize(String sparkAppName) {
     return "download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");
+  }
+
+
+  public static void main(String[] args) throws Exception {
+    LauncherConfiguration configuration = LauncherConfiguration.fromYaml(args[0]);
+    SparkCrd sparkCrd = SparkCrd.fromYaml(Files.newInputStream(Paths.get(configuration.stackable.sparkCrdConfigFile)));
+    K8StackableSparkController controller = new K8StackableSparkController(sparkCrd, KubeConfig.loadKubeConfig(Files.newBufferedReader(Paths.get(configuration.stackable.kubeConfigFile))));
+    SparkCrdFactoryService sparkCrdFactoryService = new SparkCrdFactoryService(configuration.distributed, configuration.spark, configuration.stackable);
+    StackableDownloadLauncherService service = new StackableDownloadLauncherService(configuration.stackable, controller, sparkCrdFactoryService);
+    JobStatus jobStatus = service.create(args[1]);
+    System.out.println("Job " + args[1] + " started with status " + jobStatus);
   }
 }

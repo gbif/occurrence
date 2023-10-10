@@ -20,13 +20,19 @@ import org.gbif.occurrence.spark.udf.UDFS;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
+import org.gbif.utils.file.properties.PropertiesUtil;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class SparkDownloads {
 
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
+    Files.list(Paths.get("/stackable/spark/jobs/")).forEach(path -> System.out.println("File in jobs " + path));
     String downloadKey = args[0];
-    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration();
+    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
     DownloadWorkflow.builder()
       .downloadKey(downloadKey)
       .coreDwcTerm(DwcTerm.valueOf(args[1]))

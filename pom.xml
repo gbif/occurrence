@@ -100,6 +100,7 @@
     <module>occurrence-table-build-trino</module>
     <module>occurrence-table-build-spark-launcher</module>
     <module>maven-extension-avsc-schema-generator</module>
+      <module>occurrence-download-stackable</module>
   </modules>
 
   <properties>
@@ -215,7 +216,7 @@
     <gbif-parsers.version>0.63-SNAPSHOT</gbif-parsers.version>
     <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
     <gbif-registry.version>3.95.3</gbif-registry.version>
-    <gbif-wrangler.version>0.4</gbif-wrangler.version>
+    <gbif-wrangler.version>0.5-SNAPSHOT</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>1.31-H3-SNAPSHOT</gbif.kvs.version>
