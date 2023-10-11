@@ -25,7 +25,6 @@ import org.gbif.occurrence.download.elastic.DownloadEsClient;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.oozie.FromSearchDownloadAction;
 import org.gbif.occurrence.download.predicate.EsPredicateUtil;
-import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.util.Properties;
 import java.util.function.Supplier;

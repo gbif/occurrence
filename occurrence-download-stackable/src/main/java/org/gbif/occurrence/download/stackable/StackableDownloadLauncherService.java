@@ -13,10 +13,6 @@
  */
 package org.gbif.occurrence.download.stackable;
 
-import io.kubernetes.client.openapi.ApiException;
-import io.kubernetes.client.util.KubeConfig;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.download.stackable.config.LauncherConfiguration;
@@ -33,6 +29,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import io.kubernetes.client.openapi.ApiException;
+import io.kubernetes.client.util.KubeConfig;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
 

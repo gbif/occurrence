@@ -17,14 +17,14 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.occurrence.spark.udf.UDFS;
-
-import org.apache.spark.SparkConf;
-import org.apache.spark.sql.SparkSession;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.sql.SparkSession;
 
 public class SparkDownloads {
 

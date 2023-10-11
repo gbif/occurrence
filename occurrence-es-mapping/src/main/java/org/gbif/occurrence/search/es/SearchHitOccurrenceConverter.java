@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.search.es;
 
-import com.google.common.collect.Maps;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.AgentIdentifier;
@@ -61,6 +58,11 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.search.SearchHit;
+
+import com.google.common.collect.Maps;
 
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {

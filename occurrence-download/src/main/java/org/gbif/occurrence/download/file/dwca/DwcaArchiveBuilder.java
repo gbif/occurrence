@@ -73,7 +73,7 @@ public class DwcaArchiveBuilder {
     this.workflowConfiguration = workflowConfiguration;
 
     //Ws clients and client utils
-    this.registryClientUtil = new RegistryClientUtil(workflowConfiguration.getRegistryWsUrl());
+    this.registryClientUtil = new RegistryClientUtil(workflowConfiguration);
     occurrenceDownloadService = getOccurrenceDownloadService();
     datasetService = getDatasetService();
     download = getDownload();

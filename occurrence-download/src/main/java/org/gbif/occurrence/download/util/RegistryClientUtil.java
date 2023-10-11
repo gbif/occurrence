@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.util;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.registry.ws.client.DatasetClient;
 import org.gbif.registry.ws.client.EventDownloadClient;
@@ -65,6 +66,9 @@ public class RegistryClientUtil {
     }
   }
 
+  public RegistryClientUtil(WorkflowConfiguration workflowConfiguration) {
+    this(workflowConfiguration.getDownloadSettings(), workflowConfiguration.getRegistryWsUrl());
+  }
   /**
    * Constructs an instance using the default properties file.
    */
