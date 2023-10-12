@@ -68,13 +68,13 @@ public class DownloadLauncherListenerTest {
     DownloadLauncherMessage downloadLauncherMessage =
         new DownloadLauncherMessage(downloadKey, request);
 
-    Mockito.when(jobManager.create(downloadLauncherMessage))
+    Mockito.when(jobManager.create(downloadKey))
         .thenReturn(DownloadLauncher.JobStatus.RUNNING);
     Mockito.when(jobManager.getStatusByName(downloadKey)).thenReturn(Optional.of(Status.RUNNING));
 
     listener.handleMessage(downloadLauncherMessage);
 
-    Mockito.verify(jobManager).create(downloadLauncherMessage);
+    Mockito.verify(jobManager).create(downloadKey);
     Mockito.verify(lockerService).lock(downloadKey, Thread.currentThread());
   }
 
@@ -93,7 +93,7 @@ public class DownloadLauncherListenerTest {
     DownloadLauncherMessage downloadLauncherMessage =
         new DownloadLauncherMessage(downloadKey, request);
 
-    Mockito.when(jobManager.create(downloadLauncherMessage))
+    Mockito.when(jobManager.create(downloadKey))
         .thenReturn(DownloadLauncher.JobStatus.FAILED);
 
     Mockito.when(downloadUpdaterService.isStatusFinished(downloadKey))
@@ -101,7 +101,7 @@ public class DownloadLauncherListenerTest {
 
     listener.handleMessage(downloadLauncherMessage);
 
-    Mockito.verify(jobManager).create(downloadLauncherMessage);
+    Mockito.verify(jobManager).create(downloadKey);
     Mockito.verify(downloadUpdaterService).isStatusFinished(downloadKey);
   }
 }

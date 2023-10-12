@@ -11,29 +11,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services.launcher;
+package org.gbif.occurrence.download.stackable.config;
 
-import org.gbif.api.model.occurrence.Download;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
-import java.util.List;
-import java.util.Optional;
+import org.yaml.snakeyaml.Yaml;
 
-/**
- * Generig service to launch, cancel or get status about a download job
- */
-public interface DownloadLauncher {
+import lombok.SneakyThrows;
 
-  JobStatus create(String downloadKey);
+public class LauncherConfiguration {
 
-  JobStatus cancel(String downloadKey);
+  public DistributedConfiguration distributed;
 
-  Optional<Download.Status> getStatusByName(String downloadKey) throws Exception;
+  public StackableConfiguration stackable;
 
-  List<Download> renewRunningDownloadsStatuses(List<Download> downloads);
+  public SparkStaticConfiguration spark;
 
-  enum JobStatus {
-    RUNNING,
-    FAILED,
-    CANCELLED
+  @SneakyThrows
+  public static LauncherConfiguration fromYaml(String fileName) {
+    Yaml yaml = new Yaml();
+    return yaml.loadAs(Files.newBufferedReader(Paths.get(fileName)), LauncherConfiguration.class);
   }
+
 }

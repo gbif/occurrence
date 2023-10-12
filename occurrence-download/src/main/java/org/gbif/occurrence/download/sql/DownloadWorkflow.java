@@ -25,7 +25,6 @@ import org.gbif.occurrence.download.elastic.DownloadEsClient;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.oozie.FromSearchDownloadAction;
 import org.gbif.occurrence.download.predicate.EsPredicateUtil;
-import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.util.Properties;
 import java.util.function.Supplier;
@@ -81,7 +80,7 @@ public class DownloadWorkflow {
 
   @SneakyThrows
   private void runFromElastic() {
-    Properties settings = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
+    Properties settings = workflowConfiguration.getDownloadSettings();
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, download.getRequest().getFormat().toString());
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
     FromSearchDownloadAction.run(workflowConfiguration, DownloadJobConfiguration.builder()
