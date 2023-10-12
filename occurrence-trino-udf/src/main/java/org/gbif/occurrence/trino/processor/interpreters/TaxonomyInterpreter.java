@@ -76,7 +76,7 @@ public class TaxonomyInterpreter implements Serializable {
             .prefixToDataset(new HashMap<>())
             .build();
     matchingWs =
-        NameUsageMatchKVStoreFactory.nameUsageMatchKVStore(
+        NameUsageMatchKVStoreFactory.nameUsageMatchKVStoreCaffeine(
             ChecklistbankClientsConfiguration.builder()
                 .checklistbankClientConfiguration(clbClientConfiguration)
                 .nameUsageClientConfiguration(clbClientConfiguration)

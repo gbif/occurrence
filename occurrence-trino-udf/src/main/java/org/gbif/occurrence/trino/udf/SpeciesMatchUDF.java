@@ -34,6 +34,7 @@ import org.gbif.occurrence.trino.processor.interpreters.TaxonomyInterpreter;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import static io.trino.spi.type.IntegerType.INTEGER;
 import static io.trino.spi.type.VarcharType.VARCHAR;
@@ -100,6 +101,8 @@ public class SpeciesMatchUDF {
     if (apiArg == null) {
       throw new IllegalArgumentException("Api argument is required");
     }
+
+    try {
 
     String api = apiArg.toStringUtf8();
 
@@ -191,10 +194,17 @@ public class SpeciesMatchUDF {
         stringWriter.accept(lookup.getSpecies());
       } else if (response.getError() != null) {
         log.error("Error finding species match", response.getError());
+        // set all fields to null
+        IntStream.of(20).forEach(v -> builder.appendNull());
       }
-    }
 
-    blockBuilder.closeEntry();
-    return blockBuilder.build().getObject(0, Block.class);
+      blockBuilder.closeEntry();
+      return blockBuilder.build().getObject(0, Block.class);
+    }
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      e.printStackTrace();
+    }
+    return null;
   }
 }
