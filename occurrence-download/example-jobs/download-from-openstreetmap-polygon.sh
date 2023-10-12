@@ -7,7 +7,7 @@
 
 id=$1
 
-[[ -f $id.xml ]] || curl -Ssfo $id.xml https://www.openstreetmap.org/api/0.6/relation/$id/full
+[[ -f $id.xml ]] || curl -Ssfo $id.xml https://api.openstreetmap.org/api/0.6/relation/$id/full
 
 ogr2ogr -f CSV $id.csv $id.xml -lco GEOMETRY=AS_WKT multipolygons
 
