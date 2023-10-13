@@ -23,7 +23,7 @@ import java.util.Optional;
  */
 public interface DownloadLauncher {
 
-  JobStatus create(String downloadKey);
+  JobStatus create(Download download);
 
   JobStatus cancel(String downloadKey);
 

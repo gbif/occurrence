@@ -13,12 +13,31 @@
  */
 package org.gbif.occurrence.downloads.launcher.pojo;
 
+import lombok.Builder;
 import lombok.Data;
+import org.gbif.stackable.SparkCrd;
 
 @Data
 public class SparkStaticConfiguration {
 
-  public int recordsPerThread;
+  @Data
+  @Builder
+  public static class DownloadSparkConfiguration {
+    private SparkCrd.Spec.Resources executorResources;
+
+    private SparkCrd.Spec.Resources driverResources;
+
+    private int recordsPerInstance;
+
+    private int maxInstances;
+
+  }
+
+  public DownloadSparkConfiguration smallDownloads;
+
+  public DownloadSparkConfiguration largeDownloads;
+
+  public int smallDownloadCutOff;
 
   public int parallelismMin;
 
@@ -26,17 +45,5 @@ public class SparkStaticConfiguration {
 
   public int memoryOverhead;
 
-  public int executorMemoryGbMin;
 
-  public int executorMemoryGbMax;
-
-  public int executorCores;
-
-  public int executorNumbersMin;
-
-  public int executorNumbersMax;
-
-  public int driverCores;
-
-  public String driverMemory;
 }

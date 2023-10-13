@@ -13,16 +13,21 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
+import io.kubernetes.client.openapi.ApiException;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.occurrence.downloads.launcher.airflow.AirflowBody;
+import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
-import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
-import org.gbif.stackable.SparkCrd;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,38 +35,21 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import io.kubernetes.client.openapi.ApiException;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
 import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
 
 @Slf4j
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class StackableDownloadLauncherService implements DownloadLauncher {
-
-  private final StackableConfiguration stackableConfiguration;
-  private final K8StackableSparkController sparkController;
+public class AirflowDownloadLauncherService implements DownloadLauncher {
   private final LockerService lockerService;
-  private final SparkCrdFactoryService sparkCrdService;
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
 
-  public StackableDownloadLauncherService(
-      StackableConfiguration stackableConfiguration,
-      K8StackableSparkController sparkController,
-      SparkCrdFactoryService sparkCrdService,
+
+  public AirflowDownloadLauncherService(
       SparkStaticConfiguration sparkStaticConfiguration,
       LockerService lockerService) {
-    this.stackableConfiguration = stackableConfiguration;
-    this.sparkController = sparkController;
     this.lockerService = lockerService;
-    this.sparkCrdService = sparkCrdService;
     this.sparkStaticConfiguration = sparkStaticConfiguration;
   }
 
@@ -79,11 +67,20 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
     return isSmallDownload(download)? sparkStaticConfiguration.getSmallDownloads() : sparkStaticConfiguration.getLargeDownloads();
   }
 
+  private AirflowConfiguration getAirflowConfiguration(Download download) {
+
+  }
+
+  public String downloadDagId(Download download) {
+    return "download-" + download.getKey();
+  }
+
   @Override
   public JobStatus create(Download download) {
 
     try {
       String sparkAppName = normalize(download.getKey());
+
 
       // TODO Calculate spark settings
       SparkDynamicSettings sparkSettings =
@@ -93,9 +90,11 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
               .downloadsKey(download.getKey())
               .build();
 
+      AirflowBody.builder().
+
       SparkCrd sparkCrd = sparkCrdService.createSparkCrd(sparkSettings, getDownloadSparkSettings(download));
 
-      sparkController.submitSparkApplication(sparkCrd);
+      airflowRunner.createRun(downloadDagId(download), sparkCrd);
 
       asyncStatusCheck(download.getKey(), sparkAppName);
 

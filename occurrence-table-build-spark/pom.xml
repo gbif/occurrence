@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>occurrence-table-build-spark</artifactId>
-  <name>Occurrence HDFS-Hive Tables Build</name>
+  <name>Occurrence HDFS-Hive Tables Build in Spark</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
