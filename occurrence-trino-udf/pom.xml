@@ -120,6 +120,7 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
+      <version>${gbif-api.version}</version>
     </dependency>
 
     <dependency>
