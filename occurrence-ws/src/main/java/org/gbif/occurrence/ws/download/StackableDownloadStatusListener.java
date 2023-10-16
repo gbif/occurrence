@@ -13,15 +13,21 @@
  */
 package org.gbif.occurrence.ws.download;
 
-import java.util.Map;
-import javax.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
-import com.google.common.collect.ImmutableMap;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.JobStatus;
 import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.StackableSparkWatcher;
+import org.gbif.stackable.StackableSparkWatcher.EventType;
+
+import java.util.Map;
+
+import javax.inject.Inject;
+
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.ImmutableMap;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Downloads status listener. It simply maps the K8 Phase to a JobStatus before calling the Callback Service.
@@ -55,11 +61,15 @@ public class StackableDownloadStatusListener implements StackableSparkWatcher.Ev
       Object payload) {
     String selector = watcherConfiguration.getNameSelector().replace(".*", "");
     String downloadKey = appName.replace(selector, "");
-      try {
-        callbackService.processCallback(downloadKey, PHASE_STATUS_MAP.get(phase).name());
+    try {
+      JobStatus jobStatus = PHASE_STATUS_MAP.get(phase);
+      if (jobStatus != null && eventType != EventType.DELETED) {
+        callbackService.processCallback(downloadKey, jobStatus.name());
+        log.info("Stopping K8s Spark job with name {}", appName);
         sparkController.stopSparkApplication(appName);
-      } catch (Exception ex) {
-        log.error("Can't stop Spark application {}", appName, ex);
       }
+    } catch (Exception ex) {
+      log.error("onEvent K8S issue {}", appName, ex);
+    }
   }
 }

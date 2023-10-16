@@ -13,11 +13,13 @@
  */
 package org.gbif.occurrence.ws.download;
 
-import io.kubernetes.client.util.KubeConfig;
 import org.gbif.stackable.StackableSparkWatcher;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
+
+import io.kubernetes.client.util.KubeConfig;
 
 /**
  * Simple background thread that listens to status change in downloads.

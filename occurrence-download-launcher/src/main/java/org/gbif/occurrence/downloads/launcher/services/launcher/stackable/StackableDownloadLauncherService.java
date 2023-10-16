@@ -15,7 +15,6 @@ package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
@@ -24,7 +23,6 @@ import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
 import org.gbif.stackable.SparkCrd;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -63,10 +61,9 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus create(DownloadLauncherMessage message) {
+  public JobStatus create(String downloadKey) {
 
     try {
-      String downloadKey = message.getDownloadKey();
       String sparkAppName = normalize(downloadKey);
 
       // TODO Calculate spark settings

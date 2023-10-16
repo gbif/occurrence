@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
 import org.gbif.api.model.predicate.DisjunctionPredicate;
 import org.gbif.api.model.predicate.EqualsPredicate;
@@ -24,7 +25,6 @@ import org.gbif.api.model.predicate.IsNotNullPredicate;
 import org.gbif.api.model.predicate.LessThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;

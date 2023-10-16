@@ -79,6 +79,9 @@ public enum EventEsField implements EsField {
   MONTH(new BaseEsField("event.month", DwcTerm.month)),
   DAY(new BaseEsField("event.day", DwcTerm.day)),
   EVENT_DATE(new BaseEsField("event.eventDate", DwcTerm.eventDate)),
+  EVENT_DATE_INTERVAL(new BaseEsField("event.eventDateInterval", EsField.EVENT_DATE_INTERVAL)),
+  START_DAY_OF_YEAR(new BaseEsField("event.startDayOfYear", DwcTerm.startDayOfYear)),
+  END_DAY_OF_YEAR(new BaseEsField("event.endDayOfYear", DwcTerm.endDayOfYear)),
 
   //Location
   COORDINATE_SHAPE(new BaseEsField("event.scoordinates", null)),
@@ -190,8 +193,6 @@ public enum EventEsField implements EsField {
   EXTENSIONS(new BaseEsField("event.extensions", GbifInternalTerm.dwcaExtension)),
 
   //Event
-  START_DAY_OF_YEAR(new BaseEsField("event.startDayOfYear", DwcTerm.startDayOfYear)),
-  END_DAY_OF_YEAR(new BaseEsField("event.endDayOfYear", DwcTerm.startDayOfYear)),
   EVENT_TYPE(new BaseEsField("event.eventType", DwcTerm.eventType)),
   LOCATION_ID(new BaseEsField("event.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("event.parentsLineage", UnknownTerm.build("event.parentsLineage"))),

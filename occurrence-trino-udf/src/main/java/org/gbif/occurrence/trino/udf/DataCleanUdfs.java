@@ -27,6 +27,7 @@ public class DataCleanUdfs {
 
   private static final CleanDelimiters CLEAN_DELIMITERS = new CleanDelimiters();
 
+  // FIXME: change return type to array(varchar) and return a block: https://trino.io/docs/current/develop/connectors.html#type-mapping
   @ScalarFunction(value = "cleanDelimitersArray", deterministic = true)
   @Description("Removes delimiter characters of each element of the input array")
   @SqlType(StandardTypes.ARRAY)

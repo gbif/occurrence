@@ -91,7 +91,7 @@ public class MapOfLifeDownloadDefinition extends DownloadTerms {
     Pair.of(Group.VERBATIM, DwcTerm.verbatimSRS),
 
     // Collection event
-    Pair.of(Group.INTERPRETED, DwcTerm.eventDate),
+    Pair.of(Group.INTERPRETED, GbifInternalTerm.eventDateGte),
     Pair.of(Group.INTERPRETED, DwcTerm.eventTime),
     Pair.of(Group.INTERPRETED, DwcTerm.day),
     Pair.of(Group.INTERPRETED, DwcTerm.month),

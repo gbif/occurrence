@@ -53,7 +53,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
       String downloadKey = downloadsMessage.getDownloadKey();
       ignoreFinishedDownload(downloadKey);
 
-      JobStatus jobStatus = jobManager.create(downloadsMessage);
+      JobStatus jobStatus = jobManager.create(downloadKey);
 
       if (jobStatus == JobStatus.RUNNING) {
         // Mark downloads as RUNNING
@@ -73,7 +73,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
     if (downloadUpdaterService.isStatusFinished(downloadKey)) {
       log.warn("Download {} has one of finished statuses, ignore further actions", downloadKey);
       throw new IllegalStateException(
-          "Download has one of finished statuses, ingore futher actions");
+          "Download has one of finished statuses, ignore further actions");
     }
   }
 }

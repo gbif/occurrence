@@ -31,8 +31,9 @@ import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.kvs.KeyValueStore;
+import org.gbif.kvs.species.IdMappingConfiguration;
+import org.gbif.kvs.species.Identification;
 import org.gbif.kvs.species.NameUsageMatchKVStoreFactory;
-import org.gbif.kvs.species.SpeciesMatchRequest;
 import org.gbif.nameparser.NameParserGbifV1;
 import org.gbif.occurrence.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.processor.interpreting.clients.SpeciesWsClient;
@@ -43,10 +44,7 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,16 +65,20 @@ public class TaxonomyInterpreter implements Serializable {
   private static final RankParser RANK_PARSER = RankParser.getInstance();
 
 
-  private final KeyValueStore<SpeciesMatchRequest, org.gbif.rest.client.species.NameUsageMatch> matchingWs;
+  private final KeyValueStore<Identification, org.gbif.rest.client.species.NameUsageMatch> matchingWs;
   private final KeyValueStore<String,NameUsage> speciesWs;
 
   @Inject
   public TaxonomyInterpreter(String apiUrl) {
     ClientConfiguration clbClientConfiguration = ClientConfiguration.builder().withBaseApiUrl(apiUrl).build();
+
+    // See https://github.com/gbif/analytics/issues/24
+    IdMappingConfiguration idMappingConfiguration = IdMappingConfiguration
+      .builder().prefixReplacement(new HashMap<>()).prefixToDataset(new HashMap<>()).build();
     matchingWs = NameUsageMatchKVStoreFactory.nameUsageMatchKVStore(ChecklistbankClientsConfiguration.builder()
                                                                       .checklistbankClientConfiguration(clbClientConfiguration)
-                                                                      .nameUSageClientConfiguration(clbClientConfiguration)
-                                                                      .build());
+                                                                      .nameUsageClientConfiguration(clbClientConfiguration)
+                                                                      .build(), idMappingConfiguration);
 
     speciesWs =
         new KeyValueStore<String, NameUsage>() {
@@ -167,9 +169,9 @@ public class TaxonomyInterpreter implements Serializable {
                                                cleanSpecificEpithet, cleanInfraspecificEpithet);
     OccurrenceParseResult<NameUsageMatch> result;
 
-    SpeciesMatchRequest.Builder speciesRequestBuilder =
+    Identification.Builder speciesRequestBuilder =
 
-      SpeciesMatchRequest.builder()
+      Identification.builder()
       .withKingdom(ClassificationUtils.clean(kingdom))
       .withPhylum(ClassificationUtils.clean(phylum))
       .withClazz(ClassificationUtils.clean(clazz))
