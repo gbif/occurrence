@@ -2,6 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>org.gbif.occurrence</groupId>
+    <artifactId>occurrence-motherpom</artifactId>
+    <version>0.194.0-H3-SNAPSHOT</version>
+  </parent>
+
   <modelVersion>4.0.0</modelVersion>
   <version>0.194.0-H3-SNAPSHOT</version>
   <groupId>org.gbif.occurrence</groupId>
@@ -23,25 +29,6 @@
     <gbif.kvs.version>1.33-H3-SNAPSHOT</gbif.kvs.version>
     <junit-jupiter.version>5.6.3</junit-jupiter.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>gbif-central</id>
-      <url>https://repository.gbif.org/repository/central/</url>
-    </repository>
-    <repository>
-      <id>gbif-release</id>
-      <url>https://repository.gbif.org/repository/releases/</url>
-    </repository>
-    <repository>
-      <id>gbif-snapshot</id>
-      <url>https://repository.gbif.org/repository/snapshots/</url>
-    </repository>
-    <repository>
-      <id>gbif-thirdparty</id>
-      <url>https://repository.gbif.org/repository/thirdparty/</url>
-    </repository>
-  </repositories>
 
   <build>
       <plugins>
