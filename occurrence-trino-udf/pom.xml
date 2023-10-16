@@ -99,11 +99,12 @@
           <artifactId>maven-jar-plugin</artifactId>
           <executions>
             <execution>
+              <id>attach-test-jar</id>
               <goals>
                 <goal>test-jar</goal>
               </goals>
               <configuration>
-                <skip>true</skip>
+                <outputDirectory>${project.build.directory}/test</outputDirectory>
               </configuration>
             </execution>
           </executions>
