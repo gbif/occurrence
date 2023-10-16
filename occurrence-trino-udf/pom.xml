@@ -72,7 +72,6 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.8.1</version>
           <configuration>
             <annotationProcessorPaths>
               <path>
@@ -102,6 +101,11 @@
       <artifactId>lombok</artifactId>
       <version>${lombok.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
     </dependency>
 
     <dependency>
@@ -165,18 +169,28 @@
       <version>${gbif.kvs.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>31.1-jre</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.13.1</version>
+    </dependency>
     <!-- for testing -->
     <dependency>
       <groupId>io.trino</groupId>
       <artifactId>trino-testing</artifactId>
       <version>${trino.version}</version>
       <scope>test</scope>
-      <exclusions>
+      <!--<exclusions>
         <exclusion>
           <groupId>org.testng</groupId>
           <artifactId>testng</artifactId>
         </exclusion>
-      </exclusions>
+      </exclusions>-->
     </dependency>
 
     <dependency>
