@@ -23,6 +23,7 @@ public class SparkStaticConfiguration {
   @Data
   @Builder
   public static class DownloadSparkConfiguration {
+
     private SparkCrd.Spec.Resources executorResources;
 
     private SparkCrd.Spec.Resources driverResources;
@@ -44,6 +45,5 @@ public class SparkStaticConfiguration {
   public int parallelismMax;
 
   public int memoryOverhead;
-
 
 }

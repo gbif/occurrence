@@ -13,16 +13,6 @@ import java.util.Base64;
 @Data
 public class AirflowConfiguration {
 
-  public int numberOfWorkers;
-
-  public String maxMemoryWorkers;
-
-  public String maxCoresWorkers;
-
-  public String maxMemoryDriver;
-
-  public String maxCoresDriver;
-
   public String airflowCluster;
 
   public boolean useAirflow;

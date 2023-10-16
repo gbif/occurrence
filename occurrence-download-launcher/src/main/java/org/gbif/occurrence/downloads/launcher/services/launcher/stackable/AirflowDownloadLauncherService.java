@@ -13,12 +13,14 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.kubernetes.client.openapi.ApiException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.airflow.AirflowBody;
+import org.gbif.occurrence.downloads.launcher.airflow.AirflowRunner;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
@@ -41,16 +43,17 @@ import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class AirflowDownloadLauncherService implements DownloadLauncher {
-  private final LockerService lockerService;
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
+
+  private final AirflowRunner airflowRunner;
 
 
   public AirflowDownloadLauncherService(
       SparkStaticConfiguration sparkStaticConfiguration,
-      LockerService lockerService) {
-    this.lockerService = lockerService;
+      AirflowConfiguration airflowConfiguration) {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
+    airflowRunner = AirflowRunner.builder().airflowConfiguration(airflowConfiguration).build();
   }
 
 
@@ -67,37 +70,27 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     return isSmallDownload(download)? sparkStaticConfiguration.getSmallDownloads() : sparkStaticConfiguration.getLargeDownloads();
   }
 
-  private AirflowConfiguration getAirflowConfiguration(Download download) {
-
+  private AirflowBody getAirflowBody(Download download) {
+    SparkStaticConfiguration.DownloadSparkConfiguration sparkConfiguration = getDownloadSparkSettings(download);
+    return AirflowBody.builder()
+      .driverCores(sparkConfiguration.getDriverResources().getCpu().getMax())
+      .driverMemory(sparkConfiguration.getDriverResources().getMemory().getLimit())
+      .executorCores(sparkConfiguration.getExecutorResources().getCpu().getMax())
+      .executorMemory(sparkConfiguration.getExecutorResources().getMemory().getLimit())
+      .executorInstances(executorInstances(download))
+      .build();
   }
 
-  public String downloadDagId(Download download) {
-    return "download-" + download.getKey();
+  public String downloadDagId(String downloadKey) {
+    return "download-" + downloadKey;
   }
 
   @Override
   public JobStatus create(Download download) {
 
     try {
-      String sparkAppName = normalize(download.getKey());
-
-
-      // TODO Calculate spark settings
-      SparkDynamicSettings sparkSettings =
-          SparkDynamicSettings.builder()
-              .executorInstances(executorInstances(download))
-              .sparkAppName(sparkAppName)
-              .downloadsKey(download.getKey())
-              .build();
-
-      AirflowBody.builder().
-
-      SparkCrd sparkCrd = sparkCrdService.createSparkCrd(sparkSettings, getDownloadSparkSettings(download));
-
-      airflowRunner.createRun(downloadDagId(download), sparkCrd);
-
-      asyncStatusCheck(download.getKey(), sparkAppName);
-
+      String dagId = downloadDagId(download.getKey());
+      airflowRunner.createRun(dagId, getAirflowBody(download));
       return JobStatus.RUNNING;
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
@@ -108,12 +101,12 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus cancel(String downloadKey) {
     try {
-      String sparkAppName = normalize(downloadKey);
-      sparkController.stopSparkApplication(sparkAppName);
-      log.info("Spark application {} has been stopped", sparkAppName);
+      String dagId = downloadDagId(downloadKey);
+      airflowRunner.deleteRun(dagId);
+      log.info("Airflow DAG {} has been stopped", dagId);
       return JobStatus.CANCELLED;
-    } catch (ApiException ex) {
-      log.error("Cancellig the download {}", downloadKey, ex);
+    } catch (Exception ex) {
+      log.error("Cancelling the download {}", downloadKey, ex);
       return JobStatus.FAILED;
     }
   }
@@ -121,19 +114,20 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @SneakyThrows
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
-    String sparkAppName = normalize(downloadKey);
-    try {
-      Phase phase = sparkController.getApplicationPhase(sparkAppName);
-      if (phase == Phase.RUNNING) {
-        return Optional.of(Status.RUNNING);
-      }
-      if (phase == Phase.SUCCEEDED) {
-        return Optional.of(Status.SUCCEEDED);
-      }
-    } catch (ApiException ex) {
-      if (ex.getCode() != NOT_FOUND) {
-        throw ex;
-      }
+    String dagId = downloadDagId(downloadKey);
+    JsonNode jsonStatus = airflowRunner.getRun(dagId);
+    String status = jsonStatus.get("status").asText();
+    if ("queued".equalsIgnoreCase(status)) {
+      return Optional.of(Status.PREPARING);
+    }
+    if ("running".equalsIgnoreCase(status) || "rescheduled".equalsIgnoreCase(status) || "retry".equalsIgnoreCase(status)) {
+      return Optional.of(Status.RUNNING);
+    }
+    if ("success".equalsIgnoreCase(status)) {
+      return Optional.of(Status.SUCCEEDED);
+    }
+    if ("failed".equalsIgnoreCase(status)) {
+      return Optional.of(Status.FAILED);
     }
     return Optional.empty();
   }
@@ -152,34 +146,6 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
       result.add(download);
     }
     return result;
-  }
-
-  private void asyncStatusCheck(String downloadKey, String sparkAppName) {
-    CompletableFuture.runAsync(
-        () -> {
-          try {
-
-            Phase phase = sparkController.getApplicationPhase(sparkAppName);
-            while (Phase.SUCCEEDED != phase && Phase.FAILED != phase) {
-              TimeUnit.SECONDS.sleep(stackableConfiguration.apiCheckDelaySec);
-              phase = sparkController.getApplicationPhase(sparkAppName);
-            }
-
-            log.info("Spark Application {} is finished with status {}", sparkAppName, phase);
-          } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-          } finally {
-            lockerService.unlock(downloadKey);
-
-            if (stackableConfiguration.deletePodsOnFinish) {
-              try {
-                sparkController.stopSparkApplication(sparkAppName);
-              } catch (ApiException ex) {
-                log.error("Can't stop Spark application {}", sparkAppName, ex);
-              }
-            }
-          }
-        });
   }
 
   /**
