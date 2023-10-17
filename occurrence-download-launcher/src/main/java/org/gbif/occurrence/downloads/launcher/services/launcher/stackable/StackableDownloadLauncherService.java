@@ -20,6 +20,7 @@ import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
 import org.gbif.stackable.SparkCrd;
@@ -52,17 +53,21 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
 
+  private final OccurrenceDownloadClient downloadClient;
+
   public StackableDownloadLauncherService(
       StackableConfiguration stackableConfiguration,
       K8StackableSparkController sparkController,
       SparkCrdFactoryService sparkCrdService,
       SparkStaticConfiguration sparkStaticConfiguration,
-      LockerService lockerService) {
+      LockerService lockerService,
+      OccurrenceDownloadClient downloadClient) {
     this.stackableConfiguration = stackableConfiguration;
     this.sparkController = sparkController;
     this.lockerService = lockerService;
     this.sparkCrdService = sparkCrdService;
     this.sparkStaticConfiguration = sparkStaticConfiguration;
+    this.downloadClient = downloadClient;
   }
 
 
@@ -80,10 +85,11 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus create(Download download) {
+  public JobStatus create(String downloadKey) {
 
     try {
-      String sparkAppName = normalize(download.getKey());
+      Download download = downloadClient.get(downloadKey);
+      String sparkAppName = normalize(downloadKey);
 
       // TODO Calculate spark settings
       SparkDynamicSettings sparkSettings =
@@ -114,7 +120,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
       log.info("Spark application {} has been stopped", sparkAppName);
       return JobStatus.CANCELLED;
     } catch (ApiException ex) {
-      log.error("Cancellig the download {}", downloadKey, ex);
+      log.error("Cancelling the download {}", downloadKey, ex);
       return JobStatus.FAILED;
     }
   }

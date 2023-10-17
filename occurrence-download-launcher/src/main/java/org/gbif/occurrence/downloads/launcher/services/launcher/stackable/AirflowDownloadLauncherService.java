@@ -14,7 +14,7 @@
 package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.kubernetes.client.openapi.ApiException;
+import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
@@ -22,11 +22,9 @@ import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.airflow.AirflowBody;
 import org.gbif.occurrence.downloads.launcher.airflow.AirflowRunner;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
-import org.gbif.stackable.K8StackableSparkController.Phase;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -34,10 +32,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
-import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
 
 @Slf4j
 @Service
@@ -48,11 +42,15 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
 
   private final AirflowRunner airflowRunner;
 
+  private final OccurrenceDownloadClient downloadClient;
+
 
   public AirflowDownloadLauncherService(
-      SparkStaticConfiguration sparkStaticConfiguration,
-      AirflowConfiguration airflowConfiguration) {
+    SparkStaticConfiguration sparkStaticConfiguration,
+    AirflowConfiguration airflowConfiguration,
+    OccurrenceDownloadClient downloadClient) {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
+    this.downloadClient = downloadClient;
     airflowRunner = AirflowRunner.builder().airflowConfiguration(airflowConfiguration).build();
   }
 
@@ -73,11 +71,15 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   private AirflowBody getAirflowBody(Download download) {
     SparkStaticConfiguration.DownloadSparkConfiguration sparkConfiguration = getDownloadSparkSettings(download);
     return AirflowBody.builder()
-      .driverCores(sparkConfiguration.getDriverResources().getCpu().getMax())
-      .driverMemory(sparkConfiguration.getDriverResources().getMemory().getLimit())
-      .executorCores(sparkConfiguration.getExecutorResources().getCpu().getMax())
-      .executorMemory(sparkConfiguration.getExecutorResources().getMemory().getLimit())
-      .executorInstances(executorInstances(download))
+      .conf(AirflowBody.Conf.builder()
+        .args(Lists.newArrayList(download.getKey(), download.getRequest().getType().getCoreTerm().name(), "/stackable/spark/jobs/download.properties"))
+        .driverCores(sparkConfiguration.getDriverResources().getCpu().getMax())
+        .driverMemory(sparkConfiguration.getDriverResources().getMemory().getLimit())
+        .executorCores(sparkConfiguration.getExecutorResources().getCpu().getMax())
+        .executorMemory(sparkConfiguration.getExecutorResources().getMemory().getLimit())
+        .executorInstances(executorInstances(download))
+        .build())
+      .dagRunId(downloadDagId(download.getKey()))
       .build();
   }
 
@@ -86,11 +88,11 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus create(Download download) {
-
+  public JobStatus create(String downloadKey) {
     try {
-      String dagId = downloadDagId(download.getKey());
-      airflowRunner.createRun(dagId, getAirflowBody(download));
+      Download download = downloadClient.get(downloadKey);
+      JsonNode response = airflowRunner.createRun(getAirflowBody(download));
+      log.info("Response {}", response);
       return JobStatus.RUNNING;
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
@@ -102,8 +104,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public JobStatus cancel(String downloadKey) {
     try {
       String dagId = downloadDagId(downloadKey);
-      airflowRunner.deleteRun(dagId);
-      log.info("Airflow DAG {} has been stopped", dagId);
+      JsonNode jsonNode = airflowRunner.deleteRun(dagId);
+      log.info("Airflow DAG {} has been stopped: {}", dagId, jsonNode);
       return JobStatus.CANCELLED;
     } catch (Exception ex) {
       log.error("Cancelling the download {}", downloadKey, ex);

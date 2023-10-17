@@ -13,10 +13,6 @@ import java.util.Base64;
 @Data
 public class AirflowConfiguration {
 
-  public String airflowCluster;
-
-  public boolean useAirflow;
-
   public String airflowUser;
 
   public String airflowPass;
@@ -32,7 +28,7 @@ public class AirflowConfiguration {
   }
 
   public Header[] getHeaders() {
-    return new Header[]{ new BasicHeader("Basic", getBasicAuthString()),
+    return new Header[]{ new BasicHeader(HttpHeaders.AUTHORIZATION, "Basic " + getBasicAuthString()),
                          new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())};
   }
 }

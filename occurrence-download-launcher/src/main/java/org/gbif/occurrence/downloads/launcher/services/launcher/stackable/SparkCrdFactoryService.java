@@ -161,7 +161,7 @@ public class SparkCrdFactoryService {
     }
 
     newSparkConf.put("spark.default.parallelism", String.valueOf(parallelism));
-    newSparkConf.put("spark.executor.memoryOverhead", String.valueOf(sparkConfig.memoryOverhead));
+    //newSparkConf.put("spark.executor.memoryOverhead", String.valueOf(sparkConfig.memoryOverhead));
     newSparkConf.put("spark.dynamicAllocation.enabled", "false");
 
     return newSparkConf;

@@ -13,15 +13,21 @@
  */
 package org.gbif.occurrence.downloads.launcher.pojo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.gbif.stackable.SparkCrd;
 
 @Data
+@NoArgsConstructor
 public class SparkStaticConfiguration {
 
   @Data
   @Builder
+  @JsonDeserialize(
+    builder = DownloadSparkConfiguration.DownloadSparkConfigurationBuilder.class
+  )
   public static class DownloadSparkConfiguration {
 
     private SparkCrd.Spec.Resources executorResources;
@@ -39,11 +45,5 @@ public class SparkStaticConfiguration {
   public DownloadSparkConfiguration largeDownloads;
 
   public int smallDownloadCutOff;
-
-  public int parallelismMin;
-
-  public int parallelismMax;
-
-  public int memoryOverhead;
 
 }
