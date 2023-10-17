@@ -13,12 +13,11 @@
  */
 package org.gbif.occurrence.trino.processor.conf;
 
+import com.beust.jcommander.Parameter;
+import lombok.ToString;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-
-import com.beust.jcommander.Parameter;
-
-import lombok.ToString;
 
 @ToString
 public class ApiClientConfiguration {

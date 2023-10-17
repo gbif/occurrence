@@ -101,6 +101,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.1</version>
           <configuration>
             <annotationProcessorPaths>
               <path>
@@ -226,38 +227,38 @@
       <version>2.13.1</version>
     </dependency>
     <!-- for testing -->
-    <dependency>
-      <groupId>io.trino</groupId>
-      <artifactId>trino-testing</artifactId>
-      <version>${trino.version}</version>
-      <scope>test</scope>
-      <!--<exclusions>
-        <exclusion>
-          <groupId>org.testng</groupId>
-          <artifactId>testng</artifactId>
-        </exclusion>
-      </exclusions>-->
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>io.trino</groupId>-->
+<!--      <artifactId>trino-testing</artifactId>-->
+<!--      <version>${trino.version}</version>-->
+<!--      <scope>test</scope>-->
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.testng</groupId>-->
+<!--          <artifactId>testng</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+<!--    </dependency>-->
 
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit-jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.junit.jupiter</groupId>-->
+<!--      <artifactId>junit-jupiter-api</artifactId>-->
+<!--      <version>${junit-jupiter.version}</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.junit.jupiter</groupId>-->
+<!--      <artifactId>junit-jupiter-engine</artifactId>-->
+<!--      <version>${junit-jupiter.version}</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
 
-    <dependency>
-      <groupId>asm</groupId>
-      <artifactId>asm</artifactId>
-      <version>3.3.1</version>
-      <scope>test</scope>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>asm</groupId>-->
+<!--      <artifactId>asm</artifactId>-->
+<!--      <version>3.3.1</version>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
 
   </dependencies>
 
