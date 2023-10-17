@@ -23,7 +23,42 @@
     <gbif.kvs.version>1.33-H3-SNAPSHOT</gbif.kvs.version>
     <junit-jupiter.version>5.6.3</junit-jupiter.version>
   </properties>
-
+  <repositories>
+    <repository>
+      <id>gbif-central</id>
+      <url>https://repository.gbif.org/repository/central/</url>
+    </repository>
+    <repository>
+      <id>gbif-release</id>
+      <url>https://repository.gbif.org/repository/releases/</url>
+    </repository>
+    <repository>
+      <id>gbif-snapshot</id>
+      <url>https://repository.gbif.org/repository/snapshots/</url>
+    </repository>
+    <repository>
+      <id>gbif-thirdparty</id>
+      <url>https://repository.gbif.org/repository/thirdparty/</url>
+    </repository>
+    <repository>
+      <id>typesafe</id>
+      <name>Typesafe Repository</name>
+      <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
+    </repository>
+    <repository>
+      <id>osgeo</id>
+      <name>Open Source Geospatial Foundation Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
+    </repository>
+    <repository>
+      <id>ALA</id>
+      <url>https://nexus.ala.org.au/content/repositories/releases</url>
+    </repository>
+    <repository>
+      <id>ALA-snapshots</id>
+      <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
+    </repository>
+  </repositories>
   <build>
       <plugins>
         <!-- Shade the project into an uber jar to send to Spark -->
