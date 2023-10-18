@@ -22,7 +22,6 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.geospatial.DatumParser;
 import org.gbif.common.parsers.geospatial.LatLng;
 import org.geotools.factory.BasicFactories;
-import org.geotools.factory.FactoryRegistryException;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.cs.DefaultEllipsoidalCS;
@@ -51,7 +50,7 @@ public class Wgs84Projection {
     try {
       DATUM_FACTORY = BasicFactories.getDefault().getDatumAuthorityFactory();
       LOG.info("Wgs84Projection utils created");
-    } catch (FactoryRegistryException e) {
+    } catch (Exception e) {
       LOG.error("Failed to create geotools datum factory", e);
     }
   }
