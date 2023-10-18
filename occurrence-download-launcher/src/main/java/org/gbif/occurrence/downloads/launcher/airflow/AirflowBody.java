@@ -36,5 +36,6 @@ public class AirflowBody {
     private final String hiveClusterName = "gbif-hive-metastore";
     private final String hbaseClusterName = "gbif-hbase";
     private final String componentConfig = "occurrence";
+    private final String callbackUrl;
   }
 }

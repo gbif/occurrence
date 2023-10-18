@@ -21,6 +21,8 @@ public class AirflowConfiguration {
 
   public String airflowDagName;
 
+  private String airflowCallback;
+
   @JsonIgnore
   public String getBasicAuthString() {
     String stringToEncode = airflowUser + ":" + airflowPass;

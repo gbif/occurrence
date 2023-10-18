@@ -44,6 +44,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
 
   private final OccurrenceDownloadClient downloadClient;
 
+  private final AirflowConfiguration airflowConfiguration;
+
 
   public AirflowDownloadLauncherService(
     SparkStaticConfiguration sparkStaticConfiguration,
@@ -51,6 +53,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     OccurrenceDownloadClient downloadClient) {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
     this.downloadClient = downloadClient;
+    this.airflowConfiguration = airflowConfiguration;
     airflowRunner = AirflowRunner.builder().airflowConfiguration(airflowConfiguration).build();
   }
 
@@ -60,8 +63,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   private int executorInstances(Download download) {
-     return isSmallDownload(download)? 0 : Math.min(sparkStaticConfiguration.getLargeDownloads().getMaxInstances(),
-       (int)download.getTotalRecords() / sparkStaticConfiguration.getLargeDownloads().getRecordsPerInstance());
+     return isSmallDownload(download)? 1 : Math.min(sparkStaticConfiguration.getLargeDownloads().getMaxInstances(),
+       Math.max((int)download.getTotalRecords() / sparkStaticConfiguration.getLargeDownloads().getRecordsPerInstance(), 1));
   }
 
   private SparkStaticConfiguration.DownloadSparkConfiguration getDownloadSparkSettings(Download download) {
@@ -78,6 +81,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         .executorCores(sparkConfiguration.getExecutorResources().getCpu().getMax())
         .executorMemory(sparkConfiguration.getExecutorResources().getMemory().getLimit())
         .executorInstances(executorInstances(download))
+        .callbackUrl(airflowConfiguration.getAirflowCallback())
         .build())
       .dagRunId(downloadDagId(download.getKey()))
       .build();

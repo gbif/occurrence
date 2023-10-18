@@ -28,6 +28,7 @@ public class AirflowRunner {
 
   @SneakyThrows
   public JsonNode createRun(AirflowBody body) {
+
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       JsonNode dagRun = getRun(body.getDagRunId());
       if (dagRun.has("dag_run_id")  && dagRun.get("dag_run_id").asText().equals(body.getDagRunId())) {
