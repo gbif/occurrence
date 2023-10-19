@@ -34,7 +34,6 @@ import org.gbif.occurrence.trino.processor.interpreters.TaxonomyInterpreter;
 
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 import static io.trino.spi.type.IntegerType.INTEGER;
 import static io.trino.spi.type.VarcharType.VARCHAR;
@@ -104,107 +103,122 @@ public class SpeciesMatchUDF {
 
     try {
 
-    String api = apiArg.toStringUtf8();
+      String api = apiArg.toStringUtf8();
 
-    String k = clean(kingdomArg);
-    String p = clean(phylumArg);
-    String c = clean(classRankArg);
-    String o = clean(orderRankArg);
-    String f = clean(familyArg);
-    String g = clean(genusArg);
-    String name = clean(sciNameArg);
-    String sp = clean(specificEpithetArg);
-    String ssp = clean(infraSpecificEpithetArg);
-    Rank rank = rankArg != null ? RANK_PARSER.parse(rankArg.toStringUtf8()).getPayload() : null;
+      String k = clean(kingdomArg);
+      String p = clean(phylumArg);
+      String c = clean(classRankArg);
+      String o = clean(orderRankArg);
+      String f = clean(familyArg);
+      String g = clean(genusArg);
+      String name = clean(sciNameArg);
+      String sp = clean(specificEpithetArg);
+      String ssp = clean(infraSpecificEpithetArg);
+      Rank rank = rankArg != null ? RANK_PARSER.parse(rankArg.toStringUtf8()).getPayload() : null;
 
-    // TODO: add authorship as a standalone parameter
-    ParseResult<NameUsageMatch> response =
-        getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
+      // TODO: add authorship as a standalone parameter
+      ParseResult<NameUsageMatch> response =
+          getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
-    RowType rowType =
-        RowType.rowType(
-            new RowType.Field(Optional.of("responsestatus"), VARCHAR),
-            new RowType.Field(Optional.of("usagekey"), INTEGER),
-            new RowType.Field(Optional.of("scientificname"), VARCHAR),
-            new RowType.Field(Optional.of("rank"), VARCHAR),
-            new RowType.Field(Optional.of("status"), VARCHAR),
-            new RowType.Field(Optional.of("matchtype"), VARCHAR),
-            new RowType.Field(Optional.of("confidence"), INTEGER),
-            new RowType.Field(Optional.of("kingdomkey"), INTEGER),
-            new RowType.Field(Optional.of("phylumkey"), INTEGER),
-            new RowType.Field(Optional.of("classkey"), INTEGER),
-            new RowType.Field(Optional.of("orderkey"), INTEGER),
-            new RowType.Field(Optional.of("familykey"), INTEGER),
-            new RowType.Field(Optional.of("genuskey"), INTEGER),
-            new RowType.Field(Optional.of("specieskey"), INTEGER),
-            new RowType.Field(Optional.of("kingdom"), VARCHAR),
-            new RowType.Field(Optional.of("phylum"), VARCHAR),
-            new RowType.Field(Optional.of("class_"), VARCHAR),
-            new RowType.Field(Optional.of("order_"), VARCHAR),
-            new RowType.Field(Optional.of("family"), VARCHAR),
-            new RowType.Field(Optional.of("genus"), VARCHAR),
-            new RowType.Field(Optional.of("species"), VARCHAR));
-    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+      RowType rowType =
+          RowType.rowType(
+              new RowType.Field(Optional.of("responsestatus"), VARCHAR),
+              new RowType.Field(Optional.of("usagekey"), INTEGER),
+              new RowType.Field(Optional.of("scientificname"), VARCHAR),
+              new RowType.Field(Optional.of("rank"), VARCHAR),
+              new RowType.Field(Optional.of("status"), VARCHAR),
+              new RowType.Field(Optional.of("matchtype"), VARCHAR),
+              new RowType.Field(Optional.of("confidence"), INTEGER),
+              new RowType.Field(Optional.of("kingdomkey"), INTEGER),
+              new RowType.Field(Optional.of("phylumkey"), INTEGER),
+              new RowType.Field(Optional.of("classkey"), INTEGER),
+              new RowType.Field(Optional.of("orderkey"), INTEGER),
+              new RowType.Field(Optional.of("familykey"), INTEGER),
+              new RowType.Field(Optional.of("genuskey"), INTEGER),
+              new RowType.Field(Optional.of("specieskey"), INTEGER),
+              new RowType.Field(Optional.of("kingdom"), VARCHAR),
+              new RowType.Field(Optional.of("phylum"), VARCHAR),
+              new RowType.Field(Optional.of("class_"), VARCHAR),
+              new RowType.Field(Optional.of("order_"), VARCHAR),
+              new RowType.Field(Optional.of("family"), VARCHAR),
+              new RowType.Field(Optional.of("genus"), VARCHAR),
+              new RowType.Field(Optional.of("species"), VARCHAR));
 
-    Consumer<Integer> intWriter =
-        v -> {
-          if (v != null) {
-            INTEGER.writeLong(builder, v);
-          } else {
+      RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
+      SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+
+      Consumer<Integer> intWriter =
+          v -> {
+            if (v != null) {
+              INTEGER.writeLong(builder, v);
+            } else {
+              builder.appendNull();
+            }
+          };
+
+      Consumer<String> stringWriter =
+          v -> {
+            if (v != null) {
+              VARCHAR.writeString(builder, v);
+            } else {
+              builder.appendNull();
+            }
+          };
+
+      Consumer<Enum> enumWriter =
+          v -> {
+            if (v != null) {
+              VARCHAR.writeString(builder, v.name());
+            } else {
+              builder.appendNull();
+            }
+          };
+
+      if (response != null) {
+        stringWriter.accept(response.getStatus().name());
+
+        if (response.getPayload() != null) {
+          NameUsageMatch lookup = response.getPayload();
+          intWriter.accept(lookup.getUsageKey());
+          stringWriter.accept(lookup.getScientificName());
+          enumWriter.accept(lookup.getRank());
+          enumWriter.accept(lookup.getStatus());
+          enumWriter.accept(lookup.getMatchType());
+          intWriter.accept(lookup.getConfidence());
+
+          intWriter.accept(lookup.getKingdomKey());
+          intWriter.accept(lookup.getPhylumKey());
+          intWriter.accept(lookup.getClassKey());
+          intWriter.accept(lookup.getOrderKey());
+          intWriter.accept(lookup.getFamilyKey());
+          intWriter.accept(lookup.getGenusKey());
+          intWriter.accept(lookup.getSpeciesKey());
+
+          stringWriter.accept(lookup.getKingdom());
+          stringWriter.accept(lookup.getPhylum());
+          stringWriter.accept(lookup.getClazz());
+          stringWriter.accept(lookup.getOrder());
+          stringWriter.accept(lookup.getFamily());
+          stringWriter.accept(lookup.getGenus());
+          stringWriter.accept(lookup.getSpecies());
+        } else {
+          if (response.getError() != null) {
+            log.error("Error finding species match", response.getError());
+          }
+          // set all fields to null
+          for (int i = 0; i < 20; i++) {
             builder.appendNull();
           }
-        };
+        }
 
-    Consumer<String> stringWriter =
-        v -> {
-          if (v != null) {
-            VARCHAR.writeString(builder, v);
-          } else {
-            builder.appendNull();
-          }
-        };
-
-    if (response != null) {
-      stringWriter.accept(response.getStatus().name());
-
-      if (response.getPayload() != null) {
-        NameUsageMatch lookup = response.getPayload();
-        intWriter.accept(lookup.getUsageKey());
-        stringWriter.accept(lookup.getScientificName());
-        stringWriter.accept(lookup.getRank().name());
-        stringWriter.accept(lookup.getStatus().name());
-        stringWriter.accept(lookup.getMatchType().name());
-        intWriter.accept(lookup.getConfidence());
-
-        intWriter.accept(lookup.getKingdomKey());
-        intWriter.accept(lookup.getPhylumKey());
-        intWriter.accept(lookup.getClassKey());
-        intWriter.accept(lookup.getOrderKey());
-        intWriter.accept(lookup.getFamilyKey());
-        intWriter.accept(lookup.getGenusKey());
-        intWriter.accept(lookup.getSpeciesKey());
-
-        stringWriter.accept(lookup.getKingdom());
-        stringWriter.accept(lookup.getPhylum());
-        stringWriter.accept(lookup.getClazz());
-        stringWriter.accept(lookup.getOrder());
-        stringWriter.accept(lookup.getFamily());
-        stringWriter.accept(lookup.getGenus());
-        stringWriter.accept(lookup.getSpecies());
-      } else if (response.getError() != null) {
-        log.error("Error finding species match", response.getError());
-        // set all fields to null
-        IntStream.of(20).forEach(v -> builder.appendNull());
+        blockBuilder.closeEntry();
+        return blockBuilder.build().getObject(0, Block.class);
       }
-
-      blockBuilder.closeEntry();
-      return blockBuilder.build().getObject(0, Block.class);
-    }
     } catch (Exception e) {
       System.err.println(e.getMessage());
       e.printStackTrace();
     }
+
     return null;
   }
 }
