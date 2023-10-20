@@ -85,6 +85,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         .executorMemory(sparkConfiguration.getExecutorResources().getMemory().getLimit())
         .executorInstances(executorInstances(download))
         .callbackUrl(airflowConfiguration.getAirflowCallback())
+        .podConfiguration(airflowConfiguration.getPodConfiguration())
         .build())
       .dagRunId(downloadDagId(download.getKey()))
       .build();

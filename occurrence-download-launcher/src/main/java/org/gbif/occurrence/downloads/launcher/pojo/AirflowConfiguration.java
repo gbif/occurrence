@@ -28,6 +28,19 @@ import lombok.Data;
 @Data
 public class AirflowConfiguration {
 
+  @Data
+  public static class DownloadPodConfiguration {
+
+    public String version;
+    public String component;
+    public String main;
+    public String hdfsClusterName;
+    public String hiveClusterName;
+    public String hbaseClusterName;
+    public String componentConfig;
+
+  }
+
   public String airflowUser;
 
   public String airflowPass;
@@ -37,6 +50,8 @@ public class AirflowConfiguration {
   public String airflowDagName;
 
   private String airflowCallback;
+
+  private DownloadPodConfiguration podConfiguration;
 
   @JsonIgnore
   public String getBasicAuthString() {

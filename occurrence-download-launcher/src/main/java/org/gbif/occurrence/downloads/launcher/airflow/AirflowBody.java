@@ -13,9 +13,12 @@
  */
 package org.gbif.occurrence.downloads.launcher.airflow;
 
+import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
+
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import lombok.Builder;
 import lombok.Data;
@@ -41,15 +44,9 @@ public class AirflowBody {
     private final int executorInstances;
     private final String executorCores;
     private final String executorMemory;
-
-    private final String version = "1.0.12";
-    private final String component = "occurrence-download-spark";
-    private final String main = "org.gbif.occurrence.download.spark.SparkDownloads";
-
-    private final String hdfsClusterName = "gbif-hdfs";
-    private final String hiveClusterName = "gbif-hive-metastore";
-    private final String hbaseClusterName = "gbif-hbase";
-    private final String componentConfig = "occurrence";
     private final String callbackUrl;
+
+    @JsonUnwrapped
+    private final AirflowConfiguration.DownloadPodConfiguration podConfiguration;
   }
 }
