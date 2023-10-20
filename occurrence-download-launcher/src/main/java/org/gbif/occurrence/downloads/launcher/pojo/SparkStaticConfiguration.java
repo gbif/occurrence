@@ -13,11 +13,13 @@
  */
 package org.gbif.occurrence.downloads.launcher.pojo;
 
+import org.gbif.stackable.SparkCrd;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.gbif.stackable.SparkCrd;
 
 @Data
 @NoArgsConstructor
