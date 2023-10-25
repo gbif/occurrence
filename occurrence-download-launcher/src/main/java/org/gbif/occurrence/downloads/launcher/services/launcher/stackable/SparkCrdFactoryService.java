@@ -29,10 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.springframework.stereotype.Service;
-
 @SuppressWarnings("all")
-@Service
 public class SparkCrdFactoryService {
 
   private final DistributedConfiguration distributedConfig;

@@ -31,10 +31,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import io.kubernetes.client.openapi.ApiException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -42,8 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
 
 @Slf4j
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class StackableDownloadLauncherService implements DownloadLauncher {
 
   private final StackableConfiguration stackableConfiguration;
@@ -191,7 +185,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
   /**
    * A lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'.
-   * Must start and end with an alphanumeric character and its max lentgh is 64 characters.
+   * Must start and end with an alphanumeric character and its max length is 64 characters.
    */
   private static String normalize(String sparkAppName) {
     return "download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");

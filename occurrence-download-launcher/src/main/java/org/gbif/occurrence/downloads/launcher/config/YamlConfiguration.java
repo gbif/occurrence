@@ -13,11 +13,7 @@
  */
 package org.gbif.occurrence.downloads.launcher.config;
 
-import org.gbif.occurrence.downloads.launcher.pojo.DistributedConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.RegistryConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.*;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,21 +35,16 @@ public class YamlConfiguration {
     return new RegistryConfiguration();
   }
 
-  @ConfigurationProperties(prefix = "distributed")
-  @Bean
-  public DistributedConfiguration distributedConfiguration() {
-    return new DistributedConfiguration();
-  }
-
   @ConfigurationProperties(prefix = "spark")
   @Bean
   public SparkStaticConfiguration sparkConfiguration() {
-    return new SparkStaticConfiguration();
+    return SparkStaticConfiguration.builder().build();
   }
 
-  @ConfigurationProperties(prefix = "stackable")
+  @ConfigurationProperties(prefix = "airflow")
   @Bean
-  public StackableConfiguration stackableConfiguration() {
-    return new StackableConfiguration();
+  public AirflowConfiguration airflowConfiguration() {
+    return new AirflowConfiguration();
   }
+
 }

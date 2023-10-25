@@ -13,16 +13,22 @@
  */
 package org.gbif.occurrence.downloads.launcher.pojo;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.gbif.stackable.SparkCrd;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@JsonDeserialize(
+  builder = SparkStaticConfiguration.SparkStaticConfigurationBuilder.class
+)
 @NoArgsConstructor
+@AllArgsConstructor
 public class SparkStaticConfiguration {
 
   @Data
@@ -30,11 +36,13 @@ public class SparkStaticConfiguration {
   @JsonDeserialize(
     builder = DownloadSparkConfiguration.DownloadSparkConfigurationBuilder.class
   )
+  @NoArgsConstructor
+  @AllArgsConstructor
   public static class DownloadSparkConfiguration {
 
     private SparkCrd.Spec.Resources executorResources;
 
-    private SparkCrd.Spec.Resources driverResources;
+    private SparkCrd.Spec.Resources driverResources = new SparkCrd.Spec.Resources();
 
     private int recordsPerInstance;
 
@@ -42,10 +50,10 @@ public class SparkStaticConfiguration {
 
   }
 
-  public DownloadSparkConfiguration smallDownloads;
+  private DownloadSparkConfiguration smallDownloads;
 
-  public DownloadSparkConfiguration largeDownloads;
+  private DownloadSparkConfiguration largeDownloads;
 
-  public int smallDownloadCutOff;
+  private int smallDownloadCutOff;
 
 }
