@@ -42,10 +42,13 @@ public class DownloadMetaPersistence {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
     String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
+    String registryUser = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY);
+    String registryPassword = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY);
     // persists citation information.
-    CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath, new CitationsPersister.PersistUsage(downloadKey, registryWsURL, coreTerm));
+    CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath,
+      new CitationsPersister.PersistUsage(downloadKey, coreTerm, registryWsURL, registryUser, registryPassword));
 
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsURL);
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryUser, registryPassword, registryWsURL);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(coreTerm);
     // persists species count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);

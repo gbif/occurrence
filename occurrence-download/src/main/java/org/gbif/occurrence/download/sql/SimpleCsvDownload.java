@@ -103,7 +103,7 @@ public class SimpleCsvDownload {
   }
 
   private String getDatabasePath() {
-    return queryParameters.getWarehouseDir() + queryParameters.getDatabase() + ".db" + '/';
+    return queryParameters.getWarehouseDir() + '/' + queryParameters.getDatabase() + ".db" + '/';
   }
   private String getWarehouseTablePath() {
     return getDatabasePath() + queryParameters.getDownloadTableName() + '/';
@@ -117,8 +117,10 @@ public class SimpleCsvDownload {
   private void readCitationsAndUpdateLicense() {
     CitationsPersister.readCitationsAndUpdateLicense(workflowConfiguration.getHdfsNameNode(),
       getWarehouseCitationTablePath(), new CitationsPersister.PersistUsage(download.getKey(),
+                                                                           download.getRequest().getType().getCoreTerm(),
                                                                            workflowConfiguration.getRegistryWsUrl(),
-                                                                           download.getRequest().getType().getCoreTerm()));
+                                                                           workflowConfiguration.getRegistryUser(),
+                                                                           workflowConfiguration.getRegistryPassword()));
 
   }
 

@@ -94,6 +94,16 @@ public class WorkflowConfiguration {
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
   }
 
+  public String getRegistryUser() {
+    Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY);
+  }
+
+  public String getRegistryPassword() {
+    Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY);
+  }
+
   /**
    *
    * @return local temp dir where downloads files are created

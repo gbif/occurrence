@@ -45,18 +45,6 @@ public class RegistryClientUtil {
             .withFormEncoder();
   }
 
-  /**
-   * Constructs an instance using properties class instance.
-   */
-  public RegistryClientUtil(Properties properties, String apiUrl) {
-    clientBuilder = new ClientBuilder()
-      .withUrl(Optional.ofNullable(apiUrl).orElse(properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY)))
-      .withCredentials(properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
-                       properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY))
-      .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-      .withFormEncoder();
-  }
-
 
   private static Properties loadConfig() {
     try {
@@ -64,23 +52,6 @@ public class RegistryClientUtil {
     } catch (IOException ex) {
       throw new IllegalArgumentException(ex);
     }
-  }
-
-  public RegistryClientUtil(WorkflowConfiguration workflowConfiguration) {
-    this(workflowConfiguration.getDownloadSettings(), workflowConfiguration.getRegistryWsUrl());
-  }
-  /**
-   * Constructs an instance using the default properties file.
-   */
-  public RegistryClientUtil(String apiUrl) {
-    this(loadConfig(), apiUrl);
-  }
-
-  /**
-   * Constructs an instance using the default properties file.
-   */
-  public RegistryClientUtil() {
-    this(loadConfig(), null);
   }
 
   /**
