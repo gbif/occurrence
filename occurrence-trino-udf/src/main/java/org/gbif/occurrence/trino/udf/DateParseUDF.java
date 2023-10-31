@@ -38,21 +38,14 @@ import static io.trino.spi.type.IntegerType.INTEGER;
 /**
  * Parses year, month and day only.
  *
- * Usage example:
+ * <p>Usage example:
  *
- * SELECT
- *   gbifid, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)), from_unixtime(floor(d.epoch_to/1000)),
- *   v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear
- * FROM
- *   (SELECT
- *      gbifid, v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear,
- *      parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear) d
- *    FROM prod_h.occurrence
- *    WHERE v_startdayofyear IS NOT NULL
- *      AND v_eventdate IS NULL
- *    LIMIT 10000
- *   ) r
- *  LIMIT 100000;
+ * <p>SELECT gbifid, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)),
+ * from_unixtime(floor(d.epoch_to/1000)), v_eventdate, v_year, v_month, v_day, v_startdayofyear,
+ * v_enddayofyear FROM (SELECT gbifid, v_eventdate, v_year, v_month, v_day, v_startdayofyear,
+ * v_enddayofyear, parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear)
+ * d FROM prod_h.occurrence WHERE v_startdayofyear IS NOT NULL AND v_eventdate IS NULL LIMIT 10000 )
+ * r LIMIT 100000;
  */
 public class DateParseUDF {
 
@@ -96,13 +89,13 @@ public class DateParseUDF {
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice startDayOfYear,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice endDayOfYear) {
 
-    try {
-      Long parsedYear = null;
-      Long parsedMonth = null;
-      Long parsedDay = null;
-      Long parsedEpochFrom = null;
-      Long parsedEpochTo = null;
+    Long parsedYear = null;
+    Long parsedMonth = null;
+    Long parsedDay = null;
+    Long parsedEpochFrom = null;
+    Long parsedEpochTo = null;
 
+    try {
       OccurrenceParseResult<IsoDateInterval> parsed =
           TemporalInterpreter.interpretRecordedDate(
               year != null ? year.toStringUtf8() : null,
@@ -141,41 +134,39 @@ public class DateParseUDF {
                   .toEpochSecond(ZoneOffset.UTC);
         }
       }
-
-      RowType rowType =
-          RowType.rowType(
-              new RowType.Field(Optional.of("year"), INTEGER),
-              new RowType.Field(Optional.of("month"), INTEGER),
-              new RowType.Field(Optional.of("day"), INTEGER),
-              new RowType.Field(Optional.of("epoch_from"), INTEGER),
-              new RowType.Field(Optional.of("epoch_to"), INTEGER));
-      RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-      SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
-
-      Consumer<Long> writer =
-          v -> {
-            if (v != null) {
-              INTEGER.writeLong(builder, v);
-            } else {
-              builder.appendNull();
-            }
-          };
-
-      writer.accept(parsedYear);
-      writer.accept(parsedMonth);
-      writer.accept(parsedDay);
-      writer.accept(parsedEpochFrom);
-      writer.accept(parsedEpochTo);
-
-      blockBuilder.closeEntry();
-
-      return blockBuilder.build().getObject(0, Block.class);
     } catch (Exception e) {
       // not much to do - indicates bad data
       System.err.println(e.getMessage());
       e.printStackTrace();
     }
 
-    return null;
+    RowType rowType =
+        RowType.rowType(
+            new RowType.Field(Optional.of("year"), INTEGER),
+            new RowType.Field(Optional.of("month"), INTEGER),
+            new RowType.Field(Optional.of("day"), INTEGER),
+            new RowType.Field(Optional.of("epoch_from"), INTEGER),
+            new RowType.Field(Optional.of("epoch_to"), INTEGER));
+    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
+    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+
+    Consumer<Long> writer =
+        v -> {
+          if (v != null) {
+            INTEGER.writeLong(builder, v);
+          } else {
+            builder.appendNull();
+          }
+        };
+
+    writer.accept(parsedYear);
+    writer.accept(parsedMonth);
+    writer.accept(parsedDay);
+    writer.accept(parsedEpochFrom);
+    writer.accept(parsedEpochTo);
+
+    blockBuilder.closeEntry();
+
+    return blockBuilder.build().getObject(0, Block.class);
   }
 }
