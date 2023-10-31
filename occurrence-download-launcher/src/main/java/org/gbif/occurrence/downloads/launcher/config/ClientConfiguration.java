@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ClientConfiguration {
 
-  @Bean
   public K8StackableSparkController k8StackableSparkController(
       StackableConfiguration stackableConfiguration) {
     return K8StackableSparkController.builder()

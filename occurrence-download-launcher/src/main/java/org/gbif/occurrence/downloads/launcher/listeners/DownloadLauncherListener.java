@@ -52,7 +52,6 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
       log.info("Received message {}", downloadsMessage);
       String downloadKey = downloadsMessage.getDownloadKey();
       ignoreFinishedDownload(downloadKey);
-
       JobStatus jobStatus = jobManager.create(downloadKey);
 
       if (jobStatus == JobStatus.RUNNING) {

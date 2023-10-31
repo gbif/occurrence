@@ -29,10 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import org.springframework.stereotype.Service;
-
 @SuppressWarnings("all")
-@Service
 public class SparkCrdFactoryService {
 
   private final DistributedConfiguration distributedConfig;
@@ -48,7 +45,7 @@ public class SparkCrdFactoryService {
     this.stackableConfig = stackableConfig;
   }
 
-  public SparkCrd createSparkCrd(SparkDynamicSettings sparkSettings) {
+  public SparkCrd createSparkCrd(SparkDynamicSettings sparkSettings, SparkStaticConfiguration.DownloadSparkConfiguration downloadSparkConfiguration) {
     SparkCrd sparkCrd = ConfigUtils.loadSparkCdr(stackableConfig.sparkCrdConfigFile);
     Spec sparkCrdSpec = sparkCrd.getSpec();
 
@@ -64,15 +61,14 @@ public class SparkCrdFactoryService {
                 .mainClass(distributedConfig.mainClass)
                 .mainApplicationFile(distributedConfig.jarPath)
                 .args(Arrays.asList(sparkSettings.getDownloadsKey(), "Occurrence"))
-                .driver(mergeDriverSettings(sparkCrdSpec.getDriver()))
+                .driver(mergeDriverSettings(sparkCrdSpec.getDriver(), downloadSparkConfiguration))
                 .sparkConf(
                     mergeSparkConfSettings(
                         sparkCrdSpec.getSparkConf(), sparkSettings.getParallelism()))
                 .executor(
-                    mergeExecutorSettings(
-                        sparkCrdSpec.getExecutor(),
-                        sparkSettings.getExecutorNumbers(),
-                        sparkSettings.getExecutorMemory()))
+                    mergeExecutorSettings(sparkCrdSpec.getExecutor(),
+                                          sparkSettings,
+                      downloadSparkConfiguration))
                 .build())
         .build();
   }
@@ -133,32 +129,17 @@ public class SparkCrdFactoryService {
         : SparkCrd.Spec.Resources.builder();
   }
 
-  private SparkCrd.Spec.Resources mergeDriverResources(SparkCrd.Spec.Resources resources) {
-    return cloneOrCreateResources(resources)
-        .memory(getMemoryOrCreate(resources).limit(sparkConfig.driverMemory + "Gi").build())
-        .cpu(getCpuOrCreate(resources).max(sparkConfig.driverCores * 1000 + "m").build())
-        .build();
-  }
-
-  private SparkCrd.Spec.Resources mergeExecutorResources(
-      SparkCrd.Spec.Resources resources, String executorMemory) {
-    return cloneOrCreateResources(resources)
-        .memory(getMemoryOrCreate(resources).limit(executorMemory + "Gi").build())
-        .cpu(getCpuOrCreate(resources).max(sparkConfig.executorCores * 1000 + "m").build())
-        .build();
-  }
-
-  private SparkCrd.Spec.Driver mergeDriverSettings(SparkCrd.Spec.Driver driver) {
+  private SparkCrd.Spec.Driver mergeDriverSettings(SparkCrd.Spec.Driver driver, SparkStaticConfiguration.DownloadSparkConfiguration downloadSparkConfiguration) {
     return cloneOrCreateDriver(driver)
-        .resources(mergeDriverResources(getResourcesOrCreate(driver).build()))
+        .resources(downloadSparkConfiguration.getDriverResources())
         .build();
   }
 
   private SparkCrd.Spec.Executor mergeExecutorSettings(
-      SparkCrd.Spec.Executor executor, int executorsNumber, String executorMemory) {
+      SparkCrd.Spec.Executor executor, SparkDynamicSettings sparkDynamicSettings, SparkStaticConfiguration.DownloadSparkConfiguration downloadSparkConfiguration) {
     return cloneOrCreateExecutor(executor)
-        .resources(mergeExecutorResources(getResourcesOrCreate(executor).build(), executorMemory))
-        .instances(executorsNumber)
+        .resources(downloadSparkConfiguration.getExecutorResources())
+        .instances(sparkDynamicSettings.getExecutorInstances())
         .build();
   }
 
@@ -177,7 +158,7 @@ public class SparkCrdFactoryService {
     }
 
     newSparkConf.put("spark.default.parallelism", String.valueOf(parallelism));
-    newSparkConf.put("spark.executor.memoryOverhead", String.valueOf(sparkConfig.memoryOverhead));
+    //newSparkConf.put("spark.executor.memoryOverhead", String.valueOf(sparkConfig.memoryOverhead));
     newSparkConf.put("spark.dynamicAllocation.enabled", "false");
 
     return newSparkConf;

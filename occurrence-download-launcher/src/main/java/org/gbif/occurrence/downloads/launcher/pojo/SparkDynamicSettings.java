@@ -22,11 +22,10 @@ public class SparkDynamicSettings {
 
   private int parallelism;
 
-  private String executorMemory;
-
-  private int executorNumbers;
-
   private String sparkAppName;
 
   private String downloadsKey;
+
+  private int executorInstances;
+
 }

@@ -16,9 +16,11 @@ package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
+import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
 import org.gbif.stackable.SparkCrd;
@@ -29,10 +31,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import io.kubernetes.client.openapi.ApiException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -40,8 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import static org.gbif.stackable.K8StackableSparkController.NOT_FOUND;
 
 @Slf4j
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class StackableDownloadLauncherService implements DownloadLauncher {
 
   private final StackableConfiguration stackableConfiguration;
@@ -49,38 +45,59 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
   private final LockerService lockerService;
   private final SparkCrdFactoryService sparkCrdService;
 
+  private final SparkStaticConfiguration sparkStaticConfiguration;
+
+  private final OccurrenceDownloadClient downloadClient;
+
   public StackableDownloadLauncherService(
       StackableConfiguration stackableConfiguration,
       K8StackableSparkController sparkController,
       SparkCrdFactoryService sparkCrdService,
-      LockerService lockerService) {
+      SparkStaticConfiguration sparkStaticConfiguration,
+      LockerService lockerService,
+      OccurrenceDownloadClient downloadClient) {
     this.stackableConfiguration = stackableConfiguration;
     this.sparkController = sparkController;
     this.lockerService = lockerService;
     this.sparkCrdService = sparkCrdService;
+    this.sparkStaticConfiguration = sparkStaticConfiguration;
+    this.downloadClient = downloadClient;
+  }
+
+
+  private boolean isSmallDownload(Download download) {
+    return sparkStaticConfiguration.getSmallDownloadCutOff() >= download.getTotalRecords();
+  }
+
+  private int executorInstances(Download download) {
+     return isSmallDownload(download)? 0 : Math.min(sparkStaticConfiguration.getLargeDownloads().getMaxInstances(),
+       (int)download.getTotalRecords() / sparkStaticConfiguration.getLargeDownloads().getRecordsPerInstance());
+  }
+
+  private SparkStaticConfiguration.DownloadSparkConfiguration getDownloadSparkSettings(Download download) {
+    return isSmallDownload(download)? sparkStaticConfiguration.getSmallDownloads() : sparkStaticConfiguration.getLargeDownloads();
   }
 
   @Override
   public JobStatus create(String downloadKey) {
 
     try {
+      Download download = downloadClient.get(downloadKey);
       String sparkAppName = normalize(downloadKey);
 
       // TODO Calculate spark settings
       SparkDynamicSettings sparkSettings =
           SparkDynamicSettings.builder()
-              .executorMemory("4")
-              .parallelism(4)
-              .executorNumbers(2)
+              .executorInstances(executorInstances(download))
               .sparkAppName(sparkAppName)
-              .downloadsKey(downloadKey)
+              .downloadsKey(download.getKey())
               .build();
 
-      SparkCrd sparkCrd = sparkCrdService.createSparkCrd(sparkSettings);
+      SparkCrd sparkCrd = sparkCrdService.createSparkCrd(sparkSettings, getDownloadSparkSettings(download));
 
       sparkController.submitSparkApplication(sparkCrd);
 
-      asyncStatusCheck(downloadKey, sparkAppName);
+      asyncStatusCheck(download.getKey(), sparkAppName);
 
       return JobStatus.RUNNING;
     } catch (Exception ex) {
@@ -97,7 +114,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
       log.info("Spark application {} has been stopped", sparkAppName);
       return JobStatus.CANCELLED;
     } catch (ApiException ex) {
-      log.error("Cancellig the download {}", downloadKey, ex);
+      log.error("Cancelling the download {}", downloadKey, ex);
       return JobStatus.FAILED;
     }
   }
@@ -168,7 +185,7 @@ public class StackableDownloadLauncherService implements DownloadLauncher {
 
   /**
    * A lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'.
-   * Must start and end with an alphanumeric character and its max lentgh is 64 characters.
+   * Must start and end with an alphanumeric character and its max length is 64 characters.
    */
   private static String normalize(String sparkAppName) {
     return "download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");
