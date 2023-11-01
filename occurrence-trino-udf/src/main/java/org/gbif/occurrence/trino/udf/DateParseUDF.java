@@ -53,8 +53,8 @@ public class DateParseUDF {
   @ScalarFunction(value = "parseDate", deterministic = true)
   @Description(
       "Parses the fields of the date. The order of the parameters is the following: parseDate(year, month, day, )."
-          + " All of them are nullable. Returns a row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
-  @SqlType("row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
+          + " All of them are nullable. Returns a row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
+  @SqlType("row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
   public Block parseDate(
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice year,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice month,
@@ -66,8 +66,8 @@ public class DateParseUDF {
   @Description(
       "Parses the fields of the date. The order of the parameters is the following: parseDate(year, month, day, "
           + "event_date). All of them are nullable. "
-          + "Returns a row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
-  @SqlType("row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
+          + "Returns a row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
+  @SqlType("row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
   public Block parseDate(
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice year,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice month,

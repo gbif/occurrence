@@ -224,7 +224,7 @@ public class SpeciesMatchUDF {
     SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
 
     // set all fields to null
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 21; i++) {
       builder.appendNull();
     }
 
