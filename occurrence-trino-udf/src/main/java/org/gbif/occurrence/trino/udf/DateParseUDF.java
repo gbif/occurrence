@@ -21,6 +21,7 @@ import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
 import io.trino.spi.function.SqlType;
+import io.trino.spi.type.BigintType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.StandardTypes;
 import org.gbif.api.util.IsoDateInterval;
@@ -33,7 +34,7 @@ import java.time.temporal.ChronoField;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static io.trino.spi.type.IntegerType.INTEGER;
+import static io.trino.spi.type.BigintType.*;
 
 /**
  * Parses year, month and day only.
@@ -79,8 +80,8 @@ public class DateParseUDF {
   @Description(
       "Parses the fields of the date. The order of the parameters is the following: parseDate(year, month, day, "
           + "event_date, start_day_of_year, end_day_of_year). All of them are nullable. "
-          + "Returns a row(year integer, month integer, day integer, epoch_from integer, epoch_to integer).")
-  @SqlType("row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
+          + "Returns a row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint).")
+  @SqlType("row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
   public Block parseDate(
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice year,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice month,
@@ -142,18 +143,18 @@ public class DateParseUDF {
 
     RowType rowType =
         RowType.rowType(
-            new RowType.Field(Optional.of("year"), INTEGER),
-            new RowType.Field(Optional.of("month"), INTEGER),
-            new RowType.Field(Optional.of("day"), INTEGER),
-            new RowType.Field(Optional.of("epoch_from"), INTEGER),
-            new RowType.Field(Optional.of("epoch_to"), INTEGER));
+            new RowType.Field(Optional.of("year"), BIGINT),
+            new RowType.Field(Optional.of("month"), BIGINT),
+            new RowType.Field(Optional.of("day"), BIGINT),
+            new RowType.Field(Optional.of("epoch_from"), BIGINT),
+            new RowType.Field(Optional.of("epoch_to"), BIGINT));
     RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
     SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
 
     Consumer<Long> writer =
         v -> {
           if (v != null) {
-            INTEGER.writeLong(builder, v);
+            BIGINT.writeLong(builder, v);
           } else {
             builder.appendNull();
           }

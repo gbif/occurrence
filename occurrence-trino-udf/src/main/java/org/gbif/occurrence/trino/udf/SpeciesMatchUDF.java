@@ -101,6 +101,30 @@ public class SpeciesMatchUDF {
       throw new IllegalArgumentException("Api argument is required");
     }
 
+    RowType rowType =
+        RowType.rowType(
+            new RowType.Field(Optional.of("responsestatus"), VARCHAR),
+            new RowType.Field(Optional.of("usagekey"), INTEGER),
+            new RowType.Field(Optional.of("scientificname"), VARCHAR),
+            new RowType.Field(Optional.of("rank"), VARCHAR),
+            new RowType.Field(Optional.of("status"), VARCHAR),
+            new RowType.Field(Optional.of("matchtype"), VARCHAR),
+            new RowType.Field(Optional.of("confidence"), INTEGER),
+            new RowType.Field(Optional.of("kingdomkey"), INTEGER),
+            new RowType.Field(Optional.of("phylumkey"), INTEGER),
+            new RowType.Field(Optional.of("classkey"), INTEGER),
+            new RowType.Field(Optional.of("orderkey"), INTEGER),
+            new RowType.Field(Optional.of("familykey"), INTEGER),
+            new RowType.Field(Optional.of("genuskey"), INTEGER),
+            new RowType.Field(Optional.of("specieskey"), INTEGER),
+            new RowType.Field(Optional.of("kingdom"), VARCHAR),
+            new RowType.Field(Optional.of("phylum"), VARCHAR),
+            new RowType.Field(Optional.of("class_"), VARCHAR),
+            new RowType.Field(Optional.of("order_"), VARCHAR),
+            new RowType.Field(Optional.of("family"), VARCHAR),
+            new RowType.Field(Optional.of("genus"), VARCHAR),
+            new RowType.Field(Optional.of("species"), VARCHAR));
+
     try {
 
       String api = apiArg.toStringUtf8();
@@ -119,30 +143,6 @@ public class SpeciesMatchUDF {
       // TODO: add authorship as a standalone parameter
       ParseResult<NameUsageMatch> response =
           getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
-
-      RowType rowType =
-          RowType.rowType(
-              new RowType.Field(Optional.of("responsestatus"), VARCHAR),
-              new RowType.Field(Optional.of("usagekey"), INTEGER),
-              new RowType.Field(Optional.of("scientificname"), VARCHAR),
-              new RowType.Field(Optional.of("rank"), VARCHAR),
-              new RowType.Field(Optional.of("status"), VARCHAR),
-              new RowType.Field(Optional.of("matchtype"), VARCHAR),
-              new RowType.Field(Optional.of("confidence"), INTEGER),
-              new RowType.Field(Optional.of("kingdomkey"), INTEGER),
-              new RowType.Field(Optional.of("phylumkey"), INTEGER),
-              new RowType.Field(Optional.of("classkey"), INTEGER),
-              new RowType.Field(Optional.of("orderkey"), INTEGER),
-              new RowType.Field(Optional.of("familykey"), INTEGER),
-              new RowType.Field(Optional.of("genuskey"), INTEGER),
-              new RowType.Field(Optional.of("specieskey"), INTEGER),
-              new RowType.Field(Optional.of("kingdom"), VARCHAR),
-              new RowType.Field(Optional.of("phylum"), VARCHAR),
-              new RowType.Field(Optional.of("class_"), VARCHAR),
-              new RowType.Field(Optional.of("order_"), VARCHAR),
-              new RowType.Field(Optional.of("family"), VARCHAR),
-              new RowType.Field(Optional.of("genus"), VARCHAR),
-              new RowType.Field(Optional.of("species"), VARCHAR));
 
       RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
       SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
@@ -219,6 +219,16 @@ public class SpeciesMatchUDF {
       e.printStackTrace();
     }
 
-    return null;
+    // if we got till here we return an empty row
+    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
+    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+
+    // set all fields to null
+    for (int i = 0; i < 20; i++) {
+      builder.appendNull();
+    }
+
+    blockBuilder.closeEntry();
+    return blockBuilder.build().getObject(0, Block.class);
   }
 }
