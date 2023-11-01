@@ -44,7 +44,6 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
 
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
@@ -128,7 +127,7 @@ public class SimpleCsvArchiveBuilder {
       zos.closeEntry();
     } catch (Exception ex) {
       LOG.error(ERROR_ZIP_MSG, ex);
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -156,7 +155,7 @@ public class SimpleCsvArchiveBuilder {
         zos.closeEntry();
       } catch (Exception ex) {
         LOG.error(ERROR_ZIP_MSG, ex);
-        throw Throwables.propagate(ex);
+        throw new RuntimeException(ex);
       }
     }
   }

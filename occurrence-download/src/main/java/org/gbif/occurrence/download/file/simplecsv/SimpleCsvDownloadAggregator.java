@@ -43,8 +43,6 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-
 /**
  * Combine the parts created by actor and combine them into single zip file.
  */
@@ -92,7 +90,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     } catch (IOException ex) {
       LOG.error("Error aggregating download files", ex);
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -112,9 +110,9 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       LOG.debug("Create usage for download key: {}", configuration.getDownloadKey());
       occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
       persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
-    } catch (Exception e) {
-      LOG.error("Error merging results", e);
-      throw Throwables.propagate(e);
+    } catch (Exception ex) {
+      LOG.error("Error merging results", ex);
+      throw new RuntimeException(ex);
     }
   }
 

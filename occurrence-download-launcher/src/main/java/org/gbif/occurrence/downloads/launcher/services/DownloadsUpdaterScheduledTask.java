@@ -20,7 +20,6 @@ import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher
 import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
  * updated their statuses.
  */
 @Slf4j
-@Component
 public class DownloadsUpdaterScheduledTask {
 
   private final DownloadUpdaterService downloadUpdaterService;

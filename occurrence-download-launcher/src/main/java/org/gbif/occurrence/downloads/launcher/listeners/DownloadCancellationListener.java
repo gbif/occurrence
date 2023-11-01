@@ -21,13 +21,11 @@ import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
 /** Listener that cancels a download job. */
 @Slf4j
-@Component
 public class DownloadCancellationListener extends AbstractMessageCallback<DownloadCancelMessage> {
 
   private final DownloadLauncher jobManager;

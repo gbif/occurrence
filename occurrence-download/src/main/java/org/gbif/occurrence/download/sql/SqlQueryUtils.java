@@ -54,7 +54,7 @@ public class SqlQueryUtils {
 
 
   /**
-   * Executes, statement-by-statement a  String that contains multiple SQL queries.
+   * Executes, statement-by-statement a String that contains multiple SQL queries.
    */
   public static void runMultiSQL(String multiQuery, Map<String,String> params, Consumer<String> queryExecutor) {
     //Load parameters
@@ -63,12 +63,12 @@ public class SqlQueryUtils {
   }
 
   /**
-   * Executes, statement-by-statement a  String that contains multiple SQL queries.
+   * Executes, statement-by-statement a String that contains multiple SQL queries.
    */
   public static void runMultiSQL(String multiQuery, Consumer<String> queryExecutor) {
     for (String query : multiQuery.split(";\n")) {
       query = query.trim();
-      if(query.length() > 0) {
+      if(!query.isEmpty()) {
         log.info("Executing query: \n {}", query);
         queryExecutor.accept(query);
       }

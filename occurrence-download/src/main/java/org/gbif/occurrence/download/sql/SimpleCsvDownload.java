@@ -91,7 +91,6 @@ public class SimpleCsvDownload {
           workflowConfiguration.getHdfsOutputPath(), download.getKey(), getZipMode());
     }
   }
-
   private Set<Pair<DownloadTerms.Group, Term>> getDownloadTerms() {
     return download.getRequest().getFormat().equals(DownloadFormat.SPECIES_LIST)
             ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS
@@ -103,7 +102,7 @@ public class SimpleCsvDownload {
   }
 
   private String getDatabasePath() {
-    return queryParameters.getWarehouseDir() + '/' + queryParameters.getDatabase() + ".db" + '/';
+    return queryParameters.getWarehouseDir() + '/' + queryParameters.getDatabase() + '/';
   }
   private String getWarehouseTablePath() {
     return getDatabasePath() + queryParameters.getDownloadTableName() + '/';
