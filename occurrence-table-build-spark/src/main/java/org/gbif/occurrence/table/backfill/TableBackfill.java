@@ -91,7 +91,7 @@ public class TableBackfill {
   private SparkSession createSparkSession() {
     SparkSession.Builder sparkBuilder = SparkSession.builder()
            .appName(configuration.getTableName() + " table build")
-           .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+           .config("hive.metastore.warehouse.dir", configuration.getWarehouseLocation())
            .config("hive.metastore.uris", configuration.getHiveThriftAddress())
            .enableHiveSupport();
 
