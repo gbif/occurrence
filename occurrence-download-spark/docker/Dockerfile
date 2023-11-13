@@ -1,7 +1,8 @@
+ARG JAR_FILE=${JAVA_JAR_FILE}
 FROM alpine:latest
 RUN apk update && \
     apk upgrade && \
     apk add bash
 
 RUN apk add --no-cache bash && mkdir -p "/jobs/" && addgroup -S stackable && adduser -S stackable -G stackable
-COPY --chown=stackable:stackable "./target/occurrence-download-spark-0.194.0-H3-SNAPSHOT.jar" "/jobs/occurrence-download-spark.jar"
+COPY --chown=stackable:stackable "$JAR_FILE" "/jobs/occurrence-download-spark.jar"

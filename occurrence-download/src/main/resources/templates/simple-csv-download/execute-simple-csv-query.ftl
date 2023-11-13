@@ -7,12 +7,13 @@ USE ${r"${hiveDB}"};
 
 -- setup for our custom, combinable deflated compression
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
-SET hive.exec.compress.output=true;
-SET io.seqfile.compression.type=BLOCK;
-SET mapreduce.output.fileoutputformat.compress.codec=org.gbif.hadoop.compress.d2.D2Codec;
-SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
-SET hive.merge.mapfiles=false;
-SET hive.merge.mapredfiles=false;
+SET spark.hive.exec.compress.output=true;
+SET spark.hadoop.mapreduce.output.compress=true;
+SET spark.hadoop.mapreduce.output.fileoutputformat.compress=true;
+SET spark.hadoop.mapreduce.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
+SET spark.hadoop.mapreduce.output.fileoutputformat.compress.type=BLOCK
+SET spark.hadoop.io.seqfile.compression.type=BLOCK;
+SET spark.hadoop.io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${downloadTableName}"};

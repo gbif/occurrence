@@ -68,6 +68,57 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.43.4</version> <!-- Use the latest version available -->
+        <executions>
+          <execution>
+            <id>build-docker-image</id>
+            <phase>install</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <configuration>
+              <registry>docker.gbif.org</registry>
+              <images>
+                <image>
+                  <registry>docker.gbif.org</registry>
+                  <name>docker.gbif.org/occurrence-download-spark:${project.version}</name>
+                  <build>
+                    <dockerFileDir>${project.basedir}/docker</dockerFileDir>
+                    <buildOptions>
+                      <platform>linux/amd64</platform>
+                    </buildOptions>
+                    <args>
+                      <JAR_FILE>target/${project.artifactId}-${project.version}.jar</JAR_FILE>
+                    </args>
+                  </build>
+                </image>
+              </images>
+            </configuration>
+          </execution>
+
+          <!-- Push Docker image -->
+          <execution>
+            <id>push-docker-image</id>
+            <phase>install</phase>
+            <goals>
+              <goal>push</goal>
+            </goals>
+            <configuration>
+              <images>
+                <image>
+                  <name>docker.gbif.org/occurrence-download-spark:${project.version}</name>
+                  <build>
+                    <registry>docker.gbif.org</registry>
+                  </build>
+                </image>
+              </images>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 

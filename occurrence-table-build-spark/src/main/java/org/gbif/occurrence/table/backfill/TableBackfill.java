@@ -343,7 +343,7 @@ public class TableBackfill {
                          + ") "
                          + "PARTITIONED BY(datasetkey STRING) "
                          + "STORED AS PARQUET "
-                         + "LOCATION '%s'"
+                         + "LOCATION '%s' "
                          + "TBLPROPERTIES (\"parquet.compression\"=\"GZIP\", \"auto.purge\"=\"true\")",
                          configuration.getTableName(),
                          Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
