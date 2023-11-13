@@ -30,6 +30,27 @@
       </testResource>
     </testResources>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>regex-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>docker.project.version</name>
+              <value>${project.version}</value>
+              <regex>-H3-SNAPSHOT</regex>
+              <replacement>S1</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- Shade the project into an uber jar to send to Spark -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -75,7 +96,7 @@
         <executions>
           <execution>
             <id>build-docker-image</id>
-            <phase>deploy</phase>
+            <phase>install</phase>
             <goals>
               <goal>build</goal>
             </goals>
@@ -84,9 +105,10 @@
               <images>
                 <image>
                   <registry>docker.gbif.org</registry>
-                  <name>docker.gbif.org/occurrence-download-spark:${project.version}</name>
+                  <name>docker.gbif.org/occurrence-download-spark:${docker.project.version}</name>
                   <build>
-                    <dockerFileDir>${project.basedir}/docker</dockerFileDir>
+                    <contextDir>${project.basedir}</contextDir>
+                    <dockerFile>docker/Dockerfile</dockerFile>
                     <buildOptions>
                       <platform>linux/amd64</platform>
                     </buildOptions>
@@ -102,14 +124,14 @@
           <!-- Push Docker image -->
           <execution>
             <id>push-docker-image</id>
-            <phase>install</phase>
+            <phase>deploy</phase>
             <goals>
               <goal>push</goal>
             </goals>
             <configuration>
               <images>
                 <image>
-                  <name>docker.gbif.org/occurrence-download-spark:${project.version}</name>
+                  <name>docker.gbif.org/occurrence-download-spark:${docker.project.version}</name>
                   <build>
                     <registry>docker.gbif.org</registry>
                   </build>
