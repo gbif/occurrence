@@ -1,0 +1,11 @@
+{
+  "creator":"fmendez",
+  "sendNotification":"true",
+  "created":"2013",
+  "format": "SIMPLE_CSV",
+  "predicate": {
+      "type": "equals",
+      "key": "RECORDED_BY",
+      "value": "Brian J O'Shea"
+  }
+}
