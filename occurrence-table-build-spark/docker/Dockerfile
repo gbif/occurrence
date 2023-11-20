@@ -20,5 +20,5 @@ RUN --mount=type=cache,mode=0777,target=/home/gbif/.m2,uid=1000,gid=1000,z git c
 FROM docker.gbif.org/gbif/base-image:1.0.0
 USER root
 RUN mkdir /jobs
-COPY --from=builder --chown=1000:1000 /home/gbif/occurrence/occurrence-table-build-spark/target/occurrence-table-build-spark-*.jar /jobs/occurrence-table-build-spark.jar
+COPY --from=builder --chown=1000:1000 /home/gbif/occurrence/occurrence-table-build-spark/target/occurrence-table-build-spark-*-shaded.jar /jobs/occurrence-table-build-spark.jar
 USER gbif
