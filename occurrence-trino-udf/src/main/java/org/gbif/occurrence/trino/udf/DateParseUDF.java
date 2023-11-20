@@ -21,6 +21,7 @@ import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
 import io.trino.spi.function.SqlType;
+import io.trino.spi.type.BigintType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.StandardTypes;
 import org.gbif.api.util.IsoDateInterval;
@@ -33,34 +34,27 @@ import java.time.temporal.ChronoField;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static io.trino.spi.type.IntegerType.INTEGER;
+import static io.trino.spi.type.BigintType.*;
 
 /**
  * Parses year, month and day only.
  *
- * Usage example:
+ * <p>Usage example:
  *
- * SELECT
- *   gbifid, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)), from_unixtime(floor(d.epoch_to/1000)),
- *   v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear
- * FROM
- *   (SELECT
- *      gbifid, v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear,
- *      parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear) d
- *    FROM prod_h.occurrence
- *    WHERE v_startdayofyear IS NOT NULL
- *      AND v_eventdate IS NULL
- *    LIMIT 10000
- *   ) r
- *  LIMIT 100000;
+ * <p>SELECT gbifid, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)),
+ * from_unixtime(floor(d.epoch_to/1000)), v_eventdate, v_year, v_month, v_day, v_startdayofyear,
+ * v_enddayofyear FROM (SELECT gbifid, v_eventdate, v_year, v_month, v_day, v_startdayofyear,
+ * v_enddayofyear, parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear)
+ * d FROM prod_h.occurrence WHERE v_startdayofyear IS NOT NULL AND v_eventdate IS NULL LIMIT 10000 )
+ * r LIMIT 100000;
  */
 public class DateParseUDF {
 
   @ScalarFunction(value = "parseDate", deterministic = true)
   @Description(
       "Parses the fields of the date. The order of the parameters is the following: parseDate(year, month, day, )."
-          + " All of them are nullable. Returns a row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
-  @SqlType("row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
+          + " All of them are nullable. Returns a row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
+  @SqlType("row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
   public Block parseDate(
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice year,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice month,
@@ -72,8 +66,8 @@ public class DateParseUDF {
   @Description(
       "Parses the fields of the date. The order of the parameters is the following: parseDate(year, month, day, "
           + "event_date). All of them are nullable. "
-          + "Returns a row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
-  @SqlType("row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
+          + "Returns a row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
+  @SqlType("row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
   public Block parseDate(
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice year,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice month,
@@ -86,8 +80,8 @@ public class DateParseUDF {
   @Description(
       "Parses the fields of the date. The order of the parameters is the following: parseDate(year, month, day, "
           + "event_date, start_day_of_year, end_day_of_year). All of them are nullable. "
-          + "Returns a row(year integer, month integer, day integer, epoch_from integer, epoch_to integer).")
-  @SqlType("row(year integer, month integer, day integer, epoch_from integer, epoch_to integer)")
+          + "Returns a row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint).")
+  @SqlType("row(year bigint, month bigint, day bigint, epoch_from bigint, epoch_to bigint)")
   public Block parseDate(
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice year,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice month,
@@ -96,13 +90,13 @@ public class DateParseUDF {
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice startDayOfYear,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice endDayOfYear) {
 
-    try {
-      Long parsedYear = null;
-      Long parsedMonth = null;
-      Long parsedDay = null;
-      Long parsedEpochFrom = null;
-      Long parsedEpochTo = null;
+    Long parsedYear = null;
+    Long parsedMonth = null;
+    Long parsedDay = null;
+    Long parsedEpochFrom = null;
+    Long parsedEpochTo = null;
 
+    try {
       OccurrenceParseResult<IsoDateInterval> parsed =
           TemporalInterpreter.interpretRecordedDate(
               year != null ? year.toStringUtf8() : null,
@@ -141,41 +135,39 @@ public class DateParseUDF {
                   .toEpochSecond(ZoneOffset.UTC);
         }
       }
-
-      RowType rowType =
-          RowType.rowType(
-              new RowType.Field(Optional.of("year"), INTEGER),
-              new RowType.Field(Optional.of("month"), INTEGER),
-              new RowType.Field(Optional.of("day"), INTEGER),
-              new RowType.Field(Optional.of("epoch_from"), INTEGER),
-              new RowType.Field(Optional.of("epoch_to"), INTEGER));
-      RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-      SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
-
-      Consumer<Long> writer =
-          v -> {
-            if (v != null) {
-              INTEGER.writeLong(builder, v);
-            } else {
-              builder.appendNull();
-            }
-          };
-
-      writer.accept(parsedYear);
-      writer.accept(parsedMonth);
-      writer.accept(parsedDay);
-      writer.accept(parsedEpochFrom);
-      writer.accept(parsedEpochTo);
-
-      blockBuilder.closeEntry();
-
-      return blockBuilder.build().getObject(0, Block.class);
     } catch (Exception e) {
       // not much to do - indicates bad data
       System.err.println(e.getMessage());
       e.printStackTrace();
     }
 
-    return null;
+    RowType rowType =
+        RowType.rowType(
+            new RowType.Field(Optional.of("year"), BIGINT),
+            new RowType.Field(Optional.of("month"), BIGINT),
+            new RowType.Field(Optional.of("day"), BIGINT),
+            new RowType.Field(Optional.of("epoch_from"), BIGINT),
+            new RowType.Field(Optional.of("epoch_to"), BIGINT));
+    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
+    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+
+    Consumer<Long> writer =
+        v -> {
+          if (v != null) {
+            BIGINT.writeLong(builder, v);
+          } else {
+            builder.appendNull();
+          }
+        };
+
+    writer.accept(parsedYear);
+    writer.accept(parsedMonth);
+    writer.accept(parsedDay);
+    writer.accept(parsedEpochFrom);
+    writer.accept(parsedEpochTo);
+
+    blockBuilder.closeEntry();
+
+    return blockBuilder.build().getObject(0, Block.class);
   }
 }

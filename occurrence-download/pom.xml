@@ -211,6 +211,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.0.0-M5</version>
       </plugin>
     </plugins>
   </build>
@@ -449,6 +450,7 @@
         </exclusion>
       </exclusions>
       <scope>provided</scope>
+      <version>3.3.1</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
@@ -461,6 +463,13 @@
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-actor_2.12</artifactId>
       <version>${akka-actor.version}</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.scala-lang.modules</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.sf.supercsv</groupId>
@@ -519,12 +528,12 @@
       <artifactId>zookeeper</artifactId>
       <exclusions>
         <exclusion>
-          <artifactId>logback-classic</artifactId>
           <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-core</artifactId>
         </exclusion>
         <exclusion>
-          <artifactId>logback-core</artifactId>
           <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -533,6 +542,12 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <scope>compile</scope>
     </dependency>
 
     <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
