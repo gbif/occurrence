@@ -2,7 +2,7 @@
 
 FROM docker.gbif.org/gbif/builder-image:1.0.0 as builder
 # standard branch currently just test for my own stackable test branch
-ARG BUILD_BRANCH=nik_spark3_downloads_airflow
+ARG BUILD_BRANCH=feature/stackable-hadoop-3-test
 # number of
 ARG MAVEN_THREADS=1
 
