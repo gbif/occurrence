@@ -1,12 +1,15 @@
 # syntax = docker/dockerfile:1.3
 
 FROM docker.gbif.org/gbif/builder-image:1.0.0 as builder
-# standard branch currently just test for my own stackable test branch
-ARG BUILD_BRANCH=feature/stackable-hadoop-3-test
+
+# Correct branch must be passed as a "--build-arg BUILD_BRANCH=unknown" value
+ARG BUILD_BRANCH=unknown
 # number of
 ARG MAVEN_THREADS=1
 
 USER gbif
+
+RUN echo "Using git branch: $BUILD_BRANCH"
 
 RUN mkdir -p /home/gbif/.m2/repository
 
