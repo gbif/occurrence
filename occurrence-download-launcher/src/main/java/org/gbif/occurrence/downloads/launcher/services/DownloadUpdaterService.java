@@ -41,7 +41,6 @@ public class DownloadUpdaterService {
     this.occurrenceDownloadClient = occurrenceDownloadClient;
   }
 
-
   public Download getDownload(String downloadKey) {
     return occurrenceDownloadClient.get(downloadKey);
   }

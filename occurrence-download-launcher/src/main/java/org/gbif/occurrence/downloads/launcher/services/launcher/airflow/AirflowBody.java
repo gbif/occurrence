@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.airflow;
+package org.gbif.occurrence.downloads.launcher.services.launcher.airflow;
 
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 
@@ -26,8 +26,6 @@ import lombok.Data;
 @Data
 @Builder
 public class AirflowBody {
-
-
 
   @JsonProperty("dag_run_id")
   private final String dagRunId;

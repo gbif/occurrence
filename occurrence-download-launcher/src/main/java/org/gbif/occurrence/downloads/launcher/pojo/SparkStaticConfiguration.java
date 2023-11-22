@@ -13,41 +13,61 @@
  */
 package org.gbif.occurrence.downloads.launcher.pojo;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.gbif.stackable.SparkCrd;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@JsonDeserialize(
-  builder = SparkStaticConfiguration.SparkStaticConfigurationBuilder.class
-)
+@JsonDeserialize(builder = SparkStaticConfiguration.SparkStaticConfigurationBuilder.class)
 @NoArgsConstructor
 @AllArgsConstructor
 public class SparkStaticConfiguration {
 
   @Data
   @Builder
-  @JsonDeserialize(
-    builder = DownloadSparkConfiguration.DownloadSparkConfigurationBuilder.class
-  )
+  @JsonDeserialize(builder = DownloadSparkConfiguration.DownloadSparkConfigurationBuilder.class)
   @NoArgsConstructor
   @AllArgsConstructor
   public static class DownloadSparkConfiguration {
 
-    private SparkCrd.Spec.Resources executorResources;
+    @Data
+    @Builder
+    @JsonDeserialize(builder = Resources.ResourcesBuilder.class)
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Resources {
 
-    private SparkCrd.Spec.Resources driverResources = new SparkCrd.Spec.Resources();
+      @Data
+      @Builder
+      @JsonDeserialize(builder = Cpu.CpuBuilder.class)
+      @NoArgsConstructor
+      @AllArgsConstructor
+      public static class Cpu {
+        private String min;
+        private String max;
+      }
 
+      @Data
+      @Builder
+      @JsonDeserialize(builder = Cpu.CpuBuilder.class)
+      @NoArgsConstructor
+      @AllArgsConstructor
+      public static class Memory {
+        private String limit;
+      }
+
+      private Cpu cpu;
+      private Memory memory;
+
+    }
+
+    private Resources executorResources;
+    private Resources driverResources;
     private int recordsPerInstance;
-
     private int maxInstances;
-
   }
 
   private DownloadSparkConfiguration smallDownloads;
@@ -55,5 +75,4 @@ public class SparkStaticConfiguration {
   private DownloadSparkConfiguration largeDownloads;
 
   private int smallDownloadCutOff;
-
 }

@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.airflow;
+package org.gbif.occurrence.downloads.launcher.services.launcher.airflow;
 
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 
@@ -38,9 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Builder
 public class AirflowRunner {
+
   private final AirflowConfiguration airflowConfiguration;
 
-  private static ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
   @SneakyThrows
   public JsonNode createRun(AirflowBody body) {
