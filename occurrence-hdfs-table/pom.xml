@@ -119,19 +119,19 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>1.11.0</version>
+      <version>${avro.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro-mapred</artifactId>
-      <version>1.11.0</version>
+      <version>${avro.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro-ipc</artifactId>
-      <version>1.11.0</version>
+      <version>${avro.version}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -144,7 +144,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava.version}</version>
     </dependency>
 
     <dependency>
