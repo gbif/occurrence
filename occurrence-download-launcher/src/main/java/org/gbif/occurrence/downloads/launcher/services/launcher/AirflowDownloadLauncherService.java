@@ -121,8 +121,6 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
       String dagId = downloadDagId(downloadKey);
       JsonNode jsonNode = airflowRunner.deleteRun(dagId);
 
-      lockerService.unlock(downloadKey);
-
       log.info("Airflow DAG {} has been stopped: {}", dagId, jsonNode);
       return JobStatus.CANCELLED;
     } catch (Exception ex) {
