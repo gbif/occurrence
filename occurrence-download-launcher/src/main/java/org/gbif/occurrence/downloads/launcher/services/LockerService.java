@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * running the download.
  */
 @Slf4j
+@Component
 public class LockerService {
 
   private final Map<String, Thread> lockMap = new ConcurrentHashMap<>();
