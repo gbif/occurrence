@@ -10,7 +10,7 @@
   <artifactId>occurrence-ws</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Web service</name>
+  <name>Occurrence :: Web service</name>
 
   <distributionManagement>
     <site>

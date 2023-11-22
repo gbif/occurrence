@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>occurrence-table-build-spark</artifactId>
-  <name>Occurrence HDFS-Hive Tables Build in Spark</name>
+  <name>Occurrence :: HDFS-Hive Tables Build in Spark</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -59,13 +59,6 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>gbif-all</id>
-      <url>https://repository.gbif.org/content/groups/gbif</url>
-    </repository>
-  </repositories>
 
   <dependencies>
     <dependency>

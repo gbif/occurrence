@@ -11,7 +11,7 @@
   <artifactId>event-ws</artifactId>
   <packaging>jar</packaging>
 
-  <name>Event Web service</name>
+  <name>Event :: Web service</name>
 
   <distributionManagement>
     <site>

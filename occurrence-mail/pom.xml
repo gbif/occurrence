@@ -9,7 +9,7 @@
 
   <artifactId>occurrence-mail</artifactId>
 
-  <name>Occurrence Mail</name>
+  <name>Occurrence :: Mail</name>
 
   <dependencies>
     <!-- Spring dependencies -->

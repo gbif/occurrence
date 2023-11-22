@@ -43,6 +43,10 @@
 
   <repositories>
     <repository>
+      <id>gbif-all</id>
+      <url>https://repository.gbif.org/content/groups/gbif</url>
+    </repository>
+    <repository>
       <id>gbif-central</id>
       <url>https://repository.gbif.org/repository/central/</url>
     </repository>

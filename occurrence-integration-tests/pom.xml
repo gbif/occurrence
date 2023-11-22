@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>occurrence-integration-tests</artifactId>
-  <name>Occurrence Integration Tests</name>
+  <name>Occurrence :: Integration Tests</name>
 
   <properties>
     <main.basedir>${project.parent.basedir}</main.basedir>

@@ -10,7 +10,7 @@
   <artifactId>occurrence-es-mapping</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Search Elasticsearch Mappings</name>
+  <name>Occurrence :: Search Elasticsearch Mappings</name>
 
   <distributionManagement>
     <site>

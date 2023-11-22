@@ -10,10 +10,7 @@
   </parent>
 
   <artifactId>occurrence-spark-udf</artifactId>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+  <name>Occurrence :: Spark UDF</name>
 
   <build>
     <resources>
@@ -29,13 +26,6 @@
       </testResource>
     </testResources>
   </build>
-
-  <repositories>
-    <repository>
-      <id>gbif-all</id>
-      <url>https://repository.gbif.org/content/groups/gbif</url>
-    </repository>
-  </repositories>
 
   <dependencies>
     <dependency>

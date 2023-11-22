@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>occurrence-download-launcher</artifactId>
-  <name>Occurrence Download Launcher</name>
+  <name>Occurrence :: Download Launcher</name>
 
   <properties>
     <amqp-client.version>5.9.0</amqp-client.version>

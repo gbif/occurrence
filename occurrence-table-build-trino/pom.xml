@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>occurrence-table-build-trino</artifactId>
-  <name>Occurrence Table Build Using Trino</name>
+  <name>Occurrence :: Table Build Using Trino</name>
 
   <properties>
     <maven.compiler.source>8</maven.compiler.source>
@@ -66,13 +66,6 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>gbif-all</id>
-      <url>https://repository.gbif.org/content/groups/gbif</url>
-    </repository>
-  </repositories>
 
   <dependencies>
     <dependency>

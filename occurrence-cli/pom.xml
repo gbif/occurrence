@@ -11,7 +11,7 @@
   <artifactId>occurrence-cli</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence CLI</name>
+  <name>Occurrence :: CLI</name>
 
   <distributionManagement>
     <site>

@@ -20,7 +20,7 @@
     <log4j-api.version>2.11.1</log4j-api.version>
   </properties>
 
-  <name>Occurrence Search service</name>
+  <name>Occurrence :: Search service</name>
 
   <distributionManagement>
     <site>

@@ -12,7 +12,7 @@
   <artifactId>maven-extension-avsc-schema-generator</artifactId>
   <packaging>maven-plugin</packaging>
 
-  <name>Occurrence :: Sdks :: Plugins :: Maven AVSC schema generator</name>
+  <name>Occurrence :: Maven AVSC schema generator</name>
   <description>Maven plugin generates avro schemas based on DWC XML extensions</description>
 
   <build>

@@ -10,7 +10,7 @@
   <artifactId>occurrence-registry-sync</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Registry Synchronizer</name>
+  <name>Occurrence :: Registry Synchronizer</name>
 
   <distributionManagement>
     <site>

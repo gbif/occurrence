@@ -11,7 +11,7 @@
 
   <packaging>jar</packaging>
 
-  <name>Occurrence Download Service</name>
+  <name>Occurrence :: Download Service</name>
 
   <distributionManagement>
     <site>

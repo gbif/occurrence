@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>occurrence-download</artifactId>
-  <name>Occurrence Download</name>
+  <name>Occurrence :: Download</name>
   <packaging>jar</packaging>
 
   <distributionManagement>

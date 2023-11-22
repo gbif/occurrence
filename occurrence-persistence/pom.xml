@@ -10,7 +10,7 @@
 
   <artifactId>occurrence-persistence</artifactId>
 
-  <name>Occurrence Persistence</name>
+  <name>Occurrence :: Persistence</name>
   <description>Persistence pieces for the Occurrence project</description>
 
   <distributionManagement>

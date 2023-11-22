@@ -10,7 +10,7 @@
   <artifactId>occurrence-hive</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Hive</name>
+  <name>Occurrence :: Hive</name>
   <description>Occurrence utilities for Hive</description>
 
   <distributionManagement>
