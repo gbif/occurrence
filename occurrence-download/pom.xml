@@ -30,6 +30,7 @@
     <!-- We want the coordinator to run at 05:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T05:00Z'</maven.build.timestamp.format>
+    <minimumMavenVersion>3.6.0</minimumMavenVersion>
   </properties>
 
   <build>
