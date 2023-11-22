@@ -134,7 +134,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public Optional<Status> getStatusByName(String downloadKey) {
     String dagId = downloadDagId(downloadKey);
     JsonNode jsonStatus = airflowRunner.getRun(dagId);
-    String status = jsonStatus.get("status").asText();
+    String status = jsonStatus.get("state").asText();
     if ("queued".equalsIgnoreCase(status)) {
       return Optional.of(Status.PREPARING);
     }
