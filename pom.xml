@@ -100,9 +100,7 @@
     <module>occurrence-download-launcher</module>
     <module>occurrence-spark-udf</module>
     <module>occurrence-download-spark</module>
-    <module>occurrence-download-stackable</module>
     <module>occurrence-table-build-trino</module>
-    <module>occurrence-table-build-spark-launcher</module>
   </modules>
 
   <properties>
@@ -112,7 +110,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <release.tagNameBase>occurrence</release.tagNameBase>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
     <spring-cloud-zookeeper.version>2.2.5.RELEASE</spring-cloud-zookeeper.version>
     <spring-cloud-openfeign.version>2.2.6.RELEASE</spring-cloud-openfeign.version>
