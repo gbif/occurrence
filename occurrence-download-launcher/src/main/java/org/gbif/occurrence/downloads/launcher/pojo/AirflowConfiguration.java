@@ -51,6 +51,8 @@ public class AirflowConfiguration {
 
   private String airflowCallback;
 
+  public long apiCheckDelaySec = 3L;
+
   private DownloadPodConfiguration podConfiguration;
 
   @JsonIgnore

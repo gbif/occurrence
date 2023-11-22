@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
+package org.gbif.occurrence.downloads.launcher.services.launcher;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
@@ -19,12 +19,16 @@ import org.gbif.occurrence.downloads.launcher.airflow.AirflowBody;
 import org.gbif.occurrence.downloads.launcher.airflow.AirflowRunner;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
+import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.stackable.K8StackableSparkController.Phase;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -33,6 +37,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 
+import io.kubernetes.client.openapi.ApiException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,22 +47,21 @@ import lombok.extern.slf4j.Slf4j;
 public class AirflowDownloadLauncherService implements DownloadLauncher {
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
-
   private final AirflowRunner airflowRunner;
-
   private final OccurrenceDownloadClient downloadClient;
-
   private final AirflowConfiguration airflowConfiguration;
-
+  private final LockerService lockerService;
 
   public AirflowDownloadLauncherService(
     SparkStaticConfiguration sparkStaticConfiguration,
     AirflowConfiguration airflowConfiguration,
-    OccurrenceDownloadClient downloadClient) {
+    OccurrenceDownloadClient downloadClient,
+    LockerService lockerService) {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
     this.downloadClient = downloadClient;
     this.airflowConfiguration = airflowConfiguration;
-    airflowRunner = AirflowRunner.builder().airflowConfiguration(airflowConfiguration).build();
+    this.airflowRunner = AirflowRunner.builder().airflowConfiguration(airflowConfiguration).build();
+    this.lockerService = lockerService;
   }
 
 
@@ -100,6 +104,9 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     try {
       Download download = downloadClient.get(downloadKey);
       JsonNode response = airflowRunner.createRun(getAirflowBody(download));
+
+      asyncStatusCheck(download.getKey());
+
       log.info("Response {}", response);
       return JobStatus.RUNNING;
     } catch (Exception ex) {
@@ -113,6 +120,9 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     try {
       String dagId = downloadDagId(downloadKey);
       JsonNode jsonNode = airflowRunner.deleteRun(dagId);
+
+      lockerService.unlock(downloadKey);
+
       log.info("Airflow DAG {} has been stopped: {}", dagId, jsonNode);
       return JobStatus.CANCELLED;
     } catch (Exception ex) {
@@ -164,5 +174,25 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
    */
   private static String normalize(String sparkAppName) {
     return "download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");
+  }
+
+  private void asyncStatusCheck(String downloadKey) {
+    CompletableFuture.runAsync(
+        () -> {
+          try {
+
+            Optional<Status> status = getStatusByName(downloadKey);
+            while (status.isPresent() && Status.SUCCEEDED != status.get() && Status.FAILED != status.get()) {
+              TimeUnit.SECONDS.sleep(airflowConfiguration.apiCheckDelaySec);
+              status = getStatusByName(downloadKey);
+            }
+
+            log.info("Spark Application {} is finished with status {}", downloadKey, status.get());
+          } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+          } finally {
+            lockerService.unlock(downloadKey);
+          }
+        });
   }
 }

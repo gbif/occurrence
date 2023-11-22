@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.downloads.launcher.services.launcher.stackable;
+package org.gbif.occurrence.downloads.launcher.services.launcher;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
@@ -19,7 +19,7 @@ import org.gbif.occurrence.downloads.launcher.pojo.SparkDynamicSettings;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.StackableConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
-import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.occurrence.downloads.launcher.services.launcher.stackable.SparkCrdFactoryService;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.stackable.K8StackableSparkController.Phase;
