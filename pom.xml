@@ -177,7 +177,7 @@
     <powermock-mockito.version>2.0.7</powermock-mockito.version>
     <findbugs-jsr305.version>3.0.1</findbugs-jsr305.version>
     <servlet-api.version>2.5</servlet-api.version>
-    <metainf-services.version>1.5</metainf-services.version>
+    <metainf-services.version>1.7</metainf-services.version>
 
     <super-csv.version>2.0.1</super-csv.version>
     <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
