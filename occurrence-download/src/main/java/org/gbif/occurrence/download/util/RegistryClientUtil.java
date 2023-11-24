@@ -16,7 +16,6 @@ package org.gbif.occurrence.download.util;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.registry.ws.client.DatasetClient;
 import org.gbif.registry.ws.client.EventDownloadClient;
@@ -26,7 +25,6 @@ import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Properties;
 
 /**
