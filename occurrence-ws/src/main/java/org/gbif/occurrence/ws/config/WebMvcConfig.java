@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -113,7 +114,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Primary
   @Bean
   public ObjectMapper registryObjectMapper() {
-    return JacksonJsonObjectMapperProvider.getObjectMapper().addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
+    return JacksonJsonObjectMapperProvider.getObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
   }
 
   @Bean
