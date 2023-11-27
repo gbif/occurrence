@@ -45,8 +45,8 @@ public class SqlDownloadRunner {
           .queryExecutor(queryExecutor)
           .build()
           .run();
-      } else if (download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV) {
-        SimpleCsvDownload.builder()
+      } else {
+        SimpleDownload.builder()
           .download(download)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
           .workflowConfiguration(workflowConfiguration)

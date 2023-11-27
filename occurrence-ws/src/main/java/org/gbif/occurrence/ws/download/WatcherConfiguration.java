@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
