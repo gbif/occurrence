@@ -16,7 +16,7 @@
 
     <!-- Elasticsearch -->
     <jts-core.version>1.15.0</jts-core.version>
-    <spatial4j.version>0.7</spatial4j.version>
+    <spatial4j.version>0.8</spatial4j.version>
     <log4j-api.version>2.11.1</log4j-api.version>
   </properties>
 
