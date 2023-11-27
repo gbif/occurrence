@@ -315,6 +315,11 @@ public class GenerateHQL {
     }
   }
 
+  @SneakyThrows
+  public static String binomiaQueryHQL() {
+    return new String(Files.readAllBytes(Paths.get(GenerateHQL.class.getResource("download-workflow/bionomia/hive-scripts/execute-bionomia-query.q").toURI())));
+  }
+
   /**
    * Generates the Hive query file used for simple with verbatim AVRO downloads.
    */

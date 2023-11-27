@@ -26,9 +26,12 @@ import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.GenerateHQL;
+import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -38,6 +41,7 @@ import org.apache.hadoop.fs.FileSystem;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.gbif.utils.file.properties.PropertiesUtil;
 
 @Builder
 @Data
@@ -88,18 +92,20 @@ public class SimpleDownload {
   @SneakyThrows
   private String downloadQuery() {
     if (downloadQuery == null) {
-      if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
+      if (DownloadFormat.IUCN == download.getRequest().getFormat()) {
+        downloadQuery = GenerateHQL.iucnQueryHQL();
+      } else if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.speciesListQueryHQL();
       } else if (DownloadFormat.SIMPLE_CSV == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.simpleCsvQueryHQL();
-      } else if (DownloadFormat.IUCN == download.getRequest().getFormat()) {
-        downloadQuery = GenerateHQL.iucnQueryHQL();
       } else if (DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.simpleAvroQueryHQL();
       } else if (DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.simpleWithVerbatimAvroQueryHQL();
       } else if (DownloadFormat.SIMPLE_PARQUET == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.simpleParquetQueryHQL();
+      } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
+        downloadQuery = GenerateHQL.binomiaQueryHQL();
       }
     }
     return downloadQuery;
@@ -109,9 +115,12 @@ public class SimpleDownload {
   private void zipAndArchive() {
     try (FileSystem fileSystem = DownloadFileUtils.getHdfs(workflowConfiguration.getHdfsNameNode())) {
       if (MULTI_ARCHIVE_DIRECTORY_FORMATS.contains(download.getRequest().getFormat())) {
-        MultiDirectoryArchiveBuilder.withEntries(getWarehouseTablePath(),getMultiArchiveFilename(),"") //empty means no-header
+        MultiDirectoryArchiveBuilder.withEntries(getMultiArchiveFileEntries()) //empty means no-header
           .mergeAllToZip(fileSystem, fileSystem, workflowConfiguration.getHdfsOutputPath(), download.getKey(),
             ModalZipOutputStream.MODE.DEFAULT); //Avro and Parquet are not pre-deflated
+      } else if(DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
+        MultiDirectoryArchiveBuilder.withEntries(getWarehouseTablePath())
+          .mergeAllToZip(fileSystem, fileSystem, workflowConfiguration.getHdfsOutputPath(), download.getKey(), ModalZipOutputStream.MODE.DEFAULT);
       } else {
         SimpleCsvArchiveBuilder.withHeader(getDownloadTerms())
           .mergeToZip(fileSystem, fileSystem, getWarehouseTablePath(),
@@ -120,14 +129,21 @@ public class SimpleDownload {
     }
   }
 
-  private String getMultiArchiveFilename() {
+  private String[] getMultiArchiveFileEntries() {
     DownloadFormat format = download.getRequest().getFormat();
     if (DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO == format) {
-      return workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".avro";
+      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".avro",""};
     }
 
     if (DownloadFormat.SIMPLE_PARQUET == format) {
-      return workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".parquet";
+      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".parquet",""};
+    }
+
+    if (DownloadFormat.BIONOMIA == format) {
+      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".avro", "",
+                          getWarehouseTableSuffixPath("agents"), "agents.avro","",
+                          getWarehouseTableSuffixPath("families"), "families.avro","",
+                          getWarehouseTableSuffixPath("identifiers"), "identifiers.avro",""};
     }
     throw new RuntimeException("Unsupported multi-archive format " + format);
   }
@@ -150,14 +166,14 @@ public class SimpleDownload {
   }
 
   private String getWarehouseCitationTablePath() {
-    return getWarehouseTablePrefixPath("citation");
+    return getWarehouseTableSuffixPath("citation");
   }
 
   private String getWarehouseCountTablePath() {
-    return getWarehouseTablePrefixPath("count");
+    return getWarehouseTableSuffixPath("count");
   }
 
-  private String getWarehouseTablePrefixPath(String prefix) {
+  private String getWarehouseTableSuffixPath(String prefix) {
     return getDatabasePath() + '/' + queryParameters.getDownloadTableName() + "_" + prefix + '/';
   }
 
@@ -190,6 +206,12 @@ public class SimpleDownload {
     if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
       queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
       queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+    }
+    if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers");
     }
 
   }

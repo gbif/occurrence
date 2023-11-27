@@ -9,10 +9,6 @@ SET hive.merge.mapfiles=false;
 -- Increases memory to avoid a "Container … is running beyond physical memory limits." error.
 SET mapreduce.map.memory.mb=8192;
 
-CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
-CREATE TEMPORARY FUNCTION geoDistance AS 'org.gbif.occurrence.hive.udf.GeoDistanceUDF';
-CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF';
-
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${downloadTableName}"};
 DROP TABLE IF EXISTS ${r"${downloadTableName}"}_citation;
