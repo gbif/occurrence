@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.spark.udf;
 
-
 import org.apache.spark.sql.api.java.UDF3;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
@@ -26,44 +25,42 @@ import lombok.SneakyThrows;
 
 public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
 
-  private final WKTReader wktReader;
-
-  private final JtsShapeFactory shapeFactory;
-
-  public ContainsUdf() {
-    JtsSpatialContextFactory spatialContextFactory = new JtsSpatialContextFactory();
-    spatialContextFactory.normWrapLongitude = true;
-    spatialContextFactory.srid = 4326;
-    // NB the “Rect” here: large polygons with ≥180° between longitudinal points will be processed incorrectly.
-    spatialContextFactory.datelineRule = DatelineRule.ccwRect;
-
-    wktReader = new org.locationtech.spatial4j.io.WKTReader(spatialContextFactory.newSpatialContext(), spatialContextFactory);
-
-    shapeFactory = new JtsShapeFactory(spatialContextFactory.newSpatialContext(), spatialContextFactory);
-  }
-
-  @SneakyThrows
-  private Shape toShape(String geometryAsWKT) {
-    if (geometryAsWKT != null) {
-      return wktReader.parse(geometryAsWKT);
-    }
-    return null;
-  }
-
   @Override
   @SneakyThrows
   public Boolean call(String geometryAsWKT, Double latitude, Double longitude) throws Exception {
+
     // sanitize the input
-    if (geometryAsWKT == null || latitude == null || longitude == null || latitude > 90 || latitude < -90
-      || longitude > 180 || longitude < -180) {
+    if (geometryAsWKT == null
+        || latitude == null
+        || longitude == null
+        || latitude > 90
+        || latitude < -90
+        || longitude > 180
+        || longitude < -180) {
       return false;
     }
 
-    Shape geom = toShape(geometryAsWKT);
+    JtsSpatialContextFactory contextFactory = createJtsSpatialContextFactory();
+
+    WKTReader wktReader = new WKTReader(contextFactory.newSpatialContext(), contextFactory);
+
+    JtsShapeFactory shapeFactory =
+        new JtsShapeFactory(contextFactory.newSpatialContext(), contextFactory);
+
+    Shape geom = wktReader.parse(geometryAsWKT);
 
     // support any geometry - up to the user to make a sensible query
     Point point = shapeFactory.pointXY(longitude, latitude);
 
     return geom.relate(point).intersects();
+  }
+
+  private JtsSpatialContextFactory createJtsSpatialContextFactory() {
+    JtsSpatialContextFactory spatialContextFactory = new JtsSpatialContextFactory();
+    spatialContextFactory.normWrapLongitude = true;
+    spatialContextFactory.srid = 4326;
+    // NB the “Rect” here: large polygons with ≥180° between longitudinal points will be processed incorrectly.
+    spatialContextFactory.datelineRule = DatelineRule.ccwRect;
+    return spatialContextFactory;
   }
 }
