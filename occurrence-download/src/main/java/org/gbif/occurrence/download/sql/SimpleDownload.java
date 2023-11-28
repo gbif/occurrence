@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -45,6 +46,7 @@ import org.gbif.utils.file.properties.PropertiesUtil;
 
 @Builder
 @Data
+@Slf4j
 public class SimpleDownload {
 
   public static final EnumSet<DownloadFormat> MULTI_ARCHIVE_DIRECTORY_FORMATS = EnumSet.of(DownloadFormat.SIMPLE_PARQUET, DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO);
@@ -77,7 +79,7 @@ public class SimpleDownload {
       onFinish.accept(this);
     } finally {
       //delete tables
-      dropTables();
+     // dropTables();
     }
   }
 
@@ -86,7 +88,9 @@ public class SimpleDownload {
     if(onStart != null) {
       onStart.run();
     }
-    SqlQueryUtils.runMultiSQL(downloadQuery(), queryParameters.toMap(), queryExecutor);
+    String downloadQuery = downloadQuery();
+    log.info("Download query:\n {}", downloadQuery);
+    SqlQueryUtils.runMultiSQL(downloadQuery, queryParameters.toMap(), queryExecutor);
   }
 
   @SneakyThrows
@@ -159,7 +163,7 @@ public class SimpleDownload {
   }
 
   private String getDatabasePath() {
-    return queryParameters.getWarehouseDir() + '/' + queryParameters.getDatabase() + '/';
+    return workflowConfiguration.getHiveDBPath() + "/";
   }
   private String getWarehouseTablePath() {
     return getDatabasePath() + queryParameters.getDownloadTableName() + '/';
