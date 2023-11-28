@@ -40,6 +40,7 @@ public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
       return false;
     }
 
+    // Moved into the call method body - https://github.com/gbif/occurrence/issues/329
     JtsSpatialContextFactory contextFactory = createJtsSpatialContextFactory();
 
     WKTReader wktReader = new WKTReader(contextFactory.newSpatialContext(), contextFactory);
