@@ -20,7 +20,7 @@ CREATE TABLE ${r"${downloadTableName}"}
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/simple-occurrence.avsc');
+TBLPROPERTIES ('avro.schema.literal'='${avroSchema}');
 
 INSERT INTO ${r"${downloadTableName}"}
 SELECT

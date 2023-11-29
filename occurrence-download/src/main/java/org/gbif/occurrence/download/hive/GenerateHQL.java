@@ -273,14 +273,16 @@ public class GenerateHQL {
   private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-      Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values());
+      Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values(),
+                                             "avroSchema", simpleAvroSchema().toString(true));
       template.process(data, out);
     }
   }
 
   private static void generateSimpleAvroQueryHQL(Configuration cfg, Writer out) throws IOException, TemplateException {
     Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-    Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values());
+    Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values(),
+                                            "avroSchema", simpleAvroSchema().toString(true));
     template.process(data, out);
   }
 

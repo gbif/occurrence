@@ -191,7 +191,7 @@
 
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
-    <slf4j.version>1.7.36</slf4j.version>
+    <slf4j.version>1.7.32</slf4j.version>
     <jts.version>1.16.1</jts.version>
     <xml-apis.version>1.4.01</xml-apis.version>
     <yammer.version>2.2.0</yammer.version>
