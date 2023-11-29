@@ -27,14 +27,10 @@ import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.GenerateHQL;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 
-import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.Properties;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.fs.FileSystem;
@@ -42,7 +38,6 @@ import org.apache.hadoop.fs.FileSystem;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.gbif.utils.file.properties.PropertiesUtil;
 
 @Builder
 @Data
@@ -60,9 +55,6 @@ public class SimpleDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
-  @Builder.Default
-  private final Consumer<SimpleDownload> onFinish = t -> {};
-
   private Runnable onStart;
 
   public void run() {
@@ -73,13 +65,11 @@ public class SimpleDownload {
       //zip content
       zipAndArchive();
 
-      //citations
-      readCitationsAndUpdateLicense();
-
-      onFinish.accept(this);
+      //update download info in the Registry
+      updateDownload();
     } finally {
       //delete tables
-     // dropTables();
+     dropTables();
     }
   }
 
@@ -89,7 +79,6 @@ public class SimpleDownload {
       onStart.run();
     }
     String downloadQuery = downloadQuery();
-    log.info("Download query:\n {}", downloadQuery);
     SqlQueryUtils.runMultiSQL(downloadQuery, queryParameters.toMap(), queryExecutor);
   }
 
@@ -110,6 +99,8 @@ public class SimpleDownload {
         downloadQuery = GenerateHQL.simpleParquetQueryHQL();
       } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.binomiaQueryHQL();
+      } else if (DownloadFormat.MAP_OF_LIFE == download.getRequest().getFormat()) {
+        downloadQuery = GenerateHQL.mapOfLifeQueryHQL();
       }
     }
     return downloadQuery;
@@ -159,7 +150,7 @@ public class SimpleDownload {
   }
 
   private ModalZipOutputStream.MODE getZipMode() {
-    return DownloadWorkflow.isSmallDownloadCount(download.getTotalRecords(), workflowConfiguration)? ModalZipOutputStream.MODE.DEFAULT : ModalZipOutputStream.MODE.PRE_DEFLATED;
+    return ModalZipOutputStream.MODE.PRE_DEFLATED;
   }
 
   private String getDatabasePath() {
@@ -181,8 +172,19 @@ public class SimpleDownload {
     return getDatabasePath() + '/' + queryParameters.getDownloadTableName() + "_" + prefix + '/';
   }
 
+
+  /**
+   * Updates the download metadata in the registry.
+   */
+  private void updateDownload() {
+    updateCitationsAndLicense();
+    if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
+      updateDownloadCount();
+    }
+  }
+
   @SneakyThrows
-  private void readCitationsAndUpdateLicense() {
+  private void updateCitationsAndLicense() {
     CitationsPersister.readCitationsAndUpdateLicense(workflowConfiguration.getHdfsNameNode(),
       getWarehouseCitationTablePath(), new CitationsPersister.PersistUsage(download.getKey(),
         download.getRequest().getType().getCoreTerm(),
@@ -192,7 +194,7 @@ public class SimpleDownload {
   }
 
   @SneakyThrows
-  public void updateDownload() {
+  private void updateDownloadCount() {
     String countPath = getWarehouseCountTablePath();
     RegistryClientUtil registryClientUtil = registryClient();
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(workflowConfiguration.getCoreTerm());

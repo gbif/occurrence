@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -52,6 +53,7 @@ import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStrea
 /**
  * Utility class that creates zip file from a directory that stores the data of a Hive table.
  */
+@Slf4j
 public class SimpleCsvArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvArchiveBuilder.class);
@@ -93,6 +95,8 @@ public class SimpleCsvArchiveBuilder {
   public void mergeToZip(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                 String targetPath, String downloadKey, ModalZipOutputStream.MODE mode) throws IOException {
     Path outputPath = new Path(targetPath, downloadKey + ZIP_EXTENSION);
+    log.info("Creating zip file with sourceFS:{} targetFS:{} sourcePath:{} targetPath:{} downloadKey:{} mode:{}",
+             sourceFS, targetFS, sourcePath, targetPath, downloadKey, mode);
     if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
       //Use hadoop-compress for pre_deflated files
       zipPreDeflated(sourceFS, targetFS, sourcePath, outputPath, downloadKey);

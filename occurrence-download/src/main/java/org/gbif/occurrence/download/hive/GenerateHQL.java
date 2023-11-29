@@ -14,11 +14,11 @@
 package org.gbif.occurrence.download.hive;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
@@ -235,8 +235,16 @@ public class GenerateHQL {
   }
 
   @SneakyThrows
+  public static String resourceAsString(String path) {
+    try (InputStream in = GenerateHQL.class.getResourceAsStream(path);
+         BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+      return reader.lines().collect(Collectors.joining("\n"));
+    }
+  }
+
+  @SneakyThrows
   public static String speciesListQueryHQL() {
-    return new String(Files.readAllBytes(Paths.get(GenerateHQL.class.getResource("download-workflow/species-list/hive-scripts/execute-species-list-query.q").toURI())));
+    return resourceAsString("/download-workflow/species-list/hive-scripts/execute-species-list-query.q");
   }
 
   /**
@@ -317,7 +325,7 @@ public class GenerateHQL {
 
   @SneakyThrows
   public static String binomiaQueryHQL() {
-    return new String(Files.readAllBytes(Paths.get(GenerateHQL.class.getResource("download-workflow/bionomia/hive-scripts/execute-bionomia-query.q").toURI())));
+    return resourceAsString("/download-workflow/bionomia/hive-scripts/execute-bionomia-query.q");
   }
 
   /**
