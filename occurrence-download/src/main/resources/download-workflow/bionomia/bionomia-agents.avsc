@@ -1,9 +1,3 @@
-/**
- * Bionomia agents table record format.
- *
- * This schema may change according to the requirements of the Bionomia project.
- */
-
 {
   "name": "BionomiaAgents",
   "namespace": "org.gbif.occurrence.download.bionomia.avro",

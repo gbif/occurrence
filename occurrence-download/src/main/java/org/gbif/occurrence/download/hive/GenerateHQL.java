@@ -54,6 +54,9 @@ public class GenerateHQL {
   private static final String SIMPLE_WITH_VERBATIM_AVRO_DOWNLOAD_DIR = "download-workflow/simple-with-verbatim-avro/hive-scripts";
   private static final String IUCN_DOWNLOAD_DIR = "download-workflow/iucn/hive-scripts";
   private static final String MAP_OF_LIFE_DOWNLOAD_DIR = "download-workflow/map-of-life/hive-scripts";
+
+  private static final String BIONOMIA_DOWNLOAD_DIR = "download-workflow/bionomia/hive-scripts";
+
   private static final String AVRO_SCHEMAS_DIR = "create-tables/avro-schemas";
 
   private static final String FIELDS = "fields";
@@ -81,6 +84,7 @@ public class GenerateHQL {
       File iucnDownloadDir = new File(outDir, IUCN_DOWNLOAD_DIR);
       File mapOfLifeDownloadDir = new File(outDir, MAP_OF_LIFE_DOWNLOAD_DIR);
       File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
+      File bionomiaSchemasDir = new File(outDir, BIONOMIA_DOWNLOAD_DIR);
 
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
@@ -91,6 +95,7 @@ public class GenerateHQL {
       iucnDownloadDir.mkdirs();
       mapOfLifeDownloadDir.mkdirs();
       avroSchemasDir.mkdirs();
+      bionomiaSchemasDir.mkdirs();
 
       Configuration cfg = templateConfig();
 
@@ -110,6 +115,7 @@ public class GenerateHQL {
       generateIucnQueryHQL(cfg, iucnDownloadDir);
       generateMapOfLifeQueryHQL(cfg, mapOfLifeDownloadDir);
       generateMapOfLifeSchema(cfg, mapOfLifeDownloadDir.getParentFile());
+      generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could have
@@ -330,6 +336,23 @@ public class GenerateHQL {
     return resourceAsString("/download-workflow/bionomia/hive-scripts/execute-bionomia-query.q");
   }
 
+  public static void generateBionomiaQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+    try (FileWriter out = new FileWriter(new File(outDir, "execute-bionomia-query.q"))) {
+      generateBionomiaQueryHQL(cfg, out);
+    }
+  }
+  public static void generateBionomiaQueryHQL(Configuration cfg, Writer out) throws IOException, TemplateException {
+    Template template = cfg.getTemplate("bionomia/execute-bionomia-query.ftl");
+
+    Map<String, Object> data = ImmutableMap.of(
+      "bionomiaAvroSchema", resourceAsString("/download-workflow/bionomia/bionomia.avsc"),
+      "bionomiaAgentsAvroSchema", resourceAsString("/download-workflow/bionomia/bionomia-agents.avsc"),
+      "bionomiaFamiliesAvroSchema", resourceAsString("/download-workflow/bionomia/bionomia-families.avsc"),
+      "bionomiaIdentifiersAvroSchema", resourceAsString("/download-workflow/bionomia/bionomia-identifiers.avsc")
+    );
+    template.process(data, out);
+  }
+
   /**
    * Generates the Hive query file used for simple with verbatim AVRO downloads.
    */
@@ -448,7 +471,7 @@ public class GenerateHQL {
   /**
    * Generates the AVRO schema for Map Of Life's custom format downloads.
    */
-  static Schema mapOfLifeSchema() throws IOException {
+  static Schema mapOfLifeSchema() {
     Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true);
 
     SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
@@ -473,7 +496,8 @@ public class GenerateHQL {
   private static void generateMapOfLifeQueryHQL(Configuration cfg, Writer out) throws IOException, TemplateException {
     Template template = cfg.getTemplate("map-of-life-download/execute-map-of-life-query.ftl");
     Map<String, Object> data = ImmutableMap.of(
-      "fields", AVRO_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true)
+      "fields", AVRO_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true),
+      "mapOfLifeAvroSchema", mapOfLifeSchema().toString(true)
     );
     template.process(data, out);
 

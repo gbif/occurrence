@@ -1,15 +1,9 @@
-/**
- * Bionomia occurrence table record format.
- *
- * This schema may change according to the requirements of the Bionomia project.
- */
-
 {
   "name": "Bionomia",
   "namespace": "org.gbif.occurrence.download.bionomia.avro",
   "type": "record",
   "fields": [
-    {"name": "gbifID",             "type": "long" },
+    {"name": "gbifID",             "type": "string" },
     {"name": "datasetKey",         "type": "string" },
     {"name": "license",            "type": "string" },
     {"name": "basisOfRecord",      "type": "string" },

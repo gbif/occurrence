@@ -45,7 +45,7 @@ import lombok.SneakyThrows;
 @Slf4j
 public class SimpleDownload {
 
-  public static final EnumSet<DownloadFormat> MULTI_ARCHIVE_DIRECTORY_FORMATS = EnumSet.of(DownloadFormat.SIMPLE_PARQUET, DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO);
+  public static final EnumSet<DownloadFormat> MULTI_ARCHIVE_DIRECTORY_FORMATS = EnumSet.of(DownloadFormat.SIMPLE_PARQUET, DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO, DownloadFormat.BIONOMIA);
   private static String downloadQuery;
 
   private final QueryExecutor queryExecutor;
@@ -114,10 +114,7 @@ public class SimpleDownload {
         MultiDirectoryArchiveBuilder.withEntries(getMultiArchiveFileEntries()) //empty means no-header
           .mergeAllToZip(fileSystem, fileSystem, workflowConfiguration.getHdfsOutputPath(), download.getKey(),
             ModalZipOutputStream.MODE.DEFAULT); //Avro and Parquet are not pre-deflated
-      } else if(DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-        MultiDirectoryArchiveBuilder.withEntries(getWarehouseTablePath())
-          .mergeAllToZip(fileSystem, fileSystem, workflowConfiguration.getHdfsOutputPath(), download.getKey(), ModalZipOutputStream.MODE.DEFAULT);
-      } else if(DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat()) {
+      } else if(DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat() || DownloadFormat.MAP_OF_LIFE == download.getRequest().getFormat()) {
         SimpleAvroArchiveBuilder.mergeToSingleAvro(fileSystem, fileSystem, getWarehouseTablePath(),
           workflowConfiguration.getHdfsOutputPath(), download.getKey());
       }

@@ -19,7 +19,7 @@ ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
 STORED AS INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
 OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 -- The schema could be programatically generated, but it seems useful to have something in the codebase to refer to.
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/map-of-life.avsc');
+TBLPROPERTIES ('avro.schema.literal'='${mapOfLifeAvroSchema}');
 
 INSERT INTO ${r"${downloadTableName}"}
 SELECT
