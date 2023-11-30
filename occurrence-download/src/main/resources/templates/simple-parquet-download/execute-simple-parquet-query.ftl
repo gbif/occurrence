@@ -5,7 +5,7 @@
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hiveDB};" -->
 USE ${r"${hiveDB}"};
 
-SET hive.merge.mapfiles=false;
+SET spark.hadoop.hive.merge.mapfiles=false;
 -- Increases memory to avoid a "Container … is running beyond physical memory limits." error.
 SET mapreduce.map.memory.mb=8192;
 
@@ -32,8 +32,8 @@ WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
-SET hive.exec.compress.output=false;
-SET mapred.reduce.tasks=1;
+SET spark.hadoop.hive.exec.compress.output=false;
+SET spark.sql.shuffle.partitions=1;
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;

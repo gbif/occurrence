@@ -24,6 +24,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.archive.MultiDirectoryArchiveBuilder;
 import org.gbif.occurrence.download.file.common.DownloadCount;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.file.simpleavro.SimpleAvroArchiveBuilder;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.GenerateHQL;
@@ -116,7 +117,11 @@ public class SimpleDownload {
       } else if(DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
         MultiDirectoryArchiveBuilder.withEntries(getWarehouseTablePath())
           .mergeAllToZip(fileSystem, fileSystem, workflowConfiguration.getHdfsOutputPath(), download.getKey(), ModalZipOutputStream.MODE.DEFAULT);
-      } else {
+      } else if(DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat()) {
+        SimpleAvroArchiveBuilder.mergeToSingleAvro(fileSystem, fileSystem, getWarehouseTablePath(),
+          workflowConfiguration.getHdfsOutputPath(), download.getKey());
+      }
+      else {
         SimpleCsvArchiveBuilder.withHeader(getDownloadTerms())
           .mergeToZip(fileSystem, fileSystem, getWarehouseTablePath(),
             workflowConfiguration.getHdfsOutputPath(), download.getKey(), getZipMode());

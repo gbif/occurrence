@@ -95,8 +95,8 @@ public class SimpleCsvArchiveBuilder {
   public void mergeToZip(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                 String targetPath, String downloadKey, ModalZipOutputStream.MODE mode) throws IOException {
     Path outputPath = new Path(targetPath, downloadKey + ZIP_EXTENSION);
-    log.info("Creating zip file with sourceFS:{} targetFS:{} sourcePath:{} targetPath:{} downloadKey:{} mode:{}",
-             sourceFS, targetFS, sourcePath, targetPath, downloadKey, mode);
+    log.info("Creating zip file with  sourcePath:{} targetPath:{} downloadKey:{} mode:{}",
+             sourcePath, targetPath, downloadKey, mode);
     if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
       //Use hadoop-compress for pre_deflated files
       zipPreDeflated(sourceFS, targetFS, sourcePath, outputPath, downloadKey);

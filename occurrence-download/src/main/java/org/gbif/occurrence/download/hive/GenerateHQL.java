@@ -352,7 +352,8 @@ public class GenerateHQL {
 
     Map<String, Object> data = ImmutableMap.of(
       "simpleFields", simpleFields,
-      "verbatimFields", verbatimFields
+      "verbatimFields", verbatimFields,
+      "avroSchema", simpleWithVerbatimAvroSchema().toString(true)
     );
     template.process(data, out);
 

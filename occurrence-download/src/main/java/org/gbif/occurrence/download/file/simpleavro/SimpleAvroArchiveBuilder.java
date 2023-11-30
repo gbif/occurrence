@@ -34,8 +34,6 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-
 /**
  * Utility class that creates a single Avro file from a directory that stores Avro data (of a Hive table or search queries).
  */
@@ -88,7 +86,7 @@ public class SimpleAvroArchiveBuilder {
 
     } catch (Exception ex) {
       LOG.error("Error combining Avro files", ex);
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 
