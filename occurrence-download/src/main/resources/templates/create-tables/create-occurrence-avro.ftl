@@ -7,7 +7,7 @@
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hive_db};" -->
 USE ${r"${hiveDB}"};
 
--- Creates the Avro table pointing to the snapshot
+-- Creates the temporary Avro table pointing to the snapshot
 DROP TABLE IF EXISTS ${r"${tableName}"}_avro;
 CREATE EXTERNAL TABLE ${r"${tableName}"}_avro
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
@@ -87,11 +87,5 @@ SET hive.auto.convert.join=true;
 SET hive.vectorized.execution.reduce.enabled=true;
 SET hive.exec.parallel=true;
 
--- Re-creates the Avro table pointing to the main directory
+-- Drop the temporary Avro table
 DROP TABLE IF EXISTS ${r"${tableName}"}_avro;
-CREATE EXTERNAL TABLE ${r"${tableName}"}_avro
-ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.avro.AvroSerDe'
-STORED as INPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerInputFormat'
-OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
-LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${r"${tableSourceDir}"}'
-TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/occurrence-hdfs-record.avsc');
