@@ -171,7 +171,7 @@
     <jackson.version>2.11.3</jackson.version>
     <json.version>20220320</json.version>
     <jcommander.version>1.35</jcommander.version>
-    <logback.version>1.1.5</logback.version>
+    <logback.version>1.2.13</logback.version>
     <logstash-encoder.version>4.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>3.1.0</mockito.version>
