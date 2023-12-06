@@ -192,7 +192,7 @@ public enum EventEsField implements EsField {
   //Event
   START_DAY_OF_YEAR(new BaseEsField("event.startDayOfYear", DwcTerm.startDayOfYear)),
   END_DAY_OF_YEAR(new BaseEsField("event.endDayOfYear", DwcTerm.startDayOfYear)),
-  EVENT_TYPE(new BaseEsField("event.eventType", GbifTerm.eventType)),
+  EVENT_TYPE(new BaseEsField("event.eventType", DwcTerm.eventType)),
   LOCATION_ID(new BaseEsField("event.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("event.parentsLineage", UnknownTerm.build("event.parentsLineage"))),
 

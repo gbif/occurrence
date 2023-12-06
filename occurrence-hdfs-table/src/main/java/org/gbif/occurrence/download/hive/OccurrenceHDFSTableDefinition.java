@@ -58,7 +58,9 @@ public class OccurrenceHDFSTableDefinition {
           DwcTerm.identifiedBy,
           DwcTerm.otherCatalogNumbers,
           DwcTerm.preparations,
-          DwcTerm.samplingProtocol);
+          DwcTerm.samplingProtocol,
+          DwcTerm.higherGeography,
+          DwcTerm.georeferencedBy);
 
   /**
    * Assemble the mapping for verbatim fields.
@@ -86,7 +88,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
-                                      .put(GbifTerm.eventType, columnFor(GbifTerm.eventType))
+                                      .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
                                       .build();
 
