@@ -1,6 +1,6 @@
 {
-  "creator":"markus",
-  "notification_addresses": ["gbif@mailinator.com"],
+  "creator":"fmendez",
+  "notification_addresses": ["fmendez@gbif.org"],
   "send_notification":"true",
   "format": "SIMPLE_CSV",
   "predicate":{

@@ -11,8 +11,8 @@ DROP TABLE IF EXISTS ${r"${downloadTableName}"};
 DROP TABLE IF EXISTS ${r"${downloadTableName}"}_citation;
 
 -- set Deflate Avro compression, the multiple blocks will later be combined without re-compressing
-SET spark.hadoop.hive.exec.compress.output=true;
-SET spark.hadoop.hive.exec.compress.intermediate=true;
+SET hive.exec.compress.output=true;
+SET hive.exec.compress.intermediate=true;
 SET spark.sql.avro.compression.codec=deflate;
 SET spark.sql.avro.deflate.level=9;
 
@@ -32,8 +32,8 @@ WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
-SET spark.hadoop.hive.exec.compress.intermediate=false;
-SET spark.hadoop.hive.exec.compress.output=false;
+SET hive.exec.compress.intermediate=false;
+SET hive.exec.compress.output=false;
 CREATE TABLE ${r"${downloadTableName}"}_citation
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${r"${downloadTableName}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;

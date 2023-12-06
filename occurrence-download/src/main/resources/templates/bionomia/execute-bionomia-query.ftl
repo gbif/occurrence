@@ -7,7 +7,7 @@
 USE  ${r"${hiveDB}"};
 
 -- don't run joins locally, else risk running out of memory
-SET spark.hadoop.hive.auto.convert.join=false;
+SET hive.auto.convert.join=false;
 
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${downloadTableName}"};
@@ -58,8 +58,8 @@ WHERE (v_identifiedBy IS NOT NULL OR v_recordedBy IS NOT NULL)
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
-SET spark.hadoop.hive.exec.compress.intermediate=false;
-SET spark.hadoop.hive.exec.compress.output=false;
+SET hive.exec.compress.intermediate=false;
+SET hive.exec.compress.output=false;
 CREATE TABLE ${r"${downloadTableName}"}_citation
   ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences, license FROM ${r"${downloadTableName}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey, license;

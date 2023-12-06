@@ -6,16 +6,16 @@
 USE ${r"${hiveDB}"};
 
 -- don't run joins locally, else risk running out of memory
-SET spark.hadoop.hive.auto.convert.join=false;
+SET hive.auto.convert.join=false;
 
 -- setup for our custom, combinable deflated compression
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
-SET spark.hadoop.hive.exec.compress.output=true;
+SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
-SET spark.hadoop.hive.merge.mapfiles=false;
-SET spark.hadoop.hive.merge.mapredfiles=false;
+SET hive.merge.mapfiles=false;
+SET hive.merge.mapredfiles=false;
 
 
 -- in case this job is relaunched
@@ -58,7 +58,7 @@ FROM ${r"${tableName}"}
 
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
-SET spark.hadoop.hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
+SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
 --
 -- Creates the multimedia table
@@ -66,21 +66,21 @@ SET spark.hadoop.hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 --
 SET mapred.reduce.tasks=5;
 -- Disabling hive auto join https://issues.apache.org/jira/browse/HIVE-2601.
-SET spark.hadoop.hive.auto.convert.join=false;
+SET hive.auto.convert.join=false;
 
 CREATE TABLE ${r"${multimediaTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT m.gbifid, m.type, m.format, m.identifier, m.references, m.title, m.description, m.source, m.audience, m.created, m.creator, m.contributor, m.publisher, m.license, m.rightsHolder
 FROM ${r"${tableName}"}_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 
-SET spark.hadoop.hive.auto.convert.join=true;
+SET hive.auto.convert.join=true;
 
 --
 -- Creates the citation table
 -- At most this produces #datasets, so single reducer
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
-SET spark.hadoop.hive.exec.compress.output=false;
+SET hive.exec.compress.output=false;
 SET spark.sql.shuffle.partitions=1;
 
 CREATE TABLE ${r"${citationTable}"}
