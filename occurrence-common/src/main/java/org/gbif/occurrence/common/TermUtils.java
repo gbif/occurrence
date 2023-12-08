@@ -333,6 +333,8 @@ public class TermUtils {
         DwcTerm.year,
         DwcTerm.month,
         DwcTerm.day,
+        DwcTerm.startDayOfYear,
+        DwcTerm.endDayOfYear,
         DwcTerm.minimumDepthInMeters,
         DwcTerm.maximumDepthInMeters,
         DwcTerm.minimumElevationInMeters,
@@ -434,8 +436,6 @@ public class TermUtils {
         GADM_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       //IUCN RedList Category
       .add(IucnTerm.iucnRedListCategory)
-      //EventType
-      .add(DwcTerm.eventType)
       .build();
   }
 

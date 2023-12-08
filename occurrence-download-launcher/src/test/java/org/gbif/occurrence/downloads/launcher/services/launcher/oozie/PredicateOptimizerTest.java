@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
-import org.gbif.api.model.occurrence.predicate.CompoundPredicate;
-import org.gbif.api.model.occurrence.predicate.DisjunctionPredicate;
-import org.gbif.api.model.occurrence.predicate.EqualsPredicate;
-import org.gbif.api.model.occurrence.predicate.InPredicate;
-import org.gbif.api.model.occurrence.predicate.Predicate;
+import org.gbif.api.model.predicate.CompoundPredicate;
+import org.gbif.api.model.predicate.DisjunctionPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.InPredicate;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.junit.Test;
 

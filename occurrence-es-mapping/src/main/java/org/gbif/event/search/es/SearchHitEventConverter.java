@@ -21,6 +21,7 @@ import org.gbif.api.model.occurrence.Gadm;
 import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.AgentIdentifierType;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -37,10 +38,12 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 
 import java.net.URI;
+import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -306,7 +309,13 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, DAY, Integer::valueOf).ifPresent(event::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(event::setMonth);
     getValue(hit, YEAR, Integer::valueOf).ifPresent(event::setYear);
-    getDateValue(hit, EVENT_DATE).ifPresent(event::setEventDate);
+    getStringValue(hit, EVENT_DATE_INTERVAL).ifPresent(m -> {
+      try {
+        event.setEventDate(IsoDateInterval.fromString(m));
+      } catch (ParseException e) {}
+    });
+    getValue(hit, START_DAY_OF_YEAR, Integer::valueOf).ifPresent(event::setStartDayOfYear);
+    getValue(hit, END_DAY_OF_YEAR, Integer::valueOf).ifPresent(event::setEndDayOfYear);
   }
 
   private void setLocationFields(SearchHit hit, Event event) {

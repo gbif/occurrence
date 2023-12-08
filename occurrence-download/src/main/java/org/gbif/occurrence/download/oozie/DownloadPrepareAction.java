@@ -17,7 +17,7 @@ import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.query.QueryBuildingException;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;

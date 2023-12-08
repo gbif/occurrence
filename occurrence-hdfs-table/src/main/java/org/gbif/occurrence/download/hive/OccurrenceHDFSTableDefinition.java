@@ -32,7 +32,7 @@ import static org.gbif.occurrence.download.hive.HiveColumns.columnFor;
 import static org.gbif.occurrence.download.hive.HiveColumns.getVerbatimColPrefix;
 
 /**
- * This provides the definition required to construct the occurrence hdfs table, for use as a Hive table.
+ * This provides the definition required to construct the occurrence HDFS table, for use as a Hive table.
  * The table is populated by a query which scans the Avro files, but along the way converts some fields to
  * e.g. Hive arrays which requires some UDF voodoo captured here.
  * <p/>
@@ -122,6 +122,8 @@ public class OccurrenceHDFSTableDefinition {
                                                       .put(GbifInternalTerm.hostingOrganizationKey, columnFor(GbifInternalTerm.hostingOrganizationKey))
                                                       .put(GbifInternalTerm.isInCluster, columnFor(GbifInternalTerm.isInCluster))
                                                       .put(GbifInternalTerm.dwcaExtension, columnFor(GbifInternalTerm.dwcaExtension))
+                                                      .put(GbifInternalTerm.eventDateGte, columnFor(GbifInternalTerm.eventDateGte))
+                                                      .put(GbifInternalTerm.eventDateLte, columnFor(GbifInternalTerm.eventDateLte))
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
