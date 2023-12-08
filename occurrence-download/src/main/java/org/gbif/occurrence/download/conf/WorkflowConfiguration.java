@@ -16,7 +16,7 @@ package org.gbif.occurrence.download.conf;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;

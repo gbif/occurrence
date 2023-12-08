@@ -38,20 +38,6 @@
       <resource>
         <directory>src/main/resources</directory>
         <filtering>true</filtering>
-        <includes>
-          <include>conf/hive-default.xml</include>
-          <include>**/workflow.xml</include>
-          <include>**/config-default.xml</include>
-          <include>**/coordinator*.xml</include>
-          <include>**/hbase-site.xml</include>
-          <include>**/regular-download-workflow/*.properties</include>
-          <include>**/simple-avro-download/execute-simple-avro-query.ftl</include>
-          <include>**/species-list-download/execute-species-list-query.ftl</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>false</filtering>
       </resource>
     </resources>
     <testResources>
@@ -65,25 +51,6 @@
       </testResource>
     </testResources>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>hql</id>
-            <phase>package</phase>
-            <goals>
-              <goal>java</goal>
-            </goals>
-            <configuration>
-              <mainClass>org.gbif.occurrence.download.hive.GenerateHQL</mainClass>
-              <arguments>
-                <argument>${project.build.outputDirectory}</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -119,61 +86,6 @@
           </execution>
         </executions>
       </plugin>
-
-      <!--
-        Assemblies to create workflows for:
-          - the creation of tables for use in the downloads
-          - the download workflow itself
-      -->
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <appendAssemblyId>false</appendAssemblyId>
-          <descriptors>
-            <descriptor>src/main/assembly/create-tables.xml</descriptor>
-            <descriptor>src/main/assembly/download.xml</descriptor>
-            <descriptor>src/main/assembly/simple-avro-download.xml</descriptor>
-            <descriptor>src/main/assembly/simple-csv-download.xml</descriptor>
-            <descriptor>src/main/assembly/simple-parquet-download.xml</descriptor>
-            <descriptor>src/main/assembly/species-list-download.xml</descriptor>
-            <descriptor>src/main/assembly/iucn-download.xml</descriptor>
-            <descriptor>src/main/assembly/map-of-life-download.xml</descriptor>
-            <descriptor>src/main/assembly/simple-with-verbatim-avro-download.xml</descriptor>
-            <descriptor>src/main/assembly/bionomia-download.xml</descriptor>
-            <descriptor>src/main/assembly/common.xml</descriptor>
-          </descriptors>
-        </configuration>
-        <executions>
-          <!--
-            Assembly to create a workflow for creating the tables
-          -->
-          <execution>
-            <id>create-tables</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <finalName>${wf_prefix}-download-workflows-${occurrence.environment}</finalName>
-            </configuration>
-          </execution>
-          <!--
-            Assembly to create a workflow for the download
-          -->
-
-          <execution>
-            <id>common</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <finalName>${wf_prefix}-download-workflows-${occurrence.environment}</finalName>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

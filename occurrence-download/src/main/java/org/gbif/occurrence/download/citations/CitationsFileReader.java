@@ -15,7 +15,7 @@ package org.gbif.occurrence.download.citations;
 
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedReader;
