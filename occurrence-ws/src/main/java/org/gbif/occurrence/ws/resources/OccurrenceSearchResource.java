@@ -404,7 +404,7 @@ public class OccurrenceSearchResource {
         name = "earliestEraOrLowestErathem",
         description = "The full name of the latest possible geochronologic eon or highest chrono-stratigraphic " +
           "eonothem or the informal name (\"Precambrian\") attributable to the stratigraphic horizon " +
-          "from which the dwc:MaterialEntity was collected" +
+          "from which the material entity was collected" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -413,7 +413,7 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "earliestPeriodOrLowestSystem",
         description = "The full name of the earliest possible geochronologic period or lowest chronostratigraphic " +
-          "system attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          "system attributable to the stratigraphic horizon from which the material entity was collected" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -422,7 +422,7 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "earliestEpochOrLowestSeries",
         description = "The full name of the earliest possible geochronologic epoch or lowest chronostratigraphic " +
-          "series attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          "series attributable to the stratigraphic horizon from which the material entity was collected" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -487,7 +487,7 @@ public class OccurrenceSearchResource {
         example = "2405"),
       @Parameter(
         name = "fieldNumber",
-        description = "An identifier given to the dwc:Event in the field. Often serves as a link between field notes and the event.\n\n" +
+        description = "An identifier given to the event in the field. Often serves as a link between field notes and the event.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -592,7 +592,7 @@ public class OccurrenceSearchResource {
         example = "POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))"),
       @Parameter(
         name = "group",
-        description = "The full name of the lithostratigraphic group from which the dwc:MaterialEntity was collected.\n\n" +
+        description = "The full name of the lithostratigraphic group from which the material entity was collected.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -617,7 +617,7 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "highestBiostratigraphicZone",
         description = "The full name of the highest possible geological biostratigraphic zone of the stratigraphic " +
-          "horizon from which the dwc:MaterialEntity was collected.\n\n" +
+          "horizon from which the material entity was collected.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -703,7 +703,7 @@ public class OccurrenceSearchResource {
         example = "true"),
       @Parameter(
         name = "island",
-        description = "Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.\n\n" +
+        description = "The name of the island on or near which the location occurs.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -711,7 +711,7 @@ public class OccurrenceSearchResource {
         example = "Zanzibar"),
       @Parameter(
         name = "islandGroup",
-        description = "Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.\n\n" +
+        description = "The name of the island group in which the location occurs.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -756,7 +756,7 @@ public class OccurrenceSearchResource {
         name = "latestEonOrHighestEonothem",
         description = "The full name of the latest possible geochronologic eon or highest chrono-stratigraphic " +
           "eonothem or the informal name (\"Precambrian\") attributable to the stratigraphic horizon " +
-          "from which the dwc:MaterialEntity was collected" +
+          "from which the material entity was collected" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -774,7 +774,7 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "latestPeriodOrHighestSystem",
         description = "The full name of the latest possible geochronologic period or highest chronostratigraphic " +
-          "system attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          "system attributable to the stratigraphic horizon from which the material entity was collected" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -783,7 +783,7 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "latestEpochOrHighestSeries",
         description = "The full name of the latest possible geochronologic epoch or highest chronostratigraphic " +
-          "series attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          "series attributable to the stratigraphic horizon from which the material entity was collected" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -792,7 +792,7 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "latestAgeOrHighestStage",
         description = "The full name of the latest possible geochronologic age or highest chronostratigraphic " +
-          "stage attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected." +
+          "stage attributable to the stratigraphic horizon from which the material entity was collected." +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
