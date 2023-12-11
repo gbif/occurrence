@@ -20,26 +20,26 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.base.CaseFormat;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
-
-import static junit.framework.TestCase.assertTrue;
 
 public class OccurrenceSearchResourceTest {
 
   @Test
   public void searchParametersDocumented() throws Exception {
-    Set documentedParameters =
-      Arrays.stream(
-          OccurrenceSearchResource.class
-            .getMethod("search", OccurrenceSearchRequest.class)
-            .getAnnotation(Parameters.class)
-            .value())
-        .map(p -> p.name())
-        .collect(Collectors.toSet());
+
+    Set<String> documentedParameters = Arrays.stream(
+        OccurrenceSearchResource.class
+          .getMethod("search", OccurrenceSearchRequest.class)
+          .getAnnotation(Parameters.class)
+          .value())
+      .map(Parameter::name)
+      .collect(Collectors.toSet());
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
       String name;
@@ -53,7 +53,8 @@ public class OccurrenceSearchResourceTest {
         default:
           name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name());
       }
-      assertTrue("Search parameter " + param + "/" + name + " is not documented", documentedParameters.contains(name));
+      Assertions.assertTrue(documentedParameters.contains(name),
+        "Search parameter " + param + "/" + name + " is not documented");
     }
   }
 }

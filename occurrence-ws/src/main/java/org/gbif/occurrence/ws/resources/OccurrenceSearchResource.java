@@ -25,9 +25,11 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.GbifRegion;
 import org.gbif.api.vocabulary.License;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceStatus;
+import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.api.vocabulary.ThreatStatus;
 import org.gbif.api.vocabulary.TypeStatus;
@@ -241,6 +243,14 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "PRESERVED_SPECIMEN"),
       @Parameter(
+        name = "bed",
+        description = "The full name of the lithostratigraphic bed from which the material entity was collected.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Harlem coal"),
+      @Parameter(
         name = "catalogNumber",
         description = "An identifier of any form assigned by the source within a physical collection or digital " +
           "dataset for the record which may not be unique, but should be fairly unique in combination with the " +
@@ -382,12 +392,66 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "http://rs.tdwg.org/ac/terms/Multimedia"),
       @Parameter(
+        name = "earliestEonOrLowestEonothem",
+        description = "The full name of the earliest possible geochronologic era or lowest chronostratigraphic " +
+          "erathem attributable to the stratigraphic horizon from which the material entity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Mesozoic"),
+      @Parameter(
+        name = "earliestEraOrLowestErathem",
+        description = "The full name of the latest possible geochronologic eon or highest chrono-stratigraphic " +
+          "eonothem or the informal name (\"Precambrian\") attributable to the stratigraphic horizon " +
+          "from which the dwc:MaterialEntity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Proterozoic"),
+      @Parameter(
+        name = "earliestPeriodOrLowestSystem",
+        description = "The full name of the earliest possible geochronologic period or lowest chronostratigraphic " +
+          "system attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Neogene"),
+      @Parameter(
+        name = "earliestEpochOrLowestSeries",
+        description = "The full name of the earliest possible geochronologic epoch or lowest chronostratigraphic " +
+          "series attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Holocene"),
+      @Parameter(
+        name = "earliestAgeOrLowestStage",
+        description = "The full name of the earliest possible geochronologic age or lowest chronostratigraphic " +
+          "stage attributable to the stratigraphic horizon from which the material entity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Skullrockian"),
+      @Parameter(
         name = "elevation",
         description = "Elevation (altitude) in metres above sea level.\n\n" +
           API_PARAMETER_RANGE_OR_REPEAT,
         schema = @Schema(implementation = Range.class),
         in = ParameterIn.QUERY,
         example = "1000,1250"),
+      @Parameter(
+        name = "endDayOfYear",
+        description = "The latest integer day of the year on which the event occurred.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true,  schema = @Schema(implementation = Short.class, minimum = "1", maximum = "366")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "6"),
       @Parameter(
         name = "establishmentMeans",
         description = "Whether an organism or organisms have been introduced to a given place and time through " +
@@ -422,8 +486,24 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "2405"),
       @Parameter(
+        name = "fieldNumber",
+        description = "An identifier given to the dwc:Event in the field. Often serves as a link between field notes and the event.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "RV Sol 87-03-08"),
+      @Parameter(
+        name = "formation",
+        description = "The full name of the lithostratigraphic formation from which the material entity was collected.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Notch Peak Formation"),
+      @Parameter(
         name = "gadmGid",
-        description = "A GADM geographic identifier at any level, for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1\n\n." +
+        description = "A GADM geographic identifier at any level, for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
         explode = Explode.TRUE,
@@ -468,6 +548,13 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "2005380410"),
       @Parameter(
+        name = "gbifRegion",
+        description = "Gbif region based on country code.\n\n",
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = GbifRegion.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "AFRICA"),
+      @Parameter(
         name = "genusKey",
         description = "Genus classification key.",
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class, minimum = "0")),
@@ -481,6 +568,14 @@ public class OccurrenceSearchResource {
         schema = @Schema(implementation = String.class),
         in = ParameterIn.QUERY,
         example = "90,100,5km"),
+      @Parameter(
+        name = "georeferencedBy",
+        description = "Name of a person, group, or organization who determined the georeference (spatial representation) for the location.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Brad Millen"),
       @Parameter(
         name = "geometry",
         description = "Searches for occurrences inside a polygon described in Well Known Text (WKT) format. " +
@@ -496,6 +591,14 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))"),
       @Parameter(
+        name = "group",
+        description = "The full name of the lithostratigraphic group from which the dwc:MaterialEntity was collected.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Bathurst"),
+      @Parameter(
         name = "hasCoordinate",
         description = "Limits searches to occurrence records which contain a value in both latitude and " +
           "longitude (i.e. `hasCoordinate=true` limits to occurrence records with coordinate values and " +
@@ -503,6 +606,23 @@ public class OccurrenceSearchResource {
         schema = @Schema(implementation = Boolean.class),
         in = ParameterIn.QUERY,
         example = "true"),
+      @Parameter(
+        name = "higherGeography",
+        description = "Geographic name less specific than the information captured in the locality term.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Argentina"),
+      @Parameter(
+        name = "highestBiostratigraphicZone",
+        description = "The full name of the highest possible geological biostratigraphic zone of the stratigraphic " +
+          "horizon from which the dwc:MaterialEntity was collected.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Blancan"),
       @Parameter(
         name = "hasGeospatialIssue",
         description = "Includes/excludes occurrence records which contain spatial issues (as determined in our " +
@@ -582,6 +702,28 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "true"),
       @Parameter(
+        name = "island",
+        description = "Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Zanzibar"),
+      @Parameter(
+        name = "islandGroup",
+        description = "Recommended best practice is to use a controlled vocabulary such as the Getty Thesaurus of Geographic Names.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Seychelles"),
+      @Parameter(
+        name = "isSequenced",
+        description = "Flag occurrence when associated sequences exists",
+        schema = @Schema(implementation = Boolean.class),
+        in = ParameterIn.QUERY,
+        example = "true"),
+      @Parameter(
         name = "iucnRedListCategory",
         description = "A threat status category from the IUCN Red List.  The two-letter code for the status should " +
           "be used.\n\n" +
@@ -611,6 +753,52 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "2023-02"),
       @Parameter(
+        name = "latestEonOrHighestEonothem",
+        description = "The full name of the latest possible geochronologic eon or highest chrono-stratigraphic " +
+          "eonothem or the informal name (\"Precambrian\") attributable to the stratigraphic horizon " +
+          "from which the dwc:MaterialEntity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Proterozoic"),
+      @Parameter(
+        name = "latestEraOrHighestErathem",
+        description = "The full name of the latest possible geochronologic era or highest chronostratigraphic " +
+          "erathem attributable to the stratigraphic horizon from which the material entity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Cenozoic"),
+      @Parameter(
+        name = "latestPeriodOrHighestSystem",
+        description = "The full name of the latest possible geochronologic period or highest chronostratigraphic " +
+          "system attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Neogene"),
+      @Parameter(
+        name = "latestEpochOrHighestSeries",
+        description = "The full name of the latest possible geochronologic epoch or highest chronostratigraphic " +
+          "series attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Pleistocene"),
+      @Parameter(
+        name = "latestAgeOrHighestStage",
+        description = "The full name of the latest possible geochronologic age or highest chronostratigraphic " +
+          "stage attributable to the stratigraphic horizon from which the dwc:MaterialEntity was collected." +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Boreal"),
+      @Parameter(
         name = "license",
         description = "The licence applied to the dataset or record by the publisher.\n\n" +
           API_PARAMETER_RANGE_OR_REPEAT,
@@ -635,12 +823,29 @@ public class OccurrenceSearchResource {
         explode = Explode.TRUE,
         in = ParameterIn.QUERY),
       @Parameter(
+        name = "lowestBiostratigraphicZone",
+        description = "The full name of the lowest possible geological biostratigraphic zone of the " +
+          "stratigraphic horizon from which the material entity was collected.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Maastrichtian"),
+      @Parameter(
         name = "mediaType",
         description = "The kind of multimedia associated with an occurrence as defined in our MediaType enumeration.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = MediaType.class)),
         explode = Explode.TRUE,
         in = ParameterIn.QUERY),
+      @Parameter(
+        name = "member",
+        description = "The full name of the lithostratigraphic member from which the material entity was collected.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Lava Dam Member"),
       @Parameter(
         name = "modified",
         description = "The most recent date-time on which the occurrnce was changed, according to the publisher.\n\n" +
@@ -753,6 +958,14 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "pinned"),
       @Parameter(
+        name = "previousIdentifications",
+        description = "Previous assignment of name to the organism.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "Chalepidae"),
+      @Parameter(
         name = "programme",
         description = "A group of activities, often associated with a specific funding stream, such as the " +
           "GBIF BID programme.\n\n" +
@@ -784,6 +997,14 @@ public class OccurrenceSearchResource {
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Country.class)),
         explode = Explode.TRUE,
         example = "AD"),
+      @Parameter(
+        name = "publishedByGbifRegion",
+        description = "GBIF region based on the owning organization's country.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = GbifRegion.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "AFRICA"),
       @Parameter(
         name = "publishingOrg",
         description = "The publishing organization's GBIF key (a UUID).\n\n" +
@@ -857,6 +1078,14 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "malaise trap"),
       @Parameter(
+        name = "sex",
+        description = "The sex of the biological individual(s) represented in the occurrence.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Sex.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "MALE"),
+      @Parameter(
         name = "scientificName",
         description = "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c). " +
           "All included and synonym taxa are included in the search.\n\n" +
@@ -878,6 +1107,14 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "2476674"),
       @Parameter(
+        name = "startDayOfYear",
+        description = "The earliest integer day of the year on which the event occurred.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true,  schema = @Schema(implementation = Short.class, minimum = "1", maximum = "366")),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "5"),
+      @Parameter(
         name = "stateProvince",
         description = "The name of the next smaller administrative region than country (state, province, canton, " +
           "department, region, etc.) in which the Location occurs.\n\n" +
@@ -895,6 +1132,14 @@ public class OccurrenceSearchResource {
         explode = Explode.TRUE,
         in = ParameterIn.QUERY,
         example = "0"),
+      @Parameter(
+        name = "taxonConceptId",
+        description = "An identifier for the taxonomic concept to which the record refers - not for the nomenclatural details of a taxon.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "8fa58e08-08de-4ac1-b69c-1235340b7001"),
       @Parameter(
         name = "taxonKey",
         description = "A taxon key from the GBIF backbone. All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?taxonKey=212)) will match all birds, no matter which species." +
