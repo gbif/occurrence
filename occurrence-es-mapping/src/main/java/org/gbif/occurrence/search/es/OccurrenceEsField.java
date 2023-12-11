@@ -339,12 +339,17 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.EARLIEST_ERA_OR_LOWEST_ERATHEM, EARLIEST_ERA_OR_LOWEST_ERATHEM)
       .put(OccurrenceSearchParameter.LATEST_ERA_OR_HIGHEST_ERATHEM, LATEST_ERA_OR_HIGHEST_ERATHEM)
       .put(OccurrenceSearchParameter.EARLIEST_PERIOD_OR_LOWEST_SYSTEM, EARLIEST_PERIOD_OR_LOWEST_SYSTEM)
+      .put(OccurrenceSearchParameter.LATEST_PERIOD_OR_HIGHEST_SYSTEM, LATEST_PERIOD_OR_HIGHEST_SYSTEM)
       .put(OccurrenceSearchParameter.EARLIEST_EPOCH_OR_LOWEST_SERIES, EARLIEST_EPOCH_OR_LOWEST_SERIES)
       .put(OccurrenceSearchParameter.LATEST_EPOCH_OR_HIGHEST_SERIES, LATEST_EPOCH_OR_HIGHEST_SERIES)
       .put(OccurrenceSearchParameter.EARLIEST_AGE_OR_LOWEST_STAGE, EARLIEST_AGE_OR_LOWEST_STAGE)
       .put(OccurrenceSearchParameter.LATEST_AGE_OR_HIGHEST_STAGE, LATEST_AGE_OR_HIGHEST_STAGE)
       .put(OccurrenceSearchParameter.LOWEST_BIOSTRATIGRAPHIC_ZONE, LOWEST_BIOSTRATIGRAPHIC_ZONE)
       .put(OccurrenceSearchParameter.HIGHEST_BIOSTRATIGRAPHIC_ZONE, HIGHEST_BIOSTRATIGRAPHIC_ZONE)
+      .put(OccurrenceSearchParameter.GROUP, GROUP)
+      .put(OccurrenceSearchParameter.FORMATION, FORMATION)
+      .put(OccurrenceSearchParameter.MEMBER, MEMBER)
+      .put(OccurrenceSearchParameter.BED, BED)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
 
