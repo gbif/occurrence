@@ -147,9 +147,6 @@ public class TermUtils {
       GbifTerm.typeDesignationType,
       GbifTerm.canonicalName,
       GbifTerm.nameType,
-      GbifTerm.gbifRegion,
-      GbifTerm.publishedByGbifRegion,
-      GbifTerm.isSequenced,
 
       // And these have been superseded by other terms or otherwise deprecated and removed
       GbifTerm.distanceAboveSurface,
@@ -207,6 +204,8 @@ public class TermUtils {
       DwcTerm.year,
       DwcTerm.month,
       DwcTerm.day,
+      DwcTerm.startDayOfYear,
+      DwcTerm.endDayOfYear,
       DwcTerm.kingdom,
       DwcTerm.phylum,
       DwcTerm.class_,
@@ -285,6 +284,9 @@ public class TermUtils {
       DwcTerm.identifiedBy,
       DwcTerm.preparations,
       DwcTerm.samplingProtocol,
+      GbifTerm.isSequenced,
+      GbifTerm.gbifRegion,
+      GbifTerm.publishedByGbifRegion,
       GbifTerm.projectId);
   }
 
