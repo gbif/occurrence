@@ -67,8 +67,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
 
-;
-
 /**
  * Utility factory class to create instances of common complex objects required by Download Actions.
  */
