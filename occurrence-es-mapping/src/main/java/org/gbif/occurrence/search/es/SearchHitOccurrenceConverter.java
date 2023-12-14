@@ -345,8 +345,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.distanceFromCentroidInMeters)).ifPresent(occ::setDistanceFromCentroidInMeters);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.island)).ifPresent(occ::setIsland);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.islandGroup)).ifPresent(occ::setIslandGroup);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.higherGeography)).ifPresent(occ::setHigherGeography);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.georeferencedBy)).ifPresent(occ::setGeoreferencedBy);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.higherGeography).getValueFieldName()).ifPresent(occ::setHigherGeography);
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.georeferencedBy).getValueFieldName()).ifPresent(occ::setGeoreferencedBy);
 
     Gadm g = new Gadm();
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GadmTerm.level0Gid)).ifPresent(gid -> {
