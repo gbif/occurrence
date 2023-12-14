@@ -101,8 +101,8 @@ public enum OccurrenceEsField implements EsField {
   DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
   ISLAND(new BaseEsField("island", DwcTerm.island)),
   ISLAND_GROUP(new BaseEsField("islandGroup", DwcTerm.islandGroup)),
-  HIGHER_GEOGRAPHY(new BaseEsField("higherGeography.value", DwcTerm.higherGeography)),
-  GEOREFERENCED_BY(new BaseEsField("georeferencedBy.value", DwcTerm.georeferencedBy)),
+  HIGHER_GEOGRAPHY(new BaseEsField("higherGeography", DwcTerm.higherGeography)),
+  GEOREFERENCED_BY(new BaseEsField("georeferencedBy", DwcTerm.georeferencedBy)),
 
   GADM_GID(new BaseEsField("gadm.gids", null)),
   GADM_LEVEL_0_GID(new BaseEsField("gadm.level0Gid", GadmTerm.level0Gid)),
