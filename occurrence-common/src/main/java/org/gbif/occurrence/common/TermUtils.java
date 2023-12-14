@@ -290,6 +290,19 @@ public class TermUtils {
       DwcTerm.previousIdentifications,
       DwcTerm.georeferencedBy,
       DwcTerm.higherGeography,
+      DwcTerm.taxonConceptID,
+      DwcTerm.earliestEonOrLowestEonothem,
+      DwcTerm.latestEonOrHighestEonothem,
+      DwcTerm.earliestEraOrLowestErathem,
+      DwcTerm.latestEraOrHighestErathem,
+      DwcTerm.earliestPeriodOrLowestSystem,
+      DwcTerm.latestPeriodOrHighestSystem,
+      DwcTerm.earliestEpochOrLowestSeries,
+      DwcTerm.latestEpochOrHighestSeries,
+      DwcTerm.earliestAgeOrLowestStage,
+      DwcTerm.latestAgeOrHighestStage,
+      DwcTerm.lowestBiostratigraphicZone,
+      DwcTerm.highestBiostratigraphicZone,
       GbifTerm.projectId);
   }
 
