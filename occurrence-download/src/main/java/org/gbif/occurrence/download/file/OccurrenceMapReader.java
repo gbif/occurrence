@@ -107,6 +107,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getPreparations()));
     interpretedOccurrence.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getSamplingProtocol()));
     interpretedOccurrence.put(GbifTerm.projectId.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getProjectId()));
+    interpretedOccurrence.put(DwcTerm.associatedSequences.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getAssociatedSequences()));
 
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
