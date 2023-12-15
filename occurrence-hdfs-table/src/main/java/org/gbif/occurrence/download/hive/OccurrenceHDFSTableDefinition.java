@@ -60,7 +60,8 @@ public class OccurrenceHDFSTableDefinition {
           DwcTerm.preparations,
           DwcTerm.samplingProtocol,
           DwcTerm.higherGeography,
-          DwcTerm.georeferencedBy);
+          DwcTerm.georeferencedBy,
+          DwcTerm.associatedSequences);
 
   /**
    * Assemble the mapping for verbatim fields.

@@ -260,6 +260,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.projectId)).ifPresent(occ::setProjectId);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.programmeAcronym)).ifPresent(occ::setProgrammeAcronym);
 
+    getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.associatedSequences).getValueFieldName()).ifPresent(occ::setAssociatedSequences);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.sampleSizeUnit)).ifPresent(occ::setSampleSizeUnit);
     getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.sampleSizeValue)).ifPresent(occ::setSampleSizeValue);
     getDoubleValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.organismQuantity)).ifPresent(occ::setOrganismQuantity);

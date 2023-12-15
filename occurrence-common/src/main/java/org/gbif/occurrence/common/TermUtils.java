@@ -303,6 +303,7 @@ public class TermUtils {
       DwcTerm.latestAgeOrHighestStage,
       DwcTerm.lowestBiostratigraphicZone,
       DwcTerm.highestBiostratigraphicZone,
+      DwcTerm.associatedSequences,
       GbifTerm.projectId);
   }
 

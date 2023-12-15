@@ -66,6 +66,7 @@ public enum OccurrenceEsField implements EsField {
   TYPE_STATUS(new BaseEsField("typeStatus", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("occurrenceStatus", DwcTerm.occurrenceStatus)),
   IS_SEQUENCED(new BaseEsField("isSequenced", GbifTerm.isSequenced)),
+  ASSOCIATED_SEQUENCES(new BaseEsField("associatedSequences", DwcTerm.associatedSequences)),
   DATASET_ID(new BaseEsField("datasetID", DwcTerm.datasetID)),
   DATASET_NAME(new BaseEsField("datasetName", DwcTerm.datasetName, true)),
   OTHER_CATALOG_NUMBERS(new BaseEsField("otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true)),
@@ -349,7 +350,8 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.GROUP, GROUP)
       .put(OccurrenceSearchParameter.FORMATION, FORMATION)
       .put(OccurrenceSearchParameter.MEMBER, MEMBER)
-      .put(OccurrenceSearchParameter.BED, BED)
+      .put(OccurrenceSearchParameter.MEMBER, MEMBER)
+      .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
 

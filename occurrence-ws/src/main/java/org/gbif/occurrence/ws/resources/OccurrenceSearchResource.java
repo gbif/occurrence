@@ -235,6 +235,15 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "2476674"),
       @Parameter(
+        name = "associatedSequences",
+        description = "Identifier (publication, global unique identifier, URI) of genetic sequence " +
+          "information associated with the material entity.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "http://www.ncbi.nlm.nih.gov/nuccore/U34853.1"),
+      @Parameter(
         name = "basisOfRecord",
         description = "Basis of record, as defined in our BasisOfRecord vocabulary.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
