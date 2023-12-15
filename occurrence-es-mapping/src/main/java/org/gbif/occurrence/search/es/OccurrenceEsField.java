@@ -350,7 +350,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.GROUP, GROUP)
       .put(OccurrenceSearchParameter.FORMATION, FORMATION)
       .put(OccurrenceSearchParameter.MEMBER, MEMBER)
-      .put(OccurrenceSearchParameter.MEMBER, MEMBER)
+      .put(OccurrenceSearchParameter.BED, BED)
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
