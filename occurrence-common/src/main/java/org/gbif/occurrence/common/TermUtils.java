@@ -290,7 +290,6 @@ public class TermUtils {
       DwcTerm.previousIdentifications,
       DwcTerm.georeferencedBy,
       DwcTerm.higherGeography,
-      DwcTerm.taxonConceptID,
       DwcTerm.earliestEonOrLowestEonothem,
       DwcTerm.latestEonOrHighestEonothem,
       DwcTerm.earliestEraOrLowestErathem,
