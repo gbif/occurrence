@@ -558,7 +558,8 @@ public class OccurrenceSearchResource {
         example = "2005380410"),
       @Parameter(
         name = "gbifRegion",
-        description = "Gbif region based on country code.\n\n",
+        description = "Gbif region based on country code.\n\n" +
+          API_PARAMETER_MAY_BE_REPEATED,
         array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = GbifRegion.class)),
         explode = Explode.TRUE,
         in = ParameterIn.QUERY,
