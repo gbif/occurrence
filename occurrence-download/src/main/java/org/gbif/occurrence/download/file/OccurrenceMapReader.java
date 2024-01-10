@@ -109,6 +109,8 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifTerm.projectId.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getProjectId()));
     interpretedOccurrence.put(DwcTerm.associatedSequences.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getAssociatedSequences()));
     interpretedOccurrence.put(GbifTerm.isSequenced.simpleName(), Boolean.toString(occurrence.getIsSequenced()));
+    interpretedOccurrence.put(GbifTerm.gbifRegion.simpleName(), getSimpleValue(occurrence.getGbifRegion()));
+    interpretedOccurrence.put(GbifTerm.publishedByGbifRegion.simpleName(), getSimpleValue(occurrence.getPublishedByGbifRegion()));
 
     // Geological context
     interpretedOccurrence.put(DwcTerm.earliestEonOrLowestEonothem.simpleName(), getSimpleValue(occurrence.getEarliestEonOrLowestEonothem()));
