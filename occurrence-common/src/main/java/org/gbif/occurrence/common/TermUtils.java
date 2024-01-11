@@ -287,7 +287,6 @@ public class TermUtils {
       GbifTerm.isSequenced,
       GbifTerm.gbifRegion,
       GbifTerm.publishedByGbifRegion,
-      DwcTerm.previousIdentifications,
       DwcTerm.georeferencedBy,
       DwcTerm.higherGeography,
       DwcTerm.earliestEonOrLowestEonothem,
