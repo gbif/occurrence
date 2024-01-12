@@ -165,18 +165,62 @@ public enum OccurrenceEsField implements EsField {
   DATE_IDENTIFIED(new BaseEsField("dateIdentified", DwcTerm.dateIdentified)),
   FIELD_NUMBER(new BaseEsField("fieldNumber", DwcTerm.fieldNumber)),
 
-  EARLIEST_EON_OR_LOWEST_EONOTHEM(new BaseEsField("geologicalContext.earliestEonOrLowestEonothem", DwcTerm.earliestEonOrLowestEonothem)),
-  LATEST_EON_OR_HIGHEST_EONOTHEM(new BaseEsField("geologicalContext.latestEonOrHighestEonothem", DwcTerm.latestEonOrHighestEonothem)),
-  EARLIEST_ERA_OR_LOWEST_ERATHEM(new BaseEsField("geologicalContext.earliestEraOrLowestErathem", DwcTerm.earliestEraOrLowestErathem)),
-  LATEST_ERA_OR_HIGHEST_ERATHEM(new BaseEsField("geologicalContext.latestEraOrHighestErathem", DwcTerm.latestEraOrHighestErathem)),
-  EARLIEST_PERIOD_OR_LOWEST_SYSTEM(new BaseEsField("geologicalContext.earliestPeriodOrLowestSystem", DwcTerm.earliestPeriodOrLowestSystem)),
-  LATEST_PERIOD_OR_HIGHEST_SYSTEM(new BaseEsField("geologicalContext.latestPeriodOrHighestSystem", DwcTerm.latestPeriodOrHighestSystem)),
-  EARLIEST_EPOCH_OR_LOWEST_SERIES(new BaseEsField("geologicalContext.earliestEpochOrLowestSeries", DwcTerm.earliestEpochOrLowestSeries)),
-  LATEST_EPOCH_OR_HIGHEST_SERIES(new BaseEsField("geologicalContext.latestEpochOrHighestSeries", DwcTerm.latestEpochOrHighestSeries)),
-  EARLIEST_AGE_OR_LOWEST_STAGE(new BaseEsField("geologicalContext.earliestAgeOrLowestStage", DwcTerm.earliestAgeOrLowestStage)),
-  LATEST_AGE_OR_HIGHEST_STAGE(new BaseEsField("geologicalContext.latestAgeOrHighestStage", DwcTerm.latestAgeOrHighestStage)),
-  LOWEST_BIOSTRATIGRAPHIC_ZONE(new BaseEsField("geologicalContext.lowestBiostratigraphicZone", DwcTerm.lowestBiostratigraphicZone)),
-  HIGHEST_BIOSTRATIGRAPHIC_ZONE(new BaseEsField("geologicalContext.highestBiostratigraphicZone", DwcTerm.highestBiostratigraphicZone)),
+  EARLIEST_EON_OR_LOWEST_EONOTHEM(
+      new BaseEsField(
+          "geologicalContext.earliestEonOrLowestEonothem.lineage",
+          "geologicalContext.earliestEonOrLowestEonothem.concept",
+          DwcTerm.earliestEonOrLowestEonothem)),
+  LATEST_EON_OR_HIGHEST_EONOTHEM(
+      new BaseEsField(
+          "geologicalContext.latestEonOrHighestEonothem.lineage",
+          "geologicalContext.latestEonOrHighestEonothem.concept",
+          DwcTerm.latestEonOrHighestEonothem)),
+  EARLIEST_ERA_OR_LOWEST_ERATHEM(
+      new BaseEsField(
+          "geologicalContext.earliestEraOrLowestErathem.lineage",
+          "geologicalContext.earliestEraOrLowestErathem.concept",
+          DwcTerm.earliestEraOrLowestErathem)),
+  LATEST_ERA_OR_HIGHEST_ERATHEM(
+      new BaseEsField(
+          "geologicalContext.latestEraOrHighestErathem.lineage",
+          "geologicalContext.latestEraOrHighestErathem.concept",
+          DwcTerm.latestEraOrHighestErathem)),
+  EARLIEST_PERIOD_OR_LOWEST_SYSTEM(
+      new BaseEsField(
+          "geologicalContext.earliestPeriodOrLowestSystem.lineage",
+          "geologicalContext.earliestPeriodOrLowestSystem.concept",
+          DwcTerm.earliestPeriodOrLowestSystem)),
+  LATEST_PERIOD_OR_HIGHEST_SYSTEM(
+      new BaseEsField(
+          "geologicalContext.latestPeriodOrHighestSystem.lineage",
+          "geologicalContext.latestPeriodOrHighestSystem.concept",
+          DwcTerm.latestPeriodOrHighestSystem)),
+  EARLIEST_EPOCH_OR_LOWEST_SERIES(
+      new BaseEsField(
+          "geologicalContext.earliestEpochOrLowestSeries.lineage",
+          "geologicalContext.earliestEpochOrLowestSeries.concept",
+          DwcTerm.earliestEpochOrLowestSeries)),
+  LATEST_EPOCH_OR_HIGHEST_SERIES(
+      new BaseEsField(
+          "geologicalContext.latestEpochOrHighestSeries.lineage",
+          "geologicalContext.latestEpochOrHighestSeries.concept",
+          DwcTerm.latestEpochOrHighestSeries)),
+  EARLIEST_AGE_OR_LOWEST_STAGE(
+      new BaseEsField(
+          "geologicalContext.earliestAgeOrLowestStage.lineage",
+          "geologicalContext.earliestAgeOrLowestStage.concept",
+          DwcTerm.earliestAgeOrLowestStage)),
+  LATEST_AGE_OR_HIGHEST_STAGE(
+      new BaseEsField(
+          "geologicalContext.latestAgeOrHighestStage.lineage",
+          "geologicalContext.latestAgeOrHighestStage.concept",
+          DwcTerm.latestAgeOrHighestStage)),
+  LOWEST_BIOSTRATIGRAPHIC_ZONE(
+      new BaseEsField(
+          "geologicalContext.lowestBiostratigraphicZone", DwcTerm.lowestBiostratigraphicZone)),
+  HIGHEST_BIOSTRATIGRAPHIC_ZONE(
+      new BaseEsField(
+          "geologicalContext.highestBiostratigraphicZone", DwcTerm.highestBiostratigraphicZone)),
   GROUP(new BaseEsField("geologicalContext.group", DwcTerm.group)),
   FORMATION(new BaseEsField("geologicalContext.formation", DwcTerm.formation)),
   MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
