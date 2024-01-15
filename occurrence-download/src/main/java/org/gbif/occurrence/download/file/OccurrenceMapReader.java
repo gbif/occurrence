@@ -151,6 +151,8 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.month.simpleName(), getSimpleValue(occurrence.getMonth()));
     interpretedOccurrence.put(DwcTerm.year.simpleName(), getSimpleValue(occurrence.getYear()));
     interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getIsoDateIntervalValue(occurrence.getEventDate()));
+    interpretedOccurrence.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(occurrence.getStartDayOfYear()));
+    interpretedOccurrence.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(occurrence.getEndDayOfYear()));
 
     // taxonomy terms
     interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
