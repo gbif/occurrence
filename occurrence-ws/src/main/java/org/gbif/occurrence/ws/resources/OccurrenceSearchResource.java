@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import lombok.SneakyThrows;
+import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
@@ -46,6 +48,10 @@ import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
+import org.gbif.predicate.query.EsQueryVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,10 +134,13 @@ public class OccurrenceSearchResource {
 
   private final SearchTermService searchTermService;
 
+  private final EsSearchRequestBuilder esSearchRequestBuilder;
+
   @Autowired
   public OccurrenceSearchResource(OccurrenceSearchService searchService, SearchTermService searchTermService) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper());
   }
 
   @Hidden
@@ -148,6 +157,13 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
     return searchService.search(request);
+  }
+
+  @Hidden
+  @PostMapping("predicate/toesquery")
+  @SneakyThrows
+  public String toEsQuery(@NotNull @Valid @RequestBody org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest request) {
+    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   /**
