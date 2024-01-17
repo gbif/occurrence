@@ -42,9 +42,7 @@ public interface CubeWsClient extends CubeService {
   default long get(@SpringQueryMap ReadBuilder addressBuilder) throws IllegalArgumentException {
     Preconditions.checkNotNull(addressBuilder, "The cube address is mandatory");
     LinkedMultiValueMap<String,String> requestMap = new LinkedMultiValueMap<>();
-    addressBuilder.build().entrySet().forEach( e ->
-      requestMap.add(e.getKey().getKey(), e.getValue())
-      );
+    addressBuilder.build().forEach((key, value) -> requestMap.add(key.getKey(), value));
     return get(requestMap);
   }
 

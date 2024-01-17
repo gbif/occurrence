@@ -1626,7 +1626,7 @@ public class EsQueryVisitorTest {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
       try {
         Predicate p;
-        Object value = null;
+        Object value;
         if (param == OccurrenceSearchParameter.GEOMETRY) {
           value = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
           p = new WithinPredicate(value.toString());

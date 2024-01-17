@@ -107,6 +107,28 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getPreparations()));
     interpretedOccurrence.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getSamplingProtocol()));
     interpretedOccurrence.put(GbifTerm.projectId.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getProjectId()));
+    interpretedOccurrence.put(DwcTerm.associatedSequences.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getAssociatedSequences()));
+    interpretedOccurrence.put(GbifTerm.isSequenced.simpleName(), Boolean.toString(occurrence.getIsSequenced()));
+    interpretedOccurrence.put(GbifTerm.gbifRegion.simpleName(), getSimpleValue(occurrence.getGbifRegion()));
+    interpretedOccurrence.put(GbifTerm.publishedByGbifRegion.simpleName(), getSimpleValue(occurrence.getPublishedByGbifRegion()));
+
+    // Geological context
+    interpretedOccurrence.put(DwcTerm.earliestEonOrLowestEonothem.simpleName(), getSimpleValue(occurrence.getEarliestEonOrLowestEonothem()));
+    interpretedOccurrence.put(DwcTerm.latestEonOrHighestEonothem.simpleName(), getSimpleValue(occurrence.getLatestEonOrHighestEonothem()));
+    interpretedOccurrence.put(DwcTerm.earliestEraOrLowestErathem.simpleName(), getSimpleValue(occurrence.getEarliestEraOrLowestErathem()));
+    interpretedOccurrence.put(DwcTerm.latestEraOrHighestErathem.simpleName(), getSimpleValue(occurrence.getLatestEraOrHighestErathem()));
+    interpretedOccurrence.put(DwcTerm.earliestPeriodOrLowestSystem.simpleName(), getSimpleValue(occurrence.getEarliestPeriodOrLowestSystem()));
+    interpretedOccurrence.put(DwcTerm.latestPeriodOrHighestSystem.simpleName(), getSimpleValue(occurrence.getLatestPeriodOrHighestSystem()));
+    interpretedOccurrence.put(DwcTerm.earliestEpochOrLowestSeries.simpleName(), getSimpleValue(occurrence.getEarliestEpochOrLowestSeries()));
+    interpretedOccurrence.put(DwcTerm.latestEpochOrHighestSeries.simpleName(), getSimpleValue(occurrence.getLatestEpochOrHighestSeries()));
+    interpretedOccurrence.put(DwcTerm.earliestAgeOrLowestStage.simpleName(), getSimpleValue(occurrence.getEarliestAgeOrLowestStage()));
+    interpretedOccurrence.put(DwcTerm.latestAgeOrHighestStage.simpleName(), getSimpleValue(occurrence.getLatestAgeOrHighestStage()));
+    interpretedOccurrence.put(DwcTerm.lowestBiostratigraphicZone.simpleName(), getSimpleValue(occurrence.getLowestBiostratigraphicZone()));
+    interpretedOccurrence.put(DwcTerm.highestBiostratigraphicZone.simpleName(), getSimpleValue(occurrence.getHighestBiostratigraphicZone()));
+    interpretedOccurrence.put(DwcTerm.group.simpleName(), getSimpleValue(occurrence.getGroup()));
+    interpretedOccurrence.put(DwcTerm.formation.simpleName(), getSimpleValue(occurrence.getFormation()));
+    interpretedOccurrence.put(DwcTerm.member.simpleName(), getSimpleValue(occurrence.getMember()));
+    interpretedOccurrence.put(DwcTerm.bed.simpleName(), getSimpleValue(occurrence.getBed()));
 
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
@@ -129,6 +151,8 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.month.simpleName(), getSimpleValue(occurrence.getMonth()));
     interpretedOccurrence.put(DwcTerm.year.simpleName(), getSimpleValue(occurrence.getYear()));
     interpretedOccurrence.put(DwcTerm.eventDate.simpleName(), getIsoDateIntervalValue(occurrence.getEventDate()));
+    interpretedOccurrence.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(occurrence.getStartDayOfYear()));
+    interpretedOccurrence.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(occurrence.getEndDayOfYear()));
 
     // taxonomy terms
     interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
@@ -174,6 +198,8 @@ public class OccurrenceMapReader {
     putGadmFeature(interpretedOccurrence, GadmTerm.level1Name, GadmTerm.level1Gid, occurrence.getGadm().getLevel1());
     putGadmFeature(interpretedOccurrence, GadmTerm.level2Name, GadmTerm.level2Gid, occurrence.getGadm().getLevel2());
     putGadmFeature(interpretedOccurrence, GadmTerm.level3Name, GadmTerm.level3Gid, occurrence.getGadm().getLevel3());
+    interpretedOccurrence.put(DwcTerm.higherGeography.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getHigherGeography()));
+    interpretedOccurrence.put(DwcTerm.georeferencedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getGeoreferencedBy()));
 
     extractOccurrenceIssues(occurrence.getIssues())
       .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));

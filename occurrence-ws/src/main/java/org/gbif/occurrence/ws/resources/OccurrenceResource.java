@@ -175,14 +175,14 @@ public class OccurrenceResource {
       @Parameter(
         name = "datasetKey",
         description = "UUID key for the dataset.",
-        example = "0001480b-76ca-4f30-86bc-f4292481554b",
-        schema = @Schema(implementation = Long.class, minimum = "1"),
+        example = "e053ff53-c156-4e2e-b9b5-4462e9625424",
+        schema = @Schema(implementation = UUID.class),
         in = ParameterIn.PATH),
       @Parameter(
         name = "occurrenceId",
         description = "Occurrence ID from the dataset.",
-        example = "651D49B2-FF77-7F3F-E053-2614A8C050DE",
-        schema = @Schema(implementation = Long.class, minimum = "1"),
+        example = "urn:catalog:MO:Tropicos:100889255",
+        schema = @Schema(implementation = String.class),
         in = ParameterIn.PATH),
     }
   )

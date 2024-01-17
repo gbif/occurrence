@@ -68,7 +68,10 @@ public final class HiveDataTypes {
       DwcTerm.preparations,
       DwcTerm.samplingProtocol,
       GbifInternalTerm.parentEventGbifId,
-      GbifTerm.projectId
+      GbifTerm.projectId,
+      DwcTerm.higherGeography,
+      DwcTerm.georeferencedBy,
+      DwcTerm.associatedSequences
     );
 
   // dates are all stored as BigInt
@@ -118,7 +121,8 @@ public final class HiveDataTypes {
     GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues,
     GbifTerm.repatriated,
-    GbifInternalTerm.isInCluster);
+    GbifInternalTerm.isInCluster,
+    GbifTerm.isSequenced);
 
   static {
     // build the term type index of Term -> Type

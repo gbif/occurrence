@@ -40,6 +40,7 @@ public enum OccurrenceEsField implements EsField {
   //Dataset derived
   DATASET_KEY(new BaseEsField("datasetKey", GbifTerm.datasetKey)),
   PUBLISHING_COUNTRY(new BaseEsField("publishingCountry", GbifTerm.publishingCountry)),
+  PUBLISHED_BY_GBIF_REGION(new BaseEsField("publishedByGbifRegion", GbifTerm.publishedByGbifRegion)),
   PUBLISHING_ORGANIZATION_KEY(new BaseEsField("publishingOrganizationKey", GbifInternalTerm.publishingOrgKey)),
   HOSTING_ORGANIZATION_KEY(new BaseEsField("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey)),
   INSTALLATION_KEY(new BaseEsField("installationKey", GbifInternalTerm.installationKey)),
@@ -64,6 +65,8 @@ public enum OccurrenceEsField implements EsField {
   BASIS_OF_RECORD(new BaseEsField("basisOfRecord", DwcTerm.basisOfRecord)),
   TYPE_STATUS(new BaseEsField("typeStatus", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("occurrenceStatus", DwcTerm.occurrenceStatus)),
+  IS_SEQUENCED(new BaseEsField("isSequenced", GbifTerm.isSequenced)),
+  ASSOCIATED_SEQUENCES(new BaseEsField("associatedSequences", DwcTerm.associatedSequences)),
   DATASET_ID(new BaseEsField("datasetID", DwcTerm.datasetID)),
   DATASET_NAME(new BaseEsField("datasetName", DwcTerm.datasetName, true)),
   OTHER_CATALOG_NUMBERS(new BaseEsField("otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true)),
@@ -84,6 +87,7 @@ public enum OccurrenceEsField implements EsField {
   LATITUDE(new BaseEsField("decimalLatitude", DwcTerm.decimalLatitude)),
   LONGITUDE(new BaseEsField("decimalLongitude", DwcTerm.decimalLongitude)),
   COUNTRY_CODE(new BaseEsField("countryCode", DwcTerm.countryCode)),
+  GBIF_REGION(new BaseEsField("gbifRegion", GbifTerm.gbifRegion)),
   CONTINENT(new BaseEsField("continent", DwcTerm.continent)),
   COORDINATE_ACCURACY(new BaseEsField("coordinateAccuracy", GbifTerm.coordinateAccuracy)),
   ELEVATION_ACCURACY(new BaseEsField("elevationAccuracy", GbifTerm.elevationAccuracy)),
@@ -96,6 +100,11 @@ public enum OccurrenceEsField implements EsField {
   COORDINATE_PRECISION(new BaseEsField("coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
   DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
+  ISLAND(new BaseEsField("island", DwcTerm.island)),
+  ISLAND_GROUP(new BaseEsField("islandGroup", DwcTerm.islandGroup)),
+  HIGHER_GEOGRAPHY(new BaseEsField("higherGeography", DwcTerm.higherGeography)),
+  GEOREFERENCED_BY(new BaseEsField("georeferencedBy", DwcTerm.georeferencedBy)),
+
   GADM_GID(new BaseEsField("gadm.gids", null)),
   GADM_LEVEL_0_GID(new BaseEsField("gadm.level0Gid", GadmTerm.level0Gid)),
   GADM_LEVEL_0_NAME(new BaseEsField("gadm.level0Name", GadmTerm.level0Name)),
@@ -139,6 +148,7 @@ public enum OccurrenceEsField implements EsField {
   GENERIC_NAME(new BaseEsField("gbifClassification.usageParsedName.genericName", DwcTerm.genericName)),
   TAXONOMIC_STATUS(new BaseEsField("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus)),
   TAXON_ID(new BaseEsField("gbifClassification.taxonID", DwcTerm.taxonID)),
+  TAXON_CONCEPT_ID(new BaseEsField("gbifClassification.taxonConceptID", DwcTerm.taxonConceptID)),
   VERBATIM_SCIENTIFIC_NAME(new BaseEsField("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName)),
   IUCN_RED_LIST_CATEGORY(new BaseEsField("gbifClassification.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
 
@@ -150,8 +160,72 @@ public enum OccurrenceEsField implements EsField {
   EVENT_ID(new BaseEsField("eventId", DwcTerm.eventID, true)),
   PARENT_EVENT_ID(new BaseEsField("parentEventId", DwcTerm.parentEventID, true)),
   SAMPLING_PROTOCOL(new BaseEsField("samplingProtocol", DwcTerm.samplingProtocol, true)),
+  PREVIOUS_IDENTIFICATIONS(new BaseEsField("previousIdentifications", DwcTerm.previousIdentifications)),
   LIFE_STAGE(new BaseEsField("lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("dateIdentified", DwcTerm.dateIdentified)),
+  FIELD_NUMBER(new BaseEsField("fieldNumber", DwcTerm.fieldNumber)),
+
+  EARLIEST_EON_OR_LOWEST_EONOTHEM(
+      new BaseEsField(
+          "geologicalContext.earliestEonOrLowestEonothem.lineage",
+          "geologicalContext.earliestEonOrLowestEonothem.concept",
+          DwcTerm.earliestEonOrLowestEonothem)),
+  LATEST_EON_OR_HIGHEST_EONOTHEM(
+      new BaseEsField(
+          "geologicalContext.latestEonOrHighestEonothem.lineage",
+          "geologicalContext.latestEonOrHighestEonothem.concept",
+          DwcTerm.latestEonOrHighestEonothem)),
+  EARLIEST_ERA_OR_LOWEST_ERATHEM(
+      new BaseEsField(
+          "geologicalContext.earliestEraOrLowestErathem.lineage",
+          "geologicalContext.earliestEraOrLowestErathem.concept",
+          DwcTerm.earliestEraOrLowestErathem)),
+  LATEST_ERA_OR_HIGHEST_ERATHEM(
+      new BaseEsField(
+          "geologicalContext.latestEraOrHighestErathem.lineage",
+          "geologicalContext.latestEraOrHighestErathem.concept",
+          DwcTerm.latestEraOrHighestErathem)),
+  EARLIEST_PERIOD_OR_LOWEST_SYSTEM(
+      new BaseEsField(
+          "geologicalContext.earliestPeriodOrLowestSystem.lineage",
+          "geologicalContext.earliestPeriodOrLowestSystem.concept",
+          DwcTerm.earliestPeriodOrLowestSystem)),
+  LATEST_PERIOD_OR_HIGHEST_SYSTEM(
+      new BaseEsField(
+          "geologicalContext.latestPeriodOrHighestSystem.lineage",
+          "geologicalContext.latestPeriodOrHighestSystem.concept",
+          DwcTerm.latestPeriodOrHighestSystem)),
+  EARLIEST_EPOCH_OR_LOWEST_SERIES(
+      new BaseEsField(
+          "geologicalContext.earliestEpochOrLowestSeries.lineage",
+          "geologicalContext.earliestEpochOrLowestSeries.concept",
+          DwcTerm.earliestEpochOrLowestSeries)),
+  LATEST_EPOCH_OR_HIGHEST_SERIES(
+      new BaseEsField(
+          "geologicalContext.latestEpochOrHighestSeries.lineage",
+          "geologicalContext.latestEpochOrHighestSeries.concept",
+          DwcTerm.latestEpochOrHighestSeries)),
+  EARLIEST_AGE_OR_LOWEST_STAGE(
+      new BaseEsField(
+          "geologicalContext.earliestAgeOrLowestStage.lineage",
+          "geologicalContext.earliestAgeOrLowestStage.concept",
+          DwcTerm.earliestAgeOrLowestStage)),
+  LATEST_AGE_OR_HIGHEST_STAGE(
+      new BaseEsField(
+          "geologicalContext.latestAgeOrHighestStage.lineage",
+          "geologicalContext.latestAgeOrHighestStage.concept",
+          DwcTerm.latestAgeOrHighestStage)),
+  LOWEST_BIOSTRATIGRAPHIC_ZONE(
+      new BaseEsField(
+          "geologicalContext.lowestBiostratigraphicZone", DwcTerm.lowestBiostratigraphicZone)),
+  HIGHEST_BIOSTRATIGRAPHIC_ZONE(
+      new BaseEsField(
+          "geologicalContext.highestBiostratigraphicZone", DwcTerm.highestBiostratigraphicZone)),
+  GROUP(new BaseEsField("geologicalContext.group", DwcTerm.group)),
+  FORMATION(new BaseEsField("geologicalContext.formation", DwcTerm.formation)),
+  MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
+  BED(new BaseEsField("geologicalContext.bed", DwcTerm.bed)),
+
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
   SEX(new BaseEsField("sex", DwcTerm.sex)),
@@ -211,6 +285,8 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, LONGITUDE)
       .put(OccurrenceSearchParameter.YEAR, YEAR)
       .put(OccurrenceSearchParameter.MONTH, MONTH)
+      .put(OccurrenceSearchParameter.START_DAY_OF_YEAR, START_DAY_OF_YEAR)
+      .put(OccurrenceSearchParameter.END_DAY_OF_YEAR, END_DAY_OF_YEAR)
       .put(OccurrenceSearchParameter.CATALOG_NUMBER, CATALOG_NUMBER)
       .put(OccurrenceSearchParameter.RECORDED_BY, RECORDED_BY)
       .put(OccurrenceSearchParameter.IDENTIFIED_BY, IDENTIFIED_BY)
@@ -220,6 +296,8 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.DEPTH, DEPTH)
       .put(OccurrenceSearchParameter.ELEVATION, ELEVATION)
       .put(OccurrenceSearchParameter.BASIS_OF_RECORD, BASIS_OF_RECORD)
+      .put(OccurrenceSearchParameter.SEX, SEX)
+      .put(OccurrenceSearchParameter.IS_SEQUENCED, IS_SEQUENCED)
       .put(OccurrenceSearchParameter.DATASET_KEY, DATASET_KEY)
       .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, HAS_GEOSPATIAL_ISSUES)
       .put(OccurrenceSearchParameter.HAS_COORDINATE, HAS_COORDINATE)
@@ -227,7 +305,9 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.MODIFIED, MODIFIED)
       .put(OccurrenceSearchParameter.LAST_INTERPRETED, LAST_INTERPRETED)
       .put(OccurrenceSearchParameter.COUNTRY, COUNTRY_CODE)
+      .put(OccurrenceSearchParameter.GBIF_REGION, GBIF_REGION)
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
+      .put(OccurrenceSearchParameter.PUBLISHED_BY_GBIF_REGION, PUBLISHED_BY_GBIF_REGION)
       .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
       .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
       .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
@@ -242,6 +322,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.SCIENTIFIC_NAME, SCIENTIFIC_NAME)
       .put(OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME, VERBATIM_SCIENTIFIC_NAME)
       .put(OccurrenceSearchParameter.TAXON_ID, TAXON_ID)
+      .put(OccurrenceSearchParameter.TAXON_CONCEPT_ID, TAXON_CONCEPT_ID)
       .put(OccurrenceSearchParameter.TYPE_STATUS, TYPE_STATUS)
       .put(OccurrenceSearchParameter.TAXONOMIC_STATUS, TAXONOMIC_STATUS)
       .put(OccurrenceSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
@@ -271,6 +352,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.EVENT_ID, EVENT_ID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)
+      .put(OccurrenceSearchParameter.PREVIOUS_IDENTIFICATIONS, PREVIOUS_IDENTIFICATIONS)
       .put(OccurrenceSearchParameter.PROJECT_ID, PROJECT_ID)
       .put(OccurrenceSearchParameter.PROGRAMME, PROGRAMME)
       .put(OccurrenceSearchParameter.ORGANISM_QUANTITY, ORGANISM_QUANTITY)
@@ -292,6 +374,28 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
       .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
       .put(OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS, DISTANCE_FROM_CENTROID_IN_METERS)
+      .put(OccurrenceSearchParameter.ISLAND, ISLAND)
+      .put(OccurrenceSearchParameter.ISLAND_GROUP, ISLAND_GROUP)
+      .put(OccurrenceSearchParameter.GEOREFERENCED_BY, GEOREFERENCED_BY)
+      .put(OccurrenceSearchParameter.HIGHER_GEOGRAPHY, HIGHER_GEOGRAPHY)
+      .put(OccurrenceSearchParameter.FIELD_NUMBER, FIELD_NUMBER)
+      .put(OccurrenceSearchParameter.EARLIEST_EON_OR_LOWEST_EONOTHEM, EARLIEST_EON_OR_LOWEST_EONOTHEM)
+      .put(OccurrenceSearchParameter.LATEST_EON_OR_HIGHEST_EONOTHEM, LATEST_EON_OR_HIGHEST_EONOTHEM)
+      .put(OccurrenceSearchParameter.EARLIEST_ERA_OR_LOWEST_ERATHEM, EARLIEST_ERA_OR_LOWEST_ERATHEM)
+      .put(OccurrenceSearchParameter.LATEST_ERA_OR_HIGHEST_ERATHEM, LATEST_ERA_OR_HIGHEST_ERATHEM)
+      .put(OccurrenceSearchParameter.EARLIEST_PERIOD_OR_LOWEST_SYSTEM, EARLIEST_PERIOD_OR_LOWEST_SYSTEM)
+      .put(OccurrenceSearchParameter.LATEST_PERIOD_OR_HIGHEST_SYSTEM, LATEST_PERIOD_OR_HIGHEST_SYSTEM)
+      .put(OccurrenceSearchParameter.EARLIEST_EPOCH_OR_LOWEST_SERIES, EARLIEST_EPOCH_OR_LOWEST_SERIES)
+      .put(OccurrenceSearchParameter.LATEST_EPOCH_OR_HIGHEST_SERIES, LATEST_EPOCH_OR_HIGHEST_SERIES)
+      .put(OccurrenceSearchParameter.EARLIEST_AGE_OR_LOWEST_STAGE, EARLIEST_AGE_OR_LOWEST_STAGE)
+      .put(OccurrenceSearchParameter.LATEST_AGE_OR_HIGHEST_STAGE, LATEST_AGE_OR_HIGHEST_STAGE)
+      .put(OccurrenceSearchParameter.LOWEST_BIOSTRATIGRAPHIC_ZONE, LOWEST_BIOSTRATIGRAPHIC_ZONE)
+      .put(OccurrenceSearchParameter.HIGHEST_BIOSTRATIGRAPHIC_ZONE, HIGHEST_BIOSTRATIGRAPHIC_ZONE)
+      .put(OccurrenceSearchParameter.GROUP, GROUP)
+      .put(OccurrenceSearchParameter.FORMATION, FORMATION)
+      .put(OccurrenceSearchParameter.MEMBER, MEMBER)
+      .put(OccurrenceSearchParameter.BED, BED)
+      .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
 
