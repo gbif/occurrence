@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <version>0.194.0-H3-SNAPSHOT</version>
+  <version>0.195.0-H3-SNAPSHOT</version>
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-trino-udf</artifactId>
 
@@ -12,12 +12,12 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <gbif-api.version>1.13.0-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.13.0</gbif-api.version>
     <lucene.version>8.7.0</lucene.version>
     <trino.version>414</trino.version>
     <slice.version>0.45</slice.version>
     <lombok.version>1.18.20</lombok.version>
-    <gbif-parsers.version>0.63-SNAPSHOT</gbif-parsers.version>
+    <gbif-parsers.version>0.63</gbif-parsers.version>
     <geocode.version>1.1</geocode.version>
     <gbif-common-ws.version>1.24</gbif-common-ws.version>
     <gbif.kvs.version>1.33-H3-SNAPSHOT</gbif.kvs.version>

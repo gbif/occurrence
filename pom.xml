@@ -142,8 +142,11 @@
     <freemarker.version>2.3.31</freemarker.version>
     <netty.version>3.9.9.Final</netty.version>
     <netty-all.version>4.1.74.Final</netty-all.version>
+    <glassfish-jersey.version>3.0.11</glassfish-jersey.version>
+    <jakarta.rs-api.version>3.0.0</jakarta.rs-api.version>
+    <jakarta.annotation-api.version>2.1.1</jakarta.annotation-api.version>
 
-    <!-- Fixing to the version JUnit and Mockito are depending on -->
+    <!-- Fixing to the version JUnit and Mockito depending on -->
     <aopalliance.version>1.0</aopalliance.version>
     <commons-beanutils.version>1.9.2</commons-beanutils.version>
     <commons-codec.version>1.6</commons-codec.version>
@@ -210,7 +213,7 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-H3-SNAPSHOT</hbase-utils.version>
     <download-query-tools.version>1.50.0</download-query-tools.version>
-    <dwc-api.version>1.48-H3-SNAPSHOT</dwc-api.version>
+    <dwc-api.version>1.49-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
     <gbif-api.version>1.13.0</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
@@ -226,7 +229,7 @@
     <gbif-wrangler.version>0.5-SNAPSHOT</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <gbif.kvs.version>1.31-H3-SNAPSHOT</gbif.kvs.version>
+    <gbif.kvs.version>1.33-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.2.0</gbif-predicates.version>
     <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
@@ -1268,22 +1271,22 @@
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-client</artifactId>
-        <version>3.0.11</version>
+        <version>${glassfish-jersey.version}</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-common</artifactId>
-        <version>3.0.11</version>
+        <version>${glassfish-jersey.version}</version>
       </dependency>
       <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
-        <version>3.0.0</version>
+        <version>${jakarta.rs-api.version}</version>
       </dependency>
       <dependency>
         <groupId>jakarta.annotation</groupId>
         <artifactId>jakarta.annotation-api</artifactId>
-        <version>2.1.1</version>
+        <version>${jakarta.annotation-api.version}</version>
       </dependency>
 
 
