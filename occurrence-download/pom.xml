@@ -153,7 +153,6 @@
             <descriptor>src/main/assembly/simple-csv-download.xml</descriptor>
             <descriptor>src/main/assembly/simple-parquet-download.xml</descriptor>
             <descriptor>src/main/assembly/species-list-download.xml</descriptor>
-            <descriptor>src/main/assembly/iucn-download.xml</descriptor>
             <descriptor>src/main/assembly/map-of-life-download.xml</descriptor>
             <descriptor>src/main/assembly/simple-with-verbatim-avro-download.xml</descriptor>
             <descriptor>src/main/assembly/bionomia-download.xml</descriptor>

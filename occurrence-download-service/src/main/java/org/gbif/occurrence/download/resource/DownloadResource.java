@@ -419,6 +419,9 @@ public class DownloadResource {
     }
   }
 
+  /**
+   * Download predicate from a search string.
+   */
   @Hidden
   @GetMapping("predicate")
   public DownloadRequest downloadPredicate(

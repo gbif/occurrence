@@ -49,7 +49,7 @@ import lombok.Data;
 /**
  * Resource to describe file/table formats use in GBIF occurrence downloads.
  *
- * <p>Project-specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.IUCN, DownloadFormat.MAP_OF_LIFE.
+ * <p>Project-specific exports are not handled by this resource: DownloadFormat.BIONOMIA; DownloadFormat.MAP_OF_LIFE.
  */
 @Tag(
   name = "Occurrence download formats",
