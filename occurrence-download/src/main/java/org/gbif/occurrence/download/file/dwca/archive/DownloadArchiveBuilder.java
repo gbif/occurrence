@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -76,9 +77,9 @@ public class DownloadArchiveBuilder {
    */
   private void createDescriptor() {
     if (DwcTerm.Event == configuration.getCoreTerm()) {
-      DwcArchiveUtils.createEventArchiveDescriptor(archiveDir, download.getRequest().getVerbatimExtensions());
+      DwcArchiveUtils.createEventArchiveDescriptor(archiveDir, ((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions());
     } else {
-      DwcArchiveUtils.createOccurrenceArchiveDescriptor(archiveDir, download.getRequest().getVerbatimExtensions());
+      DwcArchiveUtils.createOccurrenceArchiveDescriptor(archiveDir, ((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions());
     }
   }
 
@@ -158,8 +159,8 @@ public class DownloadArchiveBuilder {
   }
 
   private void appendExtensionFiles(ModalZipOutputStream out) throws IOException {
-    if (download.getRequest().getVerbatimExtensions() != null) {
-      for (Extension extension : download.getRequest().getVerbatimExtensions()) {
+    if (((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions() != null) {
+      for (Extension extension : ((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions()) {
         ExtensionTable extensionTable = new ExtensionTable(extension);
         appendPreCompressedFile(out,
                                 new Path(configuration.getExtensionDataFileName(extensionTable)),

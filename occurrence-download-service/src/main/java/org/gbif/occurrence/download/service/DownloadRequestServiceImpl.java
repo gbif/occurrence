@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
-import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
@@ -24,6 +21,33 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.oozie.client.Job;
+import org.apache.oozie.client.OozieClient;
+import org.apache.oozie.client.OozieClientException;
+import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
+import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
+import org.gbif.occurrence.mail.BaseEmailModel;
+import org.gbif.occurrence.mail.EmailSender;
+import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,32 +57,9 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Set;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.oozie.client.Job;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.common.messaging.api.MessagePublisher;
-import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
-import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.mail.BaseEmailModel;
-import org.gbif.occurrence.mail.EmailSender;
-import org.gbif.occurrence.mail.OccurrenceEmailManager;
 
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
+import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
+import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
 @Component
 @Slf4j
@@ -161,6 +162,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Preconditions.checkNotNull(request);
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
+    } else if (request instanceof SqlDownloadRequest) {
+      // Validate SQL
     }
 
     String exceedComplexityLimit = null;
@@ -392,7 +395,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     download.setStatus(Download.Status.PREPARING);
     download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
     download.setDownloadLink(
-        downloadLink(wsUrl, downloadId, request.getType(), request.getFormat().getExtension()));
+        downloadLink(wsUrl, downloadId, request.getType(), request.getFileExtension()));
     download.setRequest(request);
     download.setSource(source);
     occurrenceDownloadService.create(download);
@@ -414,6 +417,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   /** The download filename with extension. */
   private String getDownloadFilename(Download download) {
-    return download.getKey() + download.getRequest().getFormat().getExtension();
+    return download.getKey() + download.getRequest().getFileExtension();
   }
 }

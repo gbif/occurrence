@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.occurrence.common.download.DownloadUtils;
 
 import java.io.BufferedWriter;
@@ -71,9 +72,10 @@ public class ExtensionsQuery {
    * Sets the template variable from a Download object.
    */
   private Map<String,Object> templateVariables(Download download) {
+    PredicateDownloadRequest downloadRequest = (PredicateDownloadRequest) download.getRequest();
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String,Object> variables = new HashMap<>();
-    Optional.ofNullable(download.getRequest().getVerbatimExtensions())
+    Optional.ofNullable(downloadRequest.getVerbatimExtensions())
       .ifPresent(verbatimExtensions ->
                    variables.put("verbatim_extensions", verbatimExtensions.stream()
                                                  .map(ExtensionTable::new)
