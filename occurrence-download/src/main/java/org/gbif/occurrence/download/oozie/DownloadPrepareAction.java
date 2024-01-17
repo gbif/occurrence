@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.oozie;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -240,8 +241,9 @@ public class  DownloadPrepareAction implements Closeable {
    * Sets the extensions parameter.
    */
   private void setRequestExtensionsParam(Download download, Properties props) {
-    if (download != null && download.getRequest().getVerbatimExtensions() != null && !download.getRequest().getVerbatimExtensions().isEmpty()) {
-      String requestExtensions = Optional.ofNullable(download.getRequest().getVerbatimExtensions())
+    PredicateDownloadRequest downloadRequest = (PredicateDownloadRequest) download.getRequest();
+    if (downloadRequest != null && downloadRequest.getVerbatimExtensions() != null && !downloadRequest.getVerbatimExtensions().isEmpty()) {
+      String requestExtensions = Optional.ofNullable(downloadRequest.getVerbatimExtensions())
         .map(verbatimExtensions -> verbatimExtensions.stream().map(Enum::name).collect(Collectors.joining(",")))
         .orElse("");
       props.setProperty(VERBATIM_EXTENSIONS, requestExtensions);

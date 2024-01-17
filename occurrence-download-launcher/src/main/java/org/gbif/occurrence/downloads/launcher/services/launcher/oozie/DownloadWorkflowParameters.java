@@ -30,7 +30,7 @@ public class DownloadWorkflowParameters {
 
   public static final String CORE_TERM_NAME = "core_term_name";
   public static final String TABLE_NAME = "table_name";
-  public static final String GBIF_FILTER = "gbif_filter"; // Filter/Predicate/SQL
+  public static final String GBIF_FILTER = "gbif_filter";  // Predicate downloads
   public static final String NOTIFICATION_PROPERTY = "gbif_notification_addresses";
   public static final String USER_PROPERTY = "gbif_user";
   public static final String DOWNLOAD_KEY = "download_key";

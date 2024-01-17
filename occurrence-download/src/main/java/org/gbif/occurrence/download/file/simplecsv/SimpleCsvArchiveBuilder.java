@@ -110,7 +110,7 @@ public class SimpleCsvArchiveBuilder {
                                  Path outputPath,String downloadKey) {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
-      ZipOutputStream zos = new ZipOutputStream(zipped)
+      ZipOutputStream zos = new ZipOutputStream(zipped);
     ) {
       //appends the header file
       appendHeaderFile(sourceFS, new Path(sourcePath), ModalZipOutputStream.MODE.DEFAULT);
@@ -140,7 +140,7 @@ public class SimpleCsvArchiveBuilder {
                                      Path outputPath, String downloadKey) throws IOException {
     try (
       FSDataOutputStream zipped = targetFS.create(outputPath, true);
-      ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped))
+      ModalZipOutputStream zos = new ModalZipOutputStream(new BufferedOutputStream(zipped));
     ) {
       Path inputPath = new Path(sourcePath);
       //appends the header file
