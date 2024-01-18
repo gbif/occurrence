@@ -10,6 +10,10 @@
   <artifactId>occurrence-download-spark</artifactId>
   <name>Occurrence :: Downloads using Apache Spark</name>
 
+  <properties>
+    <scala-java8-compat.version>1.0.2</scala-java8-compat.version>
+  </properties>
+
   <build>
     <resources>
       <resource>
@@ -131,6 +135,11 @@
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang.modules</groupId>
+      <artifactId>scala-java8-compat_${scala.tools.version}</artifactId>
+      <version>${scala-java8-compat.version}</version>
     </dependency>
 
   </dependencies>
