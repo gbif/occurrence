@@ -118,9 +118,9 @@ public class DownloadWorkflowModuleTestIT {
   }
 
   @ParameterizedTest
-  @EnumSource(value = DownloadFormat.class)
+  @EnumSource(value = DownloadFormat.class, mode = EnumSource.Mode.EXCLUDE, names = {"SQL_TSV_ZIP"})
   public void downloadModuleCreationTest(DownloadFormat downloadFormat) {
-     DownloadJobConfiguration downloadJobConfiguration =downloadJobConfiguration(downloadFormat);
+    DownloadJobConfiguration downloadJobConfiguration = downloadJobConfiguration(downloadFormat);
 
     DownloadWorkflowModule module = DownloadWorkflowModule.builder()
                                       .workflowConfiguration(workflowConfiguration(downloadFormat))

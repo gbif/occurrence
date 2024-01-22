@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>occurrence-download-launcher</artifactId>
-  <name>Occurrence Downloads using Apache Spark</name>
+  <name>Occurrence Downloads Launcher</name>
 
   <properties>
     <hadoop-yarn-client.version>2.6.0-cdh5.16.2</hadoop-yarn-client.version>

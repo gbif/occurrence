@@ -150,7 +150,7 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * Directory where downloads files will be temporary stored. The output varies for small and big downloads:
+   * Directory where downloads files will be temporarily stored. The output varies for small and big downloads:
    * - small downloads: sourceDir/downloadKey(suffix)/
    * - big downloads: sourceDir/downloadTableName(suffix)/
    */
@@ -169,7 +169,7 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * Directory where downloads files will be temporary stored. The output varies for small and big downloads:
+   * Directory where downloads files will be temporarily stored. The output varies for small and big downloads:
    * - small downloads: sourceDir/downloadKey/
    * - big downloads: sourceDir/downloadTableName/
    */
