@@ -36,12 +36,15 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,6 +120,8 @@ public class DownloadResource {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadResource.class);
 
   private static final Splitter COMMA_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
+
+  private final SqlValidation sqlValidation = new SqlValidation();
 
   private final DownloadRequestService requestService;
 
@@ -385,9 +390,48 @@ public class DownloadResource {
       }
     }
 
+    // SQL validation.
+    if (downloadRequest.getFormat().equals(DownloadFormat.SQL_TSV_ZIP)) {
+      try {
+        String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
+        LOG.info("Received SQL download request «{}»", userSql);
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
+        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
+        LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
+        LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+      } catch (Exception e) {
+        LOG.warn("SQL is INVALID "+e.getMessage(), e);
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+      }
+    }
+
     String downloadKey = requestService.create(downloadRequest, source);
     LOG.info("Created new download job with key [{}]", downloadKey);
     return downloadKey;
+  }
+
+  @PostMapping(
+    path = "validate",
+    produces = {MediaType.APPLICATION_JSON_VALUE},
+    consumes = {MediaType.APPLICATION_JSON_VALUE})
+  public String validateSQL(@NotNull @Valid @RequestBody DownloadRequest downloadRequest) {
+
+    if (downloadRequest.getFormat().equals(DownloadFormat.SQL_TSV_ZIP)) {
+      try {
+        String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
+        LOG.info("Received SQL download request «{}»", userSql);
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
+        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
+        LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
+        LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+      } catch (Exception e) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+      }
+      return "OK"; // TODO
+    } else {
+      LOG.debug("Received validation request for «{}», which is a predicate download", downloadRequest);
+      return "SQL downloads only."; // TODO
+    }
   }
 
   /** Request a new download (GET method, internal API used by the portal). */

@@ -29,14 +29,17 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
+import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +73,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   protected static final Set<Download.Status> RUNNING_STATUSES =
       EnumSet.of(Download.Status.PREPARING, Download.Status.RUNNING, Download.Status.SUSPENDED);
+
+  private final SqlValidation sqlValidation = new SqlValidation();
 
   /** Map to provide conversions from oozie.Job.Status to Download.Status. */
   @VisibleForTesting
@@ -159,8 +164,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public String create(DownloadRequest request, String source) {
     LOG.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
+
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
+    } else if (request instanceof SqlDownloadRequest) {
+      HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
     }
 
     String exceedComplexityLimit = null;

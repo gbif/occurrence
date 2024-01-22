@@ -47,6 +47,8 @@ import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.utils.text.StringUtils;
 import org.slf4j.Logger;
@@ -186,10 +188,13 @@ public class  DownloadPrepareAction implements Closeable {
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
 
       if (download.getRequest() instanceof SqlDownloadRequest) {
-        String sql = ((SqlDownloadRequest) download.getRequest()).getSql();
-        props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(sql));
-        props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10("1 = 1"));
-        props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10("a,b,c"));
+        SqlValidation sv = new SqlValidation();
+
+        String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
+        HiveSqlQuery sqlQuery = sv.validateAndParse(userSql);
+        props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(sqlQuery.getSql()));
+        props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10(sqlQuery.getSqlWhere()));
+        props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10(StringUtils.joinIfNotNull("\t", sqlQuery.getSqlSelectColumnNames())));
       } else if (download.getRequest() instanceof PredicateDownloadRequest) {
         setRequestExtensionsParam(download, props);
         props.setProperty(CORE_TERM_NAME, coreTerm.name());
