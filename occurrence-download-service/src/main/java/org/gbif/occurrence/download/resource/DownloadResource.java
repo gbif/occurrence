@@ -377,7 +377,7 @@ public class DownloadResource {
               userAuthenticated.getName(),
               new PagingRequest(0, 50),
               EnumSet.of(PREPARING, RUNNING, SUCCEEDED, SUSPENDED),
-              LocalDateTime.now().minus(4, ChronoUnit.HOURS),
+              LocalDateTime.now().minus(48, ChronoUnit.HOURS),
               false);
       String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
       if (existingUserDownload != null) {
