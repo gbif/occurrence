@@ -312,7 +312,7 @@ public class DownloadResource {
   @ResponseBody
   @Secured(USER_ROLE)
   public ResponseEntity<String> startDownload(
-      @NotNull @Valid @RequestBody PredicateDownloadRequest request,
+      @NotNull @Valid @RequestBody DownloadRequest request,
       @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
@@ -390,14 +390,14 @@ public class DownloadResource {
     return downloadKey;
   }
 
-  @GET
-  @Path("validate")
   @PostMapping(
+    path = "validate",
     produces = {MediaType.APPLICATION_JSON_VALUE},
     consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public boolean validateSQL(@QueryParam("sql") String sqlQuery) {
-    LOG.debug("Received validation request for sql query [{}]", sqlQuery);
-    return true;
+  public String validateSQL(@NotNull @Valid @RequestBody DownloadRequest request) {
+    LOG.debug("Received validation request for [{}]", request);
+    return request.toString();
+  }
   }
 
   /** Request a new download (GET method, internal API used by the portal). */

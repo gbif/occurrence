@@ -155,6 +155,7 @@
             <descriptor>src/main/assembly/species-list-download.xml</descriptor>
             <descriptor>src/main/assembly/map-of-life-download.xml</descriptor>
             <descriptor>src/main/assembly/simple-with-verbatim-avro-download.xml</descriptor>
+            <descriptor>src/main/assembly/sql-tsv.xml</descriptor>
             <descriptor>src/main/assembly/bionomia-download.xml</descriptor>
             <descriptor>src/main/assembly/common.xml</descriptor>
           </descriptors>

@@ -47,7 +47,7 @@
       <arg>${download_key}</arg>
       <arg>PRE_DEFLATED</arg>
       <arg>${download_format}</arg>
-      <arg>${sql_header}</arg>
+      <arg>${user_sql_header}</arg>
       <capture-output />
     </java>
     <ok to="persist_sql_meta" />
@@ -60,6 +60,7 @@
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
       <arg>${download_key}</arg>
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_citation/</arg>
+      <arg>${core_term_name}</arg>
       <capture-output />
     </java>
     <ok to="update_occurrence_count" />
@@ -72,6 +73,7 @@
       <arg>/user/hive/warehouse/${hive_db}.db/${download_table_name}_count/</arg>
       <arg>${download_key}</arg>
       <arg>CC0_1_0</arg>
+      <arg>${core_term_name}</arg>
       <capture-output />
     </java>
     <ok to="drop_tables" />

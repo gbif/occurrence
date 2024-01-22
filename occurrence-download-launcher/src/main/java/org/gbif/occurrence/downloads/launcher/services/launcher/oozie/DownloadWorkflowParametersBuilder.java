@@ -60,16 +60,15 @@ public class DownloadWorkflowParametersBuilder {
     properties.setProperty(USER_PROPERTY, request.getCreator());
     properties.setProperty(DOWNLOAD_KEY, downloadKey);
     properties.setProperty(EXTERNAL_ID, downloadKey);
+    properties.setProperty(DOWNLOAD_FORMAT, request.getFormat().name());
 
     if (request instanceof SqlDownloadRequest) {
       String sql = ((SqlDownloadRequest)request).getSql();
       String sqlWhere = "1 = 1";
-      //properties.setProperty(DOWNLOAD_FORMAT, ((SqlDownloadRequest) request).getFormat().name());
-      properties.setProperty(DOWNLOAD_FORMAT, "SQL");
+      properties.setProperty(GBIF_FILTER, "n/a");
     } else {
       Predicate predicateRequest = ((PredicateDownloadRequest) request).getPredicate();
       String gbifFilter = getJsonStringPredicate(PredicateOptimizer.optimize(predicateRequest));
-      properties.setProperty(DOWNLOAD_FORMAT, ((PredicateDownloadRequest) request).getFormat().name());
       properties.setProperty(GBIF_FILTER, gbifFilter);
     }
 

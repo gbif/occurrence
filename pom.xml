@@ -212,11 +212,10 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.12</hbase-utils.version>
-    <download-query-tools.version>1.50.0</download-query-tools.version>
+    <download-query-tools.version>1.51.0-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.48</dwc-api.version>
     <dwca-io.version>2.15</dwca-io.version>
-    <gbif-api.version>1.13.0</gbif-api.version>
-    <gbif-api.version>1.14.0.B3-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.14.0-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -226,7 +225,7 @@
     <gbif-metadata-profile.version>2.1</gbif-metadata-profile.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
     <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
-    <gbif-registry.version>3.95.3</gbif-registry.version>
+    <gbif-registry.version>3.96.0-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.4</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
@@ -234,6 +233,7 @@
     <gbif.kvs.version>1.30</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.2.0</gbif-predicates.version>
+    <gbif-occurrence-cube.version>1.0-SNAPSHOT</gbif-occurrence-cube.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -478,6 +478,11 @@
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-download-service</artifactId>
         <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>cube-hive</artifactId>
+        <version>${gbif-occurrence-cube.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.registry</groupId>

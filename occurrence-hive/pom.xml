@@ -107,6 +107,10 @@
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>cube-hive</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>com.squareup.okhttp3</groupId>

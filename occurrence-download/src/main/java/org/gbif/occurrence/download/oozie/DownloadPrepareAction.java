@@ -44,9 +44,12 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
+import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.utils.text.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +60,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -106,6 +110,8 @@ public class  DownloadPrepareAction implements Closeable {
   private static final String USER_SQL = "user_sql"; // SQL downloads
 
   private static final String USER_SQL_WHERE = "user_sql_where"; // SQL downloads
+
+  private static final String USER_SQL_HEADER = "user_sql_header"; // SQL downloads
 
   private static final String DOWNLOAD_KEY = "download_key";
 
@@ -181,8 +187,14 @@ public class  DownloadPrepareAction implements Closeable {
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
 
       if (download.getRequest() instanceof SqlDownloadRequest) {
-        props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(rawPredicate));
-        props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10("1 = 1"));
+        SqlValidation sv = new SqlValidation();
+
+        String sql = ((SqlDownloadRequest) download.getRequest()).getSql();
+        String sqlWhere = sv.validateAndParse(sql).getSqlWhere();
+        List<String> sqlHeader = sv.validateAndParse(sql).getSqlSelectColumnNames();
+        props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(sql));
+        props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10(sqlWhere));
+        props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10(StringUtils.joinIfNotNull("\t", sqlHeader)));
       } else if (download.getRequest() instanceof PredicateDownloadRequest) {
         setRequestExtensionsParam(download, props);
         props.setProperty(CORE_TERM_NAME, coreTerm.name());

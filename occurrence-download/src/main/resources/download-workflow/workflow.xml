@@ -43,7 +43,7 @@
         ${(download_format eq 'SPECIES_LIST')}
       </case>
       <case to="sql_download">
-        ${(download_format eq 'SQL')}
+        ${(download_format eq 'SQL_TSV_ZIP')}
       </case>
       <!-- All Avro downloads are done through Hive queries -->
       <case to="simple_avro_download">
@@ -464,8 +464,16 @@
           <value>${wf:actionData('download_prepare')['table_name']}</value>
         </property>
         <property>
-          <name>hive_query</name>
-          <value>${wf:actionData('download_prepare')['hive_query']}</value>
+          <name>user_sql</name>
+          <value>${wf:actionData('download_prepare')['user_sql']}</value>
+        </property>
+        <property>
+          <name>user_sql_where</name>
+          <value>${wf:actionData('download_prepare')['user_sql_where']}</value>
+        </property>
+        <property>
+          <name>user_sql_header</name>
+          <value>${wf:actionData('download_prepare')['user_sql_header']}</value>
         </property>
         <property>
           <name>hive_db</name>
