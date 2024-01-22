@@ -13,23 +13,29 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.oozie;
 
-import static org.apache.oozie.client.OozieClient.EXTERNAL_ID;
-import static org.gbif.occurrence.downloads.launcher.services.launcher.oozie.DownloadWorkflowParameters.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.predicate.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
-import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.predicate.Predicate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.apache.oozie.client.OozieClient.EXTERNAL_ID;
+import static org.gbif.occurrence.downloads.launcher.services.launcher.oozie.DownloadWorkflowParameters.DOWNLOAD_FORMAT;
+import static org.gbif.occurrence.downloads.launcher.services.launcher.oozie.DownloadWorkflowParameters.DOWNLOAD_KEY;
+import static org.gbif.occurrence.downloads.launcher.services.launcher.oozie.DownloadWorkflowParameters.GBIF_FILTER;
+import static org.gbif.occurrence.downloads.launcher.services.launcher.oozie.DownloadWorkflowParameters.NOTIFICATION_PROPERTY;
+import static org.gbif.occurrence.downloads.launcher.services.launcher.oozie.DownloadWorkflowParameters.USER_PROPERTY;
 
 /** Builds the configuration parameters for the download workflows. */
 public class DownloadWorkflowParametersBuilder {
@@ -51,14 +57,21 @@ public class DownloadWorkflowParametersBuilder {
     Properties properties = new Properties();
     properties.putAll(defaultProperties);
 
-    Predicate predicateRequest = ((PredicateDownloadRequest) request).getPredicate();
-    String gbifFilter = getJsonStringPredicate(PredicateOptimizer.optimize(predicateRequest));
-
-    properties.setProperty(GBIF_FILTER, gbifFilter);
     properties.setProperty(USER_PROPERTY, request.getCreator());
-    properties.setProperty(DOWNLOAD_FORMAT, request.getFormat().name());
     properties.setProperty(DOWNLOAD_KEY, downloadKey);
     properties.setProperty(EXTERNAL_ID, downloadKey);
+    properties.setProperty(DOWNLOAD_FORMAT, request.getFormat().name());
+
+    if (request instanceof SqlDownloadRequest) {
+      String sql = ((SqlDownloadRequest)request).getSql();
+      // The download workflow requires this parameter.
+      properties.setProperty(GBIF_FILTER, "n/a");
+    } else {
+      Predicate predicateRequest = ((PredicateDownloadRequest) request).getPredicate();
+      String gbifFilter = getJsonStringPredicate(PredicateOptimizer.optimize(predicateRequest));
+      properties.setProperty(GBIF_FILTER, gbifFilter);
+    }
+
     if (request.getNotificationAddresses() != null
         && !request.getNotificationAddresses().isEmpty()) {
       String emails =
