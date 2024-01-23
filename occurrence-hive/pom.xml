@@ -104,6 +104,10 @@
       <artifactId>geocode-ws</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>cube-functions</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
     </dependency>
