@@ -10,6 +10,10 @@
   <artifactId>occurrence-table-build-spark</artifactId>
   <name>Occurrence :: HDFS-Hive Tables Build in Spark</name>
 
+  <properties>
+    <cluster.spark.version>3.4.0</cluster.spark.version>
+  </properties>
+
   <build>
     <resources>
       <resource>
@@ -162,22 +166,32 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-catalyst_${scala.tools.version}</artifactId>
+      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.tools.version}</artifactId>
+      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_${scala.tools.version}</artifactId>
+      <version>${cluster.spark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-yarn_${scala.tools.version}</artifactId>
+      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-hive_${scala.tools.version}</artifactId>
+      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-avro_${scala.tools.version}</artifactId>
+      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
