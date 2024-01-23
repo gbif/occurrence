@@ -1,0 +1,7 @@
+{
+  "sendNotification": true,
+  "creator": "MattBlissett",
+  "notification_address": ["mblissett@gbif.org"],
+  "format": "SQL_TSV_ZIP",
+  "sql": "SELECT \"year\", eeaCellCode(1000, decimallatitude, decimallongitude, COALESCE(coordinateUncertaintyInMeters, 1000)) AS eeaCellCode, occurrence.speciesKey, COUNT(*), MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS \"minCoordinateUncertaintyInMeters\" FROM occurrence WHERE occurrenceStatus = 'PRESENT' AND speciesKey IS NOT NULL AND NOT stringArrayContains(issue, 'ZERO_COORDINATE', false) AND NOT stringArrayContains(issue, 'COORDINATE_OUT_OF_RANGE', false) AND NOT stringArrayContains(issue, 'COORDINATE_INVALID', false) AND NOT stringArrayContains(issue, 'COUNTRY_COORDINATE_MISMATCH', false) AND (identificationVerificationStatus IS NULL OR NOT (LOWER(identificationVerificationStatus) LIKE '%unverified%' OR LOWER(identificationVerificationStatus) LIKE '%unvalidated%' OR LOWER(identificationVerificationStatus) LIKE '%not able to validate%' OR LOWER(identificationVerificationStatus) LIKE '%control could not be conclusive due to insufficient knowledge%' OR LOWER(identificationVerificationStatus) LIKE '%unconfirmed%' OR LOWER(identificationVerificationStatus) LIKE '%unconfirmed - not reviewed%' OR LOWER(identificationVerificationStatus) LIKE '%validation requested%')) AND gbifRegion = 'EUROPE' AND \"year\" > 1000 AND hasCoordinate GROUP BY \"year\", eeaCellCode, speciesKey ORDER BY \"year\" DESC, eeaCellCode ASC, speciesKey ASC"
+}
