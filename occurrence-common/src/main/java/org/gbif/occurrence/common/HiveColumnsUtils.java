@@ -101,7 +101,7 @@ public class HiveColumnsUtils {
     return TermUtils.isInterpretedLocalDate(term) || TermUtils.isInterpretedUtcDate(term);
   }
 
-  /** Checks if the term is stored as an Hive array. */
+  /** Checks if the term is stored as  Hive array. */
   public static boolean isHiveArray(Term term) {
     return GbifTerm.mediaType == term
         || GbifTerm.issue == term
@@ -118,6 +118,8 @@ public class HiveColumnsUtils {
         || DwcTerm.preparations == term
         || DwcTerm.samplingProtocol == term
         || DwcTerm.associatedSequences == term
+        || DwcTerm.higherGeography == term
+        || DwcTerm.georeferencedBy == term
         || GbifTerm.projectId == term;
   }
 
