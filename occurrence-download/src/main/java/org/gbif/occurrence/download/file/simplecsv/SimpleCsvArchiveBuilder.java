@@ -57,19 +57,19 @@ public class SimpleCsvArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvArchiveBuilder.class);
 
-  //Occurrences file name
+  // Occurrences file name
   private static final String CSV_EXTENSION = ".csv";
 
   private static final String ZIP_EXTENSION = ".zip";
 
   private static final String ERROR_ZIP_MSG = "Error creating zip file";
-  //Header file is named '0' to appear first when listing the content of the directory.
+  // Header file is named '0' to appear first when listing the content of the directory.
   private static final String HEADER_FILE_NAME = "0";
-  //String that contains the file HEADER for the simple table format.
+  // String that contains the file HEADER for the simple table format.
   private final String header;
 
   /**
-   * Creates the file HEADER.
+   * Creates the file HEADER from a list of terms.
    * It was moved to a function because a bug in javac https://bugs.openjdk.java.net/browse/JDK-8077605.
    */
   public static SimpleCsvArchiveBuilder withHeader(Set<Pair<DownloadTerms.Group, Term>> downloadTermsHeader) {
@@ -80,7 +80,7 @@ public class SimpleCsvArchiveBuilder {
   }
 
   /**
-   * Creates the file HEADER.
+   * Creates the file HEADER from a string.
    * It was moved to a function because a bug in javac https://bugs.openjdk.java.net/browse/JDK-8077605.
    */
   public static SimpleCsvArchiveBuilder withHeader(String downloadTermsHeader) {
@@ -192,14 +192,27 @@ public class SimpleCsvArchiveBuilder {
     FileSystem sourceFileSystem =
       DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
 
-    Set<Pair<DownloadTerms.Group, Term>> downloadTerms =
-      DownloadFormat.valueOf(downloadFormat).equals(DownloadFormat.SPECIES_LIST)
-        ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS
-        : DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
-    SimpleCsvArchiveBuilder.withHeader(downloadTerms)
+    SimpleCsvArchiveBuilder builder;
+    switch (DownloadFormat.valueOf(downloadFormat)) {
+      case SPECIES_LIST:
+        builder = SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS);
+        break;
+
+      case SIMPLE_CSV:
+        builder = SimpleCsvArchiveBuilder.withHeader(DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+        break;
+
+      case SQL_TSV_ZIP:
+        String downloadHeaderString = Preconditions.checkNotNull(args[5]).trim();
+        builder = SimpleCsvArchiveBuilder.withHeader(downloadHeaderString);
+        break;
+
+      default:
+        throw new IllegalArgumentException("Download format "+downloadFormat+" cannot use the SimpleCsvArchiveBuilder");
+    }
+    builder
       .mergeToZip(sourceFileSystem, sourceFileSystem, args[0], args[1], args[2],
         ModalZipOutputStream.MODE.valueOf(args[3]));
-
   }
 
   /**

@@ -194,7 +194,7 @@ public class  DownloadPrepareAction implements Closeable {
         HiveSqlQuery sqlQuery = sv.validateAndParse(userSql);
         props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(sqlQuery.getSql()));
         props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10(sqlQuery.getSqlWhere()));
-        props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10(StringUtils.joinIfNotNull("\t", sqlQuery.getSqlSelectColumnNames())));
+        props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10(String.join("\t", sqlQuery.getSqlSelectColumnNames())));
       } else if (download.getRequest() instanceof PredicateDownloadRequest) {
         setRequestExtensionsParam(download, props);
         props.setProperty(CORE_TERM_NAME, coreTerm.name());

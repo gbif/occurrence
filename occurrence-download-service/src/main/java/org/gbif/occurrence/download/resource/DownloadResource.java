@@ -29,6 +29,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
+import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
@@ -70,10 +71,9 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -86,6 +86,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -287,7 +289,8 @@ public class DownloadResource {
       description =
           "Starts the process of creating a download file. See the predicates "
               + "section to consult the requests accepted by this service and the limits section to refer "
-              + "for information of how this service is limited per user.",
+              + "for information of how this service is limited per user. "
+              + "**Experimental** SQL downloads are also created with this call.",
       extensions =
           @Extension(
               name = "Order",
@@ -400,22 +403,46 @@ public class DownloadResource {
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
       } catch (Exception e) {
-        LOG.warn("SQL is INVALID "+e.getMessage(), e);
+        LOG.warn("SQL is INVALID: "+e.getMessage(), e);
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
       }
     }
 
-    String downloadKey = requestService.create(downloadRequest, source);
-    LOG.info("Created new download job with key [{}]", downloadKey);
-    return downloadKey;
+    try {
+      String downloadKey = requestService.create(downloadRequest, source);
+      LOG.info("Created new download job with key [{}]", downloadKey);
+      return downloadKey;
+    } catch (ServiceUnavailableException sue) {
+      LOG.error("Failed to create download request", sue);
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, sue.getMessage(), sue);
+    }
   }
 
+  /** Validates an SQL download request's SQL */
+  @Operation(
+    operationId = "validateDownloadRequest",
+    summary = "**Experimental** Validates the SQL contained in an SQL download request.",
+    description =
+      "**Experimental** Validates the SQL in an SQL download request.  See the SQL section "
+        + " for information on what queries are accepted.",
+    extensions =
+    @Extension(
+      name = "Order",
+      properties = @ExtensionProperty(name = "Order", value = "0040")))
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "SQL is valid."),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid query, see other documentation.")
+    })
   @PostMapping(
     path = "validate",
     produces = {MediaType.APPLICATION_JSON_VALUE},
     consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public String validateSQL(@NotNull @Valid @RequestBody DownloadRequest downloadRequest) {
-
+  public ResponseEntity<Object> validateRequest(@NotNull @Valid @RequestBody DownloadRequest downloadRequest) {
     if (downloadRequest.getFormat().equals(DownloadFormat.SQL_TSV_ZIP)) {
       try {
         String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
@@ -424,13 +451,23 @@ public class DownloadResource {
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+        ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getSql());
+        return ResponseEntity.ok(downloadRequest);
       } catch (Exception e) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        // TODO: Better return format for failures.
+        LOG.info("SQL is invalid: "+e.getMessage(), e);
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", "INVALID");
+        body.put("message", e.getMessage());
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        body.put("track", sw.toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
       }
-      return "OK"; // TODO
     } else {
       LOG.debug("Received validation request for «{}», which is a predicate download", downloadRequest);
-      return "SQL downloads only."; // TODO
+      return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("\"Validation of predicate downloads not implemented.\"");
     }
   }
 
