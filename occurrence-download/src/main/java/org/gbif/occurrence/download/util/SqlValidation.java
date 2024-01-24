@@ -58,16 +58,32 @@ public class SqlValidation {
 
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
+    // Built-in Hive function
+    additionalOperators.add(new SqlFunction("array_contains",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.BOOLEAN,
+      null,
+      OperandTypes.family(SqlTypeFamily.ARRAY, SqlTypeFamily.ANY),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.ContainsUDF
-    additionalOperators.add(new SqlFunction("contains",
+    additionalOperators.add(new SqlFunction("gbif_within",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
       OperandTypes.family(SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.hive.udf.EeaCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_eeaCellCode",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.GeoDistanceUDF
-    additionalOperators.add(new SqlFunction("geoDistance",
+    additionalOperators.add(new SqlFunction("gbif_geoDistance",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
@@ -75,7 +91,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ToISO8601UDF
-    additionalOperators.add(new SqlFunction("toISO8601",
+    additionalOperators.add(new SqlFunction("gbif_toISO8601",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -83,51 +99,19 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ToLocalISO8601UDF
-    additionalOperators.add(new SqlFunction("toLocalISO8601",
+    additionalOperators.add(new SqlFunction("gbif_toLocalISO8601",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
       OperandTypes.family(SqlTypeFamily.ANY),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
-    // org.gbif.occurrence.hive.udf.CleanDelimiterCharsUDF
-    additionalOperators.add(new SqlFunction("cleanDelimiters",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.CHAR,
-      null,
-      OperandTypes.family(SqlTypeFamily.ANY),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
-    // org.gbif.occurrence.hive.udf.CleanDelimiterArraysUDF
-    additionalOperators.add(new SqlFunction("cleanDelimitersArray",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.TO_ARRAY,
-      null,
-      OperandTypes.family(SqlTypeFamily.ARRAY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // brickhouse.udf.collect.JoinArrayUDF
-    additionalOperators.add(new SqlFunction("joinArray",
+    additionalOperators.add(new SqlFunction("gbif_joinArray",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
       OperandTypes.family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
-    // org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF
-    additionalOperators.add(new SqlFunction("stringArrayContains",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.BOOLEAN,
-      null,
-      OperandTypes.family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER, SqlTypeFamily.BOOLEAN),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
-    // org.gbif.occurrence.hive.udf.EeaCellCodeUDF
-    additionalOperators.add(new SqlFunction("eeaCellCode",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.CHAR,
-      null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);

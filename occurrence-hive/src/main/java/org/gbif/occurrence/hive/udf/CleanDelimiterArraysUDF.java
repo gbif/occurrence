@@ -25,7 +25,7 @@ import org.apache.hadoop.io.Text;
 /**
  * A simple UDF for Hive that replaces specials characters with blanks. The characters replaced by
  * this UDF can break a download format and those are: tabs, line breaks and new lines. If the input
- * value is null or can't be parsed, and empty string is returned.
+ * value is null or can't be parsed, an empty string is returned.
  */
 @Description(name = "cleanDelimitersArray", value = "_FUNC_(field)")
 public class CleanDelimiterArraysUDF extends UDF {

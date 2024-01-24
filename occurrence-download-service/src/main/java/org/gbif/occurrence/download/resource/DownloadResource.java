@@ -375,7 +375,7 @@ public class DownloadResource {
         String existingMonthlyDownload =
             matchExistingDownload(monthlyDownloads, predicateDownloadRequest);
         if (existingMonthlyDownload != null) {
-          return existingMonthlyDownload;
+          return existingMonthlyDownload + "\n";
         }
       }
 
@@ -389,7 +389,7 @@ public class DownloadResource {
               false);
       String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
       if (existingUserDownload != null) {
-        return existingUserDownload;
+        return existingUserDownload + "\n";
       }
     }
 
@@ -411,7 +411,7 @@ public class DownloadResource {
     try {
       String downloadKey = requestService.create(downloadRequest, source);
       LOG.info("Created new download job with key [{}]", downloadKey);
-      return downloadKey;
+      return downloadKey + "\n";
     } catch (ServiceUnavailableException sue) {
       LOG.error("Failed to create download request", sue);
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, sue.getMessage(), sue);
