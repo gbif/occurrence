@@ -8,7 +8,7 @@ SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
-# For public use, prefix the functions with "gbif_" to avoid present and future collisions with SQL keywords, e.g. CONTAINS.
+-- For public use, prefix the functions with "gbif_" to avoid present and future collisions with SQL keywords, e.g. CONTAINS.
 CREATE TEMPORARY FUNCTION gbif_eeaCellCode AS 'org.gbif.occurrence.hive.udf.EeaCellCodeUDF';
 CREATE TEMPORARY FUNCTION gbif_geoDistance AS 'org.gbif.occurrence.hive.udf.GeoDistanceUDF';
 CREATE TEMPORARY FUNCTION gbif_joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';

@@ -13,11 +13,10 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.model.common.paging.PagingRequest;
-import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.conf.DownloadLimits;
 
@@ -69,6 +68,8 @@ public class DownloadLimitsService {
 
     if (request instanceof PredicateDownloadRequest) {
       return downloadLimits.violatesFilterRules(((PredicateDownloadRequest)request).getPredicate());
+    } else if (request instanceof SqlDownloadRequest) {
+      return downloadLimits.violatesSqlFilterRules(((SqlDownloadRequest)request).getSql());
     }
 
     return null;
