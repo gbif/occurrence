@@ -270,7 +270,7 @@ public class DownloadResource {
             HttpHeaders.LAST_MODIFIED,
             new SimpleDateFormat().format(new Date(downloadFile.lastModified())))
         .location(URI.create(location))
-        .body(location + "\n");
+        .body(location);
   }
 
   @Hidden
@@ -375,7 +375,7 @@ public class DownloadResource {
         String existingMonthlyDownload =
             matchExistingDownload(monthlyDownloads, predicateDownloadRequest);
         if (existingMonthlyDownload != null) {
-          return existingMonthlyDownload + "\n";
+          return existingMonthlyDownload;
         }
       }
 
@@ -389,7 +389,7 @@ public class DownloadResource {
               false);
       String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
       if (existingUserDownload != null) {
-        return existingUserDownload + "\n";
+        return existingUserDownload;
       }
     }
 
@@ -411,7 +411,7 @@ public class DownloadResource {
     try {
       String downloadKey = requestService.create(downloadRequest, source);
       LOG.info("Created new download job with key [{}]", downloadKey);
-      return downloadKey + "\n";
+      return downloadKey;
     } catch (ServiceUnavailableException sue) {
       LOG.error("Failed to create download request", sue);
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, sue.getMessage(), sue);
