@@ -37,25 +37,26 @@ import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Parses year, month and day only.
  *
- * Usage example:
+ * Quick test example:
  *
  * SELECT
- *   gbifid, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)), from_unixtime(floor(d.epoch_to/1000)),
- *   v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear
- * FROM
- *   (SELECT
- *      gbifid, v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear,
- *      parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear) d
- *    FROM prod_h.occurrence
- *    WHERE v_startdayofyear IS NOT NULL
- *      AND v_eventdate IS NULL
- *    LIMIT 10000
- *   ) r
- *  LIMIT 100000;
+ *    c, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)), from_unixtime(floor(d.epoch_to/1000)), d.issue,
+ *    v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear
+ *  FROM
+ *    (SELECT
+ *       c, v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear,
+ *       parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear) d
+ *     FROM prod_h.occurrence
+ *     WHERE v_eventdate IS NOT NULL
+ *     LIMIT 1000
+ *    ) r;
+ *
+ * See the script at the root of this module for a full example for testing parsing.
  */
 @Description(
   name = "parseDate",
@@ -74,7 +75,7 @@ public class DateParseUDF extends GenericUDF {
     String event_date = getArgument(3, arguments);
     String start_day_of_year = getArgument(4, arguments);
     String end_day_of_year = getArgument(5, arguments);
-    List<Object> result = new ArrayList<Object>(5);
+    List<Object> result = new ArrayList<Object>(6);
 
     try {
       OccurrenceParseResult<IsoDateInterval> parsed =
@@ -121,6 +122,11 @@ public class DateParseUDF extends GenericUDF {
         result.add(null);
         result.add(null);
         result.add(null);
+      }
+      if (parsed.getIssues().isEmpty()) {
+        result.add(null);
+      } else {
+        result.add(parsed.getIssues().stream().map(Object::toString).collect(Collectors.joining(",")));
       }
     } catch (Exception e) {
       // not much to do - indicates bad data
@@ -198,13 +204,14 @@ public class DateParseUDF extends GenericUDF {
         .getConverter(arguments[i], PrimitiveObjectInspectorFactory.writableStringObjectInspector);
     }
 
-    return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays.asList("year", "month", "day", "epoch_from", "epoch_to"), Arrays
+    return ObjectInspectorFactory.getStandardStructObjectInspector(Arrays.asList("year", "month", "day", "epoch_from", "epoch_to", "issue"), Arrays
         .<ObjectInspector>asList(
                 PrimitiveObjectInspectorFactory.javaIntObjectInspector,
                 PrimitiveObjectInspectorFactory.javaIntObjectInspector,
                 PrimitiveObjectInspectorFactory.javaIntObjectInspector,
                 PrimitiveObjectInspectorFactory.javaLongObjectInspector,
-                PrimitiveObjectInspectorFactory.javaLongObjectInspector));
+                PrimitiveObjectInspectorFactory.javaLongObjectInspector,
+                PrimitiveObjectInspectorFactory.javaStringObjectInspector));
   }
 
 }
