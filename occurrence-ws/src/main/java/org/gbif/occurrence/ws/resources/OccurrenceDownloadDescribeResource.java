@@ -262,6 +262,7 @@ public class OccurrenceDownloadDescribeResource {
    */
   private static List<Field> toTypedFieldList(Map<String,InitializableField> queryFields, boolean interpreted) {
     return queryFields.entrySet().stream()
+      .filter(field -> !(interpreted && GbifTerm.verbatimScientificName == field.getValue().getTerm()))
       .map(field -> {
         InitializableField initializableField = field.getValue();
         String columnName = field.getKey().toLowerCase(Locale.ENGLISH);
