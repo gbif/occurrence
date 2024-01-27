@@ -13,28 +13,7 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.HiveColumnsUtils;
-import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.hive.AvroQueries;
-import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.hive.HiveQueries;
-import org.gbif.occurrence.download.hive.InitializableField;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.google.common.collect.ImmutableSet;
-
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
@@ -45,6 +24,28 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Builder;
 import lombok.Data;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.download.hive.AvroQueries;
+import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.hive.HiveQueries;
+import org.gbif.occurrence.download.hive.InitializableField;
+import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.gbif.occurrence.common.HiveColumnsUtils.HIVE_RESERVED_WORDS;
 
 /**
  * Resource to describe file/table formats use in GBIF occurrence downloads.
@@ -128,8 +129,8 @@ public class OccurrenceDownloadDescribeResource {
     @Schema(description = "The URI for the term (e.g. Darwin Core term) for the field.")
     private final Term term;
 
-    @Schema(description = "Whether the field is required and therefore present on all records.")
-    private boolean required;
+    @Schema(description = "Whether the field may be null (empty).  If `false` it will be present on all records.")
+    private boolean nullable;
   }
 
   /**
@@ -168,7 +169,7 @@ public class OccurrenceDownloadDescribeResource {
             .name(initializableField.getTerm().simpleName())
             .type(interpreted ? fieldType(initializableField.getTerm()) : initializableField.getHiveDataType())
             .term(initializableField.getTerm())
-            .required(REQUIRED_FIELD.contains(initializableField.getTerm()));
+            .nullable(!REQUIRED_FIELD.contains(initializableField.getTerm()));
           if (interpreted) {
             builder.typeFormat(fieldTypeFormat(initializableField.getTerm()));
             builder.delimiter(fieldDelimiter(initializableField.getTerm()));
@@ -193,7 +194,7 @@ public class OccurrenceDownloadDescribeResource {
         .typeFormat(fieldTypeFormat(termPair.getRight()))
         .delimiter(fieldDelimiter(termPair.getRight()))
         .term(termPair.getRight())
-        .required(REQUIRED_FIELD.contains(termPair.getRight()))
+        .nullable(!REQUIRED_FIELD.contains(termPair.getRight()))
         .build())
       .collect(Collectors.toList()))
     .build();
@@ -208,12 +209,12 @@ public class OccurrenceDownloadDescribeResource {
         .typeFormat(fieldTypeFormat(term))
         .delimiter(fieldDelimiter(term))
         .term(term)
-        .required(GbifTerm.taxonKey.equals(term))
+        .nullable(!GbifTerm.taxonKey.equals(term))
         .build())
       .collect(Collectors.toList()))
     .build();
 
-  // Simple CSV — names like "gbifID" and "verbatimScientificName", no text delimiters.
+  // Simple Avro — names like "gbifID" and "verbatimScientificName", no text delimiters.
   private static final Table SIMPLE_AVRO = Table.builder()
     .fields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS
       .stream()
@@ -222,7 +223,21 @@ public class OccurrenceDownloadDescribeResource {
         .type(fieldType(termPair.getRight()))
         .typeFormat(fieldTypeFormat(termPair.getRight()))
         .term(termPair.getRight())
-        .required(REQUIRED_FIELD.contains(termPair.getRight()))
+        .nullable(!REQUIRED_FIELD.contains(termPair.getRight()))
+        .build())
+      .collect(Collectors.toList()))
+    .build();
+
+  // Simple Parquet — names like "gbifID" and "verbatimScientificName", no text delimiters.
+  private static final Table SIMPLE_PARQUET = Table.builder()
+    .fields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS
+      .stream()
+      .map(termPair -> Field.builder()
+        .name(DownloadTerms.simpleName(termPair))
+        .type(fieldType(termPair.getRight()))
+        .typeFormat(fieldTypeFormat(termPair.getRight()))
+        .term(termPair.getRight())
+        .nullable(!REQUIRED_FIELD.contains(termPair.getRight()))
         .build())
       .collect(Collectors.toList()))
     .build();
@@ -233,14 +248,47 @@ public class OccurrenceDownloadDescribeResource {
     .fields(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(false).values()
       .stream()
       .map(initializableField -> Field.builder()
-        .name(initializableField.getHiveField())
+        .name(initializableField.getTerm().simpleName())
         .type(fieldType(initializableField.getTerm()))
         .typeFormat(fieldTypeFormat(initializableField.getTerm()))
         .term(initializableField.getTerm())
-        .required(REQUIRED_FIELD.contains(initializableField.getTerm()))
+        .nullable(!REQUIRED_FIELD.contains(initializableField.getTerm()))
         .build())
       .collect(Collectors.toList()))
     .build();
+
+  /**
+   * Transforms Map<String,InitializableField> queryFields into a List<Field> for the SQL fields.
+   */
+  private static List<Field> toTypedFieldList(Map<String,InitializableField> queryFields, boolean interpreted) {
+    return queryFields.entrySet().stream()
+      .map(field -> {
+        InitializableField initializableField = field.getValue();
+        String columnName = field.getKey().toLowerCase(Locale.ENGLISH);
+        if (HIVE_RESERVED_WORDS.contains(columnName)) {
+          columnName += '_';
+        }
+        if (GbifTerm.verbatimScientificName == initializableField.getTerm()) {
+          columnName = "v_" + DwcTerm.scientificName.simpleName().toLowerCase();
+        }
+        Field.FieldBuilder builder = Field.builder()
+          .name(columnName)
+          .type(interpreted ? fieldType(initializableField.getTerm()) : initializableField.getHiveDataType())
+          .term(initializableField.getTerm())
+          .nullable(!REQUIRED_FIELD.contains(initializableField.getTerm()));
+        return builder.build();
+      })
+      .collect(Collectors.toList());
+  }
+
+  private static final Table SQL = Table.builder()
+    .fields(ImmutableSet.<Field>builder()
+      .addAll(toTypedFieldList(HIVE_QUERIES.selectInterpretedFields(false), true))
+      .addAll(toTypedFieldList(HIVE_QUERIES.selectInternalSearchFields(false), true))
+      .addAll(toTypedFieldList(HIVE_QUERIES.selectVerbatimFields(), false))
+      .build()
+      .asList()
+    ).build();
   // End of static cached definitions
 
   @Operation(
@@ -355,6 +403,25 @@ public class OccurrenceDownloadDescribeResource {
     })
   @GetMapping("simpleParquet")
   public Table simpleParquet() {
-    return SIMPLE_CSV;
+    return SIMPLE_PARQUET;
+  }
+
+  @Operation(
+    operationId = "describeSqlDownload",
+    summary = "**Very experimental.** Describes the fields available for searching or download when using an SQL query.")
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Field description",
+        content = {
+          @Content(
+            mediaType = "application/json",
+            schema = @Schema(implementation = Table.class))
+        })
+    })
+  @GetMapping("sql")
+  public Table sql() {
+    return SQL;
   }
 }

@@ -34,7 +34,9 @@ import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.gbif.occurrence.query.sql.HiveSqlValidator;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +77,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.EeaCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_eeaCellCode",
+    additionalOperators.add(new SqlFunction("gbif_EEARGCode",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -88,6 +90,22 @@ public class SqlValidation {
       ReturnTypes.BOOLEAN,
       null,
       OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_MGRSCode",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_EQDGCCode",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ToISO8601UDF
@@ -134,21 +152,40 @@ public class SqlValidation {
 
     @Override
     public RelDataType getRowType(RelDataTypeFactory typeFactory) {
+      final RelDataTypeFactory tdf = new SqlTypeFactoryImpl(RelDataTypeSystem.DEFAULT);
       RelDataTypeFactory.Builder builder = typeFactory.builder();
+
+      RelDataType varChar = tdf.createSqlType(SqlTypeName.VARCHAR);
+
+      // String array definition
+      RelDataType varCharArray = tdf.createArrayType(varChar, -1);
+
+      // Vocabulary definition: "STRUCT<concept: STRING,lineage: ARRAY<STRING>>"
+      RelDataType vocabulary = tdf.createStructType(Arrays.asList(
+        new AbstractMap.SimpleEntry<>("concept", varChar),
+        new AbstractMap.SimpleEntry<>("lineage", varCharArray)));
+
+      // Array of key-value pairs: ARRAY<STRUCT<id: STRING,eventType: STRING>>
+      RelDataType keyValuePair = tdf.createStructType(Arrays.asList(
+        new AbstractMap.SimpleEntry<>("id", varChar),
+        new AbstractMap.SimpleEntry<>("eventType", varChar)));
+      RelDataType parentEventGbifId = tdf.createArrayType(keyValuePair, -1);
 
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
         field -> {
           switch (field.getHiveDataType()) {
             case HiveDataTypes.TYPE_ARRAY_STRING:
-              RelDataTypeFactory tdf = new SqlTypeFactoryImpl(RelDataTypeSystem.DEFAULT);
-              RelDataType array = tdf.createArrayType(tdf.createSqlType(SqlTypeName.VARCHAR), -1);
-              builder.add(field.getHiveField(), array);
+              builder.add(field.getHiveField(), varCharArray);
               break;
+
             case HiveDataTypes.TYPE_VOCABULARY_STRUCT:
-              // TODO: "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
+              // lifeStage, eventType, earlistEonOrLowestEonotherm, etc.
+              builder.add(field.getHiveField(), vocabulary);
               break;
+
             case HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
-              // TODO: "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
+              // Currently only parentEventGbifId, which doesn't seem to be set.
+              builder.add(field.getHiveField(), parentEventGbifId);
               break;
 
             default:

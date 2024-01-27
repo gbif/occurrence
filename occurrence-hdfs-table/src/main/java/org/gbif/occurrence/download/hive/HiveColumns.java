@@ -72,7 +72,7 @@ public final class HiveColumns {
 
   private static String hiveColumnName(String columnName) {
     String hiveColumnName = columnName;
-    if(columnName.startsWith("_")) {
+    if (columnName.startsWith("_")) {
       hiveColumnName = columnName.substring(1);
     } else if (columnName.startsWith("v__")) {
       hiveColumnName = columnName.substring(0,2) + columnName.substring(3);
