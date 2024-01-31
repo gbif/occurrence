@@ -438,6 +438,10 @@
           <groupId>net.logstash.logback</groupId>
           <artifactId>logstash-logback-encoder</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>kvs-gbif</artifactId>
+          <groupId>org.gbif.kvs</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
