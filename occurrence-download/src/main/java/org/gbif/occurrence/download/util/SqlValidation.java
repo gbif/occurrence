@@ -17,6 +17,7 @@ import calcite_gbif_shaded.com.google.common.collect.ImmutableMap;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataType;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeFactory;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeSystem;
+import calcite_gbif_shaded.org.apache.calcite.rel.type.StructKind;
 import calcite_gbif_shaded.org.apache.calcite.schema.SchemaPlus;
 import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractTable;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunction;
@@ -161,9 +162,9 @@ public class SqlValidation {
       RelDataType varCharArray = tdf.createArrayType(varChar, -1);
 
       // Vocabulary definition: "STRUCT<concept: STRING,lineage: ARRAY<STRING>>"
-      RelDataType vocabulary = tdf.createStructType(Arrays.asList(
-        new AbstractMap.SimpleEntry<>("concept", varChar),
-        new AbstractMap.SimpleEntry<>("lineage", varCharArray)));
+      RelDataType vocabulary = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
+        Arrays.asList(varChar, varCharArray),
+        Arrays.asList("concept", "lineage"));
 
       // Array of key-value pairs: ARRAY<STRUCT<id: STRING,eventType: STRING>>
       RelDataType keyValuePair = tdf.createStructType(Arrays.asList(
