@@ -1,0 +1,6 @@
+{
+  "creator": "MattBlissett",
+  "format": "SIMPLE_PARQUET",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"]
+}
