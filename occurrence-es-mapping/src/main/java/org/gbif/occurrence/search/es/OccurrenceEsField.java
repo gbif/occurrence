@@ -399,6 +399,10 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
 
+  public static final ImmutableMap<OccurrenceSearchParameter, EsField> FACET_TO_ES_MAPPING =
+    ImmutableMap.<OccurrenceSearchParameter, EsField>builder()
+      .put(OccurrenceSearchParameter.EVENT_DATE, EVENT_DATE_INTERVAL)
+      .build();
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED,LAST_PARSED);
 
   public static OccurrenceBaseEsFieldMapper buildFieldMapper() {
@@ -413,6 +417,7 @@ public enum OccurrenceEsField implements EsField {
                                       SortBuilders.fieldSort(ID.getSearchFieldName()).order(SortOrder.ASC)))
         .searchToEsMapping(SEARCH_TO_ES_MAPPING)
         .dateFields(DATE_FIELDS)
+        .facetToEsMapping(FACET_TO_ES_MAPPING)
         .fieldEnumClass(OccurrenceEsField.class)
         .build();
   }
