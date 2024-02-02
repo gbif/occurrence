@@ -395,7 +395,7 @@ public class EsSearchRequestBuilder {
                       postFilterParams, facetParam, searchRequest.isMatchCase());
 
               // add filter to the aggs
-              EsField esField = occurrenceBaseEsFieldMapper.getEsField(facetParam);
+              EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
               FilterAggregationBuilder filterAggs =
                   AggregationBuilders.filter(esField.getSearchFieldName(), bool);
 
@@ -425,7 +425,7 @@ public class EsSearchRequestBuilder {
         .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null)
         .map(
             facetParam -> {
-              EsField esField = occurrenceBaseEsFieldMapper.getEsField(facetParam);
+              EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
               if (esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
@@ -594,7 +594,6 @@ public class EsSearchRequestBuilder {
 
   private RangeQueryBuilder buildRangeQuery(EsField esField, String value) {
     RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
-
 
     if (occurrenceBaseEsFieldMapper.isDateField(esField)) {
       Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(value);

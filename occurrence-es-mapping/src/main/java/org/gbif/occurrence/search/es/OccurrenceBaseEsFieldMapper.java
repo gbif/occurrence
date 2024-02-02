@@ -19,12 +19,7 @@ import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.dwc.terms.Term;
 import org.gbif.predicate.query.EsFieldMapper;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.elasticsearch.index.query.QueryBuilder;
@@ -35,15 +30,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nullable;
+
 
 @Data
 @Slf4j
 public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSearchParameter> {
 
 
+
   private final Map<String, OccurrenceSearchParameter> esToSearchMapping;
 
   private final Map<OccurrenceSearchParameter,EsField> searchToEsMapping;
+
+  /**
+   * Custom mappings for facets.
+   */
+  private final Map<OccurrenceSearchParameter,EsField> facetToEsMapping;
 
   private final Map<Term,EsField> termToEsMapping;
 
@@ -64,7 +67,8 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   @Builder
   public OccurrenceBaseEsFieldMapper(Map<OccurrenceSearchParameter,EsField> searchToEsMapping, Set<EsField> dateFields, EsField fullTextField,
                                      EsField geoDistanceField, EsField geoShapeField, EsField uniqueIdField, List<FieldSortBuilder> defaultSort,
-                                     Optional<QueryBuilder> defaultFilter, Class<? extends Enum<? extends EsField>> fieldEnumClass) {
+                                     Optional<QueryBuilder> defaultFilter, Class<? extends Enum<? extends EsField>> fieldEnumClass,
+                                     @Nullable Map<OccurrenceSearchParameter,EsField> facetToEsMapping) {
     this.searchToEsMapping = searchToEsMapping;
     esToSearchMapping = searchToEsMapping.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getSearchFieldName(),
                                                                                             Map.Entry::getKey));
@@ -77,6 +81,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     this.uniqueIdField = uniqueIdField;
     this.defaultSort = defaultSort;
     this.defaultFilter = defaultFilter;
+    this.facetToEsMapping = facetToEsMapping == null? new HashMap<>(): facetToEsMapping;
   }
 
   public OccurrenceSearchParameter getSearchParameter(String searchFieldName) {
@@ -135,9 +140,18 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     return searchToEsMapping.get(searchParameter);
   }
 
+  /**
+   * Gets the facet field used for a search parameter, it defaults to the search field if the facet is not mapped.
+   */
+  public EsField getEsFacetField(OccurrenceSearchParameter searchParameter) {
+    return Optional.ofNullable(facetToEsMapping.get(searchParameter))
+            .orElse(searchToEsMapping.get(searchParameter));
+  }
+
   public EsField getEsField(Term term) {
     return termToEsMapping.get(term);
   }
+
 
   public boolean isDateField(EsField esField) {
     return dateFields.contains(esField);
