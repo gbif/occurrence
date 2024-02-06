@@ -94,7 +94,7 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <!--<module>occurrence-integration-tests</module>-->
+    <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
     <module>occurrence-download-service</module>
