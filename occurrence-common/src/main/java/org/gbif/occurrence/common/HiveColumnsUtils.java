@@ -80,9 +80,11 @@ public class HiveColumnsUtils {
   public static String getHiveType(Term term) {
     if (TermUtils.isInterpretedNumerical(term)) {
       return "INT";
-    } else if (TermUtils.isInterpretedLocalDate(term)) {
+    } else if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return "BIGINT";
-    } else if (TermUtils.isInterpretedUtcDate(term)) {
+    } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {
+      return "BIGINT";
+    } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {
       return "BIGINT";
     } else if (TermUtils.isInterpretedDouble(term)) {
       return "DOUBLE";
@@ -98,7 +100,7 @@ public class HiveColumnsUtils {
   }
 
   public static boolean isDate(Term term) {
-    return TermUtils.isInterpretedLocalDate(term) || TermUtils.isInterpretedUtcDate(term);
+    return TermUtils.isInterpretedLocalDateSeconds(term) || TermUtils.isInterpretedUtcDateSeconds(term) || TermUtils.isInterpretedUtcDateMilliseconds(term);
   }
 
   /** Checks if the term is stored as a Hive array. */

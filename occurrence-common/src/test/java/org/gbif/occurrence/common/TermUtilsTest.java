@@ -81,14 +81,15 @@ public class TermUtilsTest {
 
   @Test
   public void testIsInterpretedDate() throws Exception {
-    assertTrue(TermUtils.isInterpretedLocalDate(DwcTerm.dateIdentified));
-    assertTrue(TermUtils.isInterpretedUtcDate(DcTerm.modified));
-    assertFalse(TermUtils.isInterpretedLocalDate(DwcTerm.occurrenceID));
-    assertFalse(TermUtils.isInterpretedUtcDate(DwcTerm.occurrenceID));
+    assertTrue(TermUtils.isInterpretedLocalDateSeconds(DwcTerm.dateIdentified));
+    assertTrue(TermUtils.isInterpretedUtcDateSeconds(DcTerm.modified));
+    assertFalse(TermUtils.isInterpretedLocalDateSeconds(DwcTerm.occurrenceID));
+    assertFalse(TermUtils.isInterpretedUtcDateSeconds(DwcTerm.occurrenceID));
+    assertTrue(TermUtils.isInterpretedUtcDateMilliseconds(GbifTerm.lastInterpreted));
     // This is an interval, stored as a string and not used for calculations
-    assertFalse(TermUtils.isInterpretedLocalDate(DwcTerm.eventDate));
-    assertTrue(TermUtils.isInterpretedLocalDate(GbifInternalTerm.eventDateGte));
-    assertTrue(TermUtils.isInterpretedLocalDate(GbifInternalTerm.eventDateLte));
+    assertFalse(TermUtils.isInterpretedLocalDateSeconds(DwcTerm.eventDate));
+    assertTrue(TermUtils.isInterpretedLocalDateSeconds(GbifInternalTerm.eventDateGte));
+    assertTrue(TermUtils.isInterpretedLocalDateSeconds(GbifInternalTerm.eventDateLte));
   }
 
   @Test
