@@ -302,19 +302,18 @@ public class TemporalInterpreterTest {
 
   @Test
   public void testYearWithZeros() {
-    // providing 0 will cause a RECORDED_DATE_MISMATCH since 0 could be null but also January
+    // Zeros like this match the eventDate
     OccurrenceParseResult<IsoDateInterval> result = interpretRecordedDate("1984", "0", "0", "1984");
     assertRangeResult(1984, result);
     // TODO assertEquals(ParseResult.CONFIDENCE.PROBABLE, result.getConfidence());
-    assertEquals(OccurrenceIssue.RECORDED_DATE_INVALID, result.getIssues().iterator().next());
 
     result = interpretRecordedDate(null, null, null, "1984");
     assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
     assertTrue(result.getIssues().isEmpty());
 
-    // This is not supported
     result = interpretRecordedDate("1984", "0", "0", null);
-    assertNullPayload(result, OccurrenceIssue.RECORDED_DATE_INVALID);
+    assertEquals(ParseResult.CONFIDENCE.DEFINITE, result.getConfidence());
+    assertEquals(OccurrenceIssue.RECORDED_DATE_INVALID, result.getIssues().iterator().next());
 
     result = interpretRecordedDate(null, null, null, "0-0-1984");
     assertEquals(ParseResult.STATUS.FAIL, result.getStatus());
