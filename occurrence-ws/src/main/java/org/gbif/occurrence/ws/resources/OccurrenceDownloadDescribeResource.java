@@ -84,9 +84,11 @@ public class OccurrenceDownloadDescribeResource {
    * Additional description about a format used in a field.
    */
   private static String fieldTypeFormat(Term term) {
-    if (TermUtils.isInterpretedUtcDate(term)) {
+    if (TermUtils.isInterpretedUtcDateSeconds(term)) {
       return "yyyy-MM-ddTHH:mm:ssZ";
-    } else if(TermUtils.isInterpretedLocalDate(term)) {
+    } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {
+        return "yyyy-MM-ddTHH:mm:ss.SSSZ";
+    } else if(TermUtils.isInterpretedLocalDateSeconds(term)) {
       return "yyyy-MM-ddTHH:mm:ss";
     }
     return null;

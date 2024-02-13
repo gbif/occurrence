@@ -38,7 +38,7 @@ public class ToLocalISO8601UDF extends UDF {
       return null;
     } else {
       try {
-        text.set(DownloadUtils.ISO_8601_LOCAL.format(Instant.ofEpochMilli(Long.parseLong(field.toString())).atZone(ZoneOffset.UTC)));
+        text.set(DownloadUtils.ISO_8601_LOCAL.format(Instant.ofEpochSecond(Long.parseLong(field.toString())).atZone(ZoneOffset.UTC)));
         return text;
       } catch (NumberFormatException e) {
         return null;

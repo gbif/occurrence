@@ -479,15 +479,22 @@ public class TermUtils {
   /**
    * @return true if the term is an interpreted local date (timezone not relevant)
    */
-  public static boolean isInterpretedLocalDate(Term term) {
-    return SQLColumnsUtils.isInterpretedLocalDate(term);
+  public static boolean isInterpretedLocalDateSeconds(Term term) {
+    return SQLColumnsUtils.isInterpretedLocalDateSeconds(term);
   }
 
   /**
    * @return true if the term is an interpreted UTC date with
    */
-  public static boolean isInterpretedUtcDate(Term term) {
-    return SQLColumnsUtils.isInterpretedUtcDate(term);
+  public static boolean isInterpretedUtcDateSeconds(Term term) {
+    return SQLColumnsUtils.isInterpretedUtcDateSeconds(term);
+  }
+
+  /**
+   * @return true if the term is an interpreted UTC date with
+   */
+  public static boolean isInterpretedUtcDateMilliseconds(Term term) {
+    return SQLColumnsUtils.isInterpretedUtcDateMilliseconds(term);
   }
 
   /**
