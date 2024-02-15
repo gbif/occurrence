@@ -178,7 +178,7 @@ public class TableBackfill {
               extensionTable -> {
                 String extensionTableName = extensionTableName(extensionTable);
                 log.info("Deleting Extension Table {}", extensionTableName);
-                spark.sql(prefix + dropTable(extensionTableName));
+                spark.sql(dropTable(prefix + extensionTableName));
               });
     }
   }
