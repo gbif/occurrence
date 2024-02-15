@@ -135,7 +135,7 @@
 
     <!-- VERSIONS -->
     <hikaricp.version>3.2.0</hikaricp.version>
-    <amqp-client.version>4.8.0</amqp-client.version>
+    <amqp-client.version>3.0.2</amqp-client.version>
     <freemarker.version>2.3.31</freemarker.version>
     <netty.version>3.9.9.Final</netty.version>
     <netty-all.version>4.1.74.Final</netty-all.version>
