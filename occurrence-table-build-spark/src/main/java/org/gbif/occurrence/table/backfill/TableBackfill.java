@@ -159,16 +159,16 @@ public class TableBackfill {
     }
   }
 
-  private void executeDeleteAction(Command command, SparkSession spark) {
+  private void executeDeleteAction(Command command, SparkSession spark, String prefix) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Deleting Table " + configuration.getTableName());
-      spark.sql(dropTable(configuration.getTableName()));
-      spark.sql(dropTable(configuration.getTableName() + "_avro"));
+      spark.sql(dropTable(prefix + configuration.getTableName()));
+      spark.sql(dropTable(prefix + configuration.getTableName() + "_avro"));
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Deleting Multimedia Table ");
-      spark.sql(dropTable(configuration.getTableName() + "_multimedia"));
+      spark.sql(dropTable(prefix + configuration.getTableName() + "_multimedia"));
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -178,7 +178,7 @@ public class TableBackfill {
               extensionTable -> {
                 String extensionTableName = extensionTableName(extensionTable);
                 log.info("Deleting Extension Table {}", extensionTableName);
-                spark.sql(dropTable(extensionTableName));
+                spark.sql(prefix + dropTable(extensionTableName));
               });
     }
   }
@@ -190,13 +190,15 @@ public class TableBackfill {
       if (Action.CREATE == command.getAction()) {
         executeCreateAction(command, spark);
       } else if (Action.SCHEMA_MIGRATION == command.getAction()) {
+        // first we remove the old tables
+        executeDeleteAction(command, spark, "old_");
         if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
           configuration.setPrefixTable("new");
         }
         executeCreateAction(command, spark);
         swapTables(command, spark);
       } else if (Action.DELETE == command.getAction()) {
-        executeDeleteAction(command, spark);
+        executeDeleteAction(command, spark, "");
       }
     }
   }
