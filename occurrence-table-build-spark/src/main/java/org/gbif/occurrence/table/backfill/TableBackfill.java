@@ -37,6 +37,8 @@ import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
+import com.google.common.base.Strings;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -51,37 +53,43 @@ import static org.apache.spark.sql.functions.from_json;
 @AllArgsConstructor
 @Slf4j
 public class TableBackfill {
- private final TableBackfillConfiguration configuration;
+  private final TableBackfillConfiguration configuration;
 
- private final String jobId = UUID.randomUUID().toString();
+  private final String jobId = UUID.randomUUID().toString();
 
-
- public enum Option {
-   TABLE, EXTENSIONS, MULTIMEDIA, ALL;
- }
-
+  public enum Option {
+    TABLE,
+    EXTENSIONS,
+    MULTIMEDIA,
+    ALL;
+  }
 
   public enum Action {
-    CREATE, DELETE;
+    CREATE,
+    DELETE,
+    SCHEMA_MIGRATION;
   }
 
   @Data
   @Builder
   public static class Command {
-   private final Action action;
-   private final Set<Option> options;
+    private final Action action;
+    private final Set<Option> options;
 
     public static Command parse(String actionArg, String optionsArg) {
       Action action = Action.valueOf(actionArg.toUpperCase());
-      Set<Option> options = Arrays.stream(optionsArg.split(",")).map(opt -> Option.valueOf(opt.toUpperCase())).collect(Collectors.toSet());
+      Set<Option> options =
+          Arrays.stream(optionsArg.split(","))
+              .map(opt -> Option.valueOf(opt.toUpperCase()))
+              .collect(Collectors.toSet());
       return Command.builder().action(action).options(options).build();
     }
   }
 
-
   public static void main(String[] args) {
-    //Read config file
-    TableBackfillConfiguration tableBackfillConfiguration = TableBackfillConfiguration.loadFromFile(args[0]);
+    // Read config file
+    TableBackfillConfiguration tableBackfillConfiguration =
+        TableBackfillConfiguration.loadFromFile(args[0]);
 
     TableBackfill backfill = new TableBackfill(tableBackfillConfiguration);
 
@@ -89,51 +97,58 @@ public class TableBackfill {
   }
 
   private SparkSession createSparkSession() {
-   // Removed the hive configs to see if it loads properly from the hive-site.xml
-   //           .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
+    // Removed the hive configs to see if it loads properly from the hive-site.xml
+    //           .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation())
     //           .config("hive.metastore.uris", configuration.getHiveThriftAddress())
-    SparkSession.Builder sparkBuilder = SparkSession.builder()
-           .appName(configuration.getTableName() + " table build")
-           .enableHiveSupport();
+    SparkSession.Builder sparkBuilder =
+        SparkSession.builder()
+            .appName(configuration.getTableName() + " table build")
+            .enableHiveSupport();
 
     if (configuration.getHiveThriftAddress() != null) {
-      sparkBuilder.config("hive.metastore.uris", configuration.getHiveThriftAddress())
-        .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation());
+      sparkBuilder
+          .config("hive.metastore.uris", configuration.getHiveThriftAddress())
+          .config("spark.sql.warehouse.dir", configuration.getWarehouseLocation());
     }
 
     if (configuration.isUsePartitionedTable()) {
-      sparkBuilder.config("spark.sql.sources.partitionOverwriteMode","dynamic");
+      sparkBuilder.config("spark.sql.sources.partitionOverwriteMode", "dynamic");
     }
     return sparkBuilder.getOrCreate();
   }
 
   private void createTableUsingSpark(SparkSession spark) {
-    //Create Hive Table if it doesn't exist
+    // Create Hive Table if it doesn't exist
     spark.sql(createTableIfNotExists());
-    fromAvroToTable(spark,
-                    getSnapshotPath(configuration.getCoreName()), //FROM
-                    selectFromAvro(), //SELECT
-                    configuration.getTableName() //INSERT OVERWRITE INTO
-                    );
+    fromAvroToTable(
+        spark,
+        getSnapshotPath(configuration.getCoreName()), // FROM
+        selectFromAvro(), // SELECT
+        configuration.getTableName() // INSERT OVERWRITE INTO
+        );
   }
 
   private void executeCreateAction(Command command, SparkSession spark) {
-    HdfsSnapshotAction snapshotAction = new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
+    HdfsSnapshotAction snapshotAction =
+        new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
     try {
       log.info("Using {} as snapshot name of source directory", jobId);
       snapshotAction.createHdfsSnapshot(jobId);
       UDFS.registerUdfs(spark);
-      if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
+      if (command.getOptions().contains(Option.ALL)
+          || command.getOptions().contains(Option.TABLE)) {
         log.info("Creating Avro and Parquet Table for " + configuration.getTableName());
         createTableUsingSpark(spark);
       }
 
-      if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
+      if (command.getOptions().contains(Option.ALL)
+          || command.getOptions().contains(Option.EXTENSIONS)) {
         log.info("Creating Extension tables");
         createExtensionTablesParallel(spark);
       }
 
-      if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
+      if (command.getOptions().contains(Option.ALL)
+          || command.getOptions().contains(Option.MULTIMEDIA)) {
         log.info("Creating Multimedia Table");
         spark.sql(createIfNotExistsGbifMultimedia());
         insertOverwriteMultimediaTable(spark);
@@ -146,122 +161,176 @@ public class TableBackfill {
 
   private void executeDeleteAction(Command command, SparkSession spark) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
-      log.info("Deleting Table " +  configuration.getTableName());
+      log.info("Deleting Table " + configuration.getTableName());
       spark.sql(dropTable(configuration.getTableName()));
       spark.sql(dropTable(configuration.getTableName() + "_avro"));
     }
-    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.MULTIMEDIA)) {
+    if (command.getOptions().contains(Option.ALL)
+        || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Deleting Multimedia Table ");
       spark.sql(dropTable(configuration.getTableName() + "_multimedia"));
     }
-    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.EXTENSIONS)) {
+    if (command.getOptions().contains(Option.ALL)
+        || command.getOptions().contains(Option.EXTENSIONS)) {
       log.info("Deleting Extension Tables");
-      ExtensionTable.tableExtensions().forEach(extensionTable -> {
-        String extensionTableName = extensionTableName(extensionTable);
-        log.info("Deleting Extension Table {}", extensionTableName);
-        spark.sql(dropTable(extensionTableName));
-      });
+      ExtensionTable.tableExtensions()
+          .forEach(
+              extensionTable -> {
+                String extensionTableName = extensionTableName(extensionTable);
+                log.info("Deleting Extension Table {}", extensionTableName);
+                spark.sql(dropTable(extensionTableName));
+              });
     }
   }
+
   public void run(Command command) {
-   try(SparkSession spark = createSparkSession()) {
-     spark.sql("USE " + configuration.getHiveDatabase());
-     log.info("Running command " + command);
-     if (Action.CREATE == command.getAction()) {
-       executeCreateAction(command, spark);
-     } else if (Action.DELETE == command.getAction()) {
+    try (SparkSession spark = createSparkSession()) {
+      spark.sql("USE " + configuration.getHiveDatabase());
+      log.info("Running command " + command);
+      if (Action.CREATE == command.getAction()) {
+        executeCreateAction(command, spark);
+      } else if (Action.SCHEMA_MIGRATION == command.getAction()) {
+        if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
+          configuration.setPrefixTable("new");
+        }
+        executeCreateAction(command, spark);
+        swapTables(command, spark);
+      } else if (Action.DELETE == command.getAction()) {
         executeDeleteAction(command, spark);
-     }
-   }
+      }
+    }
   }
 
   @SneakyThrows
   private void createExtensionTablesParallel(SparkSession spark) {
     CountDownLatch doneSignal = new CountDownLatch(ExtensionTable.tableExtensions().size());
-    ExecutorService executor = Executors.newFixedThreadPool(ExtensionTable.tableExtensions().size());
+    ExecutorService executor =
+        Executors.newFixedThreadPool(ExtensionTable.tableExtensions().size());
     ExtensionTable.tableExtensions()
-      .forEach(extensionTable -> executor.submit(new Runnable() {
-        @Override
-        public void run() {
-          createExtensionTable(spark, extensionTable);
-          doneSignal.countDown();
-        }
-      }));
+        .forEach(
+            extensionTable ->
+                executor.submit(
+                    new Runnable() {
+                      @Override
+                      public void run() {
+                        createExtensionTable(spark, extensionTable);
+                        doneSignal.countDown();
+                      }
+                    }));
     doneSignal.await();
     executor.shutdown();
   }
 
   @SneakyThrows
   private static boolean isDirectoryEmpty(String fromSourceDir, SparkSession spark) {
-    return FileSystem.get(spark.sparkContext().hadoopConfiguration()).getContentSummary(new Path(fromSourceDir)).getFileCount() == 0;
+    return FileSystem.get(spark.sparkContext().hadoopConfiguration())
+            .getContentSummary(new Path(fromSourceDir))
+            .getFileCount()
+        == 0;
   }
 
-  private void fromAvroToTable(SparkSession spark, String fromSourceDir, Column[] select, String saveToTable) {
-   if(!isDirectoryEmpty(fromSourceDir, spark)) {
-     if(configuration.isUsePartitionedTable()) {
-       spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
-     }
-     Dataset<Row> input  = spark.read()
-                                 .format("avro")
-                                 .load(fromSourceDir + "/*.avro")
-                                 .select(select);
+  private void fromAvroToTable(
+      SparkSession spark, String fromSourceDir, Column[] select, String saveToTable) {
+    if (!isDirectoryEmpty(fromSourceDir, spark)) {
+      if (configuration.isUsePartitionedTable()) {
+        spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
+      }
+      Dataset<Row> input =
+          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select);
 
-     if (configuration.getTablePartitions() != null &&  input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
-       log.info("Setting partitions options {}", configuration.getTablePartitions());
-       input = input
-                .withColumn("_salted_key", col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
+      if (configuration.getTablePartitions() != null
+          && input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
+        log.info("Setting partitions options {}", configuration.getTablePartitions());
+        input =
+            input
+                .withColumn(
+                    "_salted_key",
+                    col("gbifid").cast(DataTypes.LongType).mod(configuration.getTablePartitions()))
                 .repartition(configuration.getTablePartitions())
                 .drop("_salted_key");
-     }
+      }
 
-     input
-       .write()
-       .format("parquet")
-       .option("compression", "Snappy")
-       .mode("overwrite")
-       .insertInto(saveToTable);
-   }
+      input
+          .write()
+          .format("parquet")
+          .option("compression", "Snappy")
+          .mode("overwrite")
+          .insertInto(saveToTable);
+    }
   }
 
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
-    spark.sql(configuration.isUsePartitionedTable()? createExtensionExternalTable(extensionTable) : createExtensionTable(extensionTable));
+    spark.sql(
+        configuration.isUsePartitionedTable()
+            ? createExtensionExternalTable(extensionTable)
+            : createExtensionTable(extensionTable));
 
-    List<Column> columns = extensionTable.getFields().stream()
-      .filter(field -> !configuration.isUsePartitionedTable() || !field.equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
-      .map(field -> field.contains(")")? callUDF(field.substring(0, field.indexOf('(')), col(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))).alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')'))) : col(field))
-      .collect(Collectors.toList());
+    List<Column> columns =
+        extensionTable.getFields().stream()
+            .filter(
+                field ->
+                    !configuration.isUsePartitionedTable()
+                        || !field.equalsIgnoreCase("datasetkey")) // Excluding partitioned columns
+            .map(
+                field ->
+                    field.contains(")")
+                        ? callUDF(
+                                field.substring(0, field.indexOf('(')),
+                                col(
+                                    field.substring(
+                                        field.indexOf('(') + 1, field.lastIndexOf(')'))))
+                            .alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))
+                        : col(field))
+            .collect(Collectors.toList());
 
-    //Partitioned columns must be at the end
+    // Partitioned columns must be at the end
     if (configuration.isUsePartitionedTable()) {
       columns.add(col("datasetkey"));
     }
-    fromAvroToTable(spark,
-                    getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
-                    columns.toArray(new Column[]{}), //SELECT
-                    extensionTableName(extensionTable)); //INSERT OVERWRITE INTO
+    fromAvroToTable(
+        spark,
+        getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
+        columns.toArray(new Column[] {}), // SELECT
+        extensionTableName(extensionTable)); // INSERT OVERWRITE INTO
   }
 
   private String extensionTableName(ExtensionTable extensionTable) {
-   return String.format("%s_ext_%s", configuration.getTableName(),extensionTable.getHiveTableName());
+    return String.format(
+        "%s_ext_%s", configuration.getTableName(), extensionTable.getHiveTableName());
+  }
+
+  private String getPrefix() {
+    return !Strings.isNullOrEmpty(configuration.getPrefixTable())
+        ? configuration.getPrefixTable() + "_"
+        : "";
   }
 
   private String createExtensionTable(ExtensionTable extensionTable) {
-   return String.format("CREATE TABLE IF NOT EXISTS %s\n"
-                        + '(' + extensionTable.getSchema().getFields().stream().map(f -> f.name() + " STRING").collect(
-                          Collectors.joining(",\n")) + ')'
-                        + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
-                        extensionTableName(extensionTable));
+    return String.format(
+        "CREATE TABLE IF NOT EXISTS %s\n"
+            + '('
+            + extensionTable.getSchema().getFields().stream()
+                .map(f -> f.name() + " STRING")
+                .collect(Collectors.joining(",\n"))
+            + ')'
+            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
+        getPrefix() + extensionTableName(extensionTable));
   }
 
   private String createExtensionExternalTable(ExtensionTable extensionTable) {
-    return String.format("CREATE EXTERNAL TABLE IF NOT EXISTS %s\n"
-                         + '(' + extensionTable.getSchema().getFields().stream().filter(f -> !f.name().equalsIgnoreCase("datasetkey")).map(f -> f.name() + " STRING").collect(
-                           Collectors.joining(",\n")) + ')'
-                         + "PARTITIONED BY(datasetkey STRING) "
-                         + "LOCATION '%s'"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
-                         extensionTableName(extensionTable),
-                         Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
+    return String.format(
+        "CREATE EXTERNAL TABLE IF NOT EXISTS %s\n"
+            + '('
+            + extensionTable.getSchema().getFields().stream()
+                .filter(f -> !f.name().equalsIgnoreCase("datasetkey"))
+                .map(f -> f.name() + " STRING")
+                .collect(Collectors.joining(",\n"))
+            + ')'
+            + "PARTITIONED BY(datasetkey STRING) "
+            + "LOCATION '%s'"
+            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
+        getPrefix() + extensionTableName(extensionTable),
+        Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
 
   private String dropTable(String tableName) {
@@ -269,107 +338,186 @@ public class TableBackfill {
   }
 
   private String getSnapshotPath(String dataDirectory) {
-    String path = Paths.get(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase(), ".snapshot",
-                            jobId, dataDirectory.toLowerCase()).toString();
+    String path =
+        Paths.get(
+                configuration.getSourceDirectory(),
+                configuration.getCoreName().toLowerCase(),
+                ".snapshot",
+                jobId,
+                dataDirectory.toLowerCase())
+            .toString();
     log.info("Snapshot path {}", path);
     return path;
   }
 
   public String createIfNotExistsGbifMultimedia() {
-    return String.format("CREATE TABLE IF NOT EXISTS %s_multimedia\n"
-                         + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
-                         + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
-                         + "publisher STRING, license STRING, rightsHolder STRING)\n"
-                         + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")", configuration.getTableName());
+    return String.format(
+        "CREATE TABLE IF NOT EXISTS %s\n"
+            + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
+            + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
+            + "publisher STRING, license STRING, rightsHolder STRING)\n"
+            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
+        getPrefix() + multimediaTableName());
+  }
+
+  private String multimediaTableName() {
+    return String.format("%s_multimedia", configuration.getTableName());
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
-    spark.table("occurrence").select(col("gbifid"),
-                                     from_json(col("ext_multimedia"),
-                                               new ArrayType(new StructType()
-                                                                .add("type", "string", false)
-                                                                .add("format", "string", false)
-                                                                .add("identifier", "string", false)
-                                                                .add("references", "string", false)
-                                                                .add("title", "string", false)
-                                                                .add("description", "string", false)
-                                                                .add("source", "string", false)
-                                                                .add("audience", "string", false)
-                                                                .add("created", "string", false)
-                                                                .add("creator", "string", false)
-                                                                .add("contributor", "string", false)
-                                                                .add("publisher", "string", false)
-                                                                .add("license", "string", false)
-                                                                .add("rightsHolder", "string", false),
-                                                             true))
-                                       .alias("mm_record"))
-      .select(col("gbifid"), explode(col("mm_record")).alias("mm_record"))
-      .select(col("gbifid"),
-              callUDF("cleanDelimiters", col("mm_record.type")).alias("type"),
-              callUDF("cleanDelimiters", col("mm_record.format")).alias("format"),
-              callUDF("cleanDelimiters",col("mm_record.identifier")).alias("identifier"),
-              callUDF("cleanDelimiters", col("mm_record.references")).alias("references"),
-              callUDF("cleanDelimiters",col("mm_record.title")).alias("title"),
-              callUDF("cleanDelimiters", col("mm_record.description")).alias("description"),
-              callUDF("cleanDelimiters",col("mm_record.source")).alias("source"),
-              callUDF("cleanDelimiters",col("mm_record.audience")).alias("audience"),
-              col("mm_record.created").alias("created"),
-              callUDF("cleanDelimiters", col("mm_record.creator")).alias("creator"),
-              callUDF("cleanDelimiters",col("mm_record.contributor")).alias("contributor"),
-              callUDF("cleanDelimiters",col("mm_record.publisher")).alias("publisher"),
-              callUDF("cleanDelimiters",col("mm_record.license")).alias("license"),
-              callUDF("cleanDelimiters",col("mm_record.rightsHolder")).alias("rightsHolder"))
-      .registerTempTable("mm_records");
+    spark
+        .table("occurrence")
+        .select(
+            col("gbifid"),
+            from_json(
+                    col("ext_multimedia"),
+                    new ArrayType(
+                        new StructType()
+                            .add("type", "string", false)
+                            .add("format", "string", false)
+                            .add("identifier", "string", false)
+                            .add("references", "string", false)
+                            .add("title", "string", false)
+                            .add("description", "string", false)
+                            .add("source", "string", false)
+                            .add("audience", "string", false)
+                            .add("created", "string", false)
+                            .add("creator", "string", false)
+                            .add("contributor", "string", false)
+                            .add("publisher", "string", false)
+                            .add("license", "string", false)
+                            .add("rightsHolder", "string", false),
+                        true))
+                .alias("mm_record"))
+        .select(col("gbifid"), explode(col("mm_record")).alias("mm_record"))
+        .select(
+            col("gbifid"),
+            callUDF("cleanDelimiters", col("mm_record.type")).alias("type"),
+            callUDF("cleanDelimiters", col("mm_record.format")).alias("format"),
+            callUDF("cleanDelimiters", col("mm_record.identifier")).alias("identifier"),
+            callUDF("cleanDelimiters", col("mm_record.references")).alias("references"),
+            callUDF("cleanDelimiters", col("mm_record.title")).alias("title"),
+            callUDF("cleanDelimiters", col("mm_record.description")).alias("description"),
+            callUDF("cleanDelimiters", col("mm_record.source")).alias("source"),
+            callUDF("cleanDelimiters", col("mm_record.audience")).alias("audience"),
+            col("mm_record.created").alias("created"),
+            callUDF("cleanDelimiters", col("mm_record.creator")).alias("creator"),
+            callUDF("cleanDelimiters", col("mm_record.contributor")).alias("contributor"),
+            callUDF("cleanDelimiters", col("mm_record.publisher")).alias("publisher"),
+            callUDF("cleanDelimiters", col("mm_record.license")).alias("license"),
+            callUDF("cleanDelimiters", col("mm_record.rightsHolder")).alias("rightsHolder"))
+        .registerTempTable("mm_records");
 
-    spark.sql(String.format("INSERT OVERWRITE TABLE %1$s_multimedia \n"
-                           + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
-                            configuration.getTableName()));
+    spark.sql(
+        String.format(
+            "INSERT OVERWRITE TABLE %1$s_multimedia \n"
+                + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
+            configuration.getTableName()));
   }
 
-
   private String createTableIfNotExists() {
-   return configuration.isUsePartitionedTable()? createPartitionedTableIfNotExists(): createParquetTableIfNotExists();
+    return configuration.isUsePartitionedTable()
+        ? createPartitionedTableIfNotExists()
+        : createParquetTableIfNotExists();
   }
 
   private String createParquetTableIfNotExists() {
-    return String.format("CREATE TABLE IF NOT EXISTS %s (\n"
-                         + OccurrenceHDFSTableDefinition.definition().stream()
-                           .map(field -> field.getHiveField() + " " + field.getHiveDataType())
-                           .collect(Collectors.joining(", \n"))
-                         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
-                         configuration.getTableName());
+    return String.format(
+        "CREATE TABLE IF NOT EXISTS %s (\n"
+            + OccurrenceHDFSTableDefinition.definition().stream()
+                .map(field -> field.getHiveField() + " " + field.getHiveDataType())
+                .collect(Collectors.joining(", \n"))
+            + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
+        configuration.getTableNameWithPrefix());
   }
 
   private String createPartitionedTableIfNotExists() {
-    return String.format("CREATE EXTERNAL TABLE IF NOT EXISTS %s ("
-                         + OccurrenceHDFSTableDefinition.definition().stream()
-                           .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
-                           .map(field -> field.getHiveField() + " " + field.getHiveDataType())
-                           .collect(Collectors.joining(", "))
-                         + ") "
-                         + "PARTITIONED BY(datasetkey STRING) "
-                         + "STORED AS PARQUET "
-                         + "LOCATION '%s'"
-                         + "TBLPROPERTIES (\"parquet.compression\"=\"GZIP\", \"auto.purge\"=\"true\")",
-                         configuration.getTableName(),
-                         Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
-
+    return String.format(
+        "CREATE EXTERNAL TABLE IF NOT EXISTS %s ("
+            + OccurrenceHDFSTableDefinition.definition().stream()
+                .filter(
+                    field ->
+                        configuration.isUsePartitionedTable()
+                            && !field
+                                .getHiveField()
+                                .equalsIgnoreCase("datasetkey")) // Excluding partitioned columns
+                .map(field -> field.getHiveField() + " " + field.getHiveDataType())
+                .collect(Collectors.joining(", "))
+            + ") "
+            + "PARTITIONED BY(datasetkey STRING) "
+            + "STORED AS PARQUET "
+            + "LOCATION '%s'"
+            + "TBLPROPERTIES (\"parquet.compression\"=\"GZIP\", \"auto.purge\"=\"true\")",
+        configuration.getTableNameWithPrefix(),
+        Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
   }
 
   private Column[] selectFromAvro() {
-    List<Column> columns = OccurrenceHDFSTableDefinition.definition().stream()
-      .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
-      .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
-      .collect(Collectors.toList());
+    List<Column> columns =
+        OccurrenceHDFSTableDefinition.definition().stream()
+            .filter(
+                field ->
+                    !configuration.isUsePartitionedTable()
+                        || !field
+                            .getHiveField()
+                            .equalsIgnoreCase(
+                                "datasetkey")) // Partitioned columns must be at the end
+            .map(
+                field ->
+                    field.getInitializer().equals(field.getHiveField())
+                        ? col(field.getHiveField())
+                        : callUDF(
+                                field
+                                    .getInitializer()
+                                    .substring(0, field.getInitializer().indexOf("(")),
+                                col(field.getHiveField()))
+                            .alias(field.getHiveField()))
+            .collect(Collectors.toList());
 
-    //Partitioned columns must be at the end
+    // Partitioned columns must be at the end
     if (configuration.isUsePartitionedTable()) {
       columns.add(col("datasetkey"));
     }
-    Column[] selectColumns = columns.toArray(new Column[]{});
-    log.info("Selecting columns from Avro {}", columns.stream().map(Column::toString).collect(Collectors.joining(", ")));
+    Column[] selectColumns = columns.toArray(new Column[] {});
+    log.info(
+        "Selecting columns from Avro {}",
+        columns.stream().map(Column::toString).collect(Collectors.joining(", ")));
     return selectColumns;
   }
 
+  private void swapTables(Command command, SparkSession spark) {
+    if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
+      log.info("Swapping table: " + configuration.getTableName());
+      spark.sql(renameTable(configuration.getTableName(), "old_" + configuration.getTableName()));
+      spark.sql(renameTable(configuration.getTableNameWithPrefix(), configuration.getTableName()));
+    }
 
+    if (command.getOptions().contains(Option.ALL)
+        || command.getOptions().contains(Option.EXTENSIONS)) {
+      log.info("Swapping Extension tables");
+      ExtensionTable.tableExtensions()
+          .forEach(
+              extensionTable -> {
+                spark.sql(
+                    renameTable(
+                        extensionTableName(extensionTable),
+                        "old_" + extensionTableName(extensionTable)));
+                spark.sql(
+                    renameTable(
+                        getPrefix() + extensionTableName(extensionTable),
+                        extensionTableName(extensionTable)));
+              });
+    }
+
+    if (command.getOptions().contains(Option.ALL)
+        || command.getOptions().contains(Option.MULTIMEDIA)) {
+      log.info("Swapping Multimedia Table");
+      spark.sql(renameTable(multimediaTableName(), "old_" + multimediaTableName()));
+      spark.sql(renameTable(getPrefix() + multimediaTableName(), multimediaTableName()));
+    }
+  }
+
+  private String renameTable(String oldTable, String newTable) {
+    return String.format("ALTER TABLE %s RENAME TO %s", oldTable, newTable);
+  }
 }
