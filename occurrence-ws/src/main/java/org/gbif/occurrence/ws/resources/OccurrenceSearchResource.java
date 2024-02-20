@@ -143,29 +143,6 @@ public class OccurrenceSearchResource {
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper());
   }
 
-  @Hidden
-  @PostMapping("predicate")
-  public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
-     LOG.debug("Executing query, predicate {}, limit {}, offset {}", request.getPredicate(), request.getLimit(),
-              request.getOffset());
-    return searchService.search(request);
-  }
-
-  @Hidden
-  @PostMapping
-  public SearchResponse<Occurrence,OccurrenceSearchParameter> postSearch(@NotNull @Valid @RequestBody OccurrenceSearchRequest request) {
-    LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
-              request.getOffset());
-    return searchService.search(request);
-  }
-
-  @Hidden
-  @PostMapping("predicate/toesquery")
-  @SneakyThrows
-  public String toEsQuery(@NotNull @Valid @RequestBody org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest request) {
-    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
-  }
-
   /**
    * The usual (search) limit and offset parameters
    */
@@ -1270,42 +1247,53 @@ public class OccurrenceSearchResource {
   }
 
   /**
-   * Remove after the portal is updated, e.g. during or after December 2018.RegistryMethodSecurityConfiguration
-   *
-   * Old location for a GET download, doesn't make sense to be within occurrence search.
+   * A search request using POST rather than GET.
    */
   @Hidden
-  @GetMapping("download")
-  @Deprecated
-  @Secured(USER_ROLE)
-  // TODO Remove!
-  public RedirectView download() {
-    LOG.warn("Deprecated internal API used! (download)");
-    RedirectView redirectView = new RedirectView();
-    redirectView.setContextRelative(true);
-    redirectView.setUrl("/occurrence/download/request");
-    redirectView.setPropagateQueryParams(true);
-    redirectView.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
-    return redirectView;
+  @PostMapping
+  public SearchResponse<Occurrence,OccurrenceSearchParameter> postSearch(@NotNull @Valid @RequestBody OccurrenceSearchRequest request) {
+    LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
+      request.getOffset());
+    return searchService.search(request);
   }
 
   /**
-   * Remove after the portal is updated, e.g. during or after December 2018.
-   *
-   * Old location for a GET download predicate request, doesn't make sense to be within occurrence search.
+   * A search request using predicate parameters.
    */
-  // TODO Remove!
+  @Operation(
+    operationId = "predicateSearchOccurrence",
+    summary = "Occurrence search using predicates",
+    description = "Full search across all occurrences specified using predicates (as used for the download API).",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100")))
+  @Parameter(name = "request", hidden = true)
+  @CommonOffsetLimitParameters
+  @CommonFacetParameters
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Occurrence search is valid"
+      ),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid query, e.g. invalid vocabulary values",
+        content = @Content)
+    })
+  @PostMapping("predicate")
+  public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    LOG.debug("Executing query, predicate {}, limit {}, offset {}", request.getPredicate(), request.getLimit(),
+      request.getOffset());
+    return searchService.search(request);
+  }
+
+  /**
+   * Convert a predicate query to the query used by ElasticSearch, intended for use by internal systems like the portal.
+   */
   @Hidden
-  @GetMapping("predicate")
-  @Deprecated
-  public RedirectView downloadPredicate() {
-    LOG.warn("Deprecated internal API used! (predicate)");
-    RedirectView redirectView = new RedirectView();
-    redirectView.setContextRelative(true);
-    redirectView.setUrl("/occurrence/download/request/predicate");
-    redirectView.setPropagateQueryParams(true);
-    redirectView.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
-    return redirectView;
+  @PostMapping("predicate/toesquery")
+  @SneakyThrows
+  public String toEsQuery(@NotNull @Valid @RequestBody org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest request) {
+    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   /**
