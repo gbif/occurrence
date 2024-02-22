@@ -67,26 +67,26 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   private int executorInstances(Download download) {
-     return isSmallDownload(download)? 1 : Math.min(sparkStaticConfiguration.getLargeDownloads().getMaxInstances(),
-       Math.max((int)download.getTotalRecords() / sparkStaticConfiguration.getLargeDownloads().getRecordsPerInstance(), 1));
-  }
-
-  private SparkStaticConfiguration.DownloadSparkConfiguration getDownloadSparkSettings(Download download) {
-    return isSmallDownload(download)? sparkStaticConfiguration.getSmallDownloads() : sparkStaticConfiguration.getLargeDownloads();
+     return isSmallDownload(download)
+       ? sparkStaticConfiguration.getMinInstances()
+       : Math.min(sparkStaticConfiguration.getMaxInstances(), Math.max((int)download.getTotalRecords() / sparkStaticConfiguration.getRecordsPerInstance(), 1));
   }
 
   private AirflowBody getAirflowBody(Download download) {
-    SparkStaticConfiguration.DownloadSparkConfiguration sparkConfiguration = getDownloadSparkSettings(download);
     return AirflowBody.builder()
       .conf(AirflowBody.Conf.builder()
         .args(Lists.newArrayList(download.getKey(), download.getRequest().getType().getCoreTerm().name(), "/stackable/spark/jobs/download.properties"))
-        .driverCores(sparkConfiguration.getDriverResources().getCpu().getMax())
-        .driverMemory(sparkConfiguration.getDriverResources().getMemory().getLimit())
-        .executorCores(sparkConfiguration.getExecutorResources().getCpu().getMax())
-        .executorMemory(sparkConfiguration.getExecutorResources().getMemory().getLimit())
+        // Driver
+        .driverMinCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMin())
+        .driverMaxCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMax())
+        .driverLimitMemory(sparkStaticConfiguration.getDriverResources().getMemory().getLimit())
+        // Executor
+        .executorMinCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMin())
+        .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
+        .executorLimitMemory(sparkStaticConfiguration.getExecutorResources().getMemory().getLimit())
         .executorInstances(executorInstances(download))
+        // Extra
         .callbackUrl(airflowConfiguration.getAirflowCallback())
-        .podConfiguration(airflowConfiguration.getPodConfiguration())
         .build())
       .dagRunId(downloadDagId(download.getKey()))
       .build();

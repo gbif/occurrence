@@ -13,12 +13,9 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher.airflow;
 
-import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
-
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import lombok.Builder;
 import lombok.Data;
@@ -37,14 +34,17 @@ public class AirflowBody {
   public static class Conf {
 
     private final List<String> args;
-    private final String driverCores;
-    private final String driverMemory;
-    private final int executorInstances;
-    private final String executorCores;
-    private final String executorMemory;
-    private final String callbackUrl;
 
-    @JsonUnwrapped
-    private final AirflowConfiguration.DownloadPodConfiguration podConfiguration;
+    private final String driverMinCpu;
+    private final String driverMaxCpu;
+    private final String driverLimitMemory;
+
+    private final String executorMinCpu;
+    private final String executorMaxCpu;
+    private final String executorLimitMemory;
+
+    private final int executorInstances;
+
+    private final String callbackUrl;
   }
 }

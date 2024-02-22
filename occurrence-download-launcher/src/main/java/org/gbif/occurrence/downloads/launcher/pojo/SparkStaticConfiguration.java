@@ -28,51 +28,39 @@ public class SparkStaticConfiguration {
 
   @Data
   @Builder
-  @JsonDeserialize(builder = DownloadSparkConfiguration.DownloadSparkConfigurationBuilder.class)
+  @JsonDeserialize(builder = Resources.ResourcesBuilder.class)
   @NoArgsConstructor
   @AllArgsConstructor
-  public static class DownloadSparkConfiguration {
+  public static class Resources {
 
     @Data
     @Builder
-    @JsonDeserialize(builder = Resources.ResourcesBuilder.class)
+    @JsonDeserialize(builder = Cpu.CpuBuilder.class)
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Resources {
-
-      @Data
-      @Builder
-      @JsonDeserialize(builder = Cpu.CpuBuilder.class)
-      @NoArgsConstructor
-      @AllArgsConstructor
-      public static class Cpu {
-        private String min;
-        private String max;
-      }
-
-      @Data
-      @Builder
-      @JsonDeserialize(builder = Cpu.CpuBuilder.class)
-      @NoArgsConstructor
-      @AllArgsConstructor
-      public static class Memory {
-        private String limit;
-      }
-
-      private Cpu cpu;
-      private Memory memory;
-
+    public static class Cpu {
+      private String min;
+      private String max;
     }
 
-    private Resources executorResources;
-    private Resources driverResources;
-    private int recordsPerInstance;
-    private int maxInstances;
+    @Data
+    @Builder
+    @JsonDeserialize(builder = Cpu.CpuBuilder.class)
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Memory {
+      private String limit;
+    }
+
+    private Cpu cpu;
+    private Memory memory;
   }
 
-  private DownloadSparkConfiguration smallDownloads;
-
-  private DownloadSparkConfiguration largeDownloads;
+  private Resources executorResources;
+  private Resources driverResources;
+  private int recordsPerInstance;
+  private int minInstances;
+  private int maxInstances;
 
   private int smallDownloadCutOff;
 }

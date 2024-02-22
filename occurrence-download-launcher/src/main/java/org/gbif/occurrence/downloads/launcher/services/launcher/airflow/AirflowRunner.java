@@ -43,6 +43,19 @@ public class AirflowRunner {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private String getUri(AirflowConfiguration airflowConfiguration) {
+    return String.join(
+        "/",
+        airflowConfiguration.getAirflowAddress(),
+        "dags",
+        airflowConfiguration.getAirflowDagName(),
+        "dagRuns");
+  }
+
+  private String getUri(AirflowConfiguration airflowConfiguration, String paths) {
+    return String.join("/", getUri(airflowConfiguration), paths);
+  }
+
   @SneakyThrows
   public JsonNode createRun(AirflowBody body) {
 
@@ -51,7 +64,7 @@ public class AirflowRunner {
       if (dagRun.has("dag_run_id")  && dagRun.get("dag_run_id").asText().equals(body.getDagRunId())) {
         return clearRun(body.getDagRunId());
       } else {
-        HttpPost post = new HttpPost(airflowConfiguration.getAirflowAddress() + "/dags/" + airflowConfiguration.getAirflowDagName() + "/dagRuns");
+        HttpPost post = new HttpPost(getUri(airflowConfiguration));
         StringEntity input = new StringEntity(MAPPER.writeValueAsString(body));
         input.setContentType(ContentType.APPLICATION_JSON.toString());
         post.setEntity(input);
@@ -64,7 +77,7 @@ public class AirflowRunner {
   @SneakyThrows
   public JsonNode clearRun(String dagRunId) {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
-      HttpPost post = new HttpPost(airflowConfiguration.getAirflowAddress() + "/dags/" + airflowConfiguration.getAirflowDagName() + "/dagRuns/" + dagRunId + "/clear");
+      HttpPost post = new HttpPost(getUri(airflowConfiguration, dagRunId) + "/clear");
       post.setEntity(new StringEntity("{\"dry_run\": false}"));
       post.setHeaders(airflowConfiguration.getHeaders());
       return MAPPER.readTree(client.execute(post).getEntity().getContent());
@@ -74,7 +87,7 @@ public class AirflowRunner {
   @SneakyThrows
   public JsonNode deleteRun(String dagRunId) {
     try (CloseableHttpClient client = HttpClients.createDefault()){
-      HttpDelete delete = new HttpDelete(airflowConfiguration.getAirflowAddress() + "/dags/" + airflowConfiguration.getAirflowDagName() + "/dagRuns/" + dagRunId);
+      HttpDelete delete = new HttpDelete(getUri(airflowConfiguration, dagRunId));
       delete.setHeaders(airflowConfiguration.getHeaders());
       return MAPPER.readTree(client.execute(delete).getEntity().getContent());
     }
@@ -83,7 +96,7 @@ public class AirflowRunner {
   @SneakyThrows
   public JsonNode failRun(String dagRunId) {
     try (CloseableHttpClient client = HttpClients.createDefault()){
-      HttpPatch patch = new HttpPatch(airflowConfiguration.getAirflowAddress() + "/dags/" + airflowConfiguration.getAirflowDagName() + "/dagRuns/" + dagRunId);
+      HttpPatch patch = new HttpPatch(getUri(airflowConfiguration, dagRunId));
       patch.setEntity(new StringEntity("{\"state\": \"failed\"}"));
       patch.setHeaders(airflowConfiguration.getHeaders());
       return MAPPER.readTree(client.execute(patch).getEntity().getContent());
@@ -93,7 +106,7 @@ public class AirflowRunner {
   @SneakyThrows
   public JsonNode getRun(String dagRunId) {
     try (CloseableHttpClient client = HttpClients.createDefault()){
-      HttpGet get = new HttpGet(airflowConfiguration.getAirflowAddress() + "/dags/" + airflowConfiguration.getAirflowDagName() + "/dagRuns/" + dagRunId);
+      HttpGet get = new HttpGet(getUri(airflowConfiguration, dagRunId));
       get.setHeaders(airflowConfiguration.getHeaders());
       return MAPPER.readTree(client.execute(get).getEntity().getContent());
     }
