@@ -124,7 +124,7 @@ public class TableBackfill {
         spark,
         getSnapshotPath(configuration.getCoreName()), // FROM
         selectFromAvro(), // SELECT
-        configuration.getTableName() // INSERT OVERWRITE INTO
+        configuration.getTableNameWithPrefix() // INSERT OVERWRITE INTO
         );
   }
 
