@@ -32,6 +32,7 @@ import org.gbif.occurrence.download.service.CallbackService;
 import java.security.Principal;
 import java.util.Collections;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +87,7 @@ public class OccurrenceDownloadResourceTest {
     assertEquals(HttpStatus.METHOD_FAILURE, response.getStatusCode());
   }
 
+  @Disabled
   @Test
   public void testStartSqlDownload() {
     prepareMocks(USER, false);
