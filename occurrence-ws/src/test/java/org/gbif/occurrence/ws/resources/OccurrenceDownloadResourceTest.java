@@ -26,6 +26,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.api.vocabulary.UserRole;
 import org.gbif.occurrence.download.service.CallbackService;
 
 import java.security.Principal;
@@ -107,6 +108,7 @@ public class OccurrenceDownloadResourceTest {
 
     GbifUser gbifUser = new GbifUser();
     gbifUser.setUserName(user);
+    gbifUser.addRole(UserRole.REGISTRY_ADMIN);
     principal = new GbifUserPrincipal(gbifUser);
 
     Authentication auth = mock(Authentication.class);
