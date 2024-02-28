@@ -20,6 +20,7 @@ import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.gbif.utils.file.FileUtils;
 
 import static org.gbif.occurrence.download.util.HeadersFileUtil.appendHeaders;
 import static org.gbif.occurrence.download.util.HeadersFileUtil.getExtensionInterpretedHeader;
@@ -47,8 +49,9 @@ public class ExtensionFilesWriter implements Closeable {
 
   @SneakyThrows
   private static FileOutputStream extensionOutput(Extension extension, DownloadJobConfiguration configuration) {
-      String outFile = configuration.getExtensionDataFileName(new ExtensionTable(extension));
+      File outFile = new File(configuration.getExtensionDataFileName(new ExtensionTable(extension)));
       log.info("Aggregating extension file {}", outFile);
+      FileUtils.createParentDirs(outFile);
       return new FileOutputStream(outFile, true);
   }
 

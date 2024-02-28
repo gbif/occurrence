@@ -37,11 +37,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     "email with a link to the resulting file.\n\n" +
     "It is necessary to register as a user at [GBIF.org](https://www.gbif.org/) to create a download request, " +
     "and use HTTP authentication using the username (not the email) and password.\n\n" +
-    "Internally we use a [Java web service client](https://github.com/gbif/occurrence/tree/master/occurrence-ws-client) " +
-    "for the consumption of these HTTP-based, RESTful web services. It may be of interest to those coding against the API.\n\n" +
     "### Occurrence Download Predicates\n\n" +
-    "For the API reference for download predicates expand the `predicate` section of the request body schema on the " +
-    "[creation API call](#operation/requestDownload).\n\n" +
+    "For the API reference for download predicates expand the “Schema” → `predicate` section of the request body schema on the " +
+    "[creation API call](#Occurrence%20downloads/requestDownload) (the first one after this text).\n\n" +
     "For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads.html)\n\n" +
     "### Occurrence Download Limits\n\n" +
     "Occurrence downloads demand significant computational resources, and are monitored and limited according to the " +

@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Builder;
 import lombok.Data;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -160,6 +161,9 @@ public class OccurrenceDownloadDescribeResource {
     private final Table interpreted = Table.builder()
       .fields(toFieldList(HIVE_QUERIES.selectInterpretedFields(false), true))
       .build();
+
+    private final List<String> verbatimExtensions =
+      Extension.availableExtensions().stream().map(Extension::getRowType).collect(Collectors.toList());
 
     /**
      * Transforms Map<String,InitializableField> queryFields into a List<Field>.

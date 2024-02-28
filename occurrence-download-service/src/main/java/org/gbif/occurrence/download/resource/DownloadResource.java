@@ -289,8 +289,8 @@ public class DownloadResource {
       description =
           "Starts the process of creating a download file. See the predicates "
               + "section to consult the requests accepted by this service and the limits section to refer "
-              + "for information of how this service is limited per user. "
-              + "**Experimental** SQL downloads are also created with this call.",
+              + "for information of how this service is limited per user.\n\n"
+              + "**Experimental** SQL downloads are also created with this call, currently for invited testers only.",
       extensions =
           @Extension(
               name = "Order",
@@ -298,8 +298,15 @@ public class DownloadResource {
   @Parameters(
       value = {
         @Parameter(name = "source", hidden = true),
-        @Parameter(name = "User-Agent", in = ParameterIn.HEADER, hidden = true)
+        @Parameter(name = "User-Agent", in = ParameterIn.HEADER, hidden = true),
       })
+  @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    content = @Content(
+      schema = @Schema(
+        oneOf = {PredicateDownloadRequest.class, SqlDownloadRequest.class}
+      )
+    )
+  )
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -502,20 +509,36 @@ public class DownloadResource {
   /**
    * Download predicate from a search string.
    */
-  @Hidden
+  @Operation(
+    operationId = "searchToPredicate",
+    summary = "Converts a plain search query into a download predicate.",
+    description =
+      "Takes a search query used for the ordinary search API and returns a predicate suitable for the download " +
+        "API.  In many cases, a query from the website can be converted using this method.",
+    extensions =
+    @Extension(
+      name = "Order",
+      properties = @ExtensionProperty(name = "Order", value = "0050")))
+  @Parameters(
+    value = {
+      @Parameter(name = "notification_address", description = "Email notification address."),
+      @Parameter(name = "format", description = "Download format."),
+      @Parameter(name = "verbatimExtensions", description = "Verbatim extensions to include in a Darwin Core Archive " +
+        "download."),
+    })
   @GetMapping("predicate")
   public DownloadRequest downloadPredicate(
       @Autowired HttpServletRequest httpRequest,
       @RequestParam(name = "notification_address", required = false) String emails,
       @RequestParam("format") String format,
-      @RequestParam(name = "extensions", required = false) String extensions,
+      @RequestParam(name = "verbatimExtensions", required = false) String verbatimExtensions,
       @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
     Set<org.gbif.api.vocabulary.Extension> requestExtensions =
-        Optional.ofNullable(asSet(extensions))
+        Optional.ofNullable(asSet(verbatimExtensions))
             .map(
                 exts ->
                     exts.stream()
@@ -528,7 +551,7 @@ public class DownloadResource {
         predicate,
         creator,
         notificationAddress,
-        true,
+        notificationAddress != null,
         downloadFormat,
         downloadType,
         requestExtensions);
