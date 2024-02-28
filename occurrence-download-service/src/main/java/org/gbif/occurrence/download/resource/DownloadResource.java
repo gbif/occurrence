@@ -103,8 +103,9 @@ import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
 import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMonthlyDownloadBypass;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.checkUserInRole;
+import static org.gbif.ws.security.UserRoles.ADMIN_ROLE;
 
 @Validated
 public class DownloadResource {
@@ -365,7 +366,7 @@ public class DownloadResource {
     // User matches (or admin user)
     assertLoginMatches(downloadRequest, authentication, userAuthenticated);
 
-    if (!assertMonthlyDownloadBypass(authentication)
+    if (!checkUserInRole(authentication, ADMIN_ROLE)
         && downloadRequest instanceof PredicateDownloadRequest) {
       PredicateDownloadRequest predicateDownloadRequest =
           (PredicateDownloadRequest) downloadRequest;
@@ -412,6 +413,11 @@ public class DownloadResource {
       } catch (Exception e) {
         LOG.warn("SQL is INVALID: "+e.getMessage(), e);
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+      }
+
+      // Restrict SQL downloads to admin users
+      if (!checkUserInRole(authentication, ADMIN_ROLE)) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Currently limited to invited test users");
       }
     }
 

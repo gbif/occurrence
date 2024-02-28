@@ -70,20 +70,12 @@ public class DownloadSecurityUtil {
   }
 
   /**
-   * Checks if the user can bypass the monthly downloads, i.e. create huge downloads themselves.
-   *
-   * Used, for example, by the monthly download user (download.gbif.org).
+   * Checks if the user has the given role.
    */
-  public static boolean assertMonthlyDownloadBypass(Authentication authentication) {
+  public static boolean checkUserInRole(Authentication authentication, String... roles) {
     if (authentication == null || authentication.getName() == null) {
       return false;
     }
-
-    return checkUserInRole(authentication, ADMIN_ROLE);
-  }
-
-  public static boolean checkUserInRole(Authentication authentication, String... roles) {
-    Objects.requireNonNull(authentication, "authentication shall be provided");
 
     if (roles == null || roles.length < 1) {
       return false;
