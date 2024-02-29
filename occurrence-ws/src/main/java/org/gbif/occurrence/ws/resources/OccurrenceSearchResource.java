@@ -177,7 +177,8 @@ public class OccurrenceSearchResource {
         name = "facet",
         description = "A facet name used to retrieve the most frequent values for a field. Facets are allowed for " +
           "all search parameters except geometry and geoDistance. This parameter may by repeated to request multiple " +
-          "facets, as in [this example](https://api.gbif.org/v1/occurrence/search?facet=datasetKey&facet=basisOfRecord&limit=0).",
+          "facets, as in [this example](https://api.gbif.org/v1/occurrence/search?facet=datasetKey&facet=basisOfRecord&limit=0).\n\n" +
+          "Note terms not available for searching are not available for faceting.",
         schema = @Schema(implementation = String.class),
         in = ParameterIn.QUERY),
       @Parameter(
