@@ -31,7 +31,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(
   name = "Occurrence downloads",
-  description = "This API provides services to request bulk downloads of occurrence records and retrieve " +
+  description = "**For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads).** " +
+    "*The documentation here is automatically generated from the Java code.  It is always up-to-date, but the structure for the main " +
+    "download request method is complex.*\n\n" +
+    "This API provides services to request bulk downloads of occurrence records and retrieve " +
     "information about those downloads.\n\n" +
     "Occurrence downloads are created asynchronously — the user requests a download and, once complete, is sent an " +
     "email with a link to the resulting file.\n\n" +
@@ -40,7 +43,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
     "### Occurrence Download Predicates\n\n" +
     "For the API reference for download predicates expand the “Schema” → `predicate` section of the request body schema on the " +
     "[creation API call](#Occurrence%20downloads/requestDownload) (the first one after this text).\n\n" +
-    "For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads.html)\n\n" +
     "### Occurrence Download Limits\n\n" +
     "Occurrence downloads demand significant computational resources, and are monitored and limited according to the " +
     "GBIF platform load. In order to avoid that downloads requested by a single user utilize most of the resources " +

@@ -102,10 +102,11 @@ import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
 import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
 import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
+import static org.gbif.api.vocabulary.UserRole.INVITED_TESTER;
+import static org.gbif.api.vocabulary.UserRole.REGISTRY_ADMIN;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.checkUserInRole;
-import static org.gbif.ws.security.UserRoles.ADMIN_ROLE;
 
 @Validated
 public class DownloadResource {
@@ -304,7 +305,31 @@ public class DownloadResource {
   @io.swagger.v3.oas.annotations.parameters.RequestBody(
     content = @Content(
       schema = @Schema(
-        oneOf = {PredicateDownloadRequest.class, SqlDownloadRequest.class}
+        oneOf = {PredicateDownloadRequest.class, SqlDownloadRequest.class},
+        example = "{\n" +
+          "  \"creator\": \"gbif_username\",\n" +
+          "  \"sendNotification\": true,\n" +
+          "  \"notification_address\": [\"gbif@example.org\"],\n" +
+          "  \"format\": \"DWCA\",\n" +
+          "  \"predicate\": {\n" +
+          "    \"type\": \"and\",\n" +
+          "    \"predicates\": [\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"COUNTRY\",\n" +
+          "        \"value\": \"FR\"\n" +
+          "      },\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"YEAR\",\n" +
+          "        \"value\": \"2017\"\n" +
+          "      }\n" +
+          "    ]\n" +
+          "  },\n" +
+          "  \"verbatimExtensions\": [\n" +
+          "    \"http://rs.tdwg.org/ac/terms/Multimedia\"\n" +
+          "  ]\n" +
+          "}"
       )
     )
   )
@@ -366,7 +391,7 @@ public class DownloadResource {
     // User matches (or admin user)
     assertLoginMatches(downloadRequest, authentication, userAuthenticated);
 
-    if (!checkUserInRole(authentication, ADMIN_ROLE)
+    if (!checkUserInRole(authentication, REGISTRY_ADMIN)
         && downloadRequest instanceof PredicateDownloadRequest) {
       PredicateDownloadRequest predicateDownloadRequest =
           (PredicateDownloadRequest) downloadRequest;
@@ -416,7 +441,7 @@ public class DownloadResource {
       }
 
       // Restrict SQL downloads to admin users
-      if (!checkUserInRole(authentication, ADMIN_ROLE)) {
+      if (!checkUserInRole(authentication, REGISTRY_ADMIN, INVITED_TESTER)) {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Currently limited to invited test users");
       }
     }
