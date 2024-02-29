@@ -17,7 +17,11 @@ SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
--- Extension Tables
+--
+-- Creates the extension tables
+-- These will be small tables, so provide reducer hint to MR, to stop is spawning huge numbers
+--
+SET mapred.reduce.tasks=5;
 <#list verbatim_extensions as verbatim_extension>
 
 -- ${verbatim_extension.extension} extension
