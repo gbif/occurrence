@@ -25,20 +25,19 @@ import org.junit.jupiter.api.Test;
 
 public class PredicateValidatorTest {
 
-
   @Test
   public void invalidPolygonTest() {
     Assertions.assertThrows(IllegalArgumentException.class, () -> {
-      //Invalid polygon
-      WithinPredicate withinPredicate = new WithinPredicate("POLYGON ((30 10 10))");
+      // Invalid polygon (clockwise)
+      WithinPredicate withinPredicate = new WithinPredicate("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
 
-      //Valid depth
+      // Valid depth
       EqualsPredicate equalsPredicate = new EqualsPredicate(OccurrenceSearchParameter.DEPTH, "10", true);
 
-      //Conjunction predicate
+      // Conjunction predicate
       ConjunctionPredicate conjunctionPredicate = new ConjunctionPredicate(Arrays.asList(withinPredicate, equalsPredicate));
 
-      //Test
+      // Test
       PredicateValidator.validate(conjunctionPredicate);
     });
   }
@@ -46,16 +45,16 @@ public class PredicateValidatorTest {
   @Test
   public void validPolygonTest() {
 
-      //Valid polygon
-      WithinPredicate withinPredicate = new WithinPredicate("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
+      // Valid polygon
+      WithinPredicate withinPredicate = new WithinPredicate("POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))");
 
-      //Valid depth
+      // Valid depth
       EqualsPredicate equalsPredicate = new EqualsPredicate(OccurrenceSearchParameter.DEPTH, "10", true);
 
-      //Conjunction predicate
+      // Conjunction predicate
       ConjunctionPredicate conjunctionPredicate = new ConjunctionPredicate(Arrays.asList(withinPredicate, equalsPredicate));
 
-      //Test
+      // Test
       PredicateValidator.validate(conjunctionPredicate);
 
   }

@@ -1,0 +1,10 @@
+{
+  "creator": "MattBlissett",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"],
+  "format": "SIMPLE_CSV",
+  "predicate": {
+    "type": "within",
+    "geometry": "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))"
+  }
+}
