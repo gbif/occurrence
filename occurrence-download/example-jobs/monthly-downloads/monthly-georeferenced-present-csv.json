@@ -1,0 +1,26 @@
+{
+  "creator": "download.gbif.org",
+  "format": "SIMPLE_CSV",
+  "sendNotification": true,
+  "notification_address": ["mblissett@gbif.org"],
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "HAS_COORDINATE",
+        "value":"true"
+      },
+      {
+        "type": "equals",
+        "key": "HAS_GEOSPATIAL_ISSUE",
+        "value":"false"
+      },
+      {
+        "type":"equals",
+        "key":"OCCURRENCE_STATUS",
+        "value":"present"
+      }
+    ]
+  }
+}
