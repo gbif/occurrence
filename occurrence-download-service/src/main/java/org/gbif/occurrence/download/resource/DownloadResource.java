@@ -484,7 +484,7 @@ public class DownloadResource {
     if (downloadRequest.getFormat().equals(DownloadFormat.SQL_TSV_ZIP)) {
       try {
         String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
-        LOG.info("Received SQL download request «{}»", userSql);
+        LOG.info("Received SQL download request for validation «{}»", userSql);
         HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());

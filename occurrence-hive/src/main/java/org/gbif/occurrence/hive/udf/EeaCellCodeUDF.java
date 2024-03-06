@@ -21,12 +21,12 @@ public class EeaCellCodeUDF extends UDF {
 
   private final EeaCellCode eeaCellCode = new EeaCellCode();
 
-  private final Text resultString = new Text();
-
   public Text evaluate(IntWritable gridSize, Double lat, Double lon, Double coordinateUncertaintyInMeters) {
     if (gridSize == null || lat == null || lon == null || coordinateUncertaintyInMeters == null) {
       return null;
     }
+
+    final Text resultString = new Text();
 
     try {
       resultString.set(eeaCellCode.fromCoordinate(gridSize.get(), lat, lon, coordinateUncertaintyInMeters));

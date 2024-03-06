@@ -14,6 +14,7 @@ CREATE TEMPORARY FUNCTION gbif_geoDistance AS 'org.gbif.occurrence.hive.udf.GeoD
 CREATE TEMPORARY FUNCTION gbif_MGRSCode AS 'org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF';
 CREATE TEMPORARY FUNCTION gbif_joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
 CREATE TEMPORARY FUNCTION gbif_EQDGCCode AS 'org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF';
+CREATE TEMPORARY FUNCTION gbif_TemporalUncertainty AS 'org.gbif.occurrence.hive.udf.TemporalUncertaintyUDF';
 CREATE TEMPORARY FUNCTION gbif_toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
 CREATE TEMPORARY FUNCTION gbif_toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
 CREATE TEMPORARY FUNCTION gbif_within AS 'org.gbif.occurrence.hive.udf.ContainsUDF';

@@ -41,6 +41,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
+
 public class SqlValidation {
 
   private static final Map<String, SqlTypeName> HIVE_TYPE_MAPPING = ImmutableMap.<String, SqlTypeName>builder()
@@ -61,20 +63,12 @@ public class SqlValidation {
 
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
-    // Built-in Hive function
-    additionalOperators.add(new SqlFunction("array_contains",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.BOOLEAN,
-      null,
-      OperandTypes.family(SqlTypeFamily.ARRAY, SqlTypeFamily.ANY),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
     // org.gbif.occurrence.hive.udf.ContainsUDF
     additionalOperators.add(new SqlFunction("gbif_within",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
-      OperandTypes.family(SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.EeaCellCodeUDF
@@ -82,7 +76,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.GeoDistanceUDF
@@ -90,7 +84,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
@@ -98,7 +92,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
@@ -106,7 +100,15 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.hive.udf.TemporalUncertaintyUDF
+    additionalOperators.add(new SqlFunction("gbif_TemporalUncertainty",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.INTEGER,
+      null,
+      OperandTypes.STRING_OPTIONAL_STRING,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ToISO8601UDF
@@ -114,7 +116,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.ANY),
+      family(SqlTypeFamily.ANY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ToLocalISO8601UDF
@@ -122,7 +124,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.ANY),
+      family(SqlTypeFamily.ANY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // brickhouse.udf.collect.JoinArrayUDF
@@ -130,7 +132,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER),
+      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);

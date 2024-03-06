@@ -21,12 +21,12 @@ public class ExtendedQuarterDegreeGridCellCodeUDF extends UDF {
 
   private final ExtendedQuarterDegreeGridCellCode extendedQuarterDegreeGridCellCode = new ExtendedQuarterDegreeGridCellCode();
 
-  private final Text resultString = new Text();
-
   public Text evaluate(IntWritable level, Double lat, Double lon, Double coordinateUncertaintyInMeters) {
     if (level == null || lat == null || lon == null || coordinateUncertaintyInMeters == null) {
       return null;
     }
+
+    final Text resultString = new Text();
 
     try {
       resultString.set(extendedQuarterDegreeGridCellCode.fromCoordinate(level.get(), lat, lon, coordinateUncertaintyInMeters));
