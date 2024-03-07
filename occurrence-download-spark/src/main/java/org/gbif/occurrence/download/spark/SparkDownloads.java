@@ -48,7 +48,9 @@ public class SparkDownloads {
     SparkSession.Builder sparkBuilder = SparkSession.builder()
       .appName("Download job " + downloadKey)
       .config(sparkConf)
-      .enableHiveSupport();
+      .enableHiveSupport()
+      .config("spark.sql.catalog.iceberg.type", "hive")
+      .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog");
     SparkSession session = sparkBuilder.getOrCreate();
 
     UDFS.registerUdfs(session);

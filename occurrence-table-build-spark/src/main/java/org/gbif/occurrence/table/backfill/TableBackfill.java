@@ -103,7 +103,10 @@ public class TableBackfill {
     SparkSession.Builder sparkBuilder =
         SparkSession.builder()
             .appName(configuration.getTableName() + " table build")
-            .enableHiveSupport();
+            .enableHiveSupport()
+            .config("spark.sql.catalog.iceberg.type", "hive")
+            .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+            .config("spark.sql.defaultCatalog", "iceberg");
 
     if (configuration.getHiveThriftAddress() != null) {
       sparkBuilder
@@ -252,12 +255,7 @@ public class TableBackfill {
                 .drop("_salted_key");
       }
 
-      input
-          .write()
-          .format("parquet")
-          .option("compression", "Snappy")
-          .mode("overwrite")
-          .insertInto(saveToTable);
+      input.writeTo(saveToTable).createOrReplace();
     }
   }
 
@@ -357,7 +355,7 @@ public class TableBackfill {
         "CREATE TABLE IF NOT EXISTS %s\n"
             + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
             + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
-            + "publisher STRING, license STRING, rightsHolder STRING)\n"
+            + "publisher STRING, license STRING, rightsHolder STRING) \n"
             + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
         getPrefix() + multimediaTableName());
   }
@@ -429,7 +427,7 @@ public class TableBackfill {
             + OccurrenceHDFSTableDefinition.definition().stream()
                 .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                 .collect(Collectors.joining(", \n"))
-            + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
+            + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
         configuration.getTableNameWithPrefix());
   }
 

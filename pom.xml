@@ -254,6 +254,7 @@
     <spark.version>3.3.0</spark.version>
     <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
+    <iceberg.version>1.4.3</iceberg.version>
     <scala.library.version>2.12.17</scala.library.version>
 
     <!-- Plugin versions -->
@@ -1322,6 +1323,11 @@
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-avro_${scala.tools.version}</artifactId>
         <version>${spark.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.iceberg</groupId>
+        <artifactId>iceberg-spark-runtime-3.4_${scala.tools.version}</artifactId>
+        <version>${iceberg.version}</version>
       </dependency>
       <dependency>
         <groupId>org.scala-lang</groupId>
