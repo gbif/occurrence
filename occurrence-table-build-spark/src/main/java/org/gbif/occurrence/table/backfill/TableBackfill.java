@@ -202,7 +202,7 @@ public class TableBackfill {
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
     spark.sql(configuration.isUsePartitionedTable()? createExtensionExternalTable(extensionTable) : createExtensionTable(extensionTable));
 
-    List<Column> columns = extensionTable.getFields().stream()
+    List<Column> columns = extensionTable.getFieldInitializers().stream()
       .filter(field -> configuration.isUsePartitionedTable() && !field.equalsIgnoreCase("datasetkey")) //Excluding partitioned columns
       .map(field -> field.contains(")")? callUDF(field.substring(0, field.indexOf('(')), col(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')')))).alias(field.substring(field.indexOf('(') + 1, field.lastIndexOf(')'))) : col(field))
       .collect(Collectors.toList());

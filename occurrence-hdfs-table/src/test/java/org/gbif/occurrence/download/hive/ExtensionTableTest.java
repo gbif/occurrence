@@ -14,10 +14,9 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
+import org.junit.Test;
 
 import java.util.stream.Stream;
-
-import org.junit.Test;
 
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
 import static org.junit.Assert.assertNotNull;
@@ -46,7 +45,7 @@ public class ExtensionTableTest {
     ExtensionTable extendedMofTable = new ExtensionTable(Extension.IDENTIFICATION);
 
     //Double underscore removed in the produced column name
-    assertTrue(extendedMofTable.getFields().contains(cleanDelimitersInitializer("order_")));
+    assertTrue(extendedMofTable.getFieldInitializers().contains(cleanDelimitersInitializer("order_")));
   }
 
   @Test
@@ -58,18 +57,18 @@ public class ExtensionTableTest {
    * Fields with special names.
    */
   @Test
-  public void especialCasesTest() {
+  public void specialCasesTest() {
     ExtensionTable dnaDerivedTable = new ExtensionTable(Extension.DNA_DERIVED_DATA);
 
     //datasetkey and gbifid are processed without initializers, this is true for all tables
-    assertTrue(dnaDerivedTable.getFields().contains(ExtensionTable.DATASET_KEY_FIELD));
-    assertTrue(dnaDerivedTable.getFields().contains(ExtensionTable.GBIFID_FIELD));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(ExtensionTable.DATASET_KEY_FIELD));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(ExtensionTable.GBIFID_FIELD));
 
     //Special cases are started with backticks to be compliant with Hive syntax
-    assertTrue(dnaDerivedTable.getFields().contains(cleanDelimitersInitializer("`_16srecover`")));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("`_16srecover`")));
 
     //Double underscore removed in the produced column name
-    assertTrue(dnaDerivedTable.getFields().contains(cleanDelimitersInitializer("v__16srecover")));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("v__16srecover")));
   }
 
   /**
@@ -81,8 +80,8 @@ public class ExtensionTableTest {
     ExtensionTable audobonTable = new ExtensionTable(Extension.AUDUBON);
     Stream.of("rights", "creator", "source", "language", "type")
       .forEach(term -> {
-        assertTrue(audobonTable.getFields().contains(cleanDelimitersInitializer("dc_" + term)));
-        assertTrue(audobonTable.getFields().contains(cleanDelimitersInitializer("dcterms_" + term)));
+        assertTrue(audobonTable.getFieldInitializers().contains(cleanDelimitersInitializer("dc_" + term)));
+        assertTrue(audobonTable.getFieldInitializers().contains(cleanDelimitersInitializer("dcterms_" + term)));
       });
   }
 }

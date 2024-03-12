@@ -1,7 +1,7 @@
 <#-- @ftlvariable name="field" type="org.gbif.occurrence.download.hive.Field" -->
 <#--
   This is a freemarker template which will generate an HQL script.
-  When run in Hive as a parameterized query, this will create a Hive table from Avro files.
+  When run in Hive as a parameterized query, this will create Hive tables from Avro files.
 -->
 
 <#-- Required syntax to escape Hive parameters. Outputs "USE ${hive_db};" -->
@@ -56,15 +56,26 @@ OUTPUTFORMAT 'org.apache.hadoop.hive.ql.io.avro.AvroContainerOutputFormat'
 LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${extension.directoryTableName}'
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/${extension.avroSchemaFileName}');
 
--- ${extension.extension} extension
-CREATE TABLE IF NOT EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName}
-STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB")
-AS
+-- ${extension.extension} Hive table
+-- Names are the short names of the term, even if these are not valid Hive identifiers and must be escaped.
+-- Note the DNA extension has the values "_16srecover" and "v__16srecover" in its Avro schema, but these are
+-- "16srecover" and is "v_16srecover" here.  (The Avro-names must be used in the INSERT below.)
+CREATE TABLE IF NOT EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName} (
+<#list extension.fieldNames as field>
+  ${field} string<#if field_has_next>,</#if>
+</#list>
+) STORED AS ORC TBLPROPERTIES ("serialization.null.format"="","orc.compress.size"="65536","orc.compress"="ZLIB");
+
+INSERT OVERWRITE TABLE ${r"${tableName}"}_ext_${extension.hiveTableName}
 SELECT
-<#list extension.fields as field>
+<#list extension.fieldInitializers as field>
   ${field}<#if field_has_next>,</#if>
 </#list>
 FROM ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
+
+-- Drop the temporary Avro table
+DROP TABLE IF EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
+
 </#list>
 
 SET hive.vectorized.execution.reduce.enabled=false;

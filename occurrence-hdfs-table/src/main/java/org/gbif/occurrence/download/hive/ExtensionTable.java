@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.pipelines.io.avro.extension.ac.AudubonTable;
@@ -41,6 +42,7 @@ import org.gbif.pipelines.io.avro.extension.ggbn.PreservationTable;
 import org.gbif.pipelines.io.avro.extension.obis.ExtendedMeasurementOrFactTable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +57,7 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.reflect.Reflection;
 
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
+import static org.gbif.occurrence.download.hive.HiveColumns.hiveColumnName;
 
 /**
  * Utility class used in the Freemarker template that generates  Hive tables for extensions.
@@ -157,21 +160,21 @@ public class ExtensionTable {
     return leafNamespace + '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, simpleClassName) + ".avsc";
   }
 
-  private String columnName(Schema.Field field) {
-    return HiveColumns.escapeColumnName(field.name());
-  }
-
   private String initializer(Schema.Field field) {
     String fieldName = field.name();
-    String hiveColumn = columnName(field);
+    String hiveColumn = HiveColumns.hiveColumnName(field.name());
     if (fieldName.equalsIgnoreCase(GBIFID_FIELD) || fieldName.equalsIgnoreCase(DATASET_KEY_FIELD)) {
       return hiveColumn;
     } else {
-      return cleanDelimitersInitializer(hiveColumn);
+      return cleanDelimitersInitializer(field.name(), hiveColumn);
     }
   }
 
-  public List<String> getFields() {
+  public List<String> getFieldNames() {
+    return schema.getFields().stream().map(f -> hiveColumnName(f.doc())).collect(Collectors.toList());
+  }
+
+  public List<String> getFieldInitializers() {
     return schema.getFields().stream().map(this::initializer).collect(Collectors.toList());
   }
 
@@ -200,7 +203,7 @@ public class ExtensionTable {
     interpretedFields.add(DATASET_KEY_FIELD);
     interpretedFields.addAll(schema.getFields()
                                .stream()
-                               .map(Schema.Field::name)
+                               .map(f -> hiveColumnName(f.name()))
                                .filter(fieldName -> !fieldName.startsWith("v_")
                                                     && !fieldName.equalsIgnoreCase(GBIFID_FIELD)
                                                     && !fieldName.equalsIgnoreCase(DATASET_KEY_FIELD))
@@ -209,15 +212,30 @@ public class ExtensionTable {
   }
 
   public List<Term> getInterpretedFieldsAsTerms() {
-    return getInterpretedFields().stream().map(TERM_FACTORY::findPropertyTerm).collect(Collectors.toList());
+    List<Term> interpretedFields = new ArrayList<>();
+    interpretedFields.add(GbifTerm.gbifID);
+    interpretedFields.add(GbifTerm.datasetKey);
+    interpretedFields.addAll(schema.getFields()
+      .stream()
+      .filter(field -> !field.name().startsWith("v_")
+        && !field.name().equalsIgnoreCase(GBIFID_FIELD)
+        && !field.name().equalsIgnoreCase(DATASET_KEY_FIELD))
+        .map(f -> TERM_FACTORY.findPropertyTerm(f.doc()))
+        .collect(Collectors.toList()));
+    return interpretedFields;
   }
 
   public Set<String> getVerbatimFields() {
-    return schema.getFields()
+    Set<String> verbatimFields = new LinkedHashSet<>();
+    verbatimFields.add(GBIFID_FIELD);
+    verbatimFields.add(DATASET_KEY_FIELD);
+    verbatimFields.addAll(schema.getFields()
       .stream()
-      .map(Schema.Field::name)
-      .filter(field -> field.startsWith("v_"))
-      .collect(Collectors.toSet());
+      .map(f -> hiveColumnName(f.name()))
+      .filter(fieldName -> fieldName.startsWith("v_")
+        || fieldName.equalsIgnoreCase(GBIFID_FIELD)
+        || fieldName.equalsIgnoreCase(DATASET_KEY_FIELD))
+      .collect(Collectors.toSet()));
+    return verbatimFields;
   }
-
 }
