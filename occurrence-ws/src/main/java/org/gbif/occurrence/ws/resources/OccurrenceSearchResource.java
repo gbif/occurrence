@@ -583,10 +583,10 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "geometry",
         description = "Searches for occurrences inside a polygon described in Well Known Text (WKT) format. " +
-          "Only `POINT`, `LINESTRING`, `LINEARRING`, `POLYGON` and `MULTIPOLYGON` are accepted WKT types.\n\n" +
+          "Only `POLYGON` and `MULTIPOLYGON` are accepted WKT types.\n\n" +
           "For example, a shape written as `POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))` would be queried " +
           "as is.\n\n" +
-          "_Polygons must have *anticlockwise* ordering of points, or will give unpredictable results._ " +
+          "_Polygons must have *anticlockwise* ordering of points._ " +
           "(A clockwise polygon represents the opposite area: the Earth's surface with a 'hole' in it. " +
           "Such queries are not supported.)\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
