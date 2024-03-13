@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.Term;
 import org.junit.Test;
 
 import java.util.stream.Stream;
@@ -22,6 +23,7 @@ import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersIniti
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test cases for generated extensions tables.
@@ -72,16 +74,34 @@ public class ExtensionTableTest {
   }
 
   /**
-   * Audobon overloads/borrows terms from other extensions or namespaces.
+   * Audubon overloads/borrows terms from other extensions or namespaces.
    */
   @Test
   public void audobonBorrowedTermsTest() {
-    //Audobon overloads some term names of Dc and DcTerms
+    //Audubon overloads some term names of Dc and DcTerms
     ExtensionTable audobonTable = new ExtensionTable(Extension.AUDUBON);
     Stream.of("rights", "creator", "source", "language", "type")
       .forEach(term -> {
         assertTrue(audobonTable.getFieldInitializers().contains(cleanDelimitersInitializer("dc_" + term)));
         assertTrue(audobonTable.getFieldInitializers().contains(cleanDelimitersInitializer("dcterms_" + term)));
       });
+  }
+
+  /**
+   * Check all terms are known.
+   */
+  @Test
+  public void interpretedFieldsAsTermsTest() {
+    for (Extension ext : Extension.availableExtensions()) {
+      System.out.println("Extension " + ext);
+      ExtensionTable extensionTable = new ExtensionTable(ext);
+
+      for (Term t : extensionTable.getInterpretedFieldsAsTerms()) {
+        //System.out.println(t);
+        if (t instanceof UnknownError) {
+          fail("Unknown term "+t);
+        }
+      }
+    }
   }
 }

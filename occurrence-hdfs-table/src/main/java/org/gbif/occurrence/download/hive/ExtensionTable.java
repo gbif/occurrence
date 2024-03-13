@@ -171,7 +171,7 @@ public class ExtensionTable {
   }
 
   public List<String> getFieldNames() {
-    return schema.getFields().stream().map(f -> hiveColumnName(f.doc())).collect(Collectors.toList());
+    return schema.getFields().stream().map(f -> hiveColumnName(f.name())).collect(Collectors.toList());
   }
 
   public List<String> getFieldInitializers() {

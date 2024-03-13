@@ -57,9 +57,11 @@ LOCATION '${r"${sourceDataDir}"}/.snapshot/${r"${snapshot}"}/${extension.directo
 TBLPROPERTIES ('avro.schema.url'='${r"${wfPath}"}/avro-schemas/${extension.avroSchemaFileName}');
 
 -- ${extension.extension} Hive table
--- Names are the short names of the term, even if these are not valid Hive identifiers and must be escaped.
--- Note the DNA extension has the values "_16srecover" and "v__16srecover" in its Avro schema, but these are
--- "16srecover" and is "v_16srecover" here.  (The Avro-names must be used in the INSERT below.)
+<#--
+  Names are the short names of the term, even if these are not valid Hive identifiers and must be escaped.
+  Note the DNA extension has the values "_16srecover" and "v__16srecover" in its Avro schema, but these are
+  "16srecover" and "v_16srecover" here to be precise for users looking at downloads.
+  (The Avro-names must be used in the INSERT below.) -->
 CREATE TABLE IF NOT EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName} (
 <#list extension.fieldNames as field>
   ${field} string<#if field_has_next>,</#if>
