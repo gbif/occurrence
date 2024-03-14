@@ -76,7 +76,7 @@ SELECT
 FROM ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
 
 -- Drop the temporary Avro table
-DROP TABLE IF EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
+-- DROP TABLE IF EXISTS ${r"${tableName}"}_ext_${extension.hiveTableName}_avro;
 
 </#list>
 
