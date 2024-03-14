@@ -42,13 +42,14 @@ CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTab
 --
 FROM ${interpretedTable}
 <#list verbatim_extensions as verbatim_extension>
-  JOIN ${tableName}_ext_${verbatim_extension.hiveTableName} ON ${interpretedTable}.gbifid = ${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
+  LEFT OUTER JOIN ${tableName}_ext_${verbatim_extension.hiveTableName} ON ${interpretedTable}.gbifid = ${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
 </#list>
 <#list verbatim_extensions as verbatim_extension>
-  INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
+INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
   SELECT
   <#list verbatim_extension.verbatimFields as field>
     ${tableName}_ext_${verbatim_extension.hiveTableName}.${field}<#if field_has_next>,</#if>
   </#list>
+  WHERE ${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid IS NOT NULL
   <#if !verbatim_extension_has_next>;</#if>
 </#list>
