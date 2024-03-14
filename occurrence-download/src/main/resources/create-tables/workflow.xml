@@ -33,17 +33,17 @@
       <arg>${source_data_dir}${table_name}</arg>
       <arg>${wf:id()}</arg>
     </java>
-    <ok to="create-avro-table"/>
+    <ok to="create-hive-tables"/>
     <error to="notify-error"/>
   </action>
 
   <!--
-    Create the Avro table from the HDFS snapshot
+    Create the Hive tables from the HDFS snapshot
   -->
-  <action name="create-avro-table">
+  <action name="create-hive-tables">
     <hive xmlns="uri:oozie:hive-action:0.4">
       <job-xml>conf/hive-default.xml</job-xml>
-      <script>hive-scripts/create-occurrence-avro.q</script>
+      <script>hive-scripts/create-occurrence-hive-tables.q</script>
       <param>hiveDB=${hiveDB}</param>
       <param>env=${occurrence.environment}</param>
       <param>snapshot=${wf:id()}</param>
