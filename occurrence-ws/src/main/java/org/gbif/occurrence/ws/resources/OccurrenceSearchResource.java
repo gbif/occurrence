@@ -153,12 +153,12 @@ public class OccurrenceSearchResource {
     value = {
       @Parameter(
         name = "limit",
-        description = "Controls the number of results in the page. Using too high a value will be overwritten with the default maximum threshold, depending on the service. Sensible defaults are used so this may be omitted.",
+        description = "Controls the number of results in the page. Using too high a value will be overwritten with the maximum threshold, which is 300 for this service. Sensible defaults are used so this may be omitted.",
         schema = @Schema(implementation = Integer.class, minimum = "0"),
         in = ParameterIn.QUERY),
       @Parameter(
         name = "offset",
-        description = "Determines the offset for the search results. A limit of 20 and offset of 40 will get the third page of 20 results. Some services have a maximum offset.",
+        description = "Determines the offset for the search results. A limit of 20 and offset of 40 will get the third page of 20 results. This service has a maximum offset of 100,000.",
         schema = @Schema(implementation = Integer.class, minimum = "0"),
         in = ParameterIn.QUERY),
     }
