@@ -49,7 +49,7 @@ public class SparkStaticConfiguration {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Memory {
-      private String limit;
+      private int limitGb;
     }
 
     private Cpu cpu;
@@ -61,6 +61,7 @@ public class SparkStaticConfiguration {
   private int recordsPerInstance;
   private int minInstances;
   private int maxInstances;
+  private int memoryOverheadMb;
 
   private int smallDownloadCutOff;
 }

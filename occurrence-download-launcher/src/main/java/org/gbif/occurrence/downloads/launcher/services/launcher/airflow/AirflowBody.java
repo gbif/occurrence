@@ -39,9 +39,12 @@ public class AirflowBody {
     private final String driverMaxCpu;
     private final String driverLimitMemory;
 
+    private final String memoryOverhead;
     private final String executorMinCpu;
     private final String executorMaxCpu;
     private final String executorLimitMemory;
+    // Sum of memoryOverhead + executorLimitMemory
+    private final String minResourceMemory;
 
     private final int minExecutors;
     private final int maxExecutors;

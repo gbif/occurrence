@@ -73,17 +73,24 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   private AirflowBody getAirflowBody(Download download) {
+
+    int executorMemory = sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() * 1024;
+    int memoryOverhead = sparkStaticConfiguration.getMemoryOverheadMb();
+    int minResourceMemory =  Double.valueOf(Math.ceil((executorMemory + memoryOverhead) / 1024d)).intValue();
+
     return AirflowBody.builder()
       .conf(AirflowBody.Conf.builder()
         .args(Lists.newArrayList(download.getKey(), download.getRequest().getType().getCoreTerm().name(), "/stackable/spark/jobs/download.properties"))
         // Driver
         .driverMinCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMin())
         .driverMaxCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMax())
-        .driverLimitMemory(sparkStaticConfiguration.getDriverResources().getMemory().getLimit())
+        .driverLimitMemory(sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
         // Executor
+        .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
+        .minResourceMemory(minResourceMemory + "Gi")
         .executorMinCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMin())
         .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
-        .executorLimitMemory(sparkStaticConfiguration.getExecutorResources().getMemory().getLimit())
+        .executorLimitMemory(sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() + "Gi")
         // dynamicAllocation
         .initialExecutors(executorInstances(download))
         .minExecutors(sparkStaticConfiguration.getMinInstances())
