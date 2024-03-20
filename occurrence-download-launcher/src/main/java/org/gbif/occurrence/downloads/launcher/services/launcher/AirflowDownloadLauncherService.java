@@ -76,8 +76,17 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
 
     int executorMemory = sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() * 1024;
     int memoryOverhead = sparkStaticConfiguration.getMemoryOverheadMb();
-    int minResourceMemory =  Double.valueOf(Math.ceil((executorMemory + memoryOverhead) / 1024d)).intValue();
-
+    //Given as megabytes (Mi)
+    int vectorMemory = sparkStaticConfiguration.getVectorMemory();
+    // Given as whole CPUs
+    double vectorCpu = sparkStaticConfiguration.getVectorCpu();
+    // Calculate values for Yunikorn annotation
+    // Driver
+    int driverMinResourceMemory =  Double.valueOf(Math.ceil(((sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() * 1024) + vectorMemory) / 1024d)).intValue();
+    double driverMinResourceCpu = Double.parseDouble(sparkStaticConfiguration.getDriverResources().getCpu().getMin()) + vectorCpu;
+    // Executor
+    int executorMinResourceMemory =  Double.valueOf(Math.ceil((executorMemory + memoryOverhead + vectorMemory) / 1024d)).intValue();
+    double executorMinResourceCpu = Double.parseDouble(sparkStaticConfiguration.getExecutorResources().getCpu().getMin()) + vectorCpu;
     return AirflowBody.builder()
       .conf(AirflowBody.Conf.builder()
         .args(Lists.newArrayList(download.getKey(), download.getRequest().getType().getCoreTerm().name(), "/stackable/spark/jobs/download.properties"))
@@ -85,9 +94,12 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         .driverMinCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMin())
         .driverMaxCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMax())
         .driverLimitMemory(sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
+          .driverMinResourceMemory(driverMinResourceCpu + "Gi")
+          .driverMinResourceCpu(String.valueOf(driverMinResourceMemory))
         // Executor
         .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
-        .minResourceMemory(minResourceMemory + "Gi")
+        .executorMinResourceMemory(executorMinResourceMemory + "Gi")
+        .executorMinResourceCpu(String.valueOf(executorMinResourceCpu))
         .executorMinCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMin())
         .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
         .executorLimitMemory(sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() + "Gi")

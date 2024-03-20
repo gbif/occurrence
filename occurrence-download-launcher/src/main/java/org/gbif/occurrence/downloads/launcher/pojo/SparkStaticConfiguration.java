@@ -64,4 +64,8 @@ public class SparkStaticConfiguration {
   private int memoryOverheadMb;
 
   private int smallDownloadCutOff;
+
+  // Making it possible to configure the value via configurations
+  private int vectorMemory;
+  private double vectorCpu;
 }
