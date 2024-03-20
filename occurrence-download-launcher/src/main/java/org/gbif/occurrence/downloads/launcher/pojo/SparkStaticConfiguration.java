@@ -67,5 +67,5 @@ public class SparkStaticConfiguration {
 
   // Making it possible to configure the value via configurations
   private int vectorMemory;
-  private double vectorCpu;
+  private int vectorCpu;
 }
