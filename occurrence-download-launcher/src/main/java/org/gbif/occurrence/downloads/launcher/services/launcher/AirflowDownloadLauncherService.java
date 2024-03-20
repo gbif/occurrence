@@ -97,8 +97,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         .driverMinCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMin())
         .driverMaxCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMax())
         .driverLimitMemory(sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
-          .driverMinResourceMemory(driverMinResourceCpu + "Gi")
-          .driverMinResourceCpu(driverMinResourceMemory + "m")
+        .driverMinResourceMemory(driverMinResourceMemory + "Gi")
+        .driverMinResourceCpu(driverMinResourceCpu + "m")
         // Executor
         .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
         .executorMinResourceMemory(executorMinResourceMemory + "Gi")
