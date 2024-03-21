@@ -13,39 +13,41 @@
  */
 package org.gbif.occurrence.trino.udf;
 
-
-import io.airlift.slice.Slice;
-import io.airlift.slice.Slices;
-import lombok.SneakyThrows;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-class CleanDelimiters implements Function<Slice,Slice> {
+import io.airlift.slice.Slice;
+import io.airlift.slice.Slices;
+import lombok.SneakyThrows;
 
-  private final Map<Slice,Slice> cache;
+class CleanDelimiters implements Function<Slice, Slice> {
+
+  private final Map<Slice, Slice> cache;
+
   public CleanDelimiters() {
     cache = createLRUMap(100_00);
   }
 
   private static Slice cleanDelimiters(Slice value) {
-    return Slices.utf8Slice(DELIMETERS_MATCH_PATTERN.matcher(value.toString()).replaceAll(" ").trim());
+    return Slices.utf8Slice(
+        DELIMETERS_MATCH_PATTERN.matcher(value.toStringUtf8()).replaceAll(" ").trim());
   }
 
   public static final String DELIMITERS_MATCH =
-    "\\t|\\n|\\r|(?:(?>\\u000D\\u000A)|[\\u000A\\u000B\\u000C\\u000D\\u0085\\u2028\\u2029\\u0000])";
+      "\\t|\\n|\\r|(?:(?>\\u000D\\u000A)|[\\u000A\\u000B\\u000C\\u000D\\u0085\\u2028\\u2029\\u0000])";
 
   public static final Pattern DELIMETERS_MATCH_PATTERN = Pattern.compile(DELIMITERS_MATCH);
+
   @Override
   @SneakyThrows
   public Slice apply(Slice value) {
-    return value != null? cache.computeIfAbsent(value, CleanDelimiters::cleanDelimiters) : null;
+    return value != null ? cache.computeIfAbsent(value, CleanDelimiters::cleanDelimiters) : null;
   }
 
   public static <K, V> Map<K, V> createLRUMap(final int maxEntries) {
-    return new LinkedHashMap<K, V>(maxEntries*10/7, 0.7f, true) {
+    return new LinkedHashMap<K, V>(maxEntries * 10 / 7, 0.7f, true) {
       @Override
       protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > maxEntries;
