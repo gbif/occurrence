@@ -13,17 +13,6 @@
  */
 package org.gbif.occurrence.trino.udf;
 
-import io.airlift.slice.Slice;
-import io.trino.spi.block.Block;
-import io.trino.spi.block.RowBlockBuilder;
-import io.trino.spi.block.SingleRowBlockWriter;
-import io.trino.spi.function.Description;
-import io.trino.spi.function.ScalarFunction;
-import io.trino.spi.function.SqlNullable;
-import io.trino.spi.function.SqlType;
-import io.trino.spi.type.RowType;
-import io.trino.spi.type.StandardTypes;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.RankParser;
@@ -33,7 +22,19 @@ import org.gbif.occurrence.trino.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.trino.processor.interpreters.TaxonomyInterpreter;
 
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
+
+import io.airlift.slice.Slice;
+import io.trino.spi.block.Block;
+import io.trino.spi.block.BlockBuilder;
+import io.trino.spi.block.RowBlockBuilder;
+import io.trino.spi.function.Description;
+import io.trino.spi.function.ScalarFunction;
+import io.trino.spi.function.SqlNullable;
+import io.trino.spi.function.SqlType;
+import io.trino.spi.type.RowType;
+import io.trino.spi.type.StandardTypes;
+import lombok.extern.slf4j.Slf4j;
 
 import static io.trino.spi.type.IntegerType.INTEGER;
 import static io.trino.spi.type.VarcharType.VARCHAR;
@@ -144,91 +145,90 @@ public class SpeciesMatchUDF {
       ParseResult<NameUsageMatch> response =
           getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
-      RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-      SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+      RowBlockBuilder rowBlockBuilder = rowType.createBlockBuilder(null, 5);
+      rowBlockBuilder.buildEntry(
+          builder -> {
+            BiConsumer<BlockBuilder, Integer> intWriter =
+                (blockBuilder, v) -> {
+                  if (v != null) {
+                    INTEGER.writeLong(blockBuilder, v);
+                  } else {
+                    blockBuilder.appendNull();
+                  }
+                };
 
-      Consumer<Integer> intWriter =
-          v -> {
-            if (v != null) {
-              INTEGER.writeLong(builder, v);
-            } else {
-              builder.appendNull();
+            BiConsumer<BlockBuilder, String> stringWriter =
+                (blockBuilder, v) -> {
+                  if (v != null) {
+                    VARCHAR.writeString(blockBuilder, v);
+                  } else {
+                    blockBuilder.appendNull();
+                  }
+                };
+
+            BiConsumer<BlockBuilder, Enum> enumWriter =
+                (blockBuilder, v) -> {
+                  if (v != null) {
+                    VARCHAR.writeString(blockBuilder, v.name());
+                  } else {
+                    blockBuilder.appendNull();
+                  }
+                };
+
+            if (response != null) {
+              stringWriter.accept(builder.get(0), response.getStatus().name());
+
+              if (response.getPayload() != null) {
+                NameUsageMatch lookup = response.getPayload();
+                intWriter.accept(builder.get(1), lookup.getUsageKey());
+                stringWriter.accept(builder.get(2), lookup.getScientificName());
+                enumWriter.accept(builder.get(3), lookup.getRank());
+                enumWriter.accept(builder.get(4), lookup.getStatus());
+                enumWriter.accept(builder.get(5), lookup.getMatchType());
+                intWriter.accept(builder.get(6), lookup.getConfidence());
+
+                intWriter.accept(builder.get(7), lookup.getKingdomKey());
+                intWriter.accept(builder.get(8), lookup.getPhylumKey());
+                intWriter.accept(builder.get(9), lookup.getClassKey());
+                intWriter.accept(builder.get(10), lookup.getOrderKey());
+                intWriter.accept(builder.get(11), lookup.getFamilyKey());
+                intWriter.accept(builder.get(12), lookup.getGenusKey());
+                intWriter.accept(builder.get(13), lookup.getSpeciesKey());
+
+                stringWriter.accept(builder.get(14), lookup.getKingdom());
+                stringWriter.accept(builder.get(15), lookup.getPhylum());
+                stringWriter.accept(builder.get(16), lookup.getClazz());
+                stringWriter.accept(builder.get(17), lookup.getOrder());
+                stringWriter.accept(builder.get(18), lookup.getFamily());
+                stringWriter.accept(builder.get(19), lookup.getGenus());
+                stringWriter.accept(builder.get(20), lookup.getSpecies());
+              } else {
+                if (response.getError() != null) {
+                  log.error("Error finding species match", response.getError());
+                }
+                // set all fields to null
+                for (int i = 1; i < 21; i++) {
+                  builder.get(i).appendNull();
+                }
+              }
             }
-          };
-
-      Consumer<String> stringWriter =
-          v -> {
-            if (v != null) {
-              VARCHAR.writeString(builder, v);
-            } else {
-              builder.appendNull();
-            }
-          };
-
-      Consumer<Enum> enumWriter =
-          v -> {
-            if (v != null) {
-              VARCHAR.writeString(builder, v.name());
-            } else {
-              builder.appendNull();
-            }
-          };
-
-      if (response != null) {
-        stringWriter.accept(response.getStatus().name());
-
-        if (response.getPayload() != null) {
-          NameUsageMatch lookup = response.getPayload();
-          intWriter.accept(lookup.getUsageKey());
-          stringWriter.accept(lookup.getScientificName());
-          enumWriter.accept(lookup.getRank());
-          enumWriter.accept(lookup.getStatus());
-          enumWriter.accept(lookup.getMatchType());
-          intWriter.accept(lookup.getConfidence());
-
-          intWriter.accept(lookup.getKingdomKey());
-          intWriter.accept(lookup.getPhylumKey());
-          intWriter.accept(lookup.getClassKey());
-          intWriter.accept(lookup.getOrderKey());
-          intWriter.accept(lookup.getFamilyKey());
-          intWriter.accept(lookup.getGenusKey());
-          intWriter.accept(lookup.getSpeciesKey());
-
-          stringWriter.accept(lookup.getKingdom());
-          stringWriter.accept(lookup.getPhylum());
-          stringWriter.accept(lookup.getClazz());
-          stringWriter.accept(lookup.getOrder());
-          stringWriter.accept(lookup.getFamily());
-          stringWriter.accept(lookup.getGenus());
-          stringWriter.accept(lookup.getSpecies());
-        } else {
-          if (response.getError() != null) {
-            log.error("Error finding species match", response.getError());
-          }
-          // set all fields to null
-          for (int i = 0; i < 20; i++) {
-            builder.appendNull();
-          }
-        }
-
-        blockBuilder.closeEntry();
-        return blockBuilder.build().getObject(0, Block.class);
-      }
+          });
+      return rowBlockBuilder.build().getObject(0, Block.class);
     } catch (Exception e) {
       System.err.println(e.getMessage());
       e.printStackTrace();
     }
 
     // if we got till here we return an empty row
-    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+    RowBlockBuilder blockBuilder = rowType.createBlockBuilder(null, 5);
+    blockBuilder.buildEntry(
+        b -> {
+          // set all fields to null
+          for (int i = 0; i < 21; i++) {
+            b.get(i).appendNull();
+          }
+        });
 
-    // set all fields to null
-    for (int i = 0; i < 21; i++) {
-      builder.appendNull();
-    }
-
-    blockBuilder.closeEntry();
     return blockBuilder.build().getObject(0, Block.class);
   }
 }

@@ -13,16 +13,6 @@
  */
 package org.gbif.occurrence.trino.udf;
 
-import io.airlift.slice.Slice;
-import io.trino.spi.block.Block;
-import io.trino.spi.block.RowBlockBuilder;
-import io.trino.spi.block.SingleRowBlockWriter;
-import io.trino.spi.function.Description;
-import io.trino.spi.function.ScalarFunction;
-import io.trino.spi.function.SqlNullable;
-import io.trino.spi.function.SqlType;
-import io.trino.spi.type.RowType;
-import io.trino.spi.type.StandardTypes;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
@@ -31,9 +21,20 @@ import org.gbif.occurrence.trino.processor.interpreters.TemporalInterpreter;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoField;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-import static io.trino.spi.type.BigintType.*;
+import io.airlift.slice.Slice;
+import io.trino.spi.block.Block;
+import io.trino.spi.block.BlockBuilder;
+import io.trino.spi.block.RowBlockBuilder;
+import io.trino.spi.function.Description;
+import io.trino.spi.function.ScalarFunction;
+import io.trino.spi.function.SqlNullable;
+import io.trino.spi.function.SqlType;
+import io.trino.spi.type.RowType;
+import io.trino.spi.type.StandardTypes;
+
+import static io.trino.spi.type.BigintType.BIGINT;
 
 /**
  * Parses year, month and day only.
@@ -89,11 +90,14 @@ public class DateParseUDF {
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice startDayOfYear,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice endDayOfYear) {
 
-    Long parsedYear = null;
-    Long parsedMonth = null;
-    Long parsedDay = null;
-    Long parsedEpochFrom = null;
-    Long parsedEpochTo = null;
+    var parsedValues =
+        new Object() {
+          Long parsedYear = null;
+          Long parsedMonth = null;
+          Long parsedDay = null;
+          Long parsedEpochFrom = null;
+          Long parsedEpochTo = null;
+        };
 
     try {
       OccurrenceParseResult<IsoDateInterval> parsed =
@@ -110,26 +114,26 @@ public class DateParseUDF {
           if (dateRange.getFrom().isSupported(ChronoField.YEAR)
               && dateRange.getFrom().get(ChronoField.YEAR)
                   == dateRange.getTo().get(ChronoField.YEAR)) {
-            parsedYear = dateRange.getFrom().getLong(ChronoField.YEAR);
+            parsedValues.parsedYear = dateRange.getFrom().getLong(ChronoField.YEAR);
             if (dateRange.getFrom().isSupported(ChronoField.MONTH_OF_YEAR)
                 && dateRange.getFrom().get(ChronoField.MONTH_OF_YEAR)
                     == dateRange.getTo().get(ChronoField.MONTH_OF_YEAR)) {
-              parsedMonth = dateRange.getFrom().getLong(ChronoField.MONTH_OF_YEAR);
+              parsedValues.parsedMonth = dateRange.getFrom().getLong(ChronoField.MONTH_OF_YEAR);
               if (dateRange.getFrom().isSupported(ChronoField.DAY_OF_MONTH)
                   && dateRange.getFrom().get(ChronoField.DAY_OF_MONTH)
                       == dateRange.getTo().get(ChronoField.DAY_OF_MONTH)) {
-                parsedDay = dateRange.getFrom().getLong(ChronoField.DAY_OF_MONTH);
+                parsedValues.parsedDay = dateRange.getFrom().getLong(ChronoField.DAY_OF_MONTH);
               }
             }
           }
         }
         if (dateRange.getFrom() != null) {
-          parsedEpochFrom =
+          parsedValues.parsedEpochFrom =
               TemporalAccessorUtils.toEarliestLocalDateTime(dateRange.getFrom(), true)
                   .toEpochSecond(ZoneOffset.UTC);
         }
         if (dateRange.getTo() != null) {
-          parsedEpochTo =
+          parsedValues.parsedEpochTo =
               TemporalAccessorUtils.toLatestLocalDateTime(dateRange.getTo(), true)
                   .toEpochSecond(ZoneOffset.UTC);
         }
@@ -147,26 +151,25 @@ public class DateParseUDF {
             new RowType.Field(Optional.of("day"), BIGINT),
             new RowType.Field(Optional.of("epoch_from"), BIGINT),
             new RowType.Field(Optional.of("epoch_to"), BIGINT));
-    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+    RowBlockBuilder rowBlockBuilder = rowType.createBlockBuilder(null, 5);
+    rowBlockBuilder.buildEntry(
+        builder -> {
+          BiConsumer<BlockBuilder, Long> writer =
+              (blockBuilder, v) -> {
+                if (v != null) {
+                  BIGINT.writeLong(blockBuilder, v);
+                } else {
+                  blockBuilder.appendNull();
+                }
+              };
 
-    Consumer<Long> writer =
-        v -> {
-          if (v != null) {
-            BIGINT.writeLong(builder, v);
-          } else {
-            builder.appendNull();
-          }
-        };
+          writer.accept(builder.get(0), parsedValues.parsedYear);
+          writer.accept(builder.get(1), parsedValues.parsedMonth);
+          writer.accept(builder.get(2), parsedValues.parsedDay);
+          writer.accept(builder.get(3), parsedValues.parsedEpochFrom);
+          writer.accept(builder.get(4), parsedValues.parsedEpochTo);
+        });
 
-    writer.accept(parsedYear);
-    writer.accept(parsedMonth);
-    writer.accept(parsedDay);
-    writer.accept(parsedEpochFrom);
-    writer.accept(parsedEpochTo);
-
-    blockBuilder.closeEntry();
-
-    return blockBuilder.build().getObject(0, Block.class);
+    return rowBlockBuilder.build().getObject(0, Block.class);
   }
 }

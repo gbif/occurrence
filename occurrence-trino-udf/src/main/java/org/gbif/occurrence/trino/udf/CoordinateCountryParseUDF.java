@@ -13,17 +13,6 @@
  */
 package org.gbif.occurrence.trino.udf;
 
-import io.airlift.slice.Slice;
-import io.trino.spi.block.Block;
-import io.trino.spi.block.RowBlockBuilder;
-import io.trino.spi.block.SingleRowBlockWriter;
-import io.trino.spi.function.Description;
-import io.trino.spi.function.ScalarFunction;
-import io.trino.spi.function.SqlNullable;
-import io.trino.spi.function.SqlType;
-import io.trino.spi.type.RowType;
-import io.trino.spi.type.StandardTypes;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
@@ -36,6 +25,17 @@ import org.gbif.occurrence.trino.processor.result.CoordinateResult;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+
+import io.airlift.slice.Slice;
+import io.trino.spi.block.Block;
+import io.trino.spi.block.RowBlockBuilder;
+import io.trino.spi.function.Description;
+import io.trino.spi.function.ScalarFunction;
+import io.trino.spi.function.SqlNullable;
+import io.trino.spi.function.SqlType;
+import io.trino.spi.type.RowType;
+import io.trino.spi.type.StandardTypes;
+import lombok.extern.slf4j.Slf4j;
 
 import static io.trino.spi.type.DoubleType.DOUBLE;
 import static io.trino.spi.type.VarcharType.VARCHAR;
@@ -109,14 +109,18 @@ public class CoordinateCountryParseUDF {
       }
     }
 
-    String parsedCountry =
+    var parsedValues = new Object() {
+      Double parsedLatitude = null;
+      Double parsedLongitude = null;
+      String parsedCountry = null;
+    };
+
+    parsedValues.parsedCountry =
         (Country.UNKNOWN == interpretedCountry
                 || Country.INTERNATIONAL_WATERS == interpretedCountry)
             ? null
             : interpretedCountry.getIso2LetterCode();
 
-    Double parsedLatitude = null;
-    Double parsedLongitude = null;
     if (latitudeArg != null && longitudeArg != null) {
       String latitude = latitudeArg.toStringUtf8();
       String longitude = longitudeArg.toStringUtf8();
@@ -134,13 +138,13 @@ public class CoordinateCountryParseUDF {
         CoordinateResult cc = response.getPayload();
         // we use the result, which often includes interpreted countries
         if (cc.getCountry() == null || Country.UNKNOWN == cc.getCountry()) {
-          parsedCountry = null;
+          parsedValues.parsedCountry = null;
         } else {
-          parsedCountry = cc.getCountry().getIso2LetterCode();
+          parsedValues.parsedCountry = cc.getCountry().getIso2LetterCode();
         }
 
-        parsedLatitude = cc.getLatitude();
-        parsedLongitude = cc.getLongitude();
+        parsedValues.parsedLatitude = cc.getLatitude();
+        parsedValues.parsedLongitude = cc.getLongitude();
       }
     }
 
@@ -149,26 +153,26 @@ public class CoordinateCountryParseUDF {
             new RowType.Field(Optional.of("latitude"), DOUBLE),
             new RowType.Field(Optional.of("longitude"), DOUBLE),
             new RowType.Field(Optional.of("country"), VARCHAR));
-    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 3);
-    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+    RowBlockBuilder blockBuilder = rowType.createBlockBuilder(null, 3);
+    blockBuilder.buildEntry(
+        builder -> {
+          if (parsedValues.parsedLatitude != null) {
+            DOUBLE.writeDouble(builder.get(0), parsedValues.parsedLatitude);
+          } else {
+            builder.get(0).appendNull();
+          }
+          if (parsedValues.parsedLongitude != null) {
+            DOUBLE.writeDouble(builder.get(1), parsedValues.parsedLongitude);
+          } else {
+            builder.get(1).appendNull();
+          }
+          if (parsedValues.parsedCountry != null) {
+            VARCHAR.writeString(builder.get(2), parsedValues.parsedCountry);
+          } else {
+            builder.get(2).appendNull();
+          }
+        });
 
-    if (parsedLatitude != null) {
-      DOUBLE.writeDouble(builder, parsedLatitude);
-    } else {
-      builder.appendNull();
-    }
-    if (parsedLongitude != null) {
-      DOUBLE.writeDouble(builder, parsedLongitude);
-    } else {
-      builder.appendNull();
-    }
-    if (parsedCountry != null) {
-      VARCHAR.writeString(builder, parsedCountry);
-    } else {
-      builder.appendNull();
-    }
-
-    blockBuilder.closeEntry();
     return blockBuilder.build().getObject(0, Block.class);
   }
 
