@@ -11,7 +11,7 @@
   <name>Occurrence :: HDFS-Hive Tables Build in Spark</name>
 
   <properties>
-    <cluster.spark.version>3.4.0</cluster.spark.version>
+    <cluster.spark.version>3.5.0</cluster.spark.version>
   </properties>
 
   <build>
