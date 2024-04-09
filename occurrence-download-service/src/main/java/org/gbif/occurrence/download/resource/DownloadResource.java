@@ -589,8 +589,7 @@ public class DownloadResource {
   }
 
   /**
-   * Search existingDownloads for a download with a format and predicate matching newDownload, from
-   * cutoff at the earliest.
+   * Search existingDownloads for a download with a format and predicate matching newDownload.
    *
    * @return The download key, if there's a match.
    */
