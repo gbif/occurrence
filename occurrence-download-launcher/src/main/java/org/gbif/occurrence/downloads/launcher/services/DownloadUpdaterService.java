@@ -66,7 +66,7 @@ public class DownloadUpdaterService {
         updateDownload(download);
       } else {
         log.debug(
-            "Skiping downloads status updating for download {}, status is already {}",
+            "Skipping downloads status updating for download {}, status is already {}",
             downloadKey,
             status);
       }
