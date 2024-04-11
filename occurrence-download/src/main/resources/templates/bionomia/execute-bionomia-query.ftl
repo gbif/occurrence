@@ -52,7 +52,7 @@ AS SELECT
   v_recordedByID,
   v_scientificName,
   v_typeStatus
-FROM occurrence
+FROM iceberg.${r"${hiveDB}"}.occurrence
 WHERE (v_identifiedBy IS NOT NULL OR v_recordedBy IS NOT NULL)
   AND ${r"${whereClause}"};
 
