@@ -76,7 +76,7 @@ public class HeadersFileUtil {
     for (Term term : terms) {
       headers.add(term.simpleName());
     }
-    return TAB_JOINER.join(headers) + '\n';
+    return TAB_JOINER.join(headers) + System.lineSeparator();
   }
 
   /**

@@ -16,16 +16,11 @@ package org.gbif.occurrence.download.util;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.registry.ws.client.DatasetClient;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.utils.file.properties.PropertiesUtil;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
-import java.io.IOException;
-import java.util.Properties;
 
 /**
  * Utility class to create registry web service clients.
@@ -41,15 +36,6 @@ public class RegistryClientUtil {
             .withCredentials(userName, password)
             .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
             .withFormEncoder();
-  }
-
-
-  private static Properties loadConfig() {
-    try {
-      return PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-    } catch (IOException ex) {
-      throw new IllegalArgumentException(ex);
-    }
   }
 
   /**
