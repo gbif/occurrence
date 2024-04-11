@@ -42,8 +42,6 @@ class ParquetQueries extends Queries {
   String toInterpretedHiveInitializer(Term term) {
     if (TermUtils.isVocabulary(term)) {
       return toVocabularyConceptHiveInitializer(term);
-    } else if (TermUtils.isInterpretedUtcDate(term) || TermUtils.isInterpretedLocalDate(term)) {
-      return "to_timestamp(" + term.simpleName() + ")";
     } else {
       return HiveColumns.columnFor(term);
     }

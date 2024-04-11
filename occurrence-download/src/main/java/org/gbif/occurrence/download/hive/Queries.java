@@ -114,6 +114,14 @@ public abstract class Queries {
 
   /**
    * @param useInitializers whether to convert dates, arrays etc to strings
+   * @return the select fields for the internal search fields
+   */
+  public Map<String, InitializableField> selectInternalSearchFields(boolean useInitializers) {
+    return selectDownloadFields(DownloadTerms.INTERNAL_SEARCH_TERMS, useInitializers);
+  }
+
+  /**
+   * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted download fields
    */
   Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers) {

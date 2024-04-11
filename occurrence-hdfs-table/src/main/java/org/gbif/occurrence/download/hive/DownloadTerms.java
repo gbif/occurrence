@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -22,11 +25,6 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
@@ -58,12 +56,21 @@ public class DownloadTerms {
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS).immutableCopy();
 
+  /**
+   * The interpreted terms included in a DWCA download.
+   */
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS_INTERPRETED).immutableCopy();
 
+  /*
+   * The verbatim terms included in a DWCA download.
+   */
   public static final Set<Term> DOWNLOAD_VERBATIM_TERMS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.verbatimTerms()), EXCLUSIONS).immutableCopy();
 
+  /*
+   * The multimedia terms included in a DWCA download.
+   */
   public static final Set<Term> DOWNLOAD_MULTIMEDIA_TERMS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.multimediaTerms()), EXCLUSIONS).immutableCopy();
 
@@ -202,11 +209,43 @@ public class DownloadTerms {
   );
 
   /**
-   * GBIF-Internal terms
+   * GBIF-Internal terms included in downloads (so why are they internal?)
    */
   public static final Set<Term> INTERNAL_DOWNLOAD_TERMS = ImmutableSet.of(
-    GbifInternalTerm.publishingOrgKey, IucnTerm.iucnRedListCategory
+    GbifInternalTerm.publishingOrgKey,
+    IucnTerm.iucnRedListCategory
   );
+
+  /**
+   * GBIF-Internal terms available for public searches (SQL downloads)
+   */
+  public static final Set<Term> INTERNAL_SEARCH_TERMS = ImmutableSet.of(
+    GbifInternalTerm.publishingOrgKey,
+    GbifInternalTerm.installationKey,
+    GbifInternalTerm.institutionKey,
+    GbifInternalTerm.collectionKey,
+    GbifInternalTerm.programmeAcronym,
+    GbifInternalTerm.hostingOrganizationKey,
+    GbifInternalTerm.isInCluster,
+    GbifInternalTerm.dwcaExtension,
+    GbifInternalTerm.eventDateGte,
+    GbifInternalTerm.eventDateLte
+  );
+
+  /*
+   * The terms available for searching/selecting for occurrence SQL downloads.
+   */
+  public static final Set<Term> DOWNLOAD_SQL_VERBATIM_TERMS = DOWNLOAD_VERBATIM_TERMS;
+
+  /*
+   * The terms available for searching/selecting for occurrence SQL downloads.
+   */
+  public static final Set<Term> DOWNLOAD_SQL_TERMS = new ImmutableSet.Builder<Term>()
+    .addAll(DOWNLOAD_INTERPRETED_TERMS)
+    .addAll(DOWNLOAD_MULTIMEDIA_TERMS)
+    .addAll(INTERNAL_DOWNLOAD_TERMS)
+    .addAll(INTERNAL_SEARCH_TERMS)
+    .add(GbifTerm.verbatimScientificName).build();
 
   public static String simpleName(Pair<Group, Term> termPair) {
     Term term = termPair.getRight();

@@ -29,9 +29,11 @@ class ParquetSchemaQueries extends Queries {
       // Just using the main establishmentMeans, not the whole lineage.
       // (Inform Google BigQuery before changing.)
       return HiveDataTypes.TYPE_STRING;
-    } else if (TermUtils.isInterpretedLocalDate(term)) {
+    } else if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return HiveDataTypes.TYPE_TIMESTAMP;
-    } else if (TermUtils.isInterpretedUtcDate(term)) {
+    } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {
+      return HiveDataTypes.TYPE_TIMESTAMP;
+    } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {
       return HiveDataTypes.TYPE_TIMESTAMP;
     } else if (TermUtils.isVocabulary(term)) {
       return HiveDataTypes.TYPE_ARRAY_STRING;
