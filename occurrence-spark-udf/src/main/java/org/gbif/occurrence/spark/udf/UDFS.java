@@ -27,6 +27,7 @@ public class UDFS {
     sparkSession.udf().register("cleanDelimitersArray", new CleanDelimiterArraysUdf(), DataTypes.createArrayType(DataTypes.StringType));
     sparkSession.udf().register("toISO8601", new ToISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("toLocalISO8601", new ToLocalISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register("toISO8601Millis", new ToISO8601MillisUdf(), DataTypes.StringType);
     sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
