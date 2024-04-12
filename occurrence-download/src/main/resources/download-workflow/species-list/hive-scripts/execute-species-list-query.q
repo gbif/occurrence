@@ -16,7 +16,7 @@ CREATE TABLE ${downloadTableName}_tmp STORED AS ORC
 AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus,
           kingdom, kingdomkey, phylum, phylumkey, class, classkey, order_, orderkey, family, familykey,
           genus, genuskey, species, specieskey, iucnredlistcategory, datasetkey, license
-FROM occurrence
+FROM iceberg.${hiveDB}.occurrence
 WHERE ${whereClause};
 
 
