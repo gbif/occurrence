@@ -1,4 +1,7 @@
+#!/usr/bin/env bash
 #Simple script for pushing a image containing the named modules build artifact
+set -e
+
 MODULE="occurrence-table-build-spark"
 docker build -f ./${MODULE}/docker/Dockerfile ./${MODULE} --build-arg JAR_FILE=${MODULE}-${POM_VERSION}-shaded.jar -t docker.gbif.org/${MODULE}:${POM_VERSION}
 docker push docker.gbif.org/${MODULE}:${POM_VERSION}
