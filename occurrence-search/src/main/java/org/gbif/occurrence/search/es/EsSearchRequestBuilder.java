@@ -17,6 +17,7 @@ import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
@@ -27,6 +28,7 @@ import org.gbif.predicate.query.EsQueryVisitor;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -62,6 +64,7 @@ import com.google.common.annotations.VisibleForTesting;
 
 import lombok.SneakyThrows;
 
+import static org.gbif.api.util.SearchTypeValidator.isDateRange;
 import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
@@ -392,7 +395,7 @@ public class EsSearchRequestBuilder {
                       postFilterParams, facetParam, searchRequest.isMatchCase());
 
               // add filter to the aggs
-              EsField esField = occurrenceBaseEsFieldMapper.getEsField(facetParam);
+              EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
               FilterAggregationBuilder filterAggs =
                   AggregationBuilders.filter(esField.getSearchFieldName(), bool);
 
@@ -422,7 +425,7 @@ public class EsSearchRequestBuilder {
         .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null)
         .map(
             facetParam -> {
-              EsField esField = occurrenceBaseEsFieldMapper.getEsField(facetParam);
+              EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
               if (esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
@@ -591,7 +594,6 @@ public class EsSearchRequestBuilder {
 
   private RangeQueryBuilder buildRangeQuery(EsField esField, String value) {
     RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
-
 
     if (occurrenceBaseEsFieldMapper.isDateField(esField)) {
       Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(value);
