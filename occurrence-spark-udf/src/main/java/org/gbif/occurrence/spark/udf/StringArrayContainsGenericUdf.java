@@ -23,6 +23,7 @@ public class StringArrayContainsGenericUdf implements UDF3<WrappedArray<String>,
 
   @Override
   public Boolean call(WrappedArray<String> array, String value, Boolean caseSensitive) throws Exception {
-    return array != null && !array.isEmpty() && JavaConverters.asJavaCollection(array).stream().anyMatch(e -> caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value));
+    return array != null && !array.isEmpty() && JavaConverters.asJavaCollection(array).stream()
+                                                  .anyMatch(e -> e != null && (caseSensitive ? e.equals(value) : e.equalsIgnoreCase(value)));
   }
 }
