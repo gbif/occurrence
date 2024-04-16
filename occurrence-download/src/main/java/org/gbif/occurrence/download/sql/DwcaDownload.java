@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.sql;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
@@ -43,17 +44,16 @@ public class DwcaDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
-
   public void run() {
     try {
-      //Execute queries
+      // Execute queries
       executeQuery();
 
-      //Create the Archive
+      // Create the Archive
       zipAndArchive();
 
     } finally {
-      //Drop tables
+      // Drop tables
       dropTables();
     }
   }
@@ -69,7 +69,7 @@ public class DwcaDownload {
   @SneakyThrows
   private String downloadQuery() {
     if (downloadQuery == null) {
-       downloadQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaQueryHQL);
+      downloadQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaQueryHQL);
     }
     return downloadQuery;
   }
@@ -77,37 +77,40 @@ public class DwcaDownload {
   @SneakyThrows
   private String dropTablesQuery() {
     if (dropTablesQuery == null) {
-      dropTablesQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaDropTableQueryHQL);
+      dropTablesQuery =
+          SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaDropTableQueryHQL);
     }
     return dropTablesQuery;
   }
 
-
   private void zipAndArchive() {
-    DownloadJobConfiguration configuration = DownloadJobConfiguration.builder()
-      .downloadKey(download.getKey())
-      .downloadTableName(queryParameters.getDownloadTableName())
-      .filter(queryParameters.getWhereClause())
-      .isSmallDownload(Boolean.FALSE)
-      .sourceDir(workflowConfiguration.getHiveDBPath())
-      .downloadFormat(workflowConfiguration.getDownloadFormat())
-      .coreTerm(download.getRequest().getType().getCoreTerm())
-      .extensions(download.getRequest().getVerbatimExtensions())
-      .build();
+    DownloadJobConfiguration configuration =
+        DownloadJobConfiguration.builder()
+            .downloadKey(download.getKey())
+            .downloadTableName(queryParameters.getDownloadTableName())
+            .filter(queryParameters.getWhereClause())
+            .isSmallDownload(Boolean.FALSE)
+            .sourceDir(workflowConfiguration.getHiveDBPath())
+            .downloadFormat(workflowConfiguration.getDownloadFormat())
+            .coreTerm(download.getRequest().getType().getCoreTerm())
+            // FIXME: is this casting safe?
+            .extensions(((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions())
+            .build();
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
-
 
   private void dropTables() {
     SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   private boolean hasRequestedExtensions() {
-    return download.getRequest().getVerbatimExtensions() != null && !download.getRequest().getVerbatimExtensions().isEmpty();
+    // FIXME: is this casting safe?
+    return ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions() != null
+        && !((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions().isEmpty();
   }
 
-  private Map<String,String> getQueryParameters() {
-    Map<String,String> parameters = queryParameters.toMap();
+  private Map<String, String> getQueryParameters() {
+    Map<String, String> parameters = queryParameters.toMap();
     parameters.put("verbatimTable", queryParameters.getDownloadTableName() + "_verbatim");
     parameters.put("interpretedTable", queryParameters.getDownloadTableName() + "_interpreted");
     parameters.put("citationTable", queryParameters.getDownloadTableName() + "_citation");
@@ -116,9 +119,8 @@ public class DwcaDownload {
     return parameters;
   }
 
-
   private void runExtensionsQuery() {
-      SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), queryExecutor);
+    SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   @SneakyThrows

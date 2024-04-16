@@ -86,9 +86,7 @@ public class SimpleDownload {
   @SneakyThrows
   private String downloadQuery() {
     if (downloadQuery == null) {
-      if (DownloadFormat.IUCN == download.getRequest().getFormat()) {
-        downloadQuery = GenerateHQL.iucnQueryHQL();
-      } else if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
+      if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.speciesListQueryHQL();
       } else if (DownloadFormat.SIMPLE_CSV == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.simpleCsvQueryHQL();

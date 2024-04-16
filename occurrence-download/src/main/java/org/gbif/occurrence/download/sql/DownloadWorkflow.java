@@ -92,7 +92,8 @@ public class DownloadWorkflow {
       .isSmallDownload(true)
       .downloadFormat(workflowConfiguration.getDownloadFormat())
       .coreTerm(coreDwcTerm)
-      .extensions(download.getRequest().getVerbatimExtensions())
+            // FIXME: is this casting safe?
+      .extensions(((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions())
       .build());
   }
 

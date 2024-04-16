@@ -17,6 +17,7 @@ import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
@@ -65,19 +66,18 @@ import lombok.SneakyThrows;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * This class sets the following parameters required by the download workflow:
- * - is_small_download: define if the occurrence download must be processed as a small(ES) or a big (Hive) download.
- * This parameter is calculated by executing an ElasticSearch query that counts the number of records.
- * - search_query: query to process small download, it's a translation of the predicate filter.
- * - hive_query: query to process big download, it's a translation of the predicate filter.
- * - hive_db: this parameter is read from a properties file.
- * - download_key: download primary key, it's generated from the Oozie workflow id.
- * - download_table_name: base name to use when creating hive tables and files, it's the download_key, but the '-'
- * is replaced by '_'.
+ * This class sets the following parameters required by the download workflow: - is_small_download:
+ * define if the occurrence download must be processed as a small(ES) or a big (Hive) download. This
+ * parameter is calculated by executing an ElasticSearch query that counts the number of records. -
+ * search_query: query to process small download, it's a translation of the predicate filter. -
+ * hive_query: query to process big download, it's a translation of the predicate filter. - hive_db:
+ * this parameter is read from a properties file. - download_key: download primary key, it's
+ * generated from the Oozie workflow id. - download_table_name: base name to use when creating hive
+ * tables and files, it's the download_key, but the '-' is replaced by '_'.
  */
 @Data
 @Builder
-public class  DownloadPrepareAction implements Closeable {
+public class DownloadPrepareAction implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadPrepareAction.class);
 
@@ -85,10 +85,11 @@ public class  DownloadPrepareAction implements Closeable {
   private static final int ERROR_COUNT = -1;
 
   private static final ObjectMapper OBJECT_MAPPER =
-    new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
-    OBJECT_MAPPER.addMixIn(SearchParameter.class, QueryVisitorsFactory.OccurrenceSearchParameterMixin.class);
+    OBJECT_MAPPER.addMixIn(
+        SearchParameter.class, QueryVisitorsFactory.OccurrenceSearchParameterMixin.class);
   }
 
   private static final String OOZIE_ACTION_OUTPUT_PROPERTIES = "oozie.action.output.properties";
@@ -105,8 +106,7 @@ public class  DownloadPrepareAction implements Closeable {
 
   private static final String DOWNLOAD_KEY = "download_key";
 
-
-  //'-' is not allowed in a Hive table name.
+  // '-' is not allowed in a Hive table name.
   // This value will hold the same value as the DOWNLOAD_KEY but the - is replaced by an '_'.
   private static final String DOWNLOAD_TABLE_NAME = "download_table_name";
 
@@ -133,22 +133,21 @@ public class  DownloadPrepareAction implements Closeable {
 
   private final OccurrenceBaseEsFieldMapper esFieldMapper;
 
-  /**
-   * Entry point: receives as argument the predicate filter and the Oozie workflow id.
-   */
+  /** Entry point: receives as argument the predicate filter and the Oozie workflow id. */
   public static void main(String[] args) throws Exception {
-    checkArgument(args.length > 3 && !Strings.isNullOrEmpty(args[0]), "The search query argument hasn't been specified");
-    try (DownloadPrepareAction occurrenceCount = DownloadWorkflowModule.builder()
-                                                  .workflowConfiguration(new WorkflowConfiguration())
-                                                  .build()
-                                                    .downloadPrepareAction(DwcTerm.valueOf(args[3]), args[4])) {
+    checkArgument(
+        args.length > 3 && !Strings.isNullOrEmpty(args[0]),
+        "The search query argument hasn't been specified");
+    try (DownloadPrepareAction occurrenceCount =
+        DownloadWorkflowModule.builder()
+            .workflowConfiguration(new WorkflowConfiguration())
+            .build()
+            .downloadPrepareAction(DwcTerm.valueOf(args[3]), args[4])) {
       occurrenceCount.updateDownloadData(args[0], args[1], args[2]);
     }
   }
 
-  /**
-   * Method that determines if the search query produces a "small" download file.
-   */
+  /** Method that determines if the search query produces a "small" download file. */
   public Boolean isSmallDownloadCount(long recordCount) {
     return recordCount != ERROR_COUNT && recordCount <= smallDownloadLimit;
   }
@@ -157,9 +156,9 @@ public class  DownloadPrepareAction implements Closeable {
    * Update the Oozie workflow data/parameters and persists the records of the occurrence download.
    *
    * @param rawPredicate to be executed
-   * @param downloadKey  workflow id
-   *
-   * @throws java.io.IOException in case of error reading or writing the 'oozie.action.output.properties' file
+   * @param downloadKey workflow id
+   * @throws java.io.IOException in case of error reading or writing the
+   *     'oozie.action.output.properties' file
    */
   public void updateDownloadData(String rawPredicate, String downloadKey, String downloadFormat)
       throws IOException, QueryBuildingException {
@@ -186,22 +185,26 @@ public class  DownloadPrepareAction implements Closeable {
       if (isSmallDownloadCount(recordCount)) {
         props.setProperty(SEARCH_QUERY, StringEscapeUtils.escapeXml10(searchQuery));
       }
-      props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate)));
-      if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
+      props.setProperty(
+          HIVE_QUERY,
+          StringEscapeUtils.escapeXml10(
+              QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate)));
+      if (recordCount >= 0
+          && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
         updateTotalRecordsCount(download, recordCount);
       }
 
       persist(oozieProp, props);
     } else {
-      throw new IllegalStateException(OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
+      throw new IllegalStateException(
+          OOZIE_ACTION_OUTPUT_PROPERTIES + " System property not defined");
     }
-
   }
 
   @SneakyThrows
   private String searchQuery(Predicate predicate) {
-    Optional<QueryBuilder> queryBuilder = QueryVisitorsFactory.createEsQueryVisitor(esFieldMapper)
-                                            .getQueryBuilder(predicate);
+    Optional<QueryBuilder> queryBuilder =
+        QueryVisitorsFactory.createEsQueryVisitor(esFieldMapper).getQueryBuilder(predicate);
     if (queryBuilder.isPresent()) {
       BoolQueryBuilder query = (BoolQueryBuilder) queryBuilder.get();
       esFieldMapper.getDefaultFilter().ifPresent(df -> query.filter().add(df));
@@ -210,9 +213,7 @@ public class  DownloadPrepareAction implements Closeable {
     return esFieldMapper.getDefaultFilter().orElse(QueryBuilders.matchAllQuery()).toString();
   }
 
-  /**
-   * Gets a download by its key.
-   */
+  /** Gets a download by its key. */
   private Download getDownload(String downloadKey) {
     Download download = occurrenceDownloadService.get(downloadKey);
     if (download == null) {
@@ -229,20 +230,32 @@ public class  DownloadPrepareAction implements Closeable {
 
   @SneakyThrows
   private void generateExtensionQueryFile(Download download) {
-    try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(getHadoopFileSystem().create(new Path(wfPath + "/tmp/",
-                                                                                                                   DownloadUtils.downloadTableName(download.getKey()) + "-execute-extensions-query.q"))))) {
+    try (BufferedWriter writer =
+        new BufferedWriter(
+            new OutputStreamWriter(
+                getHadoopFileSystem()
+                    .create(
+                        new Path(
+                            wfPath + "/tmp/",
+                            DownloadUtils.downloadTableName(download.getKey())
+                                + "-execute-extensions-query.q"))))) {
       ExtensionsQuery.builder().writer(writer).build().generateExtensionsQueryHQL(download);
     }
   }
 
-  /**
-   * Sets the extensions parameter.
-   */
+  /** Sets the extensions parameter. */
   private void setRequestExtensionsParam(Download download, Properties props) {
-    if (download != null && download.getRequest().getVerbatimExtensions() != null && !download.getRequest().getVerbatimExtensions().isEmpty()) {
-      String requestExtensions = Optional.ofNullable(download.getRequest().getVerbatimExtensions())
-        .map(verbatimExtensions -> verbatimExtensions.stream().map(Enum::name).collect(Collectors.joining(",")))
-        .orElse("");
+    // FIXME: is this casting safe?
+    if (download != null
+        && ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions() != null
+        && !((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions().isEmpty()) {
+      String requestExtensions =
+          Optional.ofNullable(
+                  ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions())
+              .map(
+                  verbatimExtensions ->
+                      verbatimExtensions.stream().map(Enum::name).collect(Collectors.joining(",")))
+              .orElse("");
       props.setProperty(VERBATIM_EXTENSIONS, requestExtensions);
       props.setProperty(HAS_VERBATIM_EXTENSIONS, Boolean.TRUE.toString());
       generateExtensionQueryFile(download);
@@ -261,16 +274,20 @@ public class  DownloadPrepareAction implements Closeable {
   }
 
   /**
-   * Executes the ElasticSearch query and returns the number of records found.
-   * If an error occurs 'ERROR_COUNT' is returned.
+   * Executes the ElasticSearch query and returns the number of records found. If an error occurs
+   * 'ERROR_COUNT' is returned.
    */
   private long getRecordCount(String esQuery) {
     try {
-      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0).trackTotalHits(true);
-      if(!Strings.isNullOrEmpty(esQuery)) {
+      SearchSourceBuilder searchSourceBuilder =
+          new SearchSourceBuilder().size(0).trackTotalHits(true);
+      if (!Strings.isNullOrEmpty(esQuery)) {
         searchSourceBuilder.query(QueryBuilders.wrapperQuery(esQuery));
       }
-      SearchResponse response = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
+      SearchResponse response =
+          esClient.search(
+              new SearchRequest().indices(esIndex).source(searchSourceBuilder),
+              RequestOptions.DEFAULT);
       long count = response.getHits().getTotalHits().value;
       LOG.info("Download record count {}", count);
       return count;
@@ -280,9 +297,7 @@ public class  DownloadPrepareAction implements Closeable {
     }
   }
 
-  /**
-   * Shuts down the ElasticSearch client.
-   */
+  /** Shuts down the ElasticSearch client. */
   private void shutDownEsClientSilently() {
     try {
       if (Objects.nonNull(esClient)) {
@@ -293,9 +308,7 @@ public class  DownloadPrepareAction implements Closeable {
     }
   }
 
-  /**
-   * Updates the record count of the download entity.
-   */
+  /** Updates the record count of the download entity. */
   private void updateTotalRecordsCount(Download download, long recordCount) {
     try {
       if (download != null) {
@@ -304,7 +317,10 @@ public class  DownloadPrepareAction implements Closeable {
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {
-      LOG.error("Error updating record count for download workflow , reported count is {}", recordCount, ex);
+      LOG.error(
+          "Error updating record count for download workflow , reported count is {}",
+          recordCount,
+          ex);
     }
   }
 
@@ -312,5 +328,4 @@ public class  DownloadPrepareAction implements Closeable {
   public void close() {
     shutDownEsClientSilently();
   }
-
 }

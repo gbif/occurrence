@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.occurrence.common.download.DownloadUtils;
 
 import java.io.InputStream;
@@ -73,7 +74,8 @@ public class ExtensionsQuery {
   private Map<String,Object> templateVariables(Download download) {
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String,Object> variables = new HashMap<>();
-    Optional.ofNullable(download.getRequest().getVerbatimExtensions())
+    // FIXME: is this casting safe?
+    Optional.ofNullable(((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions())
       .ifPresent(verbatimExtensions ->
                    variables.put("verbatim_extensions", verbatimExtensions.stream()
                                                  .map(ExtensionTable::new)

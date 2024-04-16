@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.download.conf;
 
+import lombok.Builder;
+import lombok.Data;
+import org.apache.hadoop.fs.Path;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
@@ -29,11 +32,6 @@ import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.util.Set;
-
-import org.apache.hadoop.fs.Path;
-
-import lombok.Builder;
-import lombok.Data;
 
 /**
  * Configuration of a small download execution.
@@ -114,7 +112,8 @@ public class DownloadJobConfiguration {
             .downloadKey(download.getKey())
             .downloadFormat(download.getRequest().getFormat())
             .coreTerm(download.getRequest().getType().getCoreTerm())
-            .extensions(download.getRequest().getVerbatimExtensions())
+            // FIXME: is this casting safe?
+            .extensions(((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions())
             .filter(PredicateUtil.toSqlQuery(((PredicateDownloadRequest)download.getRequest()).getPredicate()))
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
             .isSmallDownload(false)
