@@ -141,7 +141,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.iceberg</groupId>
-      <artifactId>iceberg-spark-runtime-3.3_${scala.tools.version}</artifactId>
+      <artifactId>iceberg-spark-runtime-3.5_${scala.tools.version}</artifactId>
       <version>${iceberg.version}</version>
       <scope>runtime</scope>
     </dependency>
@@ -153,6 +153,31 @@
       <groupId>org.scala-lang.modules</groupId>
       <artifactId>scala-java8-compat_${scala.tools.version}</artifactId>
       <version>${scala-java8-compat.version}</version>
+    </dependency>
+
+    <!-- Avro -->
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-mapred</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-ipc</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <scope>provided</scope>
     </dependency>
 
   </dependencies>

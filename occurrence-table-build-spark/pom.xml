@@ -195,7 +195,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.iceberg</groupId>
-      <artifactId>iceberg-spark-runtime-3.4_${scala.tools.version}</artifactId>
+      <artifactId>iceberg-spark-runtime-3.5_${scala.tools.version}</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
