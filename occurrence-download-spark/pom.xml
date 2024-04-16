@@ -13,6 +13,7 @@
   <properties>
     <scala-java8-compat.version>1.0.2</scala-java8-compat.version>
     <cluster.spark.version>3.5.0</cluster.spark.version>
+    <slf4j.version>2.0.7</slf4j.version>
   </properties>
 
   <build>
@@ -87,6 +88,12 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-spark-udf</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-avro_${scala.tools.version}</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Common libraries -->
@@ -135,11 +142,6 @@
       <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.spark</groupId>
-      <artifactId>spark-avro_${scala.tools.version}</artifactId>
-      <version>${cluster.spark.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-spark-runtime-3.5_${scala.tools.version}</artifactId>
       <version>${iceberg.version}</version>
@@ -168,15 +170,17 @@
       <version>${avro.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.avro</groupId>
-      <artifactId>avro</artifactId>
+      <version>${slf4j.version}</version>
       <scope>provided</scope>
     </dependency>
 
