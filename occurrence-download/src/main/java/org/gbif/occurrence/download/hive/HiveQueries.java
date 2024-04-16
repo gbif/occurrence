@@ -48,7 +48,7 @@ public class HiveQueries extends TsvQueries {
    * Transforms the term into a joinArray(…) expression.
    */
   protected static String toArrayInitializer(Term term) {
-    return String.format("if(%1$s IS NULL,'',joinArray(%1$s,'\\\\;')) AS %1$s", HiveColumns.columnFor(term));
+    return String.format("array_join(%1$s,'\\\\;') AS %1$s", HiveColumns.columnFor(term));
   }
 
 }
