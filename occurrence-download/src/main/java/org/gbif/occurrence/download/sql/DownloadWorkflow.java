@@ -13,25 +13,25 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.action.FromSearchDownloadAction;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.elastic.DownloadEsClient;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.action.FromSearchDownloadAction;
 import org.gbif.occurrence.download.predicate.EsPredicateUtil;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 import java.util.Properties;
 import java.util.function.Supplier;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DownloadWorkflow {
@@ -49,19 +49,26 @@ public class DownloadWorkflow {
 
   private final SqlDownloadRunner sqlDownloadRunner;
 
-
   @Builder
-  public DownloadWorkflow(WorkflowConfiguration workflowConfiguration, DwcTerm coreDwcTerm, String downloadKey, Supplier<QueryExecutor> queryExecutorSupplier) {
+  public DownloadWorkflow(
+      WorkflowConfiguration workflowConfiguration,
+      DwcTerm coreDwcTerm,
+      String downloadKey,
+      Supplier<QueryExecutor> queryExecutorSupplier) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
-    downloadService = DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
+    downloadService =
+        DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
     download = downloadService.get(downloadKey);
-    this.sqlDownloadRunner = SqlDownloadRunner.builder()
-      .workflowConfiguration(workflowConfiguration)
-      .download(download)
-      .jobConfiguration(DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath()))
-      .queryExecutorSupplier(queryExecutorSupplier)
-      .build();
+    this.sqlDownloadRunner =
+        SqlDownloadRunner.builder()
+            .workflowConfiguration(workflowConfiguration)
+            .download(download)
+            .jobConfiguration(
+                DownloadJobConfiguration.forSqlDownload(
+                    download, workflowConfiguration.getHiveDBPath()))
+            .queryExecutorSupplier(queryExecutorSupplier)
+            .build();
   }
 
   public void run() {
@@ -81,26 +88,30 @@ public class DownloadWorkflow {
   @SneakyThrows
   private void runFromElastic() {
     Properties settings = workflowConfiguration.getDownloadSettings();
-    settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, download.getRequest().getFormat().toString());
+    settings.setProperty(
+        DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,
+        download.getRequest().getFormat().toString());
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
-    FromSearchDownloadAction.run(workflowConfiguration, DownloadJobConfiguration.builder()
-      .searchQuery(EsPredicateUtil.searchQuery(((PredicateDownloadRequest)download.getRequest()).getPredicate(),
-        DownloadWorkflowModule.esFieldMapper(workflowConfiguration.getEsIndexType())).toString())
-      .downloadKey(download.getKey())
-      .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
-      .sourceDir(workflowConfiguration.getTempDir())
-      .isSmallDownload(true)
-      .downloadFormat(workflowConfiguration.getDownloadFormat())
-      .coreTerm(coreDwcTerm)
-            // FIXME: is this casting safe?
-      .extensions(((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions())
-      .build());
+    FromSearchDownloadAction.run(
+        workflowConfiguration,
+        DownloadJobConfiguration.builder()
+            .searchQuery(
+                EsPredicateUtil.searchQuery(
+                        ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
+                        DownloadWorkflowModule.esFieldMapper(
+                            workflowConfiguration.getEsIndexType()))
+                    .toString())
+            .downloadKey(download.getKey())
+            .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
+            .sourceDir(workflowConfiguration.getTempDir())
+            .isSmallDownload(true)
+            .downloadFormat(workflowConfiguration.getDownloadFormat())
+            .coreTerm(coreDwcTerm)
+            .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .build());
   }
 
-
-  /**
-   * Updates the record count of the download entity.
-   */
+  /** Updates the record count of the download entity. */
   private void updateTotalRecordsCount(Download download, long recordCount) {
     try {
       if (recordCount != ERROR_COUNT) {
@@ -109,38 +120,42 @@ public class DownloadWorkflow {
         downloadService.update(download);
       }
     } catch (Exception ex) {
-      log.error("Error updating record count for download workflow , reported count is {}", recordCount, ex);
+      log.error(
+          "Error updating record count for download workflow , reported count is {}",
+          recordCount,
+          ex);
     }
   }
 
-  /**
-   * Method that determines if the search query produces a "small" download file.
-   */
+  /** Method that determines if the search query produces a "small" download file. */
   private Boolean isSmallDownloadCount(long recordCount) {
     return isSmallDownloadCount(recordCount, workflowConfiguration);
   }
 
-
-  public static Boolean isSmallDownloadCount(long recordCount, WorkflowConfiguration workflowConfiguration) {
-    return recordCount != ERROR_COUNT && recordCount <= workflowConfiguration.getIntSetting(DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY);
+  public static Boolean isSmallDownloadCount(
+      long recordCount, WorkflowConfiguration workflowConfiguration) {
+    return recordCount != ERROR_COUNT
+        && recordCount
+            <= workflowConfiguration.getIntSetting(
+                DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY);
   }
 
   private long recordCount(Download download) {
 
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
-       return downloadEsClient.getRecordCount(((PredicateDownloadRequest)download.getRequest()).getPredicate());
+      return downloadEsClient.getRecordCount(
+          ((PredicateDownloadRequest) download.getRequest()).getPredicate());
     } catch (Exception ex) {
       return ERROR_COUNT;
     }
   }
 
-
   private DownloadEsClient downloadEsClient(WorkflowConfiguration workflowConfiguration) {
     return DownloadEsClient.builder()
-            .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
-            .esIndex(workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
-            .esFieldMapper(DownloadWorkflowModule.esFieldMapper(workflowConfiguration.getEsIndexType()))
-            .build();
+        .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
+        .esIndex(
+            workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
+        .esFieldMapper(DownloadWorkflowModule.esFieldMapper(workflowConfiguration.getEsIndexType()))
+        .build();
   }
-
 }

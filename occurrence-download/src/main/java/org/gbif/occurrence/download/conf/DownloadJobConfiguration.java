@@ -28,73 +28,58 @@ import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.predicate.PredicateUtil;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.util.Set;
 
-/**
- * Configuration of a small download execution.
- */
+/** Configuration of a small download execution. */
 @Data
 public class DownloadJobConfiguration {
 
-  /**
-   * Occurrence download key/identifier.
-   */
+  /** Occurrence download key/identifier. */
   private final String downloadKey;
 
-  /**
-   * Download table/file name.
-   */
+  /** Download table/file name. */
   private final String downloadTableName;
 
-  /**
-   * Predicate filter.
-   */
+  /** Predicate filter. */
   private final String filter;
 
-  /**
-   * User that requested the download.
-   */
+  /** User that requested the download. */
   private final String user;
 
-  /**
-   * Flag that sets if it's a small or big download.
-   */
+  /** Flag that sets if it's a small or big download. */
   private final boolean isSmallDownload;
 
-  /**
-   * Directory where the data files are stored, it can be either a local or a hdfs path.
-   */
+  /** Directory where the data files are stored, it can be either a local or a hdfs path. */
   private final String sourceDir;
 
-  /**
-   * Search query, translation of the query filter.
-   */
+  /** Search query, translation of the query filter. */
   private final String searchQuery;
 
-  /**
-   * Requested download format.
-   */
+  /** Requested download format. */
   private final DownloadFormat downloadFormat;
 
-  /**
-   * Requested download core.
-   */
+  /** Requested download core. */
   private final DwcTerm coreTerm;
 
-  /**
-   * Requested extensions.
-   */
+  /** Requested extensions. */
   private final Set<Extension> extensions;
 
   @Builder
-  private DownloadJobConfiguration(String downloadKey, String downloadTableName, String filter, String user,
-                                   boolean isSmallDownload, String sourceDir, String searchQuery,
-                                   DownloadFormat downloadFormat,
-                                   DwcTerm coreTerm,
-                                   Set<Extension> extensions) {
+  private DownloadJobConfiguration(
+      String downloadKey,
+      String downloadTableName,
+      String filter,
+      String user,
+      boolean isSmallDownload,
+      String sourceDir,
+      String searchQuery,
+      DownloadFormat downloadFormat,
+      DwcTerm coreTerm,
+      Set<Extension> extensions) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;
@@ -109,96 +94,101 @@ public class DownloadJobConfiguration {
 
   public static DownloadJobConfiguration forSqlDownload(Download download, String sourceDir) {
     return DownloadJobConfiguration.builder()
-            .downloadKey(download.getKey())
-            .downloadFormat(download.getRequest().getFormat())
-            .coreTerm(download.getRequest().getType().getCoreTerm())
-            // FIXME: is this casting safe?
-            .extensions(((PredicateDownloadRequest)download.getRequest()).getVerbatimExtensions())
-            .filter(PredicateUtil.toSqlQuery(((PredicateDownloadRequest)download.getRequest()).getPredicate()))
-            .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
-            .isSmallDownload(false)
-            .sourceDir(sourceDir)
-            .build();
+        .downloadKey(download.getKey())
+        .downloadFormat(download.getRequest().getFormat())
+        .coreTerm(download.getRequest().getType().getCoreTerm())
+        .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+        .filter(
+            PredicateUtil.toSqlQuery(
+                ((PredicateDownloadRequest) download.getRequest()).getPredicate()))
+        .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
+        .isSmallDownload(false)
+        .sourceDir(sourceDir)
+        .build();
   }
 
   public static OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
-    return DownloadType.OCCURRENCE == download.getRequest().getType()? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
+    return DownloadType.OCCURRENCE == download.getRequest().getType()
+        ? OccurrenceEsField.buildFieldMapper()
+        : EventEsField.buildFieldMapper();
   }
 
   /**
-   * Interpreted table/file name.
-   * This is used for DwcA downloads only, it varies if it's a small or big download.
-   * - big downloads format: sourceDir/downloadTableName_interpreted/
-   * - small downloads format: sourceDir/downloadKey/interpreted
+   * Interpreted table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_interpreted/ - small
+   * downloads format: sourceDir/downloadKey/interpreted
    */
   public String getInterpretedDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + (DwcTerm.Event == coreTerm? DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME : DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME)
-      : getDownloadTempDir(TableSuffixes.INTERPRETED_SUFFIX);
+        ? getDownloadTempDir()
+            + (DwcTerm.Event == coreTerm
+                ? DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME
+                : DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME)
+        : getDownloadTempDir(TableSuffixes.INTERPRETED_SUFFIX);
   }
 
   /**
-   * Verbatim table/file name.
-   * This is used for DwcA downloads only, it varies if it's a small or big download.
-   * - big downloads format: sourceDir/downloadTableName_verbatim/
-   * - small downloads format: sourceDir/downloadKey/verbatim
+   * Verbatim table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_verbatim/ - small downloads
+   * format: sourceDir/downloadKey/verbatim
    */
   public String getVerbatimDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DwcDownloadsConstants.VERBATIM_FILENAME
-      : getDownloadTempDir(TableSuffixes.VERBATIM_SUFFIX);
+        ? getDownloadTempDir() + DwcDownloadsConstants.VERBATIM_FILENAME
+        : getDownloadTempDir(TableSuffixes.VERBATIM_SUFFIX);
   }
 
   /**
-   * Citation table/file name.
-   * This is used for DwcA downloads only, it varies if it's a small or big download.
-   * - big downloads format: sourceDir/downloadTableName_citation/
-   * - small downloads format: sourceDir/downloadKey/citation
+   * Citation table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_citation/ - small downloads
+   * format: sourceDir/downloadKey/citation
    */
   public String getCitationDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DownloadUtils.downloadTableName(downloadKey) + '_' + DwcDownloadsConstants.CITATIONS_FILENAME
-      : getDownloadTempDir(TableSuffixes.CITATION_SUFFIX);
+        ? getDownloadTempDir()
+            + DownloadUtils.downloadTableName(downloadKey)
+            + '_'
+            + DwcDownloadsConstants.CITATIONS_FILENAME
+        : getDownloadTempDir(TableSuffixes.CITATION_SUFFIX);
   }
 
   /**
-   * Multimedia table/file name.
-   * This is used for DwcA downloads only, it varies if it's a small or big download.
-   * - big downloads format: sourceDir/downloadTableName_multimedia/
-   * - small downloads format: sourceDir/downloadKey/multimedia
+   * Multimedia table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_multimedia/ - small downloads
+   * format: sourceDir/downloadKey/multimedia
    */
   public String getMultimediaDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DwcDownloadsConstants.MULTIMEDIA_FILENAME
-      : getDownloadTempDir(TableSuffixes.MULTIMEDIA_SUFFIX);
+        ? getDownloadTempDir() + DwcDownloadsConstants.MULTIMEDIA_FILENAME
+        : getDownloadTempDir(TableSuffixes.MULTIMEDIA_SUFFIX);
   }
 
   /**
-   * Directory where downloads files will be temporary stored. The output varies for small and big downloads:
-   * - small downloads: sourceDir/downloadKey(suffix)/
-   * - big downloads: sourceDir/downloadTableName(suffix)/
+   * Directory where downloads files will be temporary stored. The output varies for small and big
+   * downloads: - small downloads: sourceDir/downloadKey(suffix)/ - big downloads:
+   * sourceDir/downloadTableName(suffix)/
    */
   public String getDownloadTempDir(String suffix) {
     return (sourceDir
             + Path.SEPARATOR
             + (isSmallDownload ? downloadKey : downloadTableName)
             + suffix
-            + Path.SEPARATOR).toLowerCase();
+            + Path.SEPARATOR)
+        .toLowerCase();
   }
 
   public String getExtensionDataFileName(ExtensionTable extensionTable) {
     return isSmallDownload
-      ? getDownloadTempDir() + extensionTable.getHiveTableName() + ".txt"
-      : getDownloadTempDir("_ext_" + extensionTable.getHiveTableName());
+        ? getDownloadTempDir() + extensionTable.getHiveTableName() + ".txt"
+        : getDownloadTempDir("_ext_" + extensionTable.getHiveTableName());
   }
 
   /**
-   * Directory where downloads files will be temporary stored. The output varies for small and big downloads:
-   * - small downloads: sourceDir/downloadKey/
-   * - big downloads: sourceDir/downloadTableName/
+   * Directory where downloads files will be temporary stored. The output varies for small and big
+   * downloads: - small downloads: sourceDir/downloadKey/ - big downloads:
+   * sourceDir/downloadTableName/
    */
   public String getDownloadTempDir() {
     return getDownloadTempDir("");
   }
-
 }

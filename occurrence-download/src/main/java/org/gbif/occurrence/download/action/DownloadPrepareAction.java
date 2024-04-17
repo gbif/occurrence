@@ -13,32 +13,13 @@
  */
 package org.gbif.occurrence.download.action;
 
-import org.gbif.api.exception.QueryBuildingException;
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.hive.ExtensionsQuery;
-import org.gbif.occurrence.download.query.QueryVisitorsFactory;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-
-import java.io.BufferedWriter;
-import java.io.Closeable;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import lombok.Builder;
+import lombok.Data;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -51,17 +32,27 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.hive.ExtensionsQuery;
+import org.gbif.occurrence.download.query.QueryVisitorsFactory;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-
-import lombok.Builder;
-import lombok.Data;
-import lombok.SneakyThrows;
+import java.io.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -245,17 +236,11 @@ public class DownloadPrepareAction implements Closeable {
 
   /** Sets the extensions parameter. */
   private void setRequestExtensionsParam(Download download, Properties props) {
-    // FIXME: is this casting safe?
-    if (download != null
-        && ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions() != null
-        && !((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions().isEmpty()) {
+    if (download != null && DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       String requestExtensions =
-          Optional.ofNullable(
-                  ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions())
-              .map(
-                  verbatimExtensions ->
-                      verbatimExtensions.stream().map(Enum::name).collect(Collectors.joining(",")))
-              .orElse("");
+          DownloadRequestUtils.getVerbatimExtensions(download.getRequest()).stream()
+              .map(Enum::name)
+              .collect(Collectors.joining(","));
       props.setProperty(VERBATIM_EXTENSIONS, requestExtensions);
       props.setProperty(HAS_VERBATIM_EXTENSIONS, Boolean.TRUE.toString());
       generateExtensionQueryFile(download);

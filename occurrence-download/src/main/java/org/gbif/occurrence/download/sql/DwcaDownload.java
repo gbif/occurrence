@@ -13,20 +13,19 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.GenerateHQL;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 import java.io.StringWriter;
 import java.util.Map;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 @Builder
 @Slf4j
@@ -61,7 +60,7 @@ public class DwcaDownload {
   private void executeQuery() {
 
     SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
-    if (hasRequestedExtensions()) {
+    if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       runExtensionsQuery();
     }
   }
@@ -93,20 +92,13 @@ public class DwcaDownload {
             .sourceDir(workflowConfiguration.getHiveDBPath())
             .downloadFormat(workflowConfiguration.getDownloadFormat())
             .coreTerm(download.getRequest().getType().getCoreTerm())
-            // FIXME: is this casting safe?
-            .extensions(((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions())
+            .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
             .build();
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
 
   private void dropTables() {
     SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
-  }
-
-  private boolean hasRequestedExtensions() {
-    // FIXME: is this casting safe?
-    return ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions() != null
-        && !((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions().isEmpty();
   }
 
   private Map<String, String> getQueryParameters() {

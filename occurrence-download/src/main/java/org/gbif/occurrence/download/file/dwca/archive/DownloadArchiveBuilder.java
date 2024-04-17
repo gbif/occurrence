@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.*;
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -31,6 +30,7 @@ import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 
 import java.io.*;
@@ -60,13 +60,11 @@ public class DownloadArchiveBuilder {
   /** Creates the archive descriptor. */
   private void createDescriptor() {
     if (DwcTerm.Event == configuration.getCoreTerm()) {
-      // FIXME: is this casting safe?
       DwcArchiveUtils.createEventArchiveDescriptor(
-          archiveDir, ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions());
+          archiveDir, DownloadRequestUtils.getVerbatimExtensions(download.getRequest()));
     } else {
-      // FIXME: is this casting safe?
       DwcArchiveUtils.createOccurrenceArchiveDescriptor(
-          archiveDir, ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions());
+          archiveDir, DownloadRequestUtils.getVerbatimExtensions(download.getRequest()));
     }
   }
 
@@ -144,10 +142,9 @@ public class DownloadArchiveBuilder {
   }
 
   private void appendExtensionFiles(ModalZipOutputStream out) throws IOException {
-    // FIXME: is this casting safe?
-    if (((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions() != null) {
+    if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       for (Extension extension :
-          ((PredicateDownloadRequest) download.getRequest()).getVerbatimExtensions()) {
+          DownloadRequestUtils.getVerbatimExtensions(download.getRequest())) {
         ExtensionTable extensionTable = new ExtensionTable(extension);
         appendPreCompressedFile(
             out,
