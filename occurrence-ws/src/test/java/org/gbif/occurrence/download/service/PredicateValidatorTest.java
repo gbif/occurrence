@@ -47,7 +47,7 @@ public class PredicateValidatorTest {
   public void validPolygonTest() {
 
       //Valid polygon
-      WithinPredicate withinPredicate = new WithinPredicate("POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))");
+      WithinPredicate withinPredicate = new WithinPredicate("POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))");
 
       //Valid depth
       EqualsPredicate equalsPredicate = new EqualsPredicate(OccurrenceSearchParameter.DEPTH, "10", true);

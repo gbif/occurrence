@@ -30,7 +30,7 @@ public class PredicateFactoryTest {
 
     // Valid predicate should pass
     Map<String, String[]> params = new HashMap<>();
-    params.put(OccurrenceSearchParameter.GEOMETRY.name(), new String[] {"POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))"});
+    params.put(OccurrenceSearchParameter.GEOMETRY.name(), new String[] {"POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"});
 
     assertNotNull(PredicateFactory.build(params));
 
