@@ -333,7 +333,7 @@ public class GenerateHQL {
 
   @SneakyThrows
   public static String binomiaQueryHQL() {
-    return resourceAsString("/download-workflow/bionomia/hive-scripts/execute-bionomia-query.q");
+    return resourceAsString("/bionomia/execute-bionomia-query.q");
   }
 
   public static void generateBionomiaQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
