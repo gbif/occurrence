@@ -97,7 +97,7 @@ public class SimpleDownload {
       } else if (DownloadFormat.SIMPLE_PARQUET == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.simpleParquetQueryHQL();
       } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-        downloadQuery = GenerateHQL.binomiaQueryHQL();
+        downloadQuery = GenerateHQL.bionomiaQueryHQL();
       } else if (DownloadFormat.MAP_OF_LIFE == download.getRequest().getFormat()) {
         downloadQuery = GenerateHQL.mapOfLifeQueryHQL();
       }

@@ -332,8 +332,11 @@ public class GenerateHQL {
   }
 
   @SneakyThrows
-  public static String binomiaQueryHQL() {
-    return resourceAsString("/bionomia/execute-bionomia-query.q");
+  public static String bionomiaQueryHQL() {
+    try (StringWriter out = new StringWriter()) {
+      generateBionomiaQueryHQL(templateConfig(), out);
+      return out.toString();
+    }
   }
 
   public static void generateBionomiaQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
