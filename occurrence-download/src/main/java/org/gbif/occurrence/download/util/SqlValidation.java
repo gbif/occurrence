@@ -30,6 +30,7 @@ import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeFactoryImpl;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeFamily;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeName;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
@@ -58,8 +59,8 @@ public class SqlValidation {
 
   public SqlValidation() {
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
-    OccurrenceTable testTable = new OccurrenceTable("occurrence");
-    rootSchema.add(testTable.getTableName(), testTable);
+    OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence");
+    rootSchema.add(occurrenceTable.getTableName(), occurrenceTable);
 
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
@@ -138,7 +139,7 @@ public class SqlValidation {
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);
   }
 
-  public HiveSqlQuery validateAndParse(String sql) {
+  public HiveSqlQuery validateAndParse(String sql) throws QueryBuildingException {
     return new HiveSqlQuery(hiveSqlValidator, sql);
   }
 

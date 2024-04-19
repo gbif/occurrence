@@ -29,6 +29,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.lang3.StringUtils;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -435,8 +436,11 @@ public class DownloadResource {
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+      } catch (QueryBuildingException qbe) {
+        LOG.info("SQL is invalid: {}", qbe.getMessage());
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, qbe.getMessage(), qbe);
       } catch (Exception e) {
-        LOG.warn("SQL is INVALID: "+e.getMessage(), e);
+        LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
       }
 
@@ -491,16 +495,21 @@ public class DownloadResource {
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
         ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getSql());
         return ResponseEntity.ok(downloadRequest);
-      } catch (Exception e) {
-        // TODO: Better return format for failures.
-        LOG.info("SQL is invalid: "+e.getMessage(), e);
+      } catch (QueryBuildingException qbe) {
+        LOG.info("SQL is invalid: {}", qbe.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("status", "INVALID");
-        body.put("message", e.getMessage());
+        body.put("reason", qbe.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+      } catch (Exception e) {
+        LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", "INVALID");
+        body.put("reason", e.getMessage());
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
-        body.put("track", sw.toString());
+        body.put("trace", sw.toString());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
       }
     } else {

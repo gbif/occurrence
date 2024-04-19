@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
