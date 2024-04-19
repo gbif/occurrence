@@ -13,13 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.*;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -36,6 +29,16 @@ import org.gbif.occurrence.download.util.HeadersFileUtil;
 import java.io.*;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+
+import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
+
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.*;
 import static org.gbif.occurrence.download.util.ArchiveFileUtils.cleanupFS;

@@ -209,7 +209,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-H3-SNAPSHOT</hbase-utils.version>
-    <download-query-tools.version>1.50.0</download-query-tools.version>
+    <download-query-tools.version>1.53.0-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.49-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
     <gbif-api.version>1.16.1-SNAPSHOT</gbif-api.version>
@@ -230,6 +230,7 @@
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.3.3-SNAPSHOT</gbif-predicates.version>
     <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
+    <gbif-occurrence-cube-functions.version>0.2.1-SNAPSHOT</gbif-occurrence-cube-functions.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -556,6 +557,11 @@
         <groupId>org.gbif.stackable</groupId>
         <artifactId>stackable-spark</artifactId>
         <version>${stackable-spark.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>cube-functions</artifactId>
+        <version>${gbif-occurrence-cube-functions.version}</version>
       </dependency>
 
       <!-- Spring dependencies -->

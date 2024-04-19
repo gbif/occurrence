@@ -15,8 +15,11 @@ package org.gbif.occurrence.download.sql;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 import java.util.function.Supplier;
 
@@ -57,13 +60,22 @@ public class SqlDownloadRunner {
     }
   }
 
-  private static DownloadQueryParameters downloadQueryParameters(DownloadJobConfiguration jobConfiguration, WorkflowConfiguration workflowConfiguration) {
-    return DownloadQueryParameters.builder()
-      .downloadTableName(jobConfiguration.getDownloadTableName())
-      .whereClause(jobConfiguration.getFilter())
-      .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
-      .database(workflowConfiguration.getHiveDb())
-      .warehouseDir(workflowConfiguration.getHiveWarehouseDir())
-      .build();
+  private DownloadQueryParameters downloadQueryParameters(DownloadJobConfiguration jobConfiguration, WorkflowConfiguration workflowConfiguration) {
+    DownloadQueryParameters.DownloadQueryParametersBuilder builder = DownloadQueryParameters.builder()
+                                                                      .downloadTableName(jobConfiguration.getDownloadTableName())
+                                                                      .whereClause(jobConfiguration.getFilter())
+                                                                      .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
+                                                                      .database(workflowConfiguration.getHiveDb())
+                                                                      .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
+    if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
+      SqlValidation sv = new SqlValidation();
+
+      String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
+      HiveSqlQuery sqlQuery = sv.validateAndParse(userSql);
+      builder.userSql(sqlQuery.getSql())
+             .userSqlHeader(String.join("\t", sqlQuery.getSqlSelectColumnNames()))
+             .whereClause(sqlQuery.getSqlWhere());
+    }
+    return builder.build();
   }
 }

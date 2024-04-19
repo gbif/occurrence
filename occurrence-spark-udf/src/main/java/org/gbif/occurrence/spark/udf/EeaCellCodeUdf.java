@@ -13,20 +13,16 @@
  */
 package org.gbif.occurrence.spark.udf;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
+import org.gbif.occurrence.cube.functions.EeaCellCode;
 
-import org.apache.spark.sql.api.java.UDF1;
+import org.apache.spark.sql.api.java.UDF4;
 
-public class ToISO8601MillisUdf implements UDF1<Long,String> {
+public class EeaCellCodeUdf implements UDF4<Integer,Double,Double,Double,String> {
 
-  private static String toISO8601MillisUdf(Long value) {
-    return DateTimeFormatter.ISO_INSTANT.format(Instant.ofEpochMilli(Long.parseLong(value.toString())).atZone(ZoneOffset.UTC));
-  }
+  private final EeaCellCode eeaCellCode = new EeaCellCode();
 
   @Override
-  public String call(Long field) throws Exception {
-    return field != null?  toISO8601MillisUdf(field): null;
+  public String call(Integer gridSize, Double lat, Double lon, Double coordinateUncertaintyInMeters) throws Exception {
+      return eeaCellCode.fromCoordinate(gridSize, lat, lon, coordinateUncertaintyInMeters);
   }
 }

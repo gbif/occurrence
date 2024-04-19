@@ -13,16 +13,15 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
@@ -46,6 +45,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.ByteStreams;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
 import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStream;

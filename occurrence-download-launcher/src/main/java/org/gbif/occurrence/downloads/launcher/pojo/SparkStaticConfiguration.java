@@ -14,6 +14,7 @@
 package org.gbif.occurrence.downloads.launcher.pojo;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

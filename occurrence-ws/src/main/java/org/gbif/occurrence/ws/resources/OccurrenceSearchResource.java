@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import lombok.SneakyThrows;
-import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
@@ -36,6 +34,8 @@ import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.api.vocabulary.ThreatStatus;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.occurrence.search.SearchTermService;
+import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -48,10 +48,7 @@ import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
-import org.gbif.predicate.query.EsQueryVisitor;
+import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +79,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.SneakyThrows;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;

@@ -33,6 +33,10 @@ public class DownloadQueryParameters {
 
   private final String warehouseDir;
 
+  private String userSql;
+
+  private String userSqlHeader;
+
 
   public Map<String,String> toMap() {
     Map<String, String> parameters = new HashMap<>();
@@ -40,6 +44,14 @@ public class DownloadQueryParameters {
     parameters.put("tableName", tableName);
     parameters.put("downloadTableName", downloadTableName);
     parameters.put("whereClause", whereClause);
+
+    if (userSql != null) {
+      parameters.put("sql", userSql);
+    }
+
+    if (userSqlHeader != null) {
+      parameters.put("userSqlHeader", userSqlHeader);
+    }
 
     return parameters;
   }

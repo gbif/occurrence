@@ -22,6 +22,8 @@ import org.gbif.predicate.query.EsFieldMapper;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -29,8 +31,6 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.Nullable;
 
 
 @Data

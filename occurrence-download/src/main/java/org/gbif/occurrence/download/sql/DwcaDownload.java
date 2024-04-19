@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.sql;
 
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -26,6 +23,10 @@ import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 import java.io.StringWriter;
 import java.util.Map;
+
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Builder
 @Slf4j

@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.spark.udf;
 
+import java.io.Serializable;
+
 import org.apache.spark.sql.api.java.UDF3;
 import org.locationtech.spatial4j.context.jts.DatelineRule;
 import org.locationtech.spatial4j.context.jts.JtsSpatialContextFactory;
@@ -22,8 +24,6 @@ import org.locationtech.spatial4j.shape.Shape;
 import org.locationtech.spatial4j.shape.jts.JtsShapeFactory;
 
 import lombok.SneakyThrows;
-
-import java.io.Serializable;
 
 public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
 

@@ -17,14 +17,17 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
+import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,7 +72,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   protected static final Set<Download.Status> RUNNING_STATUSES =
       EnumSet.of(Download.Status.PREPARING, Download.Status.RUNNING, Download.Status.SUSPENDED);
 
-  /** Map to provide conversions from JobStatus to Download.Status. */
+  private final SqlValidation sqlValidation = new SqlValidation();
+
+  /** Map to provide conversions from oozie.Job.Status to Download.Status. */
   @VisibleForTesting
   protected static final ImmutableMap<JobStatus, Download.Status> STATUSES_MAP =
       new ImmutableMap.Builder<JobStatus, Download.Status>()
@@ -144,8 +149,11 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   public String create(DownloadRequest request, String source) {
     log.debug("Trying to create download from request [{}]", request);
     Preconditions.checkNotNull(request);
+
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
+    } else if (request instanceof SqlDownloadRequest) {
+      HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
     }
 
     String exceedComplexityLimit = null;
@@ -153,29 +161,29 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       exceedComplexityLimit = downloadLimitsService.exceedsDownloadComplexity(request);
     } catch (Exception e) {
       throw new ServiceUnavailableException(
-        "Failed to create download job while checking download complexity", e);
+          "Failed to create download job while checking download complexity", e);
     }
     if (exceedComplexityLimit != null) {
       log.info("Download request refused as it would exceed complexity limits");
       throw new ResponseStatusException(
-        HttpStatus.PAYLOAD_TOO_LARGE,
-        "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
+          HttpStatus.PAYLOAD_TOO_LARGE,
+          "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
     }
 
     String exceedSimultaneousLimit = null;
     try {
       exceedSimultaneousLimit =
-        downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
+          downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
     } catch (Exception e) {
       throw new ServiceUnavailableException(
-        "Failed to create download job while checking simultaneous download limit", e);
+          "Failed to create download job while checking simultaneous download limit", e);
     }
     if (exceedSimultaneousLimit != null) {
       log.info("Download request refused as it would exceed simultaneous limits");
       // Keep HTTP 420 ("Enhance your calm") here.
       throw new ResponseStatusException(
-        HttpStatus.METHOD_FAILURE,
-        "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
+          HttpStatus.METHOD_FAILURE,
+          "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
     }
 
     try {
@@ -370,7 +378,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     download.setStatus(Download.Status.PREPARING);
     download.setEraseAfter(Date.from(OffsetDateTime.now(ZoneOffset.UTC).plusMonths(6).toInstant()));
     download.setDownloadLink(
-        downloadLink(wsUrl, downloadId, request.getType(), request.getFormat().getExtension()));
+        downloadLink(wsUrl, downloadId, request.getType(), request.getFileExtension()));
     download.setRequest(request);
     download.setSource(source);
     occurrenceDownloadService.create(download);
@@ -392,6 +400,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   /** The download filename with extension. */
   private String getDownloadFilename(Download download) {
-    return download.getKey() + download.getRequest().getFormat().getExtension();
+    return download.getKey() + download.getRequest().getFileExtension();
   }
 }

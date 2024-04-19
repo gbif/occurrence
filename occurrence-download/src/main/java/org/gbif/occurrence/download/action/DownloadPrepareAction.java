@@ -13,25 +13,6 @@
  */
 package org.gbif.occurrence.download.action;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import lombok.Builder;
-import lombok.Data;
-import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
@@ -45,14 +26,36 @@ import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.SneakyThrows;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

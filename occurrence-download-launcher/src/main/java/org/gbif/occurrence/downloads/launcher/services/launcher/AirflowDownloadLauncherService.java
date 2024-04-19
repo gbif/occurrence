@@ -15,11 +15,11 @@ package org.gbif.occurrence.downloads.launcher.services.launcher;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
-import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowRunner;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
+import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowRunner;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 
 import java.util.ArrayList;

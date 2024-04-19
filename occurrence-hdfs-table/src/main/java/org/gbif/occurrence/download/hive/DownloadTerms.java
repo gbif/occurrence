@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -25,6 +22,11 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.

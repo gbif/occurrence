@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -51,6 +50,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.google.common.collect.Lists;
 

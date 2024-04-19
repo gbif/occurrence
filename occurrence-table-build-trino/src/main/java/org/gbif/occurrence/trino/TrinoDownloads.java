@@ -14,8 +14,8 @@
 package org.gbif.occurrence.trino;
 
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.utils.file.properties.PropertiesUtil;
 

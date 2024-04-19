@@ -31,6 +31,15 @@ public class UDFS {
     sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
-    sparkSession.udf().register("joinArray", new JoinArrayUdf(), DataTypes.StringType);
+
+    //SQL Downloads
+    sparkSession.udf().register("gbif_EEARGCode", new EeaCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_MGRSCode", new MilitaryGridReferenceSystemCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_EQDGCCode", new ExtendedQuarterDegreeGridCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_temporalUncertainty", new TemporalUncertaintyUdf(), DataTypes.LongType);
+    sparkSession.udf().register("gbif_geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("gbif_toISO8601", new ToISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_toLocalISO8601", new ToLocalISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_within", new ContainsUdf(), DataTypes.StringType);
   }
 }

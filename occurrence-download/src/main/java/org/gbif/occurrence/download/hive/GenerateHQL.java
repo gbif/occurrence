@@ -510,4 +510,9 @@ public class GenerateHQL {
       return out.toString();
     }
   }
+
+  @SneakyThrows
+  public static String sqlQueryHQL() {
+    return resourceAsString("/download-workflow/sql-tsv/hive-scripts/execute-simple-sql-query.q");
+  }
 }

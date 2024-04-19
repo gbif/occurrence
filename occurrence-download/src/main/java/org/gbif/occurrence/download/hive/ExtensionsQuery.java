@@ -13,12 +13,6 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import lombok.Builder;
-import lombok.Data;
-import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
@@ -32,6 +26,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.IOUtils;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import lombok.Builder;
+import lombok.Data;
+import lombok.SneakyThrows;
 
 /** Generates a query file to be used to query the requested extensions of a download. */
 @Data

@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.download.file.simpleavro;
 
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
