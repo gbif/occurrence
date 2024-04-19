@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.util;
 
+import lombok.SneakyThrows;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
@@ -144,6 +145,7 @@ public class SqlValidation {
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);
   }
 
+  @SneakyThrows
   public HiveSqlQuery validateAndParse(String sql) {
     return new HiveSqlQuery(hiveSqlValidator, sql, CATALOG);
   }
