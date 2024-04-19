@@ -13,6 +13,23 @@
  */
 package org.gbif.occurrence.download.resource;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
+import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.Download;
@@ -20,36 +37,15 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
-
-import java.io.File;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.net.URI;
-import java.security.Principal;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.StringUtils;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,22 +68,30 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.extensions.Extension;
-import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.net.URI;
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -118,6 +122,8 @@ public class DownloadResource {
   private static final Logger LOG = LoggerFactory.getLogger(DownloadResource.class);
 
   private static final Splitter COMMA_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
+
+  private final SqlValidation sqlValidation = new SqlValidation();
 
   private final DownloadRequestService requestService;
 
@@ -253,7 +259,7 @@ public class DownloadResource {
           .body("\"This download was erased, but the metadata is retained.\"\n");
     }
 
-    String extension = download.getRequest().getFormat().getExtension();
+    String extension = download.getRequest().getFileExtension();
 
     LOG.debug("Get download data: [{}]", downloadKey);
     File downloadFile = requestService.getResultFile(download);
@@ -264,7 +270,7 @@ public class DownloadResource {
             HttpHeaders.LAST_MODIFIED,
             new SimpleDateFormat().format(new Date(downloadFile.lastModified())))
         .location(URI.create(location))
-        .body(location + "\n");
+        .body(location);
   }
 
   @Hidden
@@ -283,7 +289,8 @@ public class DownloadResource {
       description =
           "Starts the process of creating a download file. See the predicates "
               + "section to consult the requests accepted by this service and the limits section to refer "
-              + "for information of how this service is limited per user.",
+              + "for information of how this service is limited per user. "
+              + "**Experimental** SQL downloads are also created with this call.",
       extensions =
           @Extension(
               name = "Order",
@@ -313,7 +320,7 @@ public class DownloadResource {
   @ResponseBody
   @Secured(USER_ROLE)
   public ResponseEntity<String> startDownload(
-      @NotNull @Valid @RequestBody PredicateDownloadRequest request,
+      @NotNull @Valid @RequestBody DownloadRequest request,
       @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
@@ -378,7 +385,7 @@ public class DownloadResource {
               userAuthenticated.getName(),
               new PagingRequest(0, 50),
               EnumSet.of(PREPARING, RUNNING, SUCCEEDED, SUSPENDED),
-              LocalDateTime.now().minus(4, ChronoUnit.HOURS),
+              LocalDateTime.now().minus(48, ChronoUnit.HOURS),
               false);
       String existingUserDownload = matchExistingDownload(userDownloads, predicateDownloadRequest);
       if (existingUserDownload != null) {
@@ -386,9 +393,82 @@ public class DownloadResource {
       }
     }
 
-    String downloadKey = requestService.create(downloadRequest, source);
-    LOG.info("Created new download job with key [{}]", downloadKey);
-    return downloadKey;
+    // SQL validation.
+    if (downloadRequest.getFormat().equals(DownloadFormat.SQL_TSV_ZIP)) {
+      try {
+        String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
+        LOG.info("Received SQL download request «{}»", userSql);
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
+        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
+        LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
+        LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+      } catch (Exception e) {
+        LOG.warn("SQL is INVALID: "+e.getMessage(), e);
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+      }
+    }
+
+    try {
+      String downloadKey = requestService.create(downloadRequest, source);
+      LOG.info("Created new download job with key [{}]", downloadKey);
+      return downloadKey;
+    } catch (ServiceUnavailableException sue) {
+      LOG.error("Failed to create download request", sue);
+      throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, sue.getMessage(), sue);
+    }
+  }
+
+  /** Validates an SQL download request's SQL */
+  @Operation(
+    operationId = "validateDownloadRequest",
+    summary = "**Experimental** Validates the SQL contained in an SQL download request.",
+    description =
+      "**Experimental** Validates the SQL in an SQL download request.  See the SQL section "
+        + " for information on what queries are accepted.",
+    extensions =
+    @Extension(
+      name = "Order",
+      properties = @ExtensionProperty(name = "Order", value = "0040")))
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "SQL is valid."),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid query, see other documentation.")
+    })
+  @PostMapping(
+    path = "validate",
+    produces = {MediaType.APPLICATION_JSON_VALUE},
+    consumes = {MediaType.APPLICATION_JSON_VALUE})
+  public ResponseEntity<Object> validateRequest(@NotNull @Valid @RequestBody DownloadRequest downloadRequest) {
+    if (downloadRequest.getFormat().equals(DownloadFormat.SQL_TSV_ZIP)) {
+      try {
+        String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
+        LOG.info("Received SQL download request «{}»", userSql);
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
+        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
+        LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
+        LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+        ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getSql());
+        return ResponseEntity.ok(downloadRequest);
+      } catch (Exception e) {
+        // TODO: Better return format for failures.
+        LOG.info("SQL is invalid: "+e.getMessage(), e);
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", "INVALID");
+        body.put("message", e.getMessage());
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        body.put("track", sw.toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+      }
+    } else {
+      LOG.debug("Received validation request for «{}», which is a predicate download", downloadRequest);
+      return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("\"Validation of predicate downloads not implemented.\"");
+    }
   }
 
   /** Request a new download (GET method, internal API used by the portal). */
@@ -419,6 +499,9 @@ public class DownloadResource {
     }
   }
 
+  /**
+   * Download predicate from a search string.
+   */
   @Hidden
   @GetMapping("predicate")
   public DownloadRequest downloadPredicate(
