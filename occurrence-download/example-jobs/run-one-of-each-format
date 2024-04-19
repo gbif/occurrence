@@ -1,8 +1,15 @@
 #!/bin/zsh -e
 
-for i in test-download-format-*.json; do
-  until curl -fi --user $GBIF_AUTH -H "Content-Type: application/json" -X POST -d @$i 'https://api.gbif-uat.org/v1/occurrence/download/request'; do
+if [[ -z "$GBIF_AUTH" ]]; then
+  echo "GBIF_AUTH must be set"
+  exit 1
+fi
+
+for i in test-download-format-*.json(oe:REPLY=\$RANDOM:); do
+  echo $i
+  until curl -f --user $GBIF_AUTH -H "Content-Type: application/json" -X POST -d @$i 'https://api.gbif-dev.org/v1/occurrence/download/request'; do
     sleep 15
   done
+  echo
   sleep 5
 done

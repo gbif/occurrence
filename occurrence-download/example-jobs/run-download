@@ -1,0 +1,11 @@
+#!/bin/zsh -e
+
+if [[ -z "$GBIF_AUTH" ]]; then
+  echo "GBIF_AUTH must be set"
+  exit 1
+fi
+
+echo $1
+until curl -f --user $GBIF_AUTH -H "Content-Type: application/json" -X POST -d @$1 'https://api.gbif-uat.org/v1/occurrence/download/request'; do
+  sleep 15
+done
