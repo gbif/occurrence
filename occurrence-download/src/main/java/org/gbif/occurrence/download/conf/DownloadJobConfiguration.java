@@ -13,10 +13,7 @@
  */
 package org.gbif.occurrence.download.conf;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadType;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.*;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.event.search.es.EventEsField;
@@ -100,9 +97,7 @@ public class DownloadJobConfiguration {
         .downloadFormat(download.getRequest().getFormat())
         .coreTerm(download.getRequest().getType().getCoreTerm())
         .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
-        .filter(
-            PredicateUtil.toSqlQuery(
-                ((PredicateDownloadRequest) download.getRequest()).getPredicate()))
+        .filter(((SqlDownloadRequest) download.getRequest()).getSql())
         .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
         .isSmallDownload(false)
         .sourceDir(sourceDir)
