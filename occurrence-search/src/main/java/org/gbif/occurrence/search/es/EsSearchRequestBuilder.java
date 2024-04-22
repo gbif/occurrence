@@ -13,34 +13,24 @@
  */
 package org.gbif.occurrence.search.es;
 
-import org.gbif.api.model.common.search.SearchConstants;
-import org.gbif.api.model.occurrence.geo.DistanceUnit;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.util.IsoDateInterval;
-import org.gbif.api.util.IsoDateParsingUtils;
-import org.gbif.api.util.Range;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest;
-import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
-import org.gbif.predicate.query.EsQueryVisitor;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
-import java.util.stream.Collectors;
-
+import com.google.common.annotations.VisibleForTesting;
+import lombok.SneakyThrows;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
-import org.elasticsearch.common.geo.builders.*;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.common.geo.builders.CoordinatesBuilder;
+import org.elasticsearch.common.geo.builders.LineStringBuilder;
+import org.elasticsearch.common.geo.builders.MultiPolygonBuilder;
+import org.elasticsearch.common.geo.builders.PointBuilder;
+import org.elasticsearch.common.geo.builders.PolygonBuilder;
+import org.elasticsearch.common.geo.builders.ShapeBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
+import org.elasticsearch.index.query.GeoShapeQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.join.aggregations.ChildrenAggregationBuilder;
 import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.script.Script;
@@ -54,19 +44,46 @@ import org.elasticsearch.search.sort.ScriptSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.gbif.api.model.common.search.SearchConstants;
+import org.gbif.api.model.occurrence.geo.DistanceUnit;
+import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.util.IsoDateParsingUtils;
+import org.gbif.api.util.Range;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
+import org.gbif.predicate.query.EsQueryVisitor;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
+import java.util.stream.Collectors;
 
-import lombok.SneakyThrows;
-
-import static org.gbif.api.util.SearchTypeValidator.isDateRange;
 import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.es.EsQueryUtils.CARDINALITIES;
+import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
+import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_WILDCARD;
+import static org.gbif.occurrence.search.es.EsQueryUtils.extractFacetLimit;
+import static org.gbif.occurrence.search.es.EsQueryUtils.extractFacetOffset;
 
 public class EsSearchRequestBuilder {
 
@@ -80,24 +97,6 @@ public class EsSearchRequestBuilder {
 
   public EsSearchRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
-  }
-
-  @SneakyThrows
-  public Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
-    // create bool node
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    String qParam = searchRequest.getQ();
-
-    // adding full text search parameter
-    if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(occurrenceBaseEsFieldMapper.getFullTextField(), qParam));
-    }
-
-    EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
-        QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
-    esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
-
-    return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 
   public SearchRequest buildSearchRequest(OccurrenceSearchRequest searchRequest, String index) {
@@ -238,6 +237,24 @@ public class EsSearchRequestBuilder {
 
     // bool.filter().add(QueryBuilders.termQuery("type",
     // esFieldMapper.getSearchType().getObjectName()));
+    return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
+  }
+
+  @SneakyThrows
+  public Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
+    // create bool node
+    BoolQueryBuilder bool = QueryBuilders.boolQuery();
+    String qParam = searchRequest.getQ();
+
+    // adding full text search parameter
+    if (!Strings.isNullOrEmpty(qParam)) {
+      bool.must(QueryBuilders.matchQuery(occurrenceBaseEsFieldMapper.getFullTextField(), qParam));
+    }
+
+    EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
+      QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
+    esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
+
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 

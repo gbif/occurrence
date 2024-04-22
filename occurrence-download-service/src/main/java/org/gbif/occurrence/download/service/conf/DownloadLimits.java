@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.service.conf;
 
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.PredicateCounter;
@@ -129,7 +130,13 @@ public class DownloadLimits {
   public String violatesSqlFilterRules(String userSql) {
     // Find any Within functions and check the geometry is not too large.
     // Count the total number of query values.
-    HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
+    HiveSqlQuery sqlQuery;
+    try {
+      sqlQuery = sqlValidation.validateAndParse(userSql);
+    } catch (QueryBuildingException qbe) {
+      // Shouldn't happen as the query has already been validated.
+      throw new RuntimeException(qbe);
+    }
 
     Integer points = sqlQuery.getPointsCount();
     if (points > maxPoints) {

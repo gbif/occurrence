@@ -1293,7 +1293,7 @@ public class OccurrenceSearchResource {
   @Hidden
   @PostMapping("predicate/toesquery")
   @SneakyThrows
-  public String toEsQuery(@NotNull @Valid @RequestBody org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest request) {
+  public String toEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
     return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 

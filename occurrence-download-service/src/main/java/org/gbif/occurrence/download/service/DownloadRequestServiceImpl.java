@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.oozie.client.Job;
 import org.apache.oozie.client.OozieClient;
 import org.apache.oozie.client.OozieClientException;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
@@ -168,7 +169,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
     } else if (request instanceof SqlDownloadRequest) {
-      HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
+      try {
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
+      } catch (QueryBuildingException qbe) {
+        // Shouldn't happen, as the query has already been validated by this point.
+        throw new RuntimeException(qbe);
+      }
     }
 
     String exceedComplexityLimit = null;
