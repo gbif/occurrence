@@ -41,6 +41,14 @@ import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeFamily;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeName;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
 
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
+
 public class SqlValidation {
 
   //Spark/Hive Catalog
@@ -83,7 +91,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
-      OperandTypes.family(SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.EeaCellCodeUDF
@@ -91,7 +99,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.GeoDistanceUDF
@@ -99,7 +107,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
@@ -107,7 +115,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
@@ -115,7 +123,15 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.hive.udf.TemporalUncertaintyUDF
+    additionalOperators.add(new SqlFunction("gbif_TemporalUncertainty",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.INTEGER,
+      null,
+      OperandTypes.STRING_OPTIONAL_STRING,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ToISO8601UDF
@@ -123,7 +139,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.ANY),
+      family(SqlTypeFamily.ANY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ToLocalISO8601UDF
@@ -131,7 +147,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.ANY),
+      family(SqlTypeFamily.ANY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // brickhouse.udf.collect.JoinArrayUDF
@@ -139,7 +155,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
-      OperandTypes.family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER),
+      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);
