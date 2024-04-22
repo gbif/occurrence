@@ -54,6 +54,8 @@ public class SqlValidation {
   //Spark/Hive Catalog
   private static final String CATALOG = "iceberg";
 
+  private final String database;
+
   private static final Map<String, SqlTypeName> HIVE_TYPE_MAPPING = ImmutableMap.<String, SqlTypeName>builder()
     .put(HiveDataTypes.TYPE_STRING, SqlTypeName.VARCHAR)
     .put(HiveDataTypes.TYPE_BOOLEAN, SqlTypeName.BOOLEAN)
@@ -65,26 +67,25 @@ public class SqlValidation {
 
   private final HiveSqlValidator hiveSqlValidator;
 
+
   public SqlValidation() {
+    this(null);
+  }
+  public SqlValidation(String database) {
+    this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
     OccurrenceTable testTable = new OccurrenceTable("occurrence");
     rootSchema.add(testTable.getTableName(), testTable);
-    rootSchema.add(CATALOG, new AbstractSchema(){
-      @Override
-      protected Map<String, Table> getTableMap() {
-        return Collections.singletonMap("occurrence", testTable);
-      }
-    });
+    if (database != null) {
+      rootSchema.add(CATALOG + "." + database, new AbstractSchema() {
+        @Override
+        protected Map<String, Table> getTableMap() {
+          return Collections.singletonMap("occurrence", testTable);
+        }
+      });
+    }
 
     List<SqlOperator> additionalOperators = new ArrayList<>();
-
-    // Built-in Hive function
-    additionalOperators.add(new SqlFunction("array_contains",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.BOOLEAN,
-      null,
-      OperandTypes.family(SqlTypeFamily.ARRAY, SqlTypeFamily.ANY),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ContainsUDF
     additionalOperators.add(new SqlFunction("gbif_within",
@@ -151,7 +152,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // brickhouse.udf.collect.JoinArrayUDF
-    additionalOperators.add(new SqlFunction("gbif_joinArray",
+    additionalOperators.add(new SqlFunction("array_join",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -163,7 +164,8 @@ public class SqlValidation {
 
   @SneakyThrows
   public HiveSqlQuery validateAndParse(String sql) {
-    return new HiveSqlQuery(hiveSqlValidator, sql, CATALOG);
+    String databaseFq = database == null? CATALOG : CATALOG + "." + database;
+    return new HiveSqlQuery(hiveSqlValidator, sql, databaseFq);
   }
 
   /**

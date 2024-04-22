@@ -72,8 +72,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   protected static final Set<Download.Status> RUNNING_STATUSES =
       EnumSet.of(Download.Status.PREPARING, Download.Status.RUNNING, Download.Status.SUSPENDED);
 
-  private final SqlValidation sqlValidation = new SqlValidation();
-
   /** Map to provide conversions from oozie.Job.Status to Download.Status. */
   @VisibleForTesting
   protected static final ImmutableMap<JobStatus, Download.Status> STATUSES_MAP =
@@ -153,6 +151,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
     } else if (request instanceof SqlDownloadRequest) {
+      SqlValidation sqlValidation = new SqlValidation();
       HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
     }
 

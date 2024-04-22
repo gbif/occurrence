@@ -68,7 +68,7 @@ public class SqlDownloadRunner {
                                                                       .database(workflowConfiguration.getHiveDb())
                                                                       .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
     if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
-      SqlValidation sv = new SqlValidation();
+      SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
 
       String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
       HiveSqlQuery sqlQuery = sv.validateAndParse(userSql);
