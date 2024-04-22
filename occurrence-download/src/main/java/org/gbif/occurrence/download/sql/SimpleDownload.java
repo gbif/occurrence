@@ -217,8 +217,9 @@ public class SimpleDownload {
     if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
       queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
       queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
-    }
-    if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
+    } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+    } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
       queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
       queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
       queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");

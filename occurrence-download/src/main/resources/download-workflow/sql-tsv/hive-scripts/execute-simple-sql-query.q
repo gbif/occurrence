@@ -9,9 +9,9 @@ SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
 -- in case this job is relaunched
-DROP TABLE IF EXISTS ${occurrenceTable};
+DROP TABLE IF EXISTS ${downloadTableName};
 
-CREATE TABLE ${occurrenceTable} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+CREATE TABLE ${downloadTableName} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
 AS ${sql};
 
@@ -20,7 +20,7 @@ SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
-CREATE TABLE ${occurrenceTable}_count AS SELECT count(*) FROM ${occurrenceTable};
+CREATE TABLE ${downloadTableName}_count AS SELECT count(*) FROM ${downloadTableName};
 
-CREATE TABLE ${occurrenceTable}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+CREATE TABLE ${downloadTableName}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, COUNT(*) AS num_occurrences, license FROM iceberg.${hiveDB}.occurrence WHERE ${whereClause} AND datasetkey IS NOT NULL GROUP BY datasetkey, license;
