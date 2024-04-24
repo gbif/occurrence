@@ -97,11 +97,19 @@ public class DownloadJobConfiguration {
         .downloadFormat(download.getRequest().getFormat())
         .coreTerm(download.getRequest().getType().getCoreTerm())
         .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
-        .filter(((SqlDownloadRequest) download.getRequest()).getSql())
+        .filter(getDownloadFilter(download))
         .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
         .isSmallDownload(false)
         .sourceDir(sourceDir)
         .build();
+  }
+
+  /**
+   * Returns the string representation of a download base on the download format: Json Predicate or Sql clause.
+   */
+  private static String getDownloadFilter(Download download) {
+    return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP? ((SqlDownloadRequest) download.getRequest()).getSql() :
+      PredicateUtil.toSqlQuery(((PredicateDownloadRequest) download.getRequest()).getPredicate());
   }
 
   public static OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
