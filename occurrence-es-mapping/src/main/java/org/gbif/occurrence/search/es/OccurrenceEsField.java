@@ -77,6 +77,8 @@ public enum OccurrenceEsField implements EsField {
   MONTH(new BaseEsField("month", DwcTerm.month)),
   DAY(new BaseEsField("day", DwcTerm.day)),
   EVENT_DATE(new BaseEsField("eventDate", DwcTerm.eventDate)),
+  EVENT_DATE_GTE(new BaseEsField("eventDate.gte", GbifInternalTerm.eventDateGte)),
+  EVENT_DATE_LTE(new BaseEsField("eventDate.lte", GbifInternalTerm.eventDateLte)),
   EVENT_DATE_INTERVAL(new BaseEsField("eventDateInterval", EsField.EVENT_DATE_INTERVAL)),
   START_DAY_OF_YEAR(new BaseEsField("startDayOfYear", DwcTerm.startDayOfYear)),
   END_DAY_OF_YEAR(new BaseEsField("endDayOfYear", DwcTerm.endDayOfYear)),
@@ -302,6 +304,8 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.HAS_GEOSPATIAL_ISSUE, HAS_GEOSPATIAL_ISSUES)
       .put(OccurrenceSearchParameter.HAS_COORDINATE, HAS_COORDINATE)
       .put(OccurrenceSearchParameter.EVENT_DATE, EVENT_DATE)
+      .put(OccurrenceSearchParameter.EVENT_DATE_GTE, EVENT_DATE_GTE)
+      .put(OccurrenceSearchParameter.EVENT_DATE_LTE, EVENT_DATE_LTE)
       .put(OccurrenceSearchParameter.MODIFIED, MODIFIED)
       .put(OccurrenceSearchParameter.LAST_INTERPRETED, LAST_INTERPRETED)
       .put(OccurrenceSearchParameter.COUNTRY, COUNTRY_CODE)
@@ -403,7 +407,7 @@ public enum OccurrenceEsField implements EsField {
     ImmutableMap.<OccurrenceSearchParameter, EsField>builder()
       .put(OccurrenceSearchParameter.EVENT_DATE, EVENT_DATE_INTERVAL)
       .build();
-  private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED,LAST_PARSED);
+  private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, EVENT_DATE_GTE, EVENT_DATE_LTE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
   public static OccurrenceBaseEsFieldMapper buildFieldMapper() {
       return OccurrenceBaseEsFieldMapper.builder()
