@@ -481,15 +481,6 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "2000,2001-06-30"),
       @Parameter(
-        name = "eventDateLte",
-        hidden = true, // https://github.com/gbif/occurrence/issues/346
-        description = "Occurrence date in ISO 8601 format: yyyy, yyyy-MM or yyyy-MM-dd.\n\n" +
-          API_PARAMETER_RANGE_OR_REPEAT,
-        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
-        explode = Explode.TRUE,
-        in = ParameterIn.QUERY,
-        example = "2000,2001-06-30"),
-      @Parameter(
         name = "eventId",
         description = "An identifier for the information associated with a sampling event.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
