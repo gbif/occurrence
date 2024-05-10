@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import lombok.SneakyThrows;
+import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
@@ -34,8 +36,6 @@ import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.api.vocabulary.ThreatStatus;
 import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.occurrence.search.SearchTermService;
-import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
 
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -48,7 +48,10 @@ import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.elasticsearch.index.query.AbstractQueryBuilder;
+import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
+import org.gbif.predicate.query.EsQueryVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +82,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.SneakyThrows;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -126,8 +128,6 @@ public class OccurrenceSearchResource {
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchResource.class);
 
-  private static final String USER_ROLE = "USER";
-
   private final OccurrenceSearchService searchService;
 
   private final SearchTermService searchTermService;
@@ -141,29 +141,6 @@ public class OccurrenceSearchResource {
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper());
   }
 
-  @Hidden
-  @PostMapping("predicate")
-  public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
-     LOG.debug("Executing query, predicate {}, limit {}, offset {}", request.getPredicate(), request.getLimit(),
-              request.getOffset());
-    return searchService.search(request);
-  }
-
-  @Hidden
-  @PostMapping
-  public SearchResponse<Occurrence,OccurrenceSearchParameter> postSearch(@NotNull @Valid @RequestBody OccurrenceSearchRequest request) {
-    LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
-              request.getOffset());
-    return searchService.search(request);
-  }
-
-  @Hidden
-  @PostMapping("predicate/toesquery")
-  @SneakyThrows
-  public String toEsQuery(@NotNull @Valid @RequestBody org.gbif.occurrence.search.predicate.OccurrencePredicateSearchRequest request) {
-    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
-  }
-
   /**
    * The usual (search) limit and offset parameters
    */
@@ -174,12 +151,12 @@ public class OccurrenceSearchResource {
     value = {
       @Parameter(
         name = "limit",
-        description = "Controls the number of results in the page. Using too high a value will be overwritten with the default maximum threshold, depending on the service. Sensible defaults are used so this may be omitted.",
+        description = "Controls the number of results in the page. Using too high a value will be overwritten with the maximum threshold, which is 300 for this service. Sensible defaults are used so this may be omitted.",
         schema = @Schema(implementation = Integer.class, minimum = "0"),
         in = ParameterIn.QUERY),
       @Parameter(
         name = "offset",
-        description = "Determines the offset for the search results. A limit of 20 and offset of 40 will get the third page of 20 results. Some services have a maximum offset.",
+        description = "Determines the offset for the search results. A limit of 20 and offset of 40 will get the third page of 20 results. This service has a maximum offset of 100,000.",
         schema = @Schema(implementation = Integer.class, minimum = "0"),
         in = ParameterIn.QUERY),
     }
@@ -198,7 +175,8 @@ public class OccurrenceSearchResource {
         name = "facet",
         description = "A facet name used to retrieve the most frequent values for a field. Facets are allowed for " +
           "all search parameters except geometry and geoDistance. This parameter may by repeated to request multiple " +
-          "facets, as in [this example](https://api.gbif.org/v1/occurrence/search?facet=datasetKey&facet=basisOfRecord&limit=0).",
+          "facets, as in [this example](https://api.gbif.org/v1/occurrence/search?facet=datasetKey&facet=basisOfRecord&limit=0).\n\n" +
+          "Note terms not available for searching are not available for faceting.",
         schema = @Schema(implementation = String.class),
         in = ParameterIn.QUERY),
       @Parameter(
@@ -494,6 +472,15 @@ public class OccurrenceSearchResource {
         in = ParameterIn.QUERY,
         example = "2000,2001-06-30"),
       @Parameter(
+        name = "eventDateGte",
+        hidden = true, // https://github.com/gbif/occurrence/issues/346
+        description = "Occurrence date in ISO 8601 format: yyyy, yyyy-MM or yyyy-MM-dd.\n\n" +
+          API_PARAMETER_RANGE_OR_REPEAT,
+        array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
+        explode = Explode.TRUE,
+        in = ParameterIn.QUERY,
+        example = "2000,2001-06-30"),
+      @Parameter(
         name = "eventId",
         description = "An identifier for the information associated with a sampling event.\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
@@ -603,10 +590,10 @@ public class OccurrenceSearchResource {
       @Parameter(
         name = "geometry",
         description = "Searches for occurrences inside a polygon described in Well Known Text (WKT) format. " +
-          "Only `POINT`, `LINESTRING`, `LINEARRING`, `POLYGON` and `MULTIPOLYGON` are accepted WKT types.\n\n" +
+          "Only `POLYGON` and `MULTIPOLYGON` are accepted WKT types.\n\n" +
           "For example, a shape written as `POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))` would be queried " +
           "as is.\n\n" +
-          "_Polygons must have *anticlockwise* ordering of points, or will give unpredictable results._ " +
+          "_Polygons must have *anticlockwise* ordering of points._ " +
           "(A clockwise polygon represents the opposite area: the Earth's surface with a 'hole' in it. " +
           "Such queries are not supported.)\n\n" +
           API_PARAMETER_MAY_BE_REPEATED,
@@ -1268,42 +1255,53 @@ public class OccurrenceSearchResource {
   }
 
   /**
-   * Remove after the portal is updated, e.g. during or after December 2018.RegistryMethodSecurityConfiguration
-   *
-   * Old location for a GET download, doesn't make sense to be within occurrence search.
+   * A search request using POST rather than GET.
    */
   @Hidden
-  @GetMapping("download")
-  @Deprecated
-  @Secured(USER_ROLE)
-  // TODO Remove!
-  public RedirectView download() {
-    LOG.warn("Deprecated internal API used! (download)");
-    RedirectView redirectView = new RedirectView();
-    redirectView.setContextRelative(true);
-    redirectView.setUrl("/occurrence/download/request");
-    redirectView.setPropagateQueryParams(true);
-    redirectView.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
-    return redirectView;
+  @PostMapping
+  public SearchResponse<Occurrence,OccurrenceSearchParameter> postSearch(@NotNull @Valid @RequestBody OccurrenceSearchRequest request) {
+    LOG.debug("Executing post query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
+      request.getOffset());
+    return searchService.search(request);
   }
 
   /**
-   * Remove after the portal is updated, e.g. during or after December 2018.
-   *
-   * Old location for a GET download predicate request, doesn't make sense to be within occurrence search.
+   * A search request using predicate parameters.
    */
-  // TODO Remove!
+  @Operation(
+    operationId = "predicateSearchOccurrence",
+    summary = "Occurrence search using predicates",
+    description = "Full search across all occurrences specified using predicates (as used for the download API).",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100")))
+  @Parameter(name = "request", hidden = true)
+  @CommonOffsetLimitParameters
+  @CommonFacetParameters
+  @ApiResponses(
+    value = {
+      @ApiResponse(
+        responseCode = "200",
+        description = "Occurrence search is valid"
+      ),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid query, e.g. invalid vocabulary values",
+        content = @Content)
+    })
+  @PostMapping("predicate")
+  public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    LOG.debug("Executing query, predicate {}, limit {}, offset {}", request.getPredicate(), request.getLimit(),
+      request.getOffset());
+    return searchService.search(request);
+  }
+
+  /**
+   * Convert a predicate query to the query used by ElasticSearch, intended for use by internal systems like the portal.
+   */
   @Hidden
-  @GetMapping("predicate")
-  @Deprecated
-  public RedirectView downloadPredicate() {
-    LOG.warn("Deprecated internal API used! (predicate)");
-    RedirectView redirectView = new RedirectView();
-    redirectView.setContextRelative(true);
-    redirectView.setUrl("/occurrence/download/request/predicate");
-    redirectView.setPropagateQueryParams(true);
-    redirectView.setStatusCode(HttpStatus.TEMPORARY_REDIRECT);
-    return redirectView;
+  @PostMapping("predicate/toesquery")
+  @SneakyThrows
+  public String toEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   /**
