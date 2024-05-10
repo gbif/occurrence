@@ -17,10 +17,10 @@ import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.PredicateCounter;
 import org.gbif.occurrence.query.PredicateGeometryPointCounter;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 import java.util.Iterator;
 
-import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
