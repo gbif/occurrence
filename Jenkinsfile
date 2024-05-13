@@ -9,19 +9,18 @@ pipeline {
     skipStagesAfterUnstable()
     timestamps()
   }
-
+  environment {
+    JETTY_PORT = getPort()
+  }
   stages {
 
     stage('Maven build') {
       steps {
-        sh 'mvn clean verify -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE'
-      }
-    }
-
-    stage('Snapshots to nexus') {
-      steps {
-        configFileProvider([configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')]) {
-          sh 'mvn -s $MAVEN_SETTINGS deploy -B -Pgbif-dev -DskipTests'
+        configFileProvider([
+            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS'),
+            configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
+          ]) {
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B'
         }
       }
     }
@@ -52,4 +51,8 @@ pipeline {
         echo 'Pipeline execution failed!'
     }
   }
+}
+
+def getPort() {
+  return new ServerSocket(0).withCloseable { socket -> socket.getLocalPort() }
 }
