@@ -13,7 +13,7 @@ pipeline {
   }
   stages {
 
-    stage('Maven build: Main project') {
+    stage('Maven build: Main project (Java 11)') {
       tools {
         jdk 'OpenJDK11'
       }
@@ -27,7 +27,7 @@ pipeline {
       }
     }
 
-    stage('Maven build: Trino module') {
+    stage('Maven build: Trino module (Java 18)') {
       tools {
         jdk 'OpenJDK18'
       }
