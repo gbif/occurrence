@@ -33,7 +33,7 @@ pipeline {
 
     stage('Build and push Docker images: Table build') {
       steps {
-        sh 'build/occurrence-table-build-spark-docker-build.shh'
+        sh 'build/occurrence-table-build-spark-docker-build.sh'
       }
     }
   }
