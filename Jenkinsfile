@@ -54,5 +54,9 @@ pipeline {
 }
 
 def getPort() {
-  return new ServerSocket(0).withCloseable { socket -> socket.getLocalPort() }
+  try {
+      return new ServerSocket(0).getLocalPort()
+  } catch (IOException ex) {
+      System.err.println("no available ports");
+  }
 }
