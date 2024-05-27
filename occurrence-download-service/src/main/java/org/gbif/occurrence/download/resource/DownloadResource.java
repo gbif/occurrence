@@ -279,7 +279,7 @@ public class DownloadResource {
 
   @Hidden
   @GetMapping("callback")
-  public ResponseEntity oozieCallback(
+  public ResponseEntity<Object> airflowCallback(
       @RequestParam("job_id") String jobId, @RequestParam("status") String status) {
     LOG.debug("Received callback from Oozie for Job [{}] with status [{}]", jobId, status);
     callbackService.processCallback(jobId, status);

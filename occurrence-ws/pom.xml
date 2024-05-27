@@ -268,10 +268,6 @@
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.gbif.stackable</groupId>
-      <artifactId>stackable-spark</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>com.zaxxer</groupId>

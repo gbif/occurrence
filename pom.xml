@@ -230,7 +230,6 @@
     <gbif.kvs.version>1.33-H3-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.3.3-SNAPSHOT</gbif-predicates.version>
-    <stackable-spark.version>1.0-SNAPSHOT</stackable-spark.version>
     <gbif-occurrence-cube-functions.version>0.2.1-SNAPSHOT</gbif-occurrence-cube-functions.version>
 
     <!-- Sonar -->
@@ -553,11 +552,6 @@
         <groupId>org.gbif.predicates</groupId>
         <artifactId>sql-predicates</artifactId>
         <version>${gbif-predicates.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.stackable</groupId>
-        <artifactId>stackable-spark</artifactId>
-        <version>${stackable-spark.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>

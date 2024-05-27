@@ -21,7 +21,6 @@ import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.stackable.K8StackableSparkController;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
@@ -29,17 +28,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.kubernetes.client.util.KubeConfig;
-
 @Configuration
 public class OccurrenceWsConfiguration {
-
-  @Bean
-  public K8StackableSparkController k8StackableSparkController(KubeConfig kubeConfig) {
-    return K8StackableSparkController.builder()
-        .kubeConfig(kubeConfig)
-        .build();
-  }
 
   @Bean
   public TitleLookupService titleLookupService(@Value("${api.url}") String apiUrl) {
