@@ -57,7 +57,7 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testCallback() {
     prepareMocks(USER, false);
-    ResponseEntity<?> response = resource.oozieCallback(JOB_ID, STATUS);
+    ResponseEntity<?> response = resource.airflowCallback(JOB_ID, STATUS);
     assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
   }
 
