@@ -26,12 +26,10 @@ import org.gbif.ws.server.filter.IdentityFilter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +37,6 @@ import org.springframework.context.annotation.FilterType;
 
 @SpringBootApplication(
     exclude = {
-      ElasticSearchRestHealthContributorAutoConfiguration.class,
       RabbitAutoConfiguration.class
     })
 @EnableConfigurationProperties
@@ -91,9 +88,5 @@ public class OccurrenceWsApplication {
 
   @Configuration
   public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-
-    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
-      super(context, remoteAuthClient);
-    }
   }
 }

@@ -102,25 +102,36 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.4.1</version>
         <executions>
           <execution>
             <id>enforce-no-slf4j</id>
             <goals>
               <goal>enforce</goal>
             </goals>
+            <configuration>
+              <rules>
+                <bannedDependencies>
+                  <excludes>
+                    <!-- Ensure only Log4J binding -->
+                    <exclude>ch.qos.logback</exclude>
+                    <exclude>org.slf4j:log4j-over-slf4j</exclude>
+                  </excludes>
+                </bannedDependencies>
+                <enforceBytecodeVersion>
+                  <maxJdkVersion>17</maxJdkVersion>
+                </enforceBytecodeVersion>
+              </rules>
+            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <rules>
-            <bannedDependencies>
-              <excludes>
-                <!-- Ensure only Log4J binding -->
-                <exclude>ch.qos.logback</exclude>
-                <exclude>org.slf4j:log4j-over-slf4j</exclude>
-              </excludes>
-            </bannedDependencies>
-          </rules>
-        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>extra-enforcer-rules</artifactId>
+            <version>1.8.0</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

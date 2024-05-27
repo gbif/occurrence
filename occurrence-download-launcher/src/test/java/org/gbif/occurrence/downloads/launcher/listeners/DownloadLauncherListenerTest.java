@@ -27,8 +27,9 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -48,7 +49,7 @@ public class DownloadLauncherListenerTest {
   @InjectMocks
   private DownloadLauncherListener listener;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.initMocks(this);
   }
@@ -78,30 +79,32 @@ public class DownloadLauncherListenerTest {
     Mockito.verify(lockerService).lock(downloadKey, Thread.currentThread());
   }
 
-  @Test(expected = AmqpRejectAndDontRequeueException.class)
+  @Test
   public void testHandleMessageFailedStatus() {
-    String downloadKey = "test-key";
+    Assertions.assertThrows(AmqpRejectAndDontRequeueException.class,() -> {
+      String downloadKey = "test-key";
 
     PredicateDownloadRequest request = new PredicateDownloadRequest();
     request.setCreator("testUser");
     request.setFormat(DownloadFormat.DWCA);
     request.setNotificationAddresses(Collections.singleton("testEmail"));
     request.setPredicate(
-        new EqualsPredicate(
-            OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
+      new EqualsPredicate(
+        OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
 
     DownloadLauncherMessage downloadLauncherMessage =
-        new DownloadLauncherMessage(downloadKey, request);
+      new DownloadLauncherMessage(downloadKey, request);
 
     Mockito.when(jobManager.create(downloadKey))
-        .thenReturn(DownloadLauncher.JobStatus.FAILED);
+      .thenReturn(DownloadLauncher.JobStatus.FAILED);
 
     Mockito.when(downloadUpdaterService.isStatusFinished(downloadKey))
-        .thenReturn(Boolean.TRUE);
+      .thenReturn(Boolean.TRUE);
 
     listener.handleMessage(downloadLauncherMessage);
 
     Mockito.verify(jobManager).create(downloadKey);
     Mockito.verify(downloadUpdaterService).isStatusFinished(downloadKey);
+    });
   }
 }

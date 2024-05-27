@@ -44,17 +44,16 @@ import org.junit.jupiter.api.Disabled;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
 import org.springframework.boot.actuate.autoconfigure.metrics.export.elastic.ElasticMetricsExportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.zookeeper.ZookeeperAutoConfiguration;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -64,7 +63,7 @@ import org.springframework.test.context.ActiveProfiles;
 @TestConfiguration
 @SpringBootApplication(
     exclude = {
-      ElasticSearchRestHealthContributorAutoConfiguration.class,
+      ElasticsearchRestClientAutoConfiguration.class,
       RabbitAutoConfiguration.class,
       ElasticMetricsExportAutoConfiguration.class,
       ZookeeperAutoConfiguration.class
@@ -231,8 +230,5 @@ public class OccurrenceWsItConfiguration {
   @Configuration
   public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
 
-    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
-      super(context, remoteAuthClient);
-    }
   }
 }

@@ -18,8 +18,8 @@ import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class DownloadCancellationListenerTest {
@@ -29,7 +29,7 @@ public class DownloadCancellationListenerTest {
   private LockerService lockerService;
   private DownloadCancellationListener listener;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     jobManager = Mockito.mock(DownloadLauncher.class);
     downloadUpdaterService = Mockito.mock(DownloadUpdaterService.class);

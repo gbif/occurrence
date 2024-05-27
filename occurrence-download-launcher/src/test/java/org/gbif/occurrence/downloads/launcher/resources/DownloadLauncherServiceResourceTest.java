@@ -15,8 +15,8 @@ package org.gbif.occurrence.downloads.launcher.resources;
 
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -29,7 +29,7 @@ public class DownloadLauncherServiceResourceTest {
   private MockMvc mockMvc;
   private LockerService lockerService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     lockerService = Mockito.mock(LockerService.class);
     mockMvc =
