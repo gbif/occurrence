@@ -12,8 +12,8 @@
   <name>Occurrence :: Download Launcher</name>
 
   <properties>
+    <jdkLevel>17</jdkLevel>
     <amqp-client.version>5.9.0</amqp-client.version>
-
     <start-class>org.gbif.occurrence.downloads.launcher.OccurrenceDownloadsLauncherApplication</start-class>
   </properties>
 
