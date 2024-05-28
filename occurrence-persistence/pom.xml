@@ -28,12 +28,16 @@
       </resource>
     </resources>
   </build>
+  <properties>
+    <spring-boot.version>2.7.18</spring-boot.version>
+  </properties>
 
   <dependencies>
     <!-- Spring dependencies -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
+      <version>${spring-boot.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
