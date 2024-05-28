@@ -30,6 +30,7 @@
   </build>
   <properties>
     <spring-boot.version>2.7.18</spring-boot.version>
+    <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
   </properties>
 
   <dependencies>
