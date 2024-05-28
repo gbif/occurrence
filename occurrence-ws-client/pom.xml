@@ -20,6 +20,11 @@
     </site>
   </distributionManagement>
 
+  <properties>
+    <spring-boot.version>2.7.18</spring-boot.version>
+    <spring-cloud-openfeign.version>2.2.10.RELEASE</spring-cloud-openfeign.version>
+  </properties>
+
   <build>
     <resources>
       <resource>
