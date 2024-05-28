@@ -28,8 +28,8 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Sets;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 
 import static org.gbif.occurrence.mail.util.OccurrenceMailUtils.EMAIL_SPLITTER;
 
