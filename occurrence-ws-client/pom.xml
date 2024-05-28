@@ -76,6 +76,16 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-ws</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>spring-boot-starter</artifactId>
+          <groupId>org.springframework.boot</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>spring-cloud-openfeign-core</artifactId>
+          <groupId>org.springframework.cloud</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Spring dependencies -->
