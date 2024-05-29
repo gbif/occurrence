@@ -18,6 +18,8 @@
     <jts-core.version>1.15.0</jts-core.version>
     <spatial4j.version>0.8</spatial4j.version>
     <log4j-api.version>2.11.1</log4j-api.version>
+    <spring-boot.version>2.7.18</spring-boot.version>
+    <spring-cloud-openfeign.version>2.2.10.RELEASE</spring-cloud-openfeign.version>
   </properties>
 
   <name>Occurrence :: Search service</name>
@@ -52,10 +54,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
+      <version>${spring-boot.version}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-openfeign</artifactId>
+      <artifactId>spring-cloud-openfeign-core</artifactId>
+      <version>${spring-cloud-openfeign.version}</version>
     </dependency>
 
     <dependency>
