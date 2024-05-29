@@ -20,11 +20,6 @@
     </site>
   </distributionManagement>
 
-  <properties>
-    <spring-boot.version>2.7.18</spring-boot.version>
-    <spring-cloud-openfeign.version>2.2.10.RELEASE</spring-cloud-openfeign.version>
-  </properties>
-
   <build>
     <resources>
       <resource>
@@ -76,22 +71,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-ws</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>spring-boot-starter</artifactId>
-          <groupId>org.springframework.boot</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>spring-cloud-openfeign-core</artifactId>
-          <groupId>org.springframework.cloud</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>${spring-boot.version}</version>
     </dependency>
 
     <!-- Spring dependencies -->
@@ -100,9 +79,8 @@
       <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-openfeign-core</artifactId>
-      <version>${spring-cloud-openfeign.version}</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
     </dependency>
     <dependency>
       <groupId>io.github.openfeign</groupId>

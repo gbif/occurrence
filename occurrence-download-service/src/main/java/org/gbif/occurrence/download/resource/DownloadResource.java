@@ -53,6 +53,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -95,7 +96,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.servlet.http.HttpServletRequest;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -339,7 +339,7 @@ public class DownloadResource {
       return ResponseEntity.ok(
           createDownload(request, authentication, principal, parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatusCode()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
     }
   }
 
@@ -499,7 +499,7 @@ public class DownloadResource {
               principal,
               parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatusCode()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
     }
   }
 

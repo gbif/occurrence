@@ -30,6 +30,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -87,5 +88,8 @@ public class EventWsApplication {
 
   @Configuration
   public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
+    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
+      super(context, remoteAuthClient);
+    }
   }
 }

@@ -54,6 +54,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.zookeeper.ZookeeperAutoConfiguration;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -229,6 +230,8 @@ public class OccurrenceWsItConfiguration {
 
   @Configuration
   public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-
+    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
+      super(context, remoteAuthClient);
+    }
   }
 }
