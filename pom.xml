@@ -117,7 +117,7 @@
     <mybatis-spring-boot-starter.version>2.3.2</mybatis-spring-boot-starter.version>
     <mybatis-spring-boot-starter-test.version>2.3.2</mybatis-spring-boot-starter-test.version>
     <feign.version>10.12</feign.version>
-    <spring-boot-admin.version>2.7.16</spring-boot-admin.version>
+    <spring-boot-admin.version>2.2.4</spring-boot-admin.version>
     <springdoc-openapi-ui.version>1.8.0</springdoc-openapi-ui.version>
     <swagger-annotations.version>2.2.3</swagger-annotations.version>
 
