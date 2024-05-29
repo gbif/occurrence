@@ -141,8 +141,6 @@
     <netty-all.version>4.1.74.Final</netty-all.version>
     <glassfish-jersey.version>3.0.11</glassfish-jersey.version>
     <jakarta.rs-api.version>3.0.0</jakarta.rs-api.version>
-    <jakarta.annotation-api.version>2.1.1</jakarta.annotation-api.version>
-    <javax-validation-api.version>1.1.0.Final</javax-validation-api.version>
 
     <!-- Fixing to the version JUnit and Mockito depending on -->
     <aopalliance.version>1.0</aopalliance.version>
@@ -839,11 +837,6 @@
         <artifactId>jsr305</artifactId>
         <version>${findbugs-jsr305.version}</version>
       </dependency>
-      <dependency>
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>${javax-validation-api.version}</version>
-      </dependency>
 
       <!-- hbase -->
       <dependency>
@@ -1289,12 +1282,6 @@
         <artifactId>jakarta.ws.rs-api</artifactId>
         <version>${jakarta.rs-api.version}</version>
       </dependency>
-      <dependency>
-        <groupId>jakarta.annotation</groupId>
-        <artifactId>jakarta.annotation-api</artifactId>
-        <version>${jakarta.annotation-api.version}</version>
-      </dependency>
-
 
       <!-- Spark -->
       <dependency>
