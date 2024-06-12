@@ -27,7 +27,7 @@ pipeline {
       }
     }
 
-    stage('Maven build: Spring modules (Java 17)') {
+    stage('Maven build: Spring and Trino modules (Java 17)') {
       tools {
         jdk 'OpenJDK17'
       }
@@ -35,19 +35,7 @@ pipeline {
         configFileProvider([
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
           ]) {
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl occurrence-ws,occurrence-download-launcher,occurrence-cli'
-        }
-      }
-    }
-    stage('Maven build: Trino module (Java 18)') {
-      tools {
-        jdk 'OpenJDK18'
-      }
-      steps {
-        configFileProvider([
-            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
-          ]) {
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl occurrence-table-build-trino'
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl occurrence-ws,occurrence-download-launcher,occurrence-cli,occurrence-table-build-trino'
         }
       }
     }
