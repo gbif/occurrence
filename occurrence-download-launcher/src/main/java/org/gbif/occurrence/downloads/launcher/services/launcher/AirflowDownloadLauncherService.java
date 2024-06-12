@@ -19,9 +19,10 @@ import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
-import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowRunner;
+import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,9 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,8 +47,16 @@ import lombok.extern.slf4j.Slf4j;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class AirflowDownloadLauncherService implements DownloadLauncher {
 
+  private static final Retry AIRFLOW_RETRY =
+    Retry.of(
+      "airflowApiCall",
+      RetryConfig.custom()
+        .maxAttempts(7)
+        .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(6)))
+        .build());
+
   private final SparkStaticConfiguration sparkStaticConfiguration;
-  private final AirflowRunner airflowRunner;
+  private final AirflowClient airflowClient;
   private final OccurrenceDownloadClient downloadClient;
   private final AirflowConfiguration airflowConfiguration;
   private final LockerService lockerService;
@@ -57,7 +69,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
     this.downloadClient = downloadClient;
     this.airflowConfiguration = airflowConfiguration;
-    this.airflowRunner = AirflowRunner.builder().airflowConfiguration(airflowConfiguration).build();
+    this.airflowClient = AirflowClient.builder().airflowConfiguration(airflowConfiguration).build();
     this.lockerService = lockerService;
   }
 
@@ -125,7 +137,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public JobStatus create(String downloadKey) {
     try {
       Download download = downloadClient.get(downloadKey);
-      JsonNode response = airflowRunner.createRun(getAirflowBody(download));
+      JsonNode response = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::createRun).apply(getAirflowBody(download));
 
       asyncStatusCheck(download.getKey());
 
@@ -141,7 +153,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public JobStatus cancel(String downloadKey) {
     try {
       String dagId = downloadDagId(downloadKey);
-      JsonNode jsonNode = airflowRunner.deleteRun(dagId);
+      JsonNode jsonNode = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::deleteRun).apply(dagId);
 
       log.info("Airflow DAG {} has been stopped: {}", dagId, jsonNode);
       return JobStatus.CANCELLED;
@@ -155,7 +167,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
     String dagId = downloadDagId(downloadKey);
-    JsonNode jsonStatus = airflowRunner.getRun(dagId);
+    JsonNode jsonStatus = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::getRun).apply(dagId);
     String status = jsonStatus.get("state").asText();
     if ("queued".equalsIgnoreCase(status)) {
       return Optional.of(Status.PREPARING);

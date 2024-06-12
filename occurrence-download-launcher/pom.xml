@@ -206,6 +206,11 @@
       <artifactId>zookeeper</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>io.github.resilience4j</groupId>
+      <artifactId>resilience4j-retry</artifactId>
+    </dependency>
+
     <!-- logging -->
     <dependency>
       <groupId>ch.qos.logback</groupId>

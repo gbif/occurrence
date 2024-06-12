@@ -256,6 +256,8 @@
     <iceberg.version>1.4.3</iceberg.version>
     <scala.library.version>2.12.17</scala.library.version>
 
+    <resilience4j.version>1.7.0</resilience4j.version>
+
     <!-- Plugin versions -->
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
     <wagon-maven-plugin.version>2.0.0</wagon-maven-plugin.version>
@@ -1331,6 +1333,11 @@
         <scope>provided</scope>
       </dependency>
 
+      <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-retry</artifactId>
+        <version>${resilience4j.version}</version>
+      </dependency>
 
       <!-- Maven plugin -->
       <dependency>

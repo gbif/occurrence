@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @Setter
 @Slf4j
 @Builder
-public class AirflowRunner {
+public class AirflowClient {
 
   private final AirflowConfiguration airflowConfiguration;
 
