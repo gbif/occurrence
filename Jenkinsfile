@@ -27,7 +27,7 @@ pipeline {
       }
     }
 
-    stage('Maven build: Trino module (Java 17)') {
+    stage('Maven build: Spring modules (Java 17)') {
       tools {
         jdk 'OpenJDK17'
       }
