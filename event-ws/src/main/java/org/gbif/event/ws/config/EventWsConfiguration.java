@@ -79,6 +79,4 @@ public class EventWsConfiguration {
         rabbitProperties.getPassword(),
         rabbitProperties.getVirtualHost()));
   }
-
-  public static class EventRabbitConfiguration extends RabbitConfiguration
 }
