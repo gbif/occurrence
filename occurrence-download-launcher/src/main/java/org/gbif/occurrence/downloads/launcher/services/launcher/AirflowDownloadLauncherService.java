@@ -168,13 +168,14 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public Optional<Status> getStatusByName(String downloadKey) {
     String dagId = downloadDagId(downloadKey);
     JsonNode jsonStatus = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::getRun).apply(dagId);
+    JsonNode state = jsonStatus.get("state");
 
-    // Status can be null if DAG was killed/cancelled
-    if (jsonStatus == null || jsonStatus.get("state") == null) {
-      return Optional.empty();
+    // State can be null if DAG was killed/cancelled
+    if (state == null) {
+      return Optional.of(Status.CANCELLED);
     }
 
-    String status = jsonStatus.get("state").asText();
+    String status = state.asText();
     if ("queued".equalsIgnoreCase(status)) {
       return Optional.of(Status.PREPARING);
     }
@@ -225,7 +226,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
               status = getStatusByName(downloadKey);
             }
 
-            log.info("Spark Application {} is finished with status {}", downloadKey, status.get());
+            log.info("Spark Application {} is finished with status {}", downloadKey, status.orElse(null));
           } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
           } finally {
