@@ -168,6 +168,12 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public Optional<Status> getStatusByName(String downloadKey) {
     String dagId = downloadDagId(downloadKey);
     JsonNode jsonStatus = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::getRun).apply(dagId);
+
+    // Status can be null if DAG was killed/cancelled
+    if (jsonStatus == null || jsonStatus.get("state") == null) {
+      return Optional.empty();
+    }
+
     String status = jsonStatus.get("state").asText();
     if ("queued".equalsIgnoreCase(status)) {
       return Optional.of(Status.PREPARING);
