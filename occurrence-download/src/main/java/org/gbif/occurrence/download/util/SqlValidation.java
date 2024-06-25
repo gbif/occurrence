@@ -88,6 +88,14 @@ public class SqlValidation {
       family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.hive.udf.Isea3hCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_ISEA3HCode",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
     additionalOperators.add(new SqlFunction("gbif_MGRSCode",
       SqlKind.OTHER_FUNCTION,
