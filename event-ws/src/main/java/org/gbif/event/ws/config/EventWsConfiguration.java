@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.oozie.client.OozieClient;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
@@ -47,8 +46,7 @@ public class EventWsConfiguration {
     return new OozieClient(url);
   }
 
-  @Bean
-  @Qualifier("oozie.default_properties")
+  @Bean("oozie.default_properties")
   public Map<String,String> providesDefaultParameters(@Value("${occurrence.download.environment}") String environment,
                                                       @Value("${occurrence.download.ws.url}") String wsUrl,
                                                       @Value("${occurrence.download.hdfs.namenode}") String nameNode,

@@ -3,7 +3,7 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.195.3-SNAPSHOT</version>
+    <version>0.195.4-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -39,6 +39,7 @@
         <configuration>
           <usedDependencies>
             <usedDependency>org.springframework.boot:spring-boot-starter</usedDependency>
+            <usedDependency>org.springframework.boot:spring-boot-starter-amqp</usedDependency>
             <usedDependency>org.springframework.boot:spring-boot-starter-security</usedDependency>
             <usedDependency>org.springframework.boot:spring-boot-starter-web</usedDependency>
             <usedDependency>org.springframework.boot:spring-boot-starter-test</usedDependency>
