@@ -40,6 +40,7 @@
         <configuration>
           <usedDependencies>
             <usedDependency>org.springframework.boot:spring-boot-starter</usedDependency>
+            <usedDependency>org.springframework.boot:spring-boot-starter-amqp</usedDependency>
             <usedDependency>org.springframework.boot:spring-boot-starter-security</usedDependency>
             <usedDependency>org.springframework.boot:spring-boot-starter-web</usedDependency>
             <usedDependency>org.springframework.boot:spring-boot-starter-test</usedDependency>

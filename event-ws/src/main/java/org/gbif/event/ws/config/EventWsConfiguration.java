@@ -27,9 +27,7 @@ import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
-import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,13 +37,6 @@ import com.google.common.collect.ImmutableMap;
 
 @Configuration
 public class EventWsConfiguration {
-
-  @Bean
-  @Qualifier("oozie.default_properties")
-  public Map<String,String> providesDefaultParameters(@Value("${occurrence.download.type}") DownloadType downloadType) {
-    return new ImmutableMap.Builder<String, String>()
-      .putAll(DownloadWorkflowParameters.CONSTANT_PARAMETERS).build();
-  }
 
   @Bean
   public TitleLookupService titleLookupService(@Value("${api.url}") String apiUrl) {
@@ -78,5 +69,9 @@ public class EventWsConfiguration {
         rabbitProperties.getUsername(),
         rabbitProperties.getPassword(),
         rabbitProperties.getVirtualHost()));
+  }
+  @Configuration
+  public static class EventSearchConfigurationWs extends OccurrenceSearchConfiguration {
+
   }
 }
