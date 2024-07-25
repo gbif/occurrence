@@ -60,8 +60,8 @@ public class OccurrenceMapReaderTest {
     occurrence.setContinent(Continent.NORTH_AMERICA);
     occurrence.setCountry(Country.COSTA_RICA);
     occurrence.setPublishingCountry(Country.TRINIDAD_TOBAGO);
-    occurrence.setKingdomKey(1);
-    occurrence.setTaxonKey(2440897);
+    occurrence.setKingdomKey(String.valueOf(1));
+    occurrence.setTaxonKey(String.valueOf(2440897));
     occurrence.setLastInterpreted(today);
     occurrence.setDecimalLatitude(89.2);
     occurrence.setDecimalLongitude(100.2);
