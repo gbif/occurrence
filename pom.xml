@@ -118,7 +118,7 @@
     <mybatis-spring-boot-starter-test.version>2.3.2</mybatis-spring-boot-starter-test.version>
     <feign.version>10.12</feign.version>
     <spring-boot-admin.version>2.2.4</spring-boot-admin.version>
-    <springdoc-openapi-ui.version>1.5.8</springdoc-openapi-ui.version>
+    <springdoc-openapi-ui.version>1.8.0</springdoc-openapi-ui.version>
     <swagger-annotations.version>2.2.3</swagger-annotations.version>
 
     <!-- default configurations for all GBIF environments -->
@@ -208,10 +208,10 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>0.14-H3-SNAPSHOT</hbase-utils.version>
-    <download-query-tools.version>1.53.0-SNAPSHOT</download-query-tools.version>
+    <download-query-tools.version>1.53.0</download-query-tools.version>
     <dwc-api.version>1.49-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.17.0-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.18.0-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -225,10 +225,10 @@
     <gbif-wrangler.version>0.5-SNAPSHOT</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <gbif.kvs.version>1.33-H3-SNAPSHOT</gbif.kvs.version>
+    <gbif.kvs.version>2.0-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.3.3-SNAPSHOT</gbif-predicates.version>
-    <gbif-occurrence-cube-functions.version>0.2.1-SNAPSHOT</gbif-occurrence-cube-functions.version>
+    <gbif-occurrence-cube-functions.version>0.2.1</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 
     <!-- Sonar -->
