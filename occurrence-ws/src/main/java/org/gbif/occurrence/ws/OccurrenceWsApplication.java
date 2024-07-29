@@ -13,6 +13,11 @@
  */
 package org.gbif.occurrence.ws;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.remoteauth.IdentityServiceClient;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
@@ -36,10 +41,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 
-@SpringBootApplication(
-    exclude = {
-      RabbitAutoConfiguration.class
-    })
+@SpringBootApplication(exclude = {RabbitAutoConfiguration.class})
 @EnableConfigurationProperties
 @ComponentScan(
     basePackages = {
@@ -85,6 +87,16 @@ public class OccurrenceWsApplication {
   public RemoteAuthClient remoteAuthClient(
       RestTemplateBuilder builder, @Value("${registry.ws.url}") String gbifApiUrl) {
     return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
+  }
+
+  @Bean
+  public ConceptClient conceptClient(@Value("${api.url}") String apiUrl) {
+    return new ClientBuilder()
+        .withObjectMapper(
+            JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
+                .registerModule(new JavaTimeModule()))
+        .withUrl(apiUrl)
+        .build(ConceptClient.class);
   }
 
   @Configuration
