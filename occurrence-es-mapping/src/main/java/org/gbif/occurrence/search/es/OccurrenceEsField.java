@@ -226,6 +226,7 @@ public enum OccurrenceEsField implements EsField {
   FORMATION(new BaseEsField("geologicalContext.formation", DwcTerm.formation)),
   MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
   BED(new BaseEsField("geologicalContext.bed", DwcTerm.bed)),
+  GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", null)),
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
@@ -397,6 +398,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.FORMATION, FORMATION)
       .put(OccurrenceSearchParameter.MEMBER, MEMBER)
       .put(OccurrenceSearchParameter.BED, BED)
+      .put(OccurrenceSearchParameter.GEOLOGICAL_TIME, GEOLOGICAL_TIME)
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
