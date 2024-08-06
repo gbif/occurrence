@@ -30,6 +30,8 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import org.gbif.vocabulary.client.ConceptClient;
+
 class EsHeatmapRequestBuilder {
 
   static final String HEATMAP_AGGS = "heatmap";
@@ -41,9 +43,9 @@ class EsHeatmapRequestBuilder {
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
 
-  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper) {
+  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient);
   }
 
   @VisibleForTesting
@@ -79,7 +81,6 @@ class EsHeatmapRequestBuilder {
       // add hasCoordinate to the filter and create query
       esSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
     }
-
 
     searchSourceBuilder.query(bool);
 
