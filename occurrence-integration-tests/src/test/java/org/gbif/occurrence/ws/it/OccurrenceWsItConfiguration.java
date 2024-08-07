@@ -13,6 +13,10 @@
  */
 package org.gbif.occurrence.ws.it;
 
+import java.io.IOException;
+import java.util.Collections;
+import org.apache.hadoop.hbase.client.Connection;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -27,6 +31,7 @@ import org.gbif.occurrence.test.mocks.*;
 import org.gbif.occurrence.test.servers.EsManageServer;
 import org.gbif.occurrence.test.servers.HBaseServer;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
+import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.remoteauth.IdentityServiceClient;
 import org.gbif.ws.remoteauth.LoggedUser;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
@@ -34,12 +39,6 @@ import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
 import org.gbif.ws.security.*;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
-
-import java.io.IOException;
-import java.util.Collections;
-
-import org.apache.hadoop.hbase.client.Connection;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.jupiter.api.Disabled;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
@@ -233,5 +232,10 @@ public class OccurrenceWsItConfiguration {
     public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
       super(context, remoteAuthClient);
     }
+  }
+
+  @Bean
+  public ConceptClient conceptClient() {
+    return new ConceptClientMock();
   }
 }
