@@ -1,5 +1,5 @@
 appkeys:
-  file: @appkeys.testfile@
+  file: /Users/marcoslopezgonzalez/dev/gdrive/WS/appkeys.properties
 occurrence:
   download:
     disabled: false
@@ -61,3 +61,6 @@ spring:
 server:
   error:
     include-stacktrace: never
+
+api:
+  url: http://api.gbif-dev.org/v1/
