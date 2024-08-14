@@ -62,9 +62,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
         log.info("Locking the thread until downloads job is finished");
         lockerService.lock(downloadKey, Thread.currentThread());
 
-        jobManager
-            .getStatusByName(downloadKey)
-            .ifPresent(status -> downloadUpdaterService.updateStatus(downloadKey, status));
+        // Status of the download must be updated only in DownloadResource.airflowCallback
       }
 
       if (jobStatus == JobStatus.FAILED) {
