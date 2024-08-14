@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.service;
 
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
@@ -37,6 +38,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -53,7 +56,6 @@ import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 
@@ -74,15 +76,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
   /** Map to provide conversions from oozie.Job.Status to Download.Status. */
   @VisibleForTesting
-  protected static final ImmutableMap<JobStatus, Download.Status> STATUSES_MAP =
-      new ImmutableMap.Builder<JobStatus, Download.Status>()
-          .put(JobStatus.PREP, Download.Status.PREPARING)
-          .put(JobStatus.RUNNING, Download.Status.RUNNING)
-          .put(JobStatus.SUCCEEDED, Download.Status.SUCCEEDED)
-          .put(JobStatus.SUSPENDED, Download.Status.SUSPENDED)
-          .put(JobStatus.KILLED, Download.Status.KILLED)
-          .put(JobStatus.FAILED, Download.Status.FAILED)
-          .build();
+  protected static final Map<JobStatus, Status> STATUSES_MAP =
+      Map.of(
+          JobStatus.PREP, Download.Status.PREPARING,
+          JobStatus.RUNNING, Download.Status.RUNNING,
+          JobStatus.SUCCEEDED, Download.Status.SUCCEEDED,
+          JobStatus.SUSPENDED, Download.Status.SUSPENDED,
+          JobStatus.KILLED, Download.Status.KILLED,
+          JobStatus.FAILED, Download.Status.FAILED);
 
   private static final Counter SUCCESSFUL_DOWNLOADS =
       Metrics.newCounter(CallbackService.class, "successful_downloads");
@@ -146,13 +147,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   @Override
   public String create(DownloadRequest request, String source) {
     log.debug("Trying to create download from request [{}]", request);
-    Preconditions.checkNotNull(request);
+    Objects.requireNonNull(request);
 
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
     } else if (request instanceof SqlDownloadRequest) {
       SqlValidation sqlValidation = new SqlValidation();
       HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
+      log.debug("HiveSqlQuery {}", sqlQuery.getSql());
     }
 
     String exceedComplexityLimit = null;
@@ -169,7 +171,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
           "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
     }
 
-    String exceedSimultaneousLimit = null;
+    String exceedSimultaneousLimit;
     try {
       exceedSimultaneousLimit =
           downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
@@ -291,7 +293,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     Optional<JobStatus> opStatus = Enums.getIfPresent(JobStatus.class, status.toUpperCase());
     Preconditions.checkArgument(opStatus.isPresent(), "<status> the requested status is not valid");
 
-    log.debug("Processing callback for downloadId [{}] with status [{}]", downloadId, status);
+    log.info("Processing callback for downloadId [{}] with status [{}]", downloadId, status);
 
     Download download = occurrenceDownloadService.get(downloadId);
     if (download == null) {
