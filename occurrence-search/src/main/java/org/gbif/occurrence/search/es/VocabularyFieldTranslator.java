@@ -27,7 +27,13 @@ public class VocabularyFieldTranslator {
       String geoTimeParam = params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next();
 
       // get the start and end age from the concepts tag
-      ConceptView conceptView = conceptClient.get(GEO_TIME_VOCAB, geoTimeParam, false, false);
+      ConceptView conceptView =
+          conceptClient.getFromLatestRelease(GEO_TIME_VOCAB, geoTimeParam, false, false);
+
+      if (conceptView == null) {
+        return;
+      }
+
       String startAge = null;
       for (Tag t : conceptView.getConcept().getTags()) {
         if (t.getName().toLowerCase().startsWith("startage:")) {
