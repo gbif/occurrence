@@ -31,7 +31,8 @@ public class VocabularyFieldTranslator {
           conceptClient.getFromLatestRelease(GEO_TIME_VOCAB, geoTimeParam, false, false);
 
       if (conceptView == null) {
-        return;
+        throw new IllegalArgumentException(
+            "Concept " + geoTimeParam + " not found in the " + GEO_TIME_VOCAB + " vocabulary");
       }
 
       String startAge = null;
