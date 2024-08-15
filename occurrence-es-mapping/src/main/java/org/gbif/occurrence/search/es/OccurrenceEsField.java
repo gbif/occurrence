@@ -224,8 +224,8 @@ public enum OccurrenceEsField implements EsField {
   MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
   BED(new BaseEsField("geologicalContext.bed", DwcTerm.bed)),
   GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", null)),
-  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", null)),
-  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", null)),
+  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", null, true)),
+  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", null, true)),
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
