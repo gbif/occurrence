@@ -132,7 +132,10 @@ public class ConceptClientMock implements ConceptClient {
 
   @Override
   public ConceptView getFromLatestRelease(String s, String s1, boolean b, boolean b1) {
-    return null;
+    Concept concept = new Concept();
+    concept.setName("Test");
+    concept.getTags().add(Tag.of("startAge: 200.2"));
+    return new ConceptView(concept);
   }
 
   @Override
