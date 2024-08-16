@@ -72,8 +72,16 @@ public class TableBackfillConfiguration {
 
   private String prefixTable;
 
+  private String datasetKey;
+
   public String getTableNameWithPrefix() {
-    return Strings.isNullOrEmpty(prefixTable) ? tableName : prefixTable + "_" + tableName;
+    String datasetKeyPostFix = Strings.isNullOrEmpty(datasetKey)? "" : '_' + datasetKey;
+    String tableNameWithPrefix = Strings.isNullOrEmpty(prefixTable) ? tableName : prefixTable + "_" + tableName;
+    return tableNameWithPrefix + datasetKeyPostFix;
+  }
+
+  public String getAvroTableName() {
+    return getTableNameWithPrefix() + "_avro";
   }
 
   @Nullable private final String warehouseLocation;
