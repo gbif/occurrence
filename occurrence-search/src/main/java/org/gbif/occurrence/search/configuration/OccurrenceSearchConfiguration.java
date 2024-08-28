@@ -96,7 +96,7 @@ public class OccurrenceSearchConfiguration  {
   }
 
   @Bean
-  public NameUsageMatchingService nameUsageMatchingServiceClient(@Value("${checklistbank.match.ws.url}") String apiUrl) {
+  public NameUsageMatchingService nameUsageMatchingService(@Value("${checklistbank.match.ws.url}") String apiUrl) {
     return new ClientBuilder()
         .withUrl(apiUrl)
         .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())

@@ -130,6 +130,10 @@
     </dependency>
     <dependency>
       <groupId>org.gbif.kvs</groupId>
+      <artifactId>kvs-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.kvs</groupId>
       <artifactId>kvs-rest-clients</artifactId>
     </dependency>
     <dependency>

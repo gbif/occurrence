@@ -13,15 +13,12 @@
  */
 package org.gbif.occurrence.search.es;
 
-import org.gbif.api.model.checklistbank.NameUsageMatch;
-import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
@@ -50,15 +47,17 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.vocabulary.client.ConceptClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
 /** Occurrence search service. */
 @Component

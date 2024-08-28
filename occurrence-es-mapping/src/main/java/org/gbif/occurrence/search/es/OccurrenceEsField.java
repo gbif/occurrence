@@ -118,6 +118,8 @@ public enum OccurrenceEsField implements EsField {
   HAS_COORDINATE(new BaseEsField("hasCoordinate", GbifTerm.hasCoordinate)),
   REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
+  CLASSIFICATIONS(new BaseEsField("classifications", null)),
+
   //Taxonomic classification
   USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
   TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
