@@ -14,10 +14,6 @@
 package org.gbif.occurrence.search.configuration;
 
 import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.ws.client.ClientBuilder;
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,9 +25,10 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+
 
 /** Occurrence search configuration. */
 public class OccurrenceSearchConfiguration  {
@@ -93,14 +90,5 @@ public class OccurrenceSearchConfiguration  {
     }
 
     return highLevelClient;
-  }
-
-  @Bean
-  public NameUsageMatchingService nameUsageMatchingService(@Value("${checklistbank.match.ws.url}") String apiUrl) {
-    return new ClientBuilder()
-        .withUrl(apiUrl)
-        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-        .withFormEncoder()
-        .build(NameUsageMatchingService.class);
   }
 }

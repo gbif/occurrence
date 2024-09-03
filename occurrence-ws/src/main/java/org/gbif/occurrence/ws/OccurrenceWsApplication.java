@@ -15,6 +15,7 @@ package org.gbif.occurrence.ws;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import org.gbif.occurrence.search.configuration.NameUsageMatchServiceConfiguration;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -42,7 +43,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 
 @SpringBootApplication(exclude = {RabbitAutoConfiguration.class})
-@EnableConfigurationProperties
+@EnableConfigurationProperties(NameUsageMatchServiceConfiguration.class)
 @ComponentScan(
     basePackages = {
       "org.gbif.ws.server.interceptor",
@@ -53,6 +54,7 @@ import org.springframework.context.annotation.FilterType;
       "org.gbif.ws.remoteauth",
       "org.gbif.ws.security",
       "org.gbif.occurrence.search",
+      "org.gbif.occurrence.search.configuration",
       "org.gbif.occurrence.ws",
       "org.gbif.occurrence.download.service",
       "org.gbif.occurrence.persistence",

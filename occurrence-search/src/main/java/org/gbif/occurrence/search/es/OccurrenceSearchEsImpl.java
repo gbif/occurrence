@@ -48,6 +48,7 @@ import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.kvs.species.NameUsageMatchRequest;
+import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -65,7 +66,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
 
-  private final NameUsageMatchingService nameUsageMatchingService;
+  private final NameUsageMatchServiceTriage nameUsageMatchServiceTriage;
   private final RestHighLevelClient esClient;
   private final String esIndex;
   private final int maxLimit;
@@ -79,7 +80,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   @Autowired
   public OccurrenceSearchEsImpl(
     RestHighLevelClient esClient,
-    NameUsageMatchingService nameUsageMatchingService,
+    NameUsageMatchServiceTriage nameUsageMatchServiceTriage,
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
@@ -92,7 +93,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.esIndex = esIndex;
     // create ES client
     this.esClient = esClient;
-    this.nameUsageMatchingService = nameUsageMatchingService;
+    this.nameUsageMatchServiceTriage = nameUsageMatchServiceTriage;
     this.esFieldMapper = esFieldMapper;
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceBaseEsFieldMapper(esFieldMapper).build();
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient);
@@ -332,16 +333,25 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     boolean hasValidReplaces = true;
     if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
-      Collection<String> values = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
-      for (String value : values) {
-        NameUsageMatchResponse nameUsageMatch = nameUsageMatchingService.match(NameUsageMatchRequest.builder()
-          .withScientificName(value)
+
+      Collection<String> scientificNames = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
+
+      Collection<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
+      String checklistKey = null;
+      if (checklistKeys != null && !checklistKeys.isEmpty()) {
+        checklistKey = checklistKeys.iterator().next();
+      }
+
+      for (String scientificName : scientificNames) {
+
+        NameUsageMatchResponse nameUsageMatch = nameUsageMatchServiceTriage.match(checklistKey, NameUsageMatchRequest.builder()
+          .withScientificName(scientificName)
           .withStrict(false)
           .withVerbose(false)
           .build());
         if (nameUsageMatch.getDiagnostics().getMatchType() == NameUsageMatchResponse.MatchType.EXACT && Objects.nonNull(nameUsageMatch.getUsage())) {
           hasValidReplaces = true;
-          values.remove(value);
+          scientificNames.remove(scientificName);
           if (nameUsageMatch.getAcceptedUsage() != null) {
             request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getAcceptedUsage().getKey());
           } else {
