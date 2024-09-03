@@ -15,13 +15,13 @@ package org.gbif.occurrence.table.backfill;
 
 import org.apache.avro.Schema;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.hive.InitializableField;
 import org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -31,12 +31,10 @@ import java.util.stream.Collectors;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.ArrayType;
-import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 
 import com.google.common.base.Strings;
@@ -89,6 +87,16 @@ public class TableBackfill {
   }
 
   public static void main(String[] args) {
+
+    TableBackfillConfiguration configuration = TableBackfillConfiguration.builder()
+      .prefixTable("dev")
+      .tableName("occurrence")
+      .usePartitionedTable(true)
+      .build();
+    TableBackfill backfill1 = new TableBackfill(configuration);
+    String insertOverwrite = backfill1.insertOverWrite("occurrence", backfill1.occurrenceTableFields(), "occurrence_avro");
+    System.out.println(insertOverwrite);
+
     // Read config file
     TableBackfillConfiguration tableBackfillConfiguration =
         TableBackfillConfiguration.loadFromFile(args[0]);
@@ -106,9 +114,9 @@ public class TableBackfill {
         SparkSession.builder()
             .appName(configuration.getTableName() + " table build")
             .enableHiveSupport()
-            .config("spark.sql.catalog.iceberg.type", "hive")
-            .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
-            .config("spark.sql.defaultCatalog", "iceberg")
+            .config("spark.sql.catalog.spark_catalog.type", "hive")
+            .config("spark.sql.catalog.spark_catalog", "org.apache.iceberg.spark.SparkSessionCatalog")
+            .config("spark.sql.defaultCatalog", "spark_catalog")
             .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions");
 
     if (configuration.getHiveThriftAddress() != null) {
@@ -242,28 +250,30 @@ public class TableBackfill {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
       createSourceAvroTable(spark, avroTableName, schema,  fromSourceDir);
-      spark.sql(insertOverWrite(saveToTable, selectFields, avroTableName));
+      String insertStatement = insertOverWrite(saveToTable, selectFields, avroTableName);
+      System.out.println("Insert statement " + insertStatement);
+      spark.sql(insertStatement);
     }
   }
 
   private String occurrenceTableFields() {
     return OccurrenceHDFSTableDefinition.definition().stream()
       // Excluding partitioned columns
-      .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey"))
-      .map(field -> field.getHiveField() + " " + field.getHiveDataType())
+      .filter(field -> configuration.isUsePartitionedTable() && (configuration.getDatasetKey() != null && !field.getHiveField().equalsIgnoreCase("datasetkey")) || configuration.getDatasetKey() == null)
+      .map(InitializableField::getInitializer)
       .collect(Collectors.joining(", "));
   }
   private void createSourceAvroTable(SparkSession spark, String tableName, Schema schema, String location) {
     // Create Hive Table if it doesn't exist
     spark.sql("DROP TABLE IF EXISTS " + tableName);
-    spark.sql("CREATE EXTERNAL TABLE " + tableName + " USING avro " +
+    spark.sql("CREATE EXTERNAL TABLE " + tableName + " USING AVRO " +
       "OPTIONS( 'format' = 'avro', 'schema' = '" + schema.toString(true) + "') " +
       "LOCATION '" + location +  "' TBLPROPERTIES('iceberg.catalog'='location_based_table')");
   }
 
   private String insertOverWrite(String targetTableName, String selectFields, String sourceTable) {
     return "INSERT OVERWRITE TABLE " + targetTableName +
-      (Strings.isNullOrEmpty(configuration.getDatasetKey())? " PARTITION (datasetkey = '" + configuration.getDatasetKey() + "') " : " ") +
+      (!Strings.isNullOrEmpty(configuration.getDatasetKey())? " PARTITION (datasetkey = '" + configuration.getDatasetKey() + "') " : " ") +
       "SELECT " + selectFields + " FROM " + sourceTable;
   }
 
@@ -361,10 +371,11 @@ public class TableBackfill {
   public String createIfNotExistsGbifMultimedia() {
     return String.format(
         "CREATE TABLE IF NOT EXISTS %s\n"
-            + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
-            + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
-            + "publisher STRING, license STRING, rightsHolder STRING) \n"
-            + "STORED AS PARQUET TBLPROPERTIES ('parquet.compression'='GZIP')",
+      + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
+      + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
+      + "publisher STRING, license STRING, rightsHolder STRING) USING iceberg \n"
+      + "PARTITIONED BY(datasetkey STRING) "
+      + "STORED AS PARQUET TBLPROPERTIES ('parquet.compression'='GZIP')",
         getPrefix() + multimediaTableName());
   }
 
@@ -420,7 +431,7 @@ public class TableBackfill {
        mmRecords.createOrReplaceTempView("mm_records");
 
     spark.sql("INSERT OVERWRITE TABLE " + configuration.getTableName() + "_multimedia \n" +
-      (Strings.isNullOrEmpty(configuration.getDatasetKey())? " PARTITION (datasetkey = '" + configuration.getDatasetKey() + "') " : " ") +
+      (!Strings.isNullOrEmpty(configuration.getDatasetKey())? " PARTITION (datasetkey = '" + configuration.getDatasetKey() + "') " : " ") +
       "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records");
   }
 
@@ -452,7 +463,7 @@ public class TableBackfill {
                                 .equalsIgnoreCase("datasetkey")) // Excluding partitioned columns
                 .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                 .collect(Collectors.joining(", "))
-            + ") PARTITIONED BY(datasetkey STRING) USING iceberg "
+            + ") USING iceberg PARTITIONED BY(datasetkey STRING) "
             + "TBLPROPERTIES ('parquet.compression'='GZIP', 'auto.purge'='true')",
         configuration.getTableNameWithPrefix());
   }
