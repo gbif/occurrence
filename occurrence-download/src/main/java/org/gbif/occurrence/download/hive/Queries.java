@@ -178,6 +178,27 @@ public abstract class Queries {
   }
 
   /**
+   * Used for complex types like Structs which have nested array elements.
+   */
+  public static String toVocabularyConceptArrayHiveInitializer(Term term) {
+    return toArrayInitializer(toNestedHiveInitializer(term, "concepts"));
+  }
+
+  /**
+   * Transforms the term into a joinArray(…) expression.
+   */
+  public static String toArrayInitializer(String term) {
+    return String.format("array_join(%1$s,'\\\\;') AS %1$s", term);
+  }
+
+  /**
+   * Transforms the term into a joinArray(…) expression.
+   */
+  public static String toArrayInitializer(Term term) {
+    return String.format("array_join(%1$s,'\\\\;') AS %1$s", HiveColumns.columnFor(term));
+  }
+
+  /**
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the simple download fields
    */

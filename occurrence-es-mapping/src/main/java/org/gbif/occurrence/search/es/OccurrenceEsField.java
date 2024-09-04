@@ -60,7 +60,7 @@ public enum OccurrenceEsField implements EsField {
   IDENTIFIED_BY_ID(new BaseEsField("identifiedByIds.value", DwcTerm.identifiedByID)),
   RECORD_NUMBER(new BaseEsField("recordNumber", DwcTerm.recordNumber, true)),
   BASIS_OF_RECORD(new BaseEsField("basisOfRecord", DwcTerm.basisOfRecord)),
-  TYPE_STATUS(new BaseEsField("typeStatus", DwcTerm.typeStatus)),
+  TYPE_STATUS(new BaseEsField("typeStatus.lineage", "typeStatus.concepts", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("occurrenceStatus", DwcTerm.occurrenceStatus)),
   IS_SEQUENCED(new BaseEsField("isSequenced", GbifTerm.isSequenced)),
   ASSOCIATED_SEQUENCES(new BaseEsField("associatedSequences", DwcTerm.associatedSequences)),
