@@ -49,6 +49,7 @@ import org.elasticsearch.common.geo.builders.PointBuilder;
 import org.elasticsearch.common.geo.builders.PolygonBuilder;
 import org.elasticsearch.common.geo.builders.ShapeBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.NestedQueryBuilder;
 import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
 import org.elasticsearch.index.query.GeoShapeQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -187,6 +188,74 @@ public class EsSearchRequestBuilder {
     return request;
   }
 
+  // Method to build and add a nested checklist query
+  private void addChecklistKeyTaxonKeyQuery(Map<OccurrenceSearchParameter, Set<String>> params,
+                                            BoolQueryBuilder bool,
+                                            OccurrenceSearchParameter checklistParam,
+                                            OccurrenceSearchParameter taxonParam,
+                                            String taxonField) {
+    if (params.containsKey(checklistParam) && params.containsKey(taxonParam)) {
+      // Build the nested query
+      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.termQuery("classifications.datasetKey.keyword", params.get(checklistParam).iterator().next()))
+        .must(QueryBuilders.termQuery(taxonField, params.get(taxonParam).iterator().next()));
+
+      // Create a NestedQueryBuilder to search within the "classifications" nested object
+      NestedQueryBuilder nestedChecklistQuery = QueryBuilders
+        .nestedQuery("classifications", checklistQuery, ScoreMode.Avg);
+
+      params.remove(checklistParam);
+      params.remove(taxonParam);
+
+      bool.filter().add(nestedChecklistQuery);
+    }
+  }
+
+  // Method to build and add a nested checklist query
+  private void addChecklistKeyTaxonKeyQuery(Map<OccurrenceSearchParameter, Set<String>> params,
+                                            BoolQueryBuilder bool,
+                                            OccurrenceSearchParameter checklistParam,
+                                            OccurrenceSearchParameter taxonParam) {
+
+    if (params.containsKey(checklistParam) && params.containsKey(taxonParam)) {
+      // Build the nested query
+      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.termQuery("classifications.datasetKey.keyword", params.get(checklistParam).iterator().next()))
+        .must(QueryBuilders.termQuery("classifications.classification.key.keyword", params.get(taxonParam).iterator().next()));
+
+      // Create a NestedQueryBuilder to search within the "classifications" nested object
+      NestedQueryBuilder nestedChecklistQuery = QueryBuilders
+        .nestedQuery("classifications", checklistQuery, ScoreMode.Avg);
+
+      params.remove(checklistParam);
+      params.remove(taxonParam);
+
+      bool.filter().add(nestedChecklistQuery);
+    }
+  }
+
+  private void addChecklistKeyScientificNameQuery(Map<OccurrenceSearchParameter, Set<String>> params,
+                                            BoolQueryBuilder bool,
+                                            OccurrenceSearchParameter checklistParam,
+                                            OccurrenceSearchParameter taxonParam) {
+
+    if (params.containsKey(checklistParam) && params.containsKey(taxonParam)) {
+      // Build the nested query
+      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.termQuery("classifications.datasetKey.keyword", params.get(checklistParam).iterator().next()))
+        .must(QueryBuilders.termQuery("classifications.classification.name.keyword", params.get(taxonParam).iterator().next()));
+
+      // Create a NestedQueryBuilder to search within the "classifications" nested object
+      NestedQueryBuilder nestedChecklistQuery = QueryBuilders
+        .nestedQuery("classifications", checklistQuery, ScoreMode.Avg);
+
+      params.remove(checklistParam);
+      params.remove(taxonParam);
+
+      bool.filter().add(nestedChecklistQuery);
+    }
+  }
+
   private Optional<QueryBuilder> buildQuery(
       Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchCase) {
     VocabularyFieldTranslator.translateVocabs(params, conceptClient);
@@ -200,6 +269,18 @@ public class EsSearchRequestBuilder {
     }
 
     if (params != null && !params.isEmpty()) {
+
+      // Add the queries based on different taxonomic levels
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.TAXON_KEY, "classifications.usage.key.keyword");
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, "classifications.acceptedUsage.key.keyword");
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.SPECIES_KEY);
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.GENUS_KEY);
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.FAMILY_KEY);
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.ORDER_KEY);
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.CLASS_KEY);
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.PHYLUM_KEY);
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.KINGDOM_KEY);
+
       // adding geometry to bool
       if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
         BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
