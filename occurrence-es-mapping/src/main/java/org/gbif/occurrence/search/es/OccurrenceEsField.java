@@ -121,6 +121,7 @@ public enum OccurrenceEsField implements EsField {
   CLASSIFICATIONS(new BaseEsField("classifications", null)),
 
   //Taxonomic classification
+  CHECKLIST_KEY(new BaseEsField("classifications.datasetKey", GbifTerm.checklistKey)),
   USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
   TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
   TAXON_RANK(new BaseEsField("gbifClassification.usage.rank", DwcTerm.taxonRank)),
@@ -314,6 +315,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.PUBLISHED_BY_GBIF_REGION, PUBLISHED_BY_GBIF_REGION)
       .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
+      .put(OccurrenceSearchParameter.CHECKLIST_KEY,CHECKLIST_KEY)
       .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
       .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(OccurrenceSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
