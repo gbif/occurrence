@@ -22,14 +22,16 @@ public class NameUsageMatchServiceTriage {
 
   public NameUsageMatchServiceTriage(NameUsageMatchServiceConfiguration nameUsageMatchServiceConfiguration) {
 
-    for (NameUsageMatchServiceConfiguration.NameUsageMatchServiceConfig config : nameUsageMatchServiceConfiguration.getServices()) {
-      NameUsageMatchingService service = new ClientBuilder()
-        .withUrl(config.getWs().getApi().getWsUrl())
-        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-        .withFormEncoder()
-        .build(NameUsageMatchingService.class);
-      serviceByPrefix.put(config.getPrefix(), service);
-      serviceByChecklistKey.put(config.getDatasetKey(), service);
+    if (nameUsageMatchServiceConfiguration.getServices() != null) {
+      for (NameUsageMatchServiceConfiguration.NameUsageMatchServiceConfig config : nameUsageMatchServiceConfiguration.getServices()) {
+        NameUsageMatchingService service = new ClientBuilder()
+          .withUrl(config.getWs().getApi().getWsUrl())
+          .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+          .withFormEncoder()
+          .build(NameUsageMatchingService.class);
+        serviceByPrefix.put(config.getPrefix(), service);
+        serviceByChecklistKey.put(config.getDatasetKey(), service);
+      }
     }
   }
 
