@@ -26,6 +26,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.nio.file.Paths;
+
 /**
  * Oozie Action to take a snapshot of the HDFS View directory.
  * It uses a Zookeeper/Curator barrier to synchronize the access to that directory.
@@ -33,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @AllArgsConstructor
-public class HdfsSnapshotAction {
+public class HdfsSnapshotCoordinator {
 
   private final TableBackfillConfiguration configuration;
 
@@ -99,5 +101,18 @@ public class HdfsSnapshotAction {
       log.error("Error handling barrier {}", configuration);
       throw new RuntimeException(ex);
     }
+  }
+
+  public static String getSnapshotPath(TableBackfillConfiguration configuration,  String dataDirectory, String jobId) {
+    String path =
+      Paths.get(
+          configuration.getSourceDirectory(),
+          configuration.getCoreName().toLowerCase(),
+          ".snapshot",
+          jobId,
+          dataDirectory.toLowerCase())
+        .toString();
+    log.info("Snapshot path {}", path);
+    return path;
   }
 }

@@ -13,12 +13,10 @@
  */
 package org.gbif.event.ws.config;
 
-import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.JsonMessagePublisher;
 import org.gbif.common.messaging.api.MessagePublisher;
-import org.gbif.occurrence.download.service.workflow.DownloadWorkflowParameters;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
@@ -33,7 +31,6 @@ import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.collect.ImmutableMap;
 
 @Configuration
 public class EventWsConfiguration {

@@ -80,6 +80,12 @@ public class TableBackfillConfiguration {
     return tableNameWithPrefix + datasetKeyPostFix;
   }
 
+  public String prefixTableWithUnderscore() {
+    return !Strings.isNullOrEmpty(prefixTable)
+      ? prefixTable + "_"
+      : "";
+  }
+
   public String getAvroTableName() {
     return getTableNameWithPrefix() + "_avro";
   }
