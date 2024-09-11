@@ -67,7 +67,11 @@ public class ExtensionTableBackfill {
   }
 
   private String extensionAvroTableName(ExtensionTable extensionTable) {
-    return configuration.getTableName() + "_ext" + extensionTable.getHiveTableName() + "_avro";
+    return extensionAvroTableName(configuration.getTableName(), extensionTable);
+  }
+
+  public static String extensionAvroTableName(String coreTableName, ExtensionTable extensionTable) {
+    return coreTableName+ "_ext" + extensionTable.getHiveTableName() + "_avro";
   }
 
   private String createExtensionTable(ExtensionTable extensionTable) {

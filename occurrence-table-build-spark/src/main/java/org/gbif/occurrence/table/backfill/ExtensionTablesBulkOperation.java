@@ -32,8 +32,10 @@ public class ExtensionTablesBulkOperation {
       .forEach(
         extensionTable -> {
           String extensionTableName = ExtensionTableBackfill.extensionTableName(coreName, extensionTable);
+          String extensionAvroTableName = ExtensionTableBackfill.extensionAvroTableName(coreName, extensionTable);
           log.info("Deleting Extension Table {}", extensionTableName);
           sparkSqlHelper.dropTable(prefix + extensionTableName);
+          sparkSqlHelper.dropTableIfExists(extensionAvroTableName);
         });
   }
 
@@ -46,19 +48,16 @@ public class ExtensionTablesBulkOperation {
       .forEach(
         extensionTable ->
           executor.submit(
-            new Runnable() {
-              @Override
-              public void run() {
-                ExtensionTableBackfill.builder()
-                  .jobId(jobId)
-                  .configuration(configuration)
-                  .extensionTable(extensionTable)
-                  .spark(spark)
-                  .build()
-                  .createTable();
-                doneSignal.countDown();
-              }
-            }));
+                  () -> {
+                    ExtensionTableBackfill.builder()
+                      .jobId(jobId)
+                      .configuration(configuration)
+                      .extensionTable(extensionTable)
+                      .spark(spark)
+                      .build()
+                      .createTable();
+                    doneSignal.countDown();
+                  }));
     doneSignal.await();
     executor.shutdown();
   }

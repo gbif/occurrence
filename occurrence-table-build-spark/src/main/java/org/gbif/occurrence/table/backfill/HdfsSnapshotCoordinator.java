@@ -64,7 +64,7 @@ public class HdfsSnapshotCoordinator {
     try(CuratorFramework curator = curator()) {
       FileSystem fs = FileSystem.get(hadoopConfiguration);
       curator.start();
-      String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
+      String lockPath = lockPath();
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
       log.info("Waiting for barrier {}", lockPath);
       barrier.waitOnBarrier();
@@ -78,6 +78,14 @@ public class HdfsSnapshotCoordinator {
       log.error("Error handling barrier {}", configuration);
       throw new RuntimeException(ex);
     }
+  }
+
+  private String lockPath() {
+    String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
+    if(configuration.getDatasetKey() != null) {
+      lockPath += "/" + configuration.getDatasetKey();
+    }
+    return lockPath;
   }
 
 

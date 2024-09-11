@@ -251,11 +251,11 @@
     <lucene.version>8.7.0</lucene.version>
 
     <!-- Spark -->
-    <spark.version>3.3.0</spark.version>
+    <spark.version>3.5.0</spark.version>
     <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
-    <iceberg.version>1.4.3</iceberg.version>
-    <scala.library.version>2.12.17</scala.library.version>
+    <iceberg.version>1.6.0</iceberg.version>
+    <scala.library.version>2.12.18</scala.library.version>
 
     <resilience4j.version>1.7.0</resilience4j.version>
 
@@ -1326,11 +1326,13 @@
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-avro_${scala.tools.version}</artifactId>
         <version>${spark.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-spark-runtime-3.5_${scala.tools.version}</artifactId>
         <version>${iceberg.version}</version>
+        <scope>provided</scope>
       </dependency>
       <dependency>
         <groupId>org.scala-lang</groupId>
