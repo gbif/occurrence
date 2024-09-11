@@ -220,7 +220,7 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "acceptedTaxonKey",
             description =
-                "A taxon key from the GBIF backbone. Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -284,6 +284,14 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "212"),
+        @Parameter(
+          name = "checklistKey",
+          description = "The checklist key. This determines which taxonomy will be used for "
+            + "the search in conjunction with other taxon keys. If this is not specified, the GBIF "
+            + "backbone taxonomy will be used.",
+          schema = @Schema(implementation = String.class),
+          in = ParameterIn.QUERY,
+          example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
         @Parameter(
             name = "collectionCode",
             description =
@@ -1293,7 +1301,8 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "scientificName",
             description =
-                "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c). "
+                "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c) "
+                    + "or the specified checklist (see checklistKey parameter). "
                     + "All included and synonym taxa are included in the search.\n\n"
                     + "Under the hood a call to the [species match service](https://www.gbif.org/developer/species#searching) "
                     + "is done first to retrieve a taxonKey. Only unique scientific names will return results, homonyms "
@@ -1363,7 +1372,7 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "taxonKey",
             description =
-                "A taxon key from the GBIF backbone. All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?taxonKey=212)) will match all birds, no matter which species."
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?taxonKey=212)) will match all birds, no matter which species."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(

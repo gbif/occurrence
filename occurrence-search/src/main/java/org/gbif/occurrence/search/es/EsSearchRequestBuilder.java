@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
@@ -49,7 +50,6 @@ import org.elasticsearch.common.geo.builders.PointBuilder;
 import org.elasticsearch.common.geo.builders.PolygonBuilder;
 import org.elasticsearch.common.geo.builders.ShapeBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.NestedQueryBuilder;
 import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
 import org.elasticsearch.index.query.GeoShapeQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -77,6 +77,8 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.Rank;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -191,72 +193,44 @@ public class EsSearchRequestBuilder {
   // Method to build and add a nested checklist query
   private void addChecklistKeyTaxonKeyQuery(Map<OccurrenceSearchParameter, Set<String>> params,
                                             BoolQueryBuilder bool,
-                                            OccurrenceSearchParameter checklistParam,
                                             OccurrenceSearchParameter taxonParam,
                                             String taxonField) {
-    if (params.containsKey(checklistParam) && params.containsKey(taxonParam)) {
+    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY) && params.containsKey(taxonParam)) {
       // Build the nested query
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termQuery("classifications.datasetKey.keyword", params.get(checklistParam).iterator().next()))
         .must(QueryBuilders.termQuery(taxonField, params.get(taxonParam).iterator().next()));
 
       // Create a NestedQueryBuilder to search within the "classifications" nested object
-      NestedQueryBuilder nestedChecklistQuery = QueryBuilders
-        .nestedQuery("classifications", checklistQuery, ScoreMode.Avg);
-
-      params.remove(checklistParam);
       params.remove(taxonParam);
-
-      bool.filter().add(nestedChecklistQuery);
+      bool.filter().add(checklistQuery);
     }
   }
 
   // Method to build and add a nested checklist query
-  private void addChecklistKeyTaxonKeyQuery(Map<OccurrenceSearchParameter, Set<String>> params,
-                                            BoolQueryBuilder bool,
-                                            OccurrenceSearchParameter checklistParam,
-                                            OccurrenceSearchParameter taxonParam) {
+  private void addChecklistKeyTaxonKeyQuery(
+      String checklistKey,
+      String rank,
+      BoolQueryBuilder bool,
+      Map<OccurrenceSearchParameter, Set<String>> params,
+      OccurrenceSearchParameter taxonParam) {
 
-    if (params.containsKey(checklistParam) && params.containsKey(taxonParam)) {
+    if (StringUtils.isNoneBlank(checklistKey) && params.containsKey(taxonParam)) {
       // Build the nested query
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termQuery("classifications.datasetKey.keyword", params.get(checklistParam).iterator().next()))
-        .must(QueryBuilders.termQuery("classifications.classification.key.keyword", params.get(taxonParam).iterator().next()));
-
-      // Create a NestedQueryBuilder to search within the "classifications" nested object
-      NestedQueryBuilder nestedChecklistQuery = QueryBuilders
-        .nestedQuery("classifications", checklistQuery, ScoreMode.Avg);
-
-      params.remove(checklistParam);
+        .must(QueryBuilders.termQuery("classifications."
+          + checklistKey + ".classificationKeys." + rank.toUpperCase() + ".keyword", params.get(taxonParam).iterator().next()));
       params.remove(taxonParam);
-
-      bool.filter().add(nestedChecklistQuery);
+      bool.filter().add(checklistQuery);
     }
   }
 
-  private void addChecklistKeyScientificNameQuery(Map<OccurrenceSearchParameter, Set<String>> params,
-                                            BoolQueryBuilder bool,
-                                            OccurrenceSearchParameter checklistParam,
-                                            OccurrenceSearchParameter taxonParam) {
-
-    if (params.containsKey(checklistParam) && params.containsKey(taxonParam)) {
-      // Build the nested query
-      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termQuery("classifications.datasetKey.keyword", params.get(checklistParam).iterator().next()))
-        .must(QueryBuilders.termQuery("classifications.classification.name.keyword", params.get(taxonParam).iterator().next()));
-
-      // Create a NestedQueryBuilder to search within the "classifications" nested object
-      NestedQueryBuilder nestedChecklistQuery = QueryBuilders
-        .nestedQuery("classifications", checklistQuery, ScoreMode.Avg);
-
-      params.remove(checklistParam);
-      params.remove(taxonParam);
-
-      bool.filter().add(nestedChecklistQuery);
-    }
+  private String getFieldForChecklistKey(String fieldName, String checklistKey) {
+    return "classifications." + checklistKey + "." + fieldName;
   }
 
-  private Optional<QueryBuilder> buildQuery(
+
+  @VisibleForTesting
+  Optional<QueryBuilder> buildQuery(
       Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchCase) {
     VocabularyFieldTranslator.translateVocabs(params, conceptClient);
 
@@ -271,15 +245,7 @@ public class EsSearchRequestBuilder {
     if (params != null && !params.isEmpty()) {
 
       // Add the queries based on different taxonomic levels
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.TAXON_KEY, "classifications.usage.key.keyword");
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, "classifications.acceptedUsage.key.keyword");
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.SPECIES_KEY);
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.GENUS_KEY);
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.FAMILY_KEY);
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.ORDER_KEY);
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.CLASS_KEY);
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.PHYLUM_KEY);
-      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.CHECKLIST_KEY, OccurrenceSearchParameter.KINGDOM_KEY);
+      handleTaxonomicQueries(params, bool);
 
       // adding geometry to bool
       if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
@@ -324,6 +290,28 @@ public class EsSearchRequestBuilder {
     // bool.filter().add(QueryBuilders.termQuery("type",
     // esFieldMapper.getSearchType().getObjectName()));
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
+  }
+
+  private void handleTaxonomicQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+
+    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
+      String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+
+      // key queries
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.TAXON_KEY,
+        "classifications." + checklistKey + ".taxonKeys.keyword");
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY,
+        "classifications." + checklistKey + ".acceptedUsage.key.keyword");
+
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.SPECIES.toString(), bool, params, OccurrenceSearchParameter.SPECIES_KEY);
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.SUBGENUS.toString(), bool, params, OccurrenceSearchParameter.SUBGENUS_KEY);
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.GENUS.toString(), bool, params, OccurrenceSearchParameter.GENUS_KEY);
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.FAMILY.toString(), bool, params, OccurrenceSearchParameter.FAMILY_KEY);
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.ORDER.toString(), bool, params, OccurrenceSearchParameter.ORDER_KEY);
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.CLASS.toString(), bool, params, OccurrenceSearchParameter.CLASS_KEY);
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.PHYLUM.toString(), bool, params, OccurrenceSearchParameter.PHYLUM_KEY);
+      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.KINGDOM.toString(), bool, params, OccurrenceSearchParameter.KINGDOM_KEY);
+    }
   }
 
   @SneakyThrows
@@ -529,18 +517,69 @@ public class EsSearchRequestBuilder {
         .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null)
         .map(
             facetParam -> {
+
               EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
+
               if (esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
                 }
+
                 return getChildrenAggregationBuilder(
                     searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
               }
-              return buildTermsAggs(
+
+              // if checklistKey is present, we need to substitute the field name
+              if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
+                  && isTaxonomic(facetParam)
+              ) {
+
+                String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+
+                String esFieldToUse = null;
+
+                if (esField.getTerm().equals(GbifTerm.taxonKey)){
+                  esFieldToUse = "classifications." + checklistKey + ".taxonKeys.keyword";
+                } else if (rankToField.containsKey(esField.getTerm())){
+                  esFieldToUse = "classifications."
+                    + checklistKey + ".classificationKeys." + rankToField.get(esField.getTerm()).toUpperCase() + ".keyword";
+                } else {
+                  return buildTermsAggs(
+                    esField.getSearchFieldName(), esField, searchRequest, facetParam);
+                }
+
+                return buildTermsAggs(
+                    esField.getSearchFieldName(), esFieldToUse, searchRequest, facetParam);
+              } else {
+                return buildTermsAggs(
                   esField.getSearchFieldName(), esField, searchRequest, facetParam);
+              }
             })
         .collect(Collectors.toList());
+  }
+
+  static Map<GbifTerm, String> rankToField = Map.of(
+    GbifTerm.speciesKey, "species",
+    GbifTerm.subgenusKey, "subgenus",
+    GbifTerm.genusKey, "genus",
+    GbifTerm.familyKey, "family",
+    GbifTerm.orderKey, "order",
+    GbifTerm.classKey, "class",
+    GbifTerm.phylumKey, "phylum",
+    GbifTerm.kingdomKey, "kingdom"
+  );
+
+
+  private boolean isTaxonomic(OccurrenceSearchParameter param) {
+    return param == OccurrenceSearchParameter.KINGDOM_KEY
+        || param == OccurrenceSearchParameter.PHYLUM_KEY
+        || param == OccurrenceSearchParameter.CLASS_KEY
+        || param == OccurrenceSearchParameter.ORDER_KEY
+        || param == OccurrenceSearchParameter.FAMILY_KEY
+        || param == OccurrenceSearchParameter.GENUS_KEY
+        || param == OccurrenceSearchParameter.SUBGENUS_KEY
+        || param == OccurrenceSearchParameter.SPECIES_KEY
+        || param == OccurrenceSearchParameter.TAXON_KEY;
   }
 
   private ChildrenAggregationBuilder getChildrenAggregationBuilder(
@@ -570,13 +609,15 @@ public class EsSearchRequestBuilder {
       EsField esField,
       OccurrenceSearchRequest searchRequest,
       OccurrenceSearchParameter facetParam) {
+    String fieldName = searchRequest.isMatchCase() ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+    return buildTermsAggs(aggName, fieldName, searchRequest, facetParam);
+  }
+
+  private static TermsAggregationBuilder buildTermsAggs(String aggName, String fieldName, OccurrenceSearchRequest searchRequest, OccurrenceSearchParameter facetParam ) {
     // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
         AggregationBuilders.terms(aggName)
-            .field(
-                searchRequest.isMatchCase()
-                    ? esField.getVerbatimFieldName()
-                    : esField.getExactMatchFieldName());
+            .field(fieldName);
 
     // min count
     Optional.ofNullable(searchRequest.getFacetMinCount()).ifPresent(termsAggsBuilder::minDocCount);
@@ -584,7 +625,7 @@ public class EsSearchRequestBuilder {
     // aggs size
     int size =
         calculateAggsSize(
-            facetParam,
+          facetParam,
             extractFacetOffset(searchRequest, facetParam),
             extractFacetLimit(searchRequest, facetParam));
     termsAggsBuilder.size(size);
@@ -672,6 +713,9 @@ public class EsSearchRequestBuilder {
         } else {
           queries.add(buildRangeQuery(esField, value));
         }
+        continue;
+      } else if (esField.getTerm().equals(GbifTerm.checklistKey)) {
+        queries.add(QueryBuilders.existsQuery(esField.getExactMatchFieldName() + "."  + value));
         continue;
       }
 

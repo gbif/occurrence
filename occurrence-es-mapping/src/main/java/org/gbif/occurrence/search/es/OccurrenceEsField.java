@@ -120,8 +120,10 @@ public enum OccurrenceEsField implements EsField {
 
   CLASSIFICATIONS(new BaseEsField("classifications", null)),
 
-  //Taxonomic classification
-  CHECKLIST_KEY(new BaseEsField("classifications.datasetKey", GbifTerm.checklistKey)),
+
+  CHECKLIST_KEY(new BaseEsField("classifications", GbifTerm.checklistKey)),
+
+  // Legacy Taxonomic classification - these mappings are not used if checklistKey is specified
   USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
   TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
   TAXON_RANK(new BaseEsField("gbifClassification.usage.rank", DwcTerm.taxonRank)),

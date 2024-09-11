@@ -21,6 +21,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -777,4 +780,39 @@ public class OccurrenceEsSearchRequestBuilderTest {
         .get(VALUE)
         .asDouble());
   }
+
+  @Test
+  public void checklistKeyTest() throws Exception{
+
+    Map<OccurrenceSearchParameter, Set<String>> params = new java.util.HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
+    QueryBuilder query =  esSearchRequestBuilder.buildQuery(params, null, false)
+      .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+  }
+
+  @Test
+  public void checklistKeyTaxonKeyTest()  throws Exception{
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.addParameter(OccurrenceSearchParameter.TAXON_KEY, "urn:lsid:marinespecies.org:taxname:1633955");
+    QueryBuilder query =  esSearchRequestBuilder.buildQueryNode(searchRequest)
+      .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+  }
+
+  @Test
+  public void checklistKeyHigherGenusKeyTest() {
+
+
+
+
+
+
+  }
+
 }

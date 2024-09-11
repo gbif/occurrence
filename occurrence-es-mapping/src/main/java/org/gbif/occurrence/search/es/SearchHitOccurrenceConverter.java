@@ -406,26 +406,32 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   }
 
   private void setClassifications(SearchHit hit, Occurrence occ) {
-//    occurrenceBaseEsFieldMapper.getEsField()
 
-    getObjectsListValue(hit, "classifications")
+    getMapValue(hit, "classifications")
       .ifPresent(
-        classifications -> Optional.of(classifications.stream().map(m -> {
+        classifications -> Optional.of(classifications.entrySet().stream().map(m -> {
+
+            String datasetKey = m.getKey();
+            Map<String, Object> value = (Map<String, Object>) m.getValue();
+
             Classification cl = new Classification();
-            cl.setDatasetKey((String) m.get("datasetKey"));
+            cl.setDatasetKey(datasetKey);
+
             //set the usage
-            Map<String, String> usage = (Map<String, String>) m.get("usage");
-            cl.setUsage(new RankedName((String) usage.get("key"), (String) usage.get("name"), usage.get("rank")));
+            Map<String, String> usage = (Map<String, String>) value.get("usage");
+            cl.setUsage(new RankedName(usage.get("key"), usage.get("name"), usage.get("rank")));
 
             //set the accepted usage
-            Map<String, String> acceptedusage = (Map<String, String>) m.get("acceptedUsage");
+            Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
             Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"))));
 
             //set the classification
-            List<Map<String, String>> tree = (List<Map<String, String>>) m.get("classification");
+            Map<String, String> tree = (Map<String, String>) value.get("classification");
+            Map<String, String> treeKeys = (Map<String, String>) value.get("classificationKeys");
+
             cl.setClassification(
-              tree.stream()
-                .map(e -> new RankedName((String) e.get("key"), (String) e.get("name"),  e.get("rank")))
+              treeKeys.entrySet().stream()
+                .map(entry -> new RankedName((String) entry.getValue(), (String) tree.get(entry.getKey()), entry.getKey()))
                 .collect(Collectors.toList()));
             return cl;
           }).collect(Collectors.toList())).ifPresent(occ::setClassifications));
