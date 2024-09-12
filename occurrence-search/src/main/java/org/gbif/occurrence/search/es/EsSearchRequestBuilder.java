@@ -714,9 +714,6 @@ public class EsSearchRequestBuilder {
           queries.add(buildRangeQuery(esField, value));
         }
         continue;
-      } else if (esField.getTerm().equals(GbifTerm.checklistKey)) {
-        queries.add(QueryBuilders.existsQuery(esField.getExactMatchFieldName() + "."  + value));
-        continue;
       }
 
       parsedValues.add(parseParamValue(value, param));
