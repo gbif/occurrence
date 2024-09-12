@@ -419,19 +419,21 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
 
             //set the usage
             Map<String, String> usage = (Map<String, String>) value.get("usage");
-            cl.setUsage(new RankedName(usage.get("key"), usage.get("name"), usage.get("rank")));
+            cl.setUsage(new RankedName(usage.get("key"), usage.get("name"), usage.get("rank"), usage.get("authorship")));
 
             //set the accepted usage
             Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
-            Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"))));
+            Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"), au.get("authorship"))));
 
             //set the classification
             Map<String, String> tree = (Map<String, String>) value.get("classification");
             Map<String, String> treeKeys = (Map<String, String>) value.get("classificationKeys");
 
+            cl.setIucnRedListCategory((String) value.get("iucnRedListCategory"));
+
             cl.setClassification(
               treeKeys.entrySet().stream()
-                .map(entry -> new RankedName((String) entry.getValue(), (String) tree.get(entry.getKey()), entry.getKey()))
+                .map(entry -> new RankedName((String) entry.getValue(), (String) tree.get(entry.getKey()), entry.getKey(), null))
                 .collect(Collectors.toList()));
             return cl;
           }).collect(Collectors.toList())).ifPresent(occ::setClassifications));

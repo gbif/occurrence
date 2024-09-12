@@ -145,7 +145,7 @@ public enum OccurrenceEsField implements EsField {
   SPECIES_KEY(new BaseEsField("gbifClassification.speciesKey", GbifTerm.speciesKey)),
   SPECIES(new BaseEsField("gbifClassification.species", GbifTerm.species)),
   SCIENTIFIC_NAME(new BaseEsField("gbifClassification.usage.name", DwcTerm.scientificName)),
-  SCIENTIFIC_NAME_AUTHORSHIP(new BaseEsField("gbifClassification.usage.author", DwcTerm.scientificNameAuthorship)),
+  SCIENTIFIC_NAME_AUTHORSHIP(new BaseEsField("gbifClassification.usage.authorship", DwcTerm.scientificNameAuthorship)),
   SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet)),
   INFRA_SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
   GENERIC_NAME(new BaseEsField("gbifClassification.usageParsedName.genericName", DwcTerm.genericName)),
