@@ -229,7 +229,7 @@ public enum OccurrenceEsField implements EsField {
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
-  SEX(new BaseEsField("sex", DwcTerm.sex)),
+  SEX(new BaseEsField("sex.lineage", "sex.concept", DwcTerm.sex)),
   IDENTIFIER(new BaseEsField("identifier", DcTerm.identifier)),
   INDIVIDUAL_COUNT(new BaseEsField("individualCount", DwcTerm.individualCount)),
   RELATION(new BaseEsField("relation", DcTerm.relation)),
