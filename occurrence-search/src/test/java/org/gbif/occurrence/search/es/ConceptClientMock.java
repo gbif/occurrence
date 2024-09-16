@@ -1,6 +1,7 @@
 package org.gbif.occurrence.search.es;
 
 import java.util.List;
+import java.util.Map;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.vocabulary.api.AddTagAction;
@@ -16,6 +17,47 @@ import org.gbif.vocabulary.model.Tag;
 import org.gbif.vocabulary.model.search.KeyNameResult;
 
 public class ConceptClientMock implements ConceptClient {
+
+  private static final List<Tag> CENOZOIC_TAGS =
+      List.of(Tag.of("rank: Era"), Tag.of("startAge: 66.0"), Tag.of("endAge: 0"));
+  private static final List<Tag> MESOZOIC_TAGS =
+      List.of(Tag.of("rank: Era"), Tag.of("startAge: 251.902"), Tag.of("endAge: 66.0"));
+  private static final List<Tag> PALEOZOIC_TAGS =
+      List.of(Tag.of("rank: Era"), Tag.of("startAge: 538.8"), Tag.of("endAge: 251.902"));
+  private static final List<Tag> NEOGENE_TAGS =
+      List.of(Tag.of("rank: Period"), Tag.of("startAge: 23.03"), Tag.of("endAge: 2.58"));
+  private static final List<Tag> QUATERNARY_TAGS =
+      List.of(Tag.of("rank: Period"), Tag.of("startAge: 2.58"), Tag.of("endAge: 0"));
+  private static final List<Tag> MIOCENE_TAGS =
+      List.of(Tag.of("rank: Epoch"), Tag.of("startAge: 23.03"), Tag.of("endAge: 5.333"));
+  private static final List<Tag> PLIOCENE_TAGS =
+      List.of(Tag.of("rank: Epoch"), Tag.of("startAge: 5.333"), Tag.of("endAge: 2.58"));
+  private static final List<Tag> BURDIGALIAN_TAGS =
+      List.of(Tag.of("rank: Age"), Tag.of("startAge: 20.44"), Tag.of("endAge: 15.98"));
+  private static final List<Tag> ZANCLEAN_TAGS =
+      List.of(Tag.of("rank: Age"), Tag.of("startAge: 5.333"), Tag.of("endAge: 3.600"));
+
+  private static final Map<String, List<Tag>> TAGS_MAP =
+      Map.of(
+          "cenozoic",
+          CENOZOIC_TAGS,
+          "mesozoic",
+          MESOZOIC_TAGS,
+          "paleozoic",
+          PALEOZOIC_TAGS,
+          "neogene",
+          NEOGENE_TAGS,
+          "quaternary",
+          QUATERNARY_TAGS,
+          "miocene",
+          MIOCENE_TAGS,
+          "pliocene",
+          PLIOCENE_TAGS,
+          "burdigalian",
+          BURDIGALIAN_TAGS,
+          "zanclean",
+          ZANCLEAN_TAGS);
+
   @Override
   public PagingResponse<ConceptView> listConcepts(String s, ConceptListParams conceptListParams) {
     return null;
@@ -23,10 +65,7 @@ public class ConceptClientMock implements ConceptClient {
 
   @Override
   public ConceptView get(String vocabularyName, String conceptName, boolean b, boolean b1) {
-    Concept concept = new Concept();
-    concept.setName("Test");
-    concept.getTags().add(Tag.of("startAge: 200.2"));
-    return new ConceptView(concept);
+    return getConcept(conceptName);
   }
 
   @Override
@@ -132,10 +171,7 @@ public class ConceptClientMock implements ConceptClient {
 
   @Override
   public ConceptView getFromLatestRelease(String s, String s1, boolean b, boolean b1) {
-    Concept concept = new Concept();
-    concept.setName("Test");
-    concept.getTags().add(Tag.of("startAge: 200.2"));
-    return new ConceptView(concept);
+    return getConcept(s1);
   }
 
   @Override
@@ -164,5 +200,16 @@ public class ConceptClientMock implements ConceptClient {
   @Override
   public List<KeyNameResult> suggestLatestRelease(String s, SuggestParams suggestParams) {
     return null;
+  }
+
+  private ConceptView getConcept(String s) {
+    if (!TAGS_MAP.containsKey(s)) {
+      return null;
+    }
+
+    Concept concept = new Concept();
+    concept.setName(s.toLowerCase());
+    concept.setTags(TAGS_MAP.getOrDefault(concept.getName(), null));
+    return new ConceptView(concept);
   }
 }

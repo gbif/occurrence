@@ -632,7 +632,7 @@ public class EsSearchRequestBuilder {
       // range.
       // i.e. Q:eventDate=1980 will match rec:eventDate=1980-02, but not
       // rec:eventDate=1980-10-01/1982-02-02.
-      builder.relation("within");
+      builder.relation(EsQueryUtils.WITHIN);
     } else {
       String[] values = value.split(RANGE_SEPARATOR);
       if (!RANGE_WILDCARD.equals(values[0])) {
@@ -640,6 +640,12 @@ public class EsSearchRequestBuilder {
       }
       if (!RANGE_WILDCARD.equals(values[1])) {
         builder.lte(values[1]);
+      }
+
+      if (esField
+          .getSearchFieldName()
+          .equals(OccurrenceEsField.GEOLOGICAL_TIME.getSearchFieldName())) {
+        builder.relation(EsQueryUtils.WITHIN);
       }
     }
 
