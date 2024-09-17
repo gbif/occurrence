@@ -19,6 +19,7 @@ import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
 import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
+import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
 
 /**
  * Service is to be called to update the status of a download or to work with the
@@ -41,10 +44,6 @@ public class DownloadUpdaterService {
     this.occurrenceDownloadClient = occurrenceDownloadClient;
   }
 
-  public Download getDownload(String downloadKey) {
-    return occurrenceDownloadClient.get(downloadKey);
-  }
-
   public boolean isStatusFinished(String downloadKey) {
     Download download = occurrenceDownloadClient.get(downloadKey);
     return FINISH_STATUSES.contains(download.getStatus());
@@ -52,7 +51,7 @@ public class DownloadUpdaterService {
 
   public List<Download> getExecutingDownloads() {
     return occurrenceDownloadClient
-        .list(new PagingRequest(0, 48), EXECUTING_STATUSES, null)
+        .list(new PagingRequest(0, 48), Set.of(RUNNING, SUSPENDED), null)
         .getResults();
   }
 

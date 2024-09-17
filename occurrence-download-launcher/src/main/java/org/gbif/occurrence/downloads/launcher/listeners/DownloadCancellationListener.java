@@ -50,7 +50,7 @@ public class DownloadCancellationListener extends AbstractMessageCallback<Downlo
       log.info("Received message {}", downloadsMessage);
       String downloadKey = downloadsMessage.getDownloadKey();
 
-      JobStatus jobStatus = jobManager.cancel(downloadKey);
+      JobStatus jobStatus = jobManager.cancelRun(downloadKey);
       lockerService.unlock(downloadKey);
       downloadUpdaterService.markAsCancelled(downloadKey);
 

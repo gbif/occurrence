@@ -22,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class DownloadCancellationListenerTest {
+class DownloadCancellationListenerTest {
 
   private DownloadLauncher jobManager;
   private DownloadUpdaterService downloadUpdaterService;
@@ -38,15 +38,15 @@ public class DownloadCancellationListenerTest {
   }
 
   @Test
-  public void testHandleMessage() {
+  void testHandleMessage() {
     String downloadKey = "test-key";
     DownloadCancelMessage downloadCancelMessage = new DownloadCancelMessage(downloadKey);
 
-    Mockito.when(jobManager.cancel(downloadKey)).thenReturn(DownloadLauncher.JobStatus.CANCELLED);
+    Mockito.when(jobManager.cancelRun(downloadKey)).thenReturn(DownloadLauncher.JobStatus.CANCELLED);
 
     listener.handleMessage(downloadCancelMessage);
 
-    Mockito.verify(jobManager).cancel(downloadKey);
+    Mockito.verify(jobManager).cancelRun(downloadKey);
     Mockito.verify(lockerService).unlock(downloadKey);
     Mockito.verify(downloadUpdaterService).markAsCancelled(downloadKey);
   }
