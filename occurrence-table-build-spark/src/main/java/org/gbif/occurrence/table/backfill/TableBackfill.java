@@ -33,9 +33,11 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+
 @AllArgsConstructor
 @Slf4j
 public class TableBackfill {
+
   private final TableBackfillConfiguration configuration;
 
   private final String jobId = UUID.randomUUID().toString();
@@ -56,10 +58,13 @@ public class TableBackfill {
   @Data
   @Builder
   public static class Command {
+
     private final Action action;
     private final Set<Option> options;
+    public static Command parse(String[] args) {
+      String actionArg = args[0];
+      String optionsArg = args[1];
 
-    public static Command parse(String actionArg, String optionsArg) {
       Action action = Action.valueOf(actionArg.toUpperCase());
       Set<Option> options =
           Arrays.stream(optionsArg.split(","))
@@ -74,9 +79,16 @@ public class TableBackfill {
     TableBackfillConfiguration tableBackfillConfiguration =
         TableBackfillConfiguration.loadFromFile(args[0]);
 
+    Command command =  Command.parse(args);
+    String datasetKey = args.length >= 3? args[2] : null;
+    String crawlAttempt = args.length >= 4? args[3] : null;
+
+    tableBackfillConfiguration.setDatasetKey(datasetKey);
+    tableBackfillConfiguration.setCrawlAttempt(crawlAttempt);
+
     TableBackfill backfill = new TableBackfill(tableBackfillConfiguration);
 
-    backfill.run(Command.parse(args[1], args[2]));
+    backfill.run(command);
   }
 
   private SparkSession createSparkSession() {
@@ -113,7 +125,7 @@ public class TableBackfill {
 
   private void executeCreateAction(Command command, SparkSession spark) {
     HdfsSnapshotCoordinator snapshotAction =
-        new HdfsSnapshotCoordinator(configuration, spark.sparkContext().hadoopConfiguration());
+        new HdfsSnapshotCoordinator(configuration, command, spark.sparkContext().hadoopConfiguration());
     try {
       log.info("Using {} as snapshot name of source directory", jobId);
       snapshotAction.createHdfsSnapshot(jobId);

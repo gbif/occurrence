@@ -14,6 +14,8 @@
 package org.gbif.occurrence.table.backfill;
 
 
+import java.nio.file.Paths;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
@@ -26,8 +28,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.file.Paths;
-
 /**
  * Oozie Action to take a snapshot of the HDFS View directory.
  * It uses a Zookeeper/Curator barrier to synchronize the access to that directory.
@@ -38,6 +38,8 @@ import java.nio.file.Paths;
 public class HdfsSnapshotCoordinator {
 
   private final TableBackfillConfiguration configuration;
+
+  private final TableBackfill.Command command;
 
   private final Configuration hadoopConfiguration;
 
@@ -55,6 +57,18 @@ public class HdfsSnapshotCoordinator {
       .build();
   }
 
+  private Path getSourceSnapshotPath() {
+    return getSourceSnapshotPath(configuration);
+  }
+
+  private static Path getSourceSnapshotPath(TableBackfillConfiguration configuration) {
+    if(configuration.getDatasetKey() == null) {
+      return new Path(configuration.getMergedTableDirectory(), configuration.getCoreName().toLowerCase());
+    }
+
+    return new Path(configuration.getIngestDirectory(), configuration.getDatasetKey() +  '/' + configuration.getCrawlAttempt() + configuration.getCoreName().toLowerCase() + "_table/");
+  }
+
   /**
    * Performs the START/SET or END/REMOVE on a barrier based on the action.
    * @param directory to snapshot
@@ -70,7 +84,7 @@ public class HdfsSnapshotCoordinator {
       barrier.waitOnBarrier();
       log.info("Setting barrier {}", lockPath);
       barrier.setBarrier();
-      Path snapshotPath = fs.createSnapshot(new Path(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase()), snapshotName);
+      Path snapshotPath = fs.createSnapshot(getSourceSnapshotPath(), snapshotName);
       log.info("Snapshot created {}", snapshotPath);
       log.info("Removing barrier {}", lockPath);
       barrier.removeBarrier();
@@ -104,18 +118,16 @@ public class HdfsSnapshotCoordinator {
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
       log.info("Removing barrier {}", lockPath);
       barrier.removeBarrier();
-      fs.deleteSnapshot(new Path(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase()), snapshotName);
+      fs.deleteSnapshot(getSourceSnapshotPath(), snapshotName);
     } catch (Exception ex) {
       log.error("Error handling barrier {}", configuration);
       throw new RuntimeException(ex);
     }
   }
 
-  public static String getSnapshotPath(TableBackfillConfiguration configuration,  String dataDirectory, String jobId) {
+  public static String getSnapshotPath(TableBackfillConfiguration configuration, String dataDirectory, String jobId) {
     String path =
-      Paths.get(
-          configuration.getSourceDirectory(),
-          configuration.getCoreName().toLowerCase(),
+      Paths.get(getSourceSnapshotPath(configuration).toString(),
           ".snapshot",
           jobId,
           dataDirectory.toLowerCase())

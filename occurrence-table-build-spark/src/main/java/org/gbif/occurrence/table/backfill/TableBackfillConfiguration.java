@@ -58,7 +58,9 @@ public class TableBackfillConfiguration {
 
   @Nullable private Integer tablePartitions;
 
-  private final String sourceDirectory;
+  private final String mergedTableDirectory;
+
+  private final String ingestDirectory;
 
   private final boolean usePartitionedTable;
 
@@ -73,6 +75,8 @@ public class TableBackfillConfiguration {
   private String prefixTable;
 
   private String datasetKey;
+
+  private String crawlAttempt;
 
   public String getTableNameWithPrefix() {
     String datasetKeyPostFix = Strings.isNullOrEmpty(datasetKey)? "" : '_' + datasetKey;
