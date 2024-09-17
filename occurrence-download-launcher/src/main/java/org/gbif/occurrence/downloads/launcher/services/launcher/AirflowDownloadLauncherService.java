@@ -170,25 +170,36 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     JsonNode jsonStatus = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::getRun).apply(dagId);
     JsonNode state = jsonStatus.get("state");
 
+    Status updatedStatus = null;
+
     // State can be null if DAG was killed/cancelled
     if (state == null) {
-      return Optional.of(Status.CANCELLED);
+      updatedStatus = Status.CANCELLED;
+    } else {
+      String status = state.asText();
+
+      if ("queued".equalsIgnoreCase(status)) {
+        updatedStatus = Status.PREPARING;
+      }
+      if ("running".equalsIgnoreCase(status)
+          || "rescheduled".equalsIgnoreCase(status)
+          || "retry".equalsIgnoreCase(status)) {
+        updatedStatus = Status.RUNNING;
+      }
+      if ("success".equalsIgnoreCase(status)) {
+        updatedStatus = Status.SUCCEEDED;
+      }
+      if ("failed".equalsIgnoreCase(status)) {
+        updatedStatus = Status.FAILED;
+      }
     }
 
-    String status = state.asText();
-    if ("queued".equalsIgnoreCase(status)) {
-      return Optional.of(Status.PREPARING);
-    }
-    if ("running".equalsIgnoreCase(status) || "rescheduled".equalsIgnoreCase(status) || "retry".equalsIgnoreCase(status)) {
-      return Optional.of(Status.RUNNING);
-    }
-    if ("success".equalsIgnoreCase(status)) {
-      return Optional.of(Status.SUCCEEDED);
-    }
-    if ("failed".equalsIgnoreCase(status)) {
-      return Optional.of(Status.FAILED);
-    }
-    return Optional.empty();
+    log.info(
+        "Downloads key: {}, updated status {}, airflow response: {}",
+        downloadKey,
+        updatedStatus,
+        jsonStatus);
+    return Optional.ofNullable(updatedStatus);
   }
 
   @Override
@@ -199,10 +210,10 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
       Optional<Status> status = getStatusByName(sparkAppName);
       if (status.isPresent()) {
         download.setStatus(status.get());
+        result.add(download);
       } else {
         log.warn("Can't find spark application status for the download {}", sparkAppName);
       }
-      result.add(download);
     }
     return result;
   }
