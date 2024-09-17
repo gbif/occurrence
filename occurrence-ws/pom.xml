@@ -172,20 +172,20 @@
       	</exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common-ws</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>commons-logging</artifactId>
-          <groupId>commons-logging</groupId>
-        </exclusion>
-        <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.gbif</groupId>-->
+<!--      <artifactId>gbif-common-ws</artifactId>-->
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <artifactId>commons-logging</artifactId>-->
+<!--          <groupId>commons-logging</groupId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--        	<groupId>com.google.guava</groupId>-->
+<!--        	<artifactId>guava</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>

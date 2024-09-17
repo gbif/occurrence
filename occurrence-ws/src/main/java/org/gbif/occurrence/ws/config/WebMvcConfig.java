@@ -18,7 +18,6 @@ import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
-import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
 
 import java.util.ArrayList;
@@ -29,6 +28,7 @@ import java.util.Optional;
 
 import javax.validation.constraints.NotNull;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
@@ -57,11 +57,14 @@ import com.google.common.collect.Lists;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+  @Autowired
+  protected ChecklistAwareSearchRequestHandlerMethodArgumentResolver resolver;
+
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
     argumentResolvers.add(new PageableHandlerMethodArgumentResolver());
     argumentResolvers.add(new CountryHandlerMethodArgumentResolver());
-    argumentResolvers.add(new OccurrenceSearchRequestHandlerMethodArgumentResolver());
+    argumentResolvers.add(resolver);
   }
 
   @Override

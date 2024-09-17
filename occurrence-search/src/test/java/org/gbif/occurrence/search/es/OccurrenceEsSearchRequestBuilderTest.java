@@ -45,7 +45,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
   private static final String INDEX = "index";
 
   private final EsSearchRequestBuilder esSearchRequestBuilder =
-      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), new ConceptClientMock());
+      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), new ConceptClientMock(), null);
 
   @Test
   public void termQueryTest() throws IOException {

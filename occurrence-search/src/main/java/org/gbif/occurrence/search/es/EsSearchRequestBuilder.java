@@ -38,7 +38,6 @@ import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
@@ -77,8 +76,8 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -87,6 +86,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.springframework.util.StringUtils;
 
 public class EsSearchRequestBuilder {
 
@@ -98,11 +98,13 @@ public class EsSearchRequestBuilder {
 
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final ConceptClient conceptClient;
+  private final NameUsageMatchServiceTriage triage;
 
   public EsSearchRequestBuilder(
-      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient) {
+      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient, NameUsageMatchServiceTriage triage) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
     this.conceptClient = conceptClient;
+    this.triage = triage;
   }
 
   public SearchRequest buildSearchRequest(OccurrenceSearchRequest searchRequest, String index) {
@@ -196,7 +198,7 @@ public class EsSearchRequestBuilder {
                                             OccurrenceSearchParameter taxonParam,
                                             String taxonField) {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY) && params.containsKey(taxonParam)) {
-      // Build the nested query
+      // Build the query
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.termQuery(taxonField, params.get(taxonParam).iterator().next()));
 
@@ -211,23 +213,17 @@ public class EsSearchRequestBuilder {
       String checklistKey,
       String rank,
       BoolQueryBuilder bool,
-      Map<OccurrenceSearchParameter, Set<String>> params,
-      OccurrenceSearchParameter taxonParam) {
+      Map<OccurrenceSearchParameter, Set<String>> params) {
 
-    if (StringUtils.isNoneBlank(checklistKey) && params.containsKey(taxonParam)) {
-      // Build the nested query
+    OccurrenceSearchParameter taxonParam = new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class);
+    if (!StringUtils.isEmpty(checklistKey) && params.containsKey(taxonParam)) {
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.termQuery("classifications."
-          + checklistKey + ".classificationKeys." + rank.toUpperCase() + ".keyword", params.get(taxonParam).iterator().next()));
+          + checklistKey + ".taxonKeys.keyword", params.get(taxonParam).iterator().next()));
       params.remove(taxonParam);
       bool.filter().add(checklistQuery);
     }
   }
-
-  private String getFieldForChecklistKey(String fieldName, String checklistKey) {
-    return "classifications." + checklistKey + "." + fieldName;
-  }
-
 
   @VisibleForTesting
   Optional<QueryBuilder> buildQuery(
@@ -297,20 +293,21 @@ public class EsSearchRequestBuilder {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
       String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
 
-      // key queries
+      // FIXME taxon key queries - check if we need to search
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.TAXON_KEY,
         "classifications." + checklistKey + ".taxonKeys.keyword");
+
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY,
         "classifications." + checklistKey + ".acceptedUsage.key.keyword");
 
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.SPECIES.toString(), bool, params, OccurrenceSearchParameter.SPECIES_KEY);
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.SUBGENUS.toString(), bool, params, OccurrenceSearchParameter.SUBGENUS_KEY);
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.GENUS.toString(), bool, params, OccurrenceSearchParameter.GENUS_KEY);
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.FAMILY.toString(), bool, params, OccurrenceSearchParameter.FAMILY_KEY);
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.ORDER.toString(), bool, params, OccurrenceSearchParameter.ORDER_KEY);
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.CLASS.toString(), bool, params, OccurrenceSearchParameter.CLASS_KEY);
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.PHYLUM.toString(), bool, params, OccurrenceSearchParameter.PHYLUM_KEY);
-      addChecklistKeyTaxonKeyQuery(checklistKey, Rank.KINGDOM.toString(), bool, params, OccurrenceSearchParameter.KINGDOM_KEY);
+      triage.getChecklistRanks(checklistKey).forEach(rank -> {
+        addChecklistKeyTaxonKeyQuery(
+          checklistKey,
+          rank,
+          bool,
+          params
+        );
+      });
     }
   }
 
@@ -328,7 +325,7 @@ public class EsSearchRequestBuilder {
     }
 
     EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
-        QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
+      QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
@@ -337,6 +334,7 @@ public class EsSearchRequestBuilder {
   @VisibleForTesting
   static GroupedParams groupParameters(OccurrenceSearchRequest searchRequest) {
     GroupedParams groupedParams = new GroupedParams();
+
     if (!searchRequest.isMultiSelectFacets()
         || searchRequest.getFacets() == null
         || searchRequest.getFacets().isEmpty()) {
@@ -511,31 +509,44 @@ public class EsSearchRequestBuilder {
         .collect(Collectors.toList());
   }
 
+  boolean isDynamicRankParam(OccurrenceSearchRequest searchRequest, OccurrenceSearchParameter p){
+
+    if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
+      String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+      for (String rank: triage.getChecklistRanks(checklistKey)){
+        if (p.equals(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class))) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  static boolean isTaxonDepthParam(OccurrenceSearchParameter p){
+    return p.name().startsWith("TAXON_DEPTH_");
+  }
+
   private List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
     final AtomicReference<GroupedParams> groupedParams = new AtomicReference<>();
     return searchRequest.getFacets().stream()
-        .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null)
+        .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null || isDynamicRankParam(searchRequest, p)
+          || isTaxonDepthParam(p))
         .map(
             facetParam -> {
 
               EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
-
-              if (esField.isChildField()) {
+              if (esField != null && esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
                 }
-
                 return getChildrenAggregationBuilder(
                     searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
               }
 
               // if checklistKey is present, we need to substitute the field name
-              if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
-                  && isTaxonomic(facetParam)
-              ) {
+              if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY) && isTaxonomic(facetParam)) {
 
                 String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
-
                 String esFieldToUse = null;
 
                 if (esField.getTerm().equals(GbifTerm.taxonKey)){
@@ -550,6 +561,28 @@ public class EsSearchRequestBuilder {
 
                 return buildTermsAggs(
                     esField.getSearchFieldName(), esFieldToUse, searchRequest, facetParam);
+              } else if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
+                && isDynamicRankParam(searchRequest, facetParam)) {
+                  String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+                  String rank = facetParam.name().replace("_KEY", "");
+                  String esFieldToUse = "classifications." + checklistKey + ".classificationKeys." + rank.toUpperCase() + ".keyword";
+                  return buildTermsAggs(
+                    facetParam.name(),
+                    esFieldToUse,
+                    searchRequest,
+                    facetParam);
+              } else if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
+                && isTaxonDepthParam(facetParam)) {
+
+                String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+                String depth = facetParam.name().replace("TAXON_DEPTH_", "");
+                String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth + ".keyword";
+                return buildTermsAggs(
+                  facetParam.name(),
+                  esFieldToUse,
+                  searchRequest,
+                  facetParam);
+
               } else {
                 return buildTermsAggs(
                   esField.getSearchFieldName(), esField, searchRequest, facetParam);
@@ -571,14 +604,7 @@ public class EsSearchRequestBuilder {
 
 
   private boolean isTaxonomic(OccurrenceSearchParameter param) {
-    return param == OccurrenceSearchParameter.KINGDOM_KEY
-        || param == OccurrenceSearchParameter.PHYLUM_KEY
-        || param == OccurrenceSearchParameter.CLASS_KEY
-        || param == OccurrenceSearchParameter.ORDER_KEY
-        || param == OccurrenceSearchParameter.FAMILY_KEY
-        || param == OccurrenceSearchParameter.GENUS_KEY
-        || param == OccurrenceSearchParameter.SUBGENUS_KEY
-        || param == OccurrenceSearchParameter.SPECIES_KEY
+    return param == OccurrenceSearchParameter.ACCEPTED_TAXON_KEY
         || param == OccurrenceSearchParameter.TAXON_KEY;
   }
 
@@ -625,7 +651,7 @@ public class EsSearchRequestBuilder {
     // aggs size
     int size =
         calculateAggsSize(
-          facetParam,
+            facetParam,
             extractFacetOffset(searchRequest, facetParam),
             extractFacetLimit(searchRequest, facetParam));
     termsAggsBuilder.size(size);
@@ -692,11 +718,11 @@ public class EsSearchRequestBuilder {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
         if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
           queries.add(
-              QueryBuilders.boolQuery()
-                  .should(buildRangeQuery(esField, value))
-                  .should(
-                      QueryBuilders.boolQuery()
-                          .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
+            QueryBuilders.boolQuery()
+              .should(buildRangeQuery(esField, value))
+              .should(
+                QueryBuilders.boolQuery()
+                  .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
         } else {
           queries.add(buildRangeQuery(esField, value));
         }

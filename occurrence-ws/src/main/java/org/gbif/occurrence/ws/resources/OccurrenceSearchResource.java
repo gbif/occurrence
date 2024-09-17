@@ -55,9 +55,11 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import lombok.SneakyThrows;
@@ -70,19 +72,9 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.api.vocabulary.Continent;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.api.vocabulary.GbifRegion;
-import org.gbif.api.vocabulary.License;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.api.vocabulary.OccurrenceStatus;
-import org.gbif.api.vocabulary.Sex;
-import org.gbif.api.vocabulary.TaxonomicStatus;
-import org.gbif.api.vocabulary.ThreatStatus;
-import org.gbif.api.vocabulary.TypeStatus;
+import org.gbif.api.vocabulary.*;
 import org.gbif.occurrence.search.SearchTermService;
+import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -125,16 +117,18 @@ public class OccurrenceSearchResource {
   private final SearchTermService searchTermService;
 
   private final EsSearchRequestBuilder esSearchRequestBuilder;
+  private final NameUsageMatchServiceTriage nameUsageMatchServiceTriage;
 
   @Autowired
   public OccurrenceSearchResource(
-      OccurrenceSearchService searchService,
-      SearchTermService searchTermService,
-      ConceptClient conceptClient) {
+    OccurrenceSearchService searchService,
+    SearchTermService searchTermService,
+    ConceptClient conceptClient, NameUsageMatchServiceTriage nameUsageMatchServiceTriage) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;
     this.esSearchRequestBuilder =
-        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), conceptClient);
+        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), conceptClient, nameUsageMatchServiceTriage);
+    this.nameUsageMatchServiceTriage = nameUsageMatchServiceTriage;
   }
 
   /**
@@ -1836,8 +1830,21 @@ public class OccurrenceSearchResource {
                                  @RequestParam(PARAM_LIMIT) @SuggestLimitParameter int limit) {
     LOG.debug("Executing term suggest/search, term {}, query {}, limit {}", term, query, limit);
     return
-      VocabularyUtils.lookup(term, OccurrenceSearchParameter.class)
+      OccurrenceSearchParameter.lookup(term)
         .map(parameter -> searchTermService.searchFieldTerms(query, parameter, limit))
         .orElseThrow(() -> new IllegalArgumentException("Search not supported for term " +  term));
+  }
+
+  @GetMapping("checklist/{checklistKey}/ranks")
+  @ResponseBody
+  public Collection<String> checklistRanks(@PathVariable("checklistKey") String checklistKey) {
+    return nameUsageMatchServiceTriage.getChecklistRanks(checklistKey);
+  }
+
+  @GetMapping("checklist/{checklistKey}/rankKeys")
+  @ResponseBody
+  public Collection<String> checklistRankKeys(@PathVariable("checklistKey") String checklistKey) {
+    return nameUsageMatchServiceTriage.getChecklistRanks(checklistKey)
+      .stream().map(rank -> rank + "_KEY").collect(Collectors.toList());
   }
 }

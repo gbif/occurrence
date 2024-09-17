@@ -45,7 +45,7 @@ class EsHeatmapRequestBuilder {
 
   EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient, null);
   }
 
   @VisibleForTesting

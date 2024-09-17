@@ -97,7 +97,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     this.nameUsageMatchingService = nameUsageMatchingService;
     eventEsFieldMapper = EventEsField.buildFieldMapper();
     occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient, null); ///FIXME
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true);
     this.esResponseParser = new EsResponseParser<>(eventEsFieldMapper, searchHitEventConverter);

@@ -407,36 +407,35 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
 
   private void setClassifications(SearchHit hit, Occurrence occ) {
 
-    getMapValue(hit, "classifications")
-      .ifPresent(
-        classifications -> Optional.of(classifications.entrySet().stream().map(m -> {
+    getMapValue(hit, "classifications").flatMap(classifications -> Optional.of(classifications.entrySet().stream().map(m -> {
 
-            String datasetKey = m.getKey();
-            Map<String, Object> value = (Map<String, Object>) m.getValue();
+      String datasetKey = m.getKey();
+      Map<String, Object> value = (Map<String, Object>) m.getValue();
 
-            Classification cl = new Classification();
-            cl.setDatasetKey(datasetKey);
+      Classification cl = new Classification();
+      cl.setDatasetKey(datasetKey);
 
-            //set the usage
-            Map<String, String> usage = (Map<String, String>) value.get("usage");
-            cl.setUsage(new RankedName(usage.get("key"), usage.get("name"), usage.get("rank"), usage.get("authorship")));
+      //set the usage
+      Map<String, String> usage = (Map<String, String>) value.get("usage");
+      cl.setUsage(new RankedName(usage.get("key"), usage.get("name"), usage.get("rank"), usage.get("authorship")));
 
-            //set the accepted usage
-            Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
-            Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"), au.get("authorship"))));
+      //set the accepted usage
+      Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
+      Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"), au.get("authorship"))));
 
-            //set the classification
-            Map<String, String> tree = (Map<String, String>) value.get("classification");
-            Map<String, String> treeKeys = (Map<String, String>) value.get("classificationKeys");
+      //set the classification
+      Map<String, String> tree = (Map<String, String>) value.get("classification");
+      Map<String, String> treeKeys = (Map<String, String>) value.get("classificationKeys");
 
-            cl.setIucnRedListCategory((String) value.get("iucnRedListCategory"));
+      cl.setIucnRedListCategory((String) value.get("iucnRedListCategory"));
 
-            cl.setClassification(
-              treeKeys.entrySet().stream()
-                .map(entry -> new RankedName((String) entry.getValue(), (String) tree.get(entry.getKey()), entry.getKey(), null))
-                .collect(Collectors.toList()));
-            return cl;
-          }).collect(Collectors.toList())).ifPresent(occ::setClassifications));
+      cl.setClassification(
+        treeKeys.entrySet().stream()
+          .map(entry -> new RankedName((String) entry.getValue(), (String) tree.get(entry.getKey()), entry.getKey(), null))
+          .collect(Collectors.toList())
+      );
+      return cl;
+    }).collect(Collectors.toList()))).ifPresent(occ::setClassifications);
   }
 
   private void setGrscicollFields(SearchHit hit, Occurrence occ) {

@@ -6,9 +6,8 @@ import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.springframework.stereotype.Service;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
 
 /**
  * Name usage match service triage.
@@ -49,6 +48,15 @@ public class NameUsageMatchServiceTriage {
     return Optional.ofNullable(serviceByChecklistKey.get(checklistKey))
       .map(service -> service.match(matchRequest))
       .orElseThrow(() -> new IllegalArgumentException("No service for checklist key " + checklistKey));
+  }
+
+  public Collection<String> getChecklistRanks(String checklistKey) {
+    if (checklistKey == null) {
+      return List.of();
+    }
+    return Optional.ofNullable(serviceByChecklistKey.get(checklistKey))
+      .orElseThrow(() -> new IllegalArgumentException("No service for checklist key " + checklistKey))
+      .getMetadata().getMainIndex().getNameUsageByRankCount().keySet();
   }
 
   /**

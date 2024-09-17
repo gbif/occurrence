@@ -127,16 +127,14 @@ public class OccurrenceHeatmapRequestProvider {
           .orElse(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
   }
 
-
   private static Optional<OccurrenceSearchParameter> findSearchParam(String name) {
     try {
-      return Optional.ofNullable((OccurrenceSearchParameter) VocabularyUtils.lookupEnum(name, OccurrenceSearchParameter.class));
+      return  OccurrenceSearchParameter.lookup(name);
     } catch (IllegalArgumentException e) {
       // we have all params here, not only the enum ones, so this is ok to end up here a few times
     }
     return Optional.empty();
   }
-
 
   /**
    * Removes all empty and null parameters from the list.
