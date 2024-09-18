@@ -145,7 +145,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         JsonNode response =
             Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::createRun)
                 .apply(getAirflowBody(download));
-        log.info("Response {}", response);
+        log.info("Create a run for: {}", response);
       } else if (status.get() == SUCCEEDED) {
         log.info("downloadKey {} is already has finished statuses", downloadKey);
         return JobStatus.FINISHED;
@@ -215,24 +215,22 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public List<Download> renewRunningDownloadsStatuses(List<Download> downloads) {
     List<Download> result = new ArrayList<>(downloads.size());
     for (Download download : downloads) {
-      String sparkAppName = normalize(download.getKey());
-      Optional<Status> status = getStatusByName(sparkAppName);
-      if (status.isPresent()) {
+      Optional<Status> status = getStatusByName(download.getKey());
+      if (status.isPresent() && download.getStatus() != status.get()) {
+        log.info(
+            "Update download {} status from {} to {}",
+            download.getKey(),
+            download.getStatus(),
+            status.get());
         download.setStatus(status.get());
         result.add(download);
-      } else {
-        log.warn("Can't find spark application status for the download {}", sparkAppName);
+      } else if (status.isEmpty()) {
+        log.warn("Can't find spark application status for the download {}", download.getKey());
+      } else if (download.getStatus() == status.get()) {
+        log.info("download key {} status didn't change", download.getKey());
       }
     }
     return result;
-  }
-
-  /**
-   * A lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'.
-   * Must start and end with an alphanumeric character and its max lentgh is 64 characters.
-   */
-  private static String normalize(String sparkAppName) {
-    return "download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");
   }
 
   private void asyncStatusCheck(String downloadKey) {

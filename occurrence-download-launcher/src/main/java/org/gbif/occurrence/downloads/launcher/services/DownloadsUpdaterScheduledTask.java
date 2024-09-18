@@ -47,14 +47,12 @@ public class DownloadsUpdaterScheduledTask {
 
   @Scheduled(cron = "${downloads.taskCron}")
   public void renewedDownloadsStatuses() {
-    log.info("Running scheduled checker...");
+    log.info("Running scheduled check");
     // Get list only of RUNNING or SUSPENDED jobs, because PREPARING can be in the queue
     List<Download> downloads = downloadUpdaterService.getExecutingDownloads();
 
-    log.info("Found running downloads - {}", downloads.size());
-
+    log.info("Found {} running downloads", downloads.size());
     if (!downloads.isEmpty()) {
-      log.info("Found {} running downloads", downloads.size());
       List<Download> renewedDownloads = jobManager.renewRunningDownloadsStatuses(downloads);
       renewedDownloads.forEach(
           download -> {
@@ -67,5 +65,7 @@ public class DownloadsUpdaterScheduledTask {
 
     // Print all locked downloads
     lockerService.printLocks();
+
+    log.info("Finihsed scheduled check");
   }
 }
