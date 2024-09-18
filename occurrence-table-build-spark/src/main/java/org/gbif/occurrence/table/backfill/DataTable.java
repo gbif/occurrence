@@ -69,13 +69,14 @@ public class DataTable {
   public DataTable createTableIfNotExists() {
     if (partitioned) {
       createPartitionedTableIfNotExists();
+    } else {
+      createParquetTableIfNotExists();
     }
-    createParquetTableIfNotExists();
     return this;
   }
 
   private void createParquetTableIfNotExists() {
-    spark.sql("CREATE TABLE IF NOT EXISTS" + tableName +
+    spark.sql("CREATE TABLE IF NOT EXISTS " + tableName +
               " (" + fields +") STORED AS PARQUET TBLPROPERTIES ('parquet.compression'='SNAPPY')");
   }
 
@@ -86,7 +87,7 @@ public class DataTable {
   }
 
   public void insertOverwriteFromAvro(ExternalAvroTable sourceAvroTable, String selectFields) {
-    if (sourceAvroTable.isSourceLocationEmpty(spark.sparkContext().hadoopConfiguration())) {
+    if (sourceAvroTable.isSourceLocationNotEmpty(spark.sparkContext().hadoopConfiguration())) {
       if (partitioned) {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }

@@ -15,10 +15,6 @@ package org.gbif.occurrence.table.backfill;
 
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import org.apache.spark.sql.SparkSession;
 
 import lombok.AllArgsConstructor;
@@ -49,31 +45,26 @@ public class ExtensionTablesBulkOperation {
           String extensionTableName = ExtensionTableBackfill.extensionTableName(coreName, extensionTable);
           String extensionAvroTableName = ExtensionTableBackfill.extensionAvroTableName(coreName, extensionTable);
           log.info("Deleting Extension Table {}", extensionTableName);
-          sparkSqlHelper.dropTable(prefix + extensionTableName);
+          sparkSqlHelper.dropTableIfExists(prefix + extensionTableName);
           sparkSqlHelper.dropTableIfExists(extensionAvroTableName);
         });
   }
 
   @SneakyThrows
   public void createExtensionTablesParallel(String jobId, TableBackfillConfiguration configuration) {
-    CountDownLatch doneSignal = new CountDownLatch(ExtensionTable.tableExtensions().size());
-    ExecutorService executor =
-      Executors.newFixedThreadPool(ExtensionTable.tableExtensions().size());
     ExtensionTable.tableExtensions()
       .forEach(
         extensionTable ->
-          executor.submit(
-                  () -> {
+
+
                     ExtensionTableBackfill.builder()
                       .jobId(jobId)
                       .configuration(configuration)
                       .extensionTable(extensionTable)
                       .spark(spark)
                       .build()
-                      .createTable();
-                    doneSignal.countDown();
-                  }));
-    doneSignal.await();
-    executor.shutdown();
+                      .createTable()
+
+                  );
   }
 }

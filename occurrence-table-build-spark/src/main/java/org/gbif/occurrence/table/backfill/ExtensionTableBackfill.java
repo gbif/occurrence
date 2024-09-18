@@ -45,17 +45,20 @@ public class ExtensionTableBackfill {
     String select =
       extensionTable.getFields().stream()
         .filter(
-          field ->
-            !configuration.isUsePartitionedTable()
-              || !field.equalsIgnoreCase("datasetkey")) // Excluding partitioned columns
-        .collect(Collectors.joining(",")) + ", datasetkey";
+          // Excluding partitioned columns
+          field -> !configuration.isUsePartitionedTable() || !field.equalsIgnoreCase("datasetkey"))
+        .collect(Collectors.joining(",")) + (!configuration.isUsePartitionedTable()? ", datasetkey" : "");
 
     ExternalAvroTable avroTable =
-    ExternalAvroTable.create(HdfsSnapshotCoordinator.getSnapshotPath(configuration, extensionTable.getDirectoryTableName(), jobId), extensionTable.getSchema(), extensionAvroTableName(extensionTable));
+    ExternalAvroTable.create(HdfsSnapshotCoordinator.getSnapshotPath(configuration, extensionTable.getExtension().name().toLowerCase() + "_table", jobId), extensionTable.getSchema(), extensionAvroTableName(extensionTable));
 
-    datatable(configuration, spark, "datasetkey", extensionTable.getSchema(), extensionTableName(extensionTable))
-      .createTableIfNotExists()
-      .insertOverwriteFromAvro(avroTable, select);
+    if(avroTable.isSourceLocationNotEmpty(spark.sparkContext().hadoopConfiguration())) {
+      datatable(configuration, spark, "datasetkey", extensionTable.getSchema(), extensionTableName(extensionTable))
+        .createTableIfNotExists()
+        .insertOverwriteFromAvro(avroTable, select);
+
+      avroTable.drop(spark);
+    }
   }
 
   public static DataTable datatable(TableBackfillConfiguration configuration, SparkSession spark, String partitionColumn, Schema schema, String tableName) {
@@ -86,7 +89,7 @@ public class ExtensionTableBackfill {
   }
 
   public static String extensionAvroTableName(String coreTableName, ExtensionTable extensionTable) {
-    return coreTableName+ "_ext" + extensionTable.getHiveTableName() + "_avro";
+    return coreTableName+ "_ext_" + extensionTable.getHiveTableName() + "_avro";
   }
 
   private String createExtensionTable(ExtensionTable extensionTable) {

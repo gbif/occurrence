@@ -56,9 +56,9 @@ public class ExternalAvroTable {
   }
 
   @SneakyThrows
-  public boolean isSourceLocationEmpty(Configuration hadoopConfiguration) {
-    return FileSystem.get(hadoopConfiguration)
-      .getContentSummary(new Path(location))
-      .getFileCount() != 0;
+  public boolean isSourceLocationNotEmpty(Configuration hadoopConfiguration) {
+    FileSystem fs = FileSystem.get(hadoopConfiguration);
+    Path locationPath = new Path(location);
+    return fs.exists(locationPath) && fs.getContentSummary(locationPath).getFileCount() > 0;
   }
 }

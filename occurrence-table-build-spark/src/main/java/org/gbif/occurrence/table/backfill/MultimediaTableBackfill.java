@@ -36,7 +36,7 @@ public class MultimediaTableBackfill {
   private SparkSession spark;
 
   private String multimediaTableName() {
-    return String.format("%s_multimedia", configuration.getTableName());
+    return configuration.getTableNameWithPrefix() + "_multimedia";
   }
 
   public void createIfNotExistsGbifMultimedia() {
@@ -80,7 +80,7 @@ public class MultimediaTableBackfill {
 
   private void createMultimediaRecordsView() {
     Dataset<Row> mmRecords = spark
-      .table(configuration.getTableName())
+      .table(configuration.getTableNameWithPrefix())
       .select(
         col("gbifid"),
         from_json(
@@ -123,7 +123,7 @@ public class MultimediaTableBackfill {
         callUDF("cleanDelimiters", col("mm_record.rightsHolder")).alias("rightsHolder"),
         col("datasetkey"));
     if (configuration.getDatasetKey() != null) {
-      mmRecords = mmRecords.where("datasetkey = " + configuration.getDatasetKey());
+      mmRecords = mmRecords.where("datasetkey = '" + configuration.getDatasetKey() + "'");
     }
     mmRecords.createOrReplaceTempView("mm_records");
   }
@@ -135,7 +135,7 @@ public class MultimediaTableBackfill {
 
     String selectClause = "SELECT gbifid, type, format, identifier, references, title, description, " +
       "source, audience, created, creator, contributor, publisher, license, " +
-      "rightsHolder, datasetkey FROM mm_records";
+      "rightsHolder" + (!configuration.isUsePartitionedTable()? ", datasetkey": "") +  " FROM mm_records";
 
     return "INSERT OVERWRITE TABLE " +  multimediaTableName() + "\n" + partitionClause + selectClause;
   }

@@ -79,9 +79,7 @@ public class TableBackfillConfiguration {
   private String crawlAttempt;
 
   public String getTableNameWithPrefix() {
-    String datasetKeyPostFix = Strings.isNullOrEmpty(datasetKey)? "" : '_' + datasetKey;
-    String tableNameWithPrefix = Strings.isNullOrEmpty(prefixTable) ? tableName : prefixTable + "_" + tableName;
-    return tableNameWithPrefix + datasetKeyPostFix;
+    return Strings.isNullOrEmpty(prefixTable) ? tableName : prefixTable + "_" + tableName;
   }
 
   public String prefixTableWithUnderscore() {
@@ -90,8 +88,15 @@ public class TableBackfillConfiguration {
       : "";
   }
 
+
+  public String getDatasetTableNameWithPrefix() {
+    String datasetKeyPostFix = Strings.isNullOrEmpty(datasetKey)? "" : '_' + datasetKey.replace("-", "_");
+    String tableNameWithPrefix = getTableNameWithPrefix();
+    return tableNameWithPrefix + datasetKeyPostFix;
+  }
+
   public String getAvroTableName() {
-    return getTableNameWithPrefix() + "_avro";
+    return getDatasetTableNameWithPrefix() + "_avro";
   }
 
   @Nullable private final String warehouseLocation;

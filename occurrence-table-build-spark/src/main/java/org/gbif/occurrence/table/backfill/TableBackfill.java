@@ -61,10 +61,7 @@ public class TableBackfill {
 
     private final Action action;
     private final Set<Option> options;
-    public static Command parse(String[] args) {
-      String actionArg = args[0];
-      String optionsArg = args[1];
-
+    public static Command parse(String actionArg, String optionsArg) {
       Action action = Action.valueOf(actionArg.toUpperCase());
       Set<Option> options =
           Arrays.stream(optionsArg.split(","))
@@ -79,9 +76,9 @@ public class TableBackfill {
     TableBackfillConfiguration tableBackfillConfiguration =
         TableBackfillConfiguration.loadFromFile(args[0]);
 
-    Command command =  Command.parse(args);
-    String datasetKey = args.length >= 3? args[2] : null;
-    String crawlAttempt = args.length >= 4? args[3] : null;
+    Command command =  Command.parse(args[1], args[2]);
+    String datasetKey = args.length >= 4? args[3] : null;
+    String crawlAttempt = args.length >= 5? args[4] : null;
 
     tableBackfillConfiguration.setDatasetKey(datasetKey);
     tableBackfillConfiguration.setCrawlAttempt(crawlAttempt);
@@ -121,6 +118,7 @@ public class TableBackfill {
     DataTable.from(configuration, spark, "datasetkey", OccurrenceHDFSTableDefinition.definition())
       .createTableIfNotExists()
       .insertOverwriteFromAvro(avroTable, occurrenceTableFields());
+    avroTable.drop(spark);
   }
 
   private void executeCreateAction(Command command, SparkSession spark) {
@@ -172,13 +170,13 @@ public class TableBackfill {
     SparkSqlHelper sparkSqlHelper = SparkSqlHelper.of(spark);
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Deleting Table " + configuration.getTableName());
-      sparkSqlHelper.dropTable(prefix + configuration.getTableName());
-      sparkSqlHelper.dropTable(prefix + configuration.getTableName() + "_avro");
+      sparkSqlHelper.dropTableIfExists(prefix + configuration.getTableName());
+      sparkSqlHelper.dropTableIfExists(prefix + configuration.getTableName() + "_avro");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Deleting Multimedia Table ");
-      sparkSqlHelper.dropTable(prefix + configuration.getTableName() + "_multimedia");
+      sparkSqlHelper.dropTableIfExists(prefix + configuration.getTableName() + "_multimedia");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -210,9 +208,9 @@ public class TableBackfill {
   private String occurrenceTableFields() {
     return OccurrenceHDFSTableDefinition.definition().stream()
       // Excluding partitioned columns
-      .filter(field -> configuration.isUsePartitionedTable() && !field.getHiveField().equalsIgnoreCase("datasetkey"))
+      .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey"))
       .map(InitializableField::getInitializer)
-      .collect(Collectors.joining(", ")) + (configuration.isUsePartitionedTable()? ", datasetkey" : "");
+      .collect(Collectors.joining(", ")) + (!configuration.isUsePartitionedTable()? ", datasetkey" : "");
   }
 
   private void swapTables(Command command, SparkSession spark) {

@@ -23,6 +23,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.client.HdfsAdmin;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -66,7 +67,7 @@ public class HdfsSnapshotCoordinator {
       return new Path(configuration.getMergedTableDirectory(), configuration.getCoreName().toLowerCase());
     }
 
-    return new Path(configuration.getIngestDirectory(), configuration.getDatasetKey() +  '/' + configuration.getCrawlAttempt() + configuration.getCoreName().toLowerCase() + "_table/");
+    return new Path(configuration.getIngestDirectory(), configuration.getDatasetKey() +  '/' + configuration.getCrawlAttempt() + '/' + configuration.getCoreName().toLowerCase() + "_table/");
   }
 
   /**
@@ -84,7 +85,10 @@ public class HdfsSnapshotCoordinator {
       barrier.waitOnBarrier();
       log.info("Setting barrier {}", lockPath);
       barrier.setBarrier();
-      Path snapshotPath = fs.createSnapshot(getSourceSnapshotPath(), snapshotName);
+      HdfsAdmin hdfsAdmin = new HdfsAdmin(fs.getUri(), fs.getConf());
+      Path sourceSnapshotPath = getSourceSnapshotPath();
+      hdfsAdmin.allowSnapshot(sourceSnapshotPath);
+      Path snapshotPath = fs.createSnapshot(sourceSnapshotPath, snapshotName);
       log.info("Snapshot created {}", snapshotPath);
       log.info("Removing barrier {}", lockPath);
       barrier.removeBarrier();
