@@ -55,10 +55,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -82,14 +79,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Occurrence resource.
@@ -1846,5 +1836,19 @@ public class OccurrenceSearchResource {
   public Collection<String> checklistRankKeys(@PathVariable("checklistKey") String checklistKey) {
     return nameUsageMatchServiceTriage.getChecklistRanks(checklistKey)
       .stream().map(rank -> rank + "_KEY").collect(Collectors.toList());
+  }
+
+  @PostMapping("checklist/{checklistKey}/name")
+  @ResponseBody
+  public Map<String, Map<String, String>> nameLookups(
+    @PathVariable("checklistKey") String checklistKey, @RequestBody List<String> taxonKeys) {
+    return nameUsageMatchServiceTriage.lookupNames(checklistKey, taxonKeys);
+  }
+
+  @GetMapping("checklist/{checklistKey}/name/{taxonKey}")
+  @ResponseBody
+  public Map<String, String> nameLookup(
+    @PathVariable("checklistKey") String checklistKey, @PathVariable("taxonKey") String taxonKey) {
+    return nameUsageMatchServiceTriage.lookupName(checklistKey, taxonKey);
   }
 }

@@ -293,7 +293,7 @@ public class EsSearchRequestBuilder {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
       String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
 
-      // FIXME taxon key queries - check if we need to search
+      // FIXME taxon key queries - check if we need to search usage.Key only
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.TAXON_KEY,
         "classifications." + checklistKey + ".taxonKeys.keyword");
 
@@ -308,7 +308,25 @@ public class EsSearchRequestBuilder {
           params
         );
       });
+
+      addChecklistKeyTaxonDepthQuery(params, bool);
     }
+  }
+
+  private void addChecklistKeyTaxonDepthQuery(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+
+    params.entrySet().stream()
+      .filter(e -> isTaxonDepthParam(e.getKey()))
+      .forEach(e -> {
+        String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+        String depth = e.getKey().name().replace("TAXON_DEPTH_", "");
+        String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth + ".keyword";
+        BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+          .must(QueryBuilders.termQuery(esFieldToUse, e.getValue().iterator().next()));
+        bool.filter().add(checklistQuery);
+      });
+
+    // "classifications." + checklistKey + ".classificationDepth." +  depth + ".keyword"
   }
 
   @SneakyThrows

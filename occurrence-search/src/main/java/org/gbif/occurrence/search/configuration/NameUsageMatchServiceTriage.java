@@ -73,4 +73,62 @@ public class NameUsageMatchServiceTriage {
       throw new IllegalArgumentException("No configured service");
     }
   }
+
+  /**
+   * Name lookups for a list of taxon keys.
+   *
+   * @param checklistKey
+   * @param taxonKey
+   * @return
+   */
+  public Map<String, String> lookupName(String checklistKey, String taxonKey) {
+
+    NameUsageMatchingService service = serviceByChecklistKey.get(checklistKey);
+    if (service == null) {
+      throw new IllegalArgumentException("No service for checklist key " + checklistKey);
+    }
+
+    NameUsageMatchResponse resp = service.match(NameUsageMatchRequest
+        .builder().withUsageKey(taxonKey).build());
+
+    Map<String, String> name = null;
+    if (resp.getUsage() != null) {
+      name = new HashMap<>();
+      name.put("name", resp.getUsage().getCanonicalName());
+      name.put("rank", resp.getUsage().getRank());
+      return name;
+    }
+    return Map.of();
+  }
+
+  /**
+   * Name lookups for a list of taxon keys.
+   *
+   * @param checklistKey
+   * @param taxonKeys
+   * @return
+   */
+  public Map<String, Map<String, String>> lookupNames(String checklistKey, List<String> taxonKeys) {
+
+    NameUsageMatchingService service = serviceByChecklistKey.get(checklistKey);
+    if (service == null) {
+      throw new IllegalArgumentException("No service for checklist key " + checklistKey);
+    }
+
+    Map<String, Map<String, String>> result = new HashMap<>();
+    taxonKeys.forEach(taxonKey -> {
+      if (taxonKey != null) {
+        NameUsageMatchResponse resp = service.match(NameUsageMatchRequest
+          .builder().withUsageKey(taxonKey).build());
+        Optional.ofNullable(resp.getUsage()).ifPresent(u -> {
+          Map<String, String> name = new HashMap<>();
+          name.put("name", u.getCanonicalName());
+          name.put("rank", u.getRank());
+          result.put(taxonKey, name);
+        });
+      }
+    });
+
+    return result;
+  }
 }

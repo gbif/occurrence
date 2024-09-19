@@ -28,18 +28,8 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
   protected OccurrenceSearchRequest getSearchRequest(WebRequest webRequest, OccurrenceSearchRequest searchRequest) {
     OccurrenceSearchRequest request = super.getSearchRequest(webRequest, searchRequest);
 
-    List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
-
     // add support for dynamic facets for ranks ....
-    if (request.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
-      // get a list of recognised ranks for this checklist
-      String checklistKey = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
-      Collection<String> ranks = triage.getChecklistRanks(checklistKey);
-      ranks.forEach(rank -> {
-        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase(), String.class));
-        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class));
-      });
-    }
+    List<OccurrenceSearchParameter> checklistParameters = getChecklistParameters(request);
 
     Map<String, String[]> params = webRequest.getParameterMap();
     String facetMultiSelectValue = getFirstIgnoringCase("facetMultiselect", params);
@@ -80,9 +70,10 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
             }
           }
         }
+
         if (p == null) {
           if (f.startsWith("TAXON_DEPTH_")){
-            p = new OccurrenceSearchParameter(f, Integer.class);
+            p = new OccurrenceSearchParameter(f, String.class);
           }
         }
 
@@ -106,6 +97,49 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     return request;
   }
 
+  private List<OccurrenceSearchParameter> getChecklistParameters(Map<String, String[]> params) {
+
+    List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
+
+    // find the checklist key parameter
+    String checklistKey = null;
+    for (Map.Entry<String, String[]> entry : params.entrySet()) {
+      String normedType = entry.getKey().toUpperCase().replaceAll("[. _-]", "");
+      // check if this is a checklist parameter
+      if (OccurrenceSearchParameter.CHECKLIST_KEY.name().replaceAll("[. _-]", "").equalsIgnoreCase(normedType)) {
+        checklistKey = entry.getValue()[0];
+        break;
+      }
+    }
+
+    if (checklistKey != null) {
+      // get a list of recognised ranks for this checklist
+      Collection<String> ranks = triage.getChecklistRanks(checklistKey);
+      ranks.forEach(rank -> {
+        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase(), String.class));
+        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class));
+      });
+    }
+    return checklistParameters;
+  }
+
+  private List<OccurrenceSearchParameter> getChecklistParameters(OccurrenceSearchRequest request) {
+
+    List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
+
+    // add support for dynamic facets for ranks ....
+    if (request.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
+      // get a list of recognised ranks for this checklist
+      String checklistKey = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+      Collection<String> ranks = triage.getChecklistRanks(checklistKey);
+      ranks.forEach(rank -> {
+        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase(), String.class));
+        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class));
+      });
+    }
+    return checklistParameters;
+  }
+
   /**
    * Iterates over the params map and adds to the search request the recognized parameters (i.e.: those that have a
    * correspondent value in the P generic parameter).
@@ -113,8 +147,34 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
    */
   @Override
   protected void setSearchParams(OccurrenceSearchRequest searchRequest, Map<String, String[]> params) {
+
+    // look for a checklist param first....
+    List<OccurrenceSearchParameter> checklistParameters = getChecklistParameters(params);
+
     for (Map.Entry<String, String[]> entry : params.entrySet()) {
-      OccurrenceSearchParameter p = findSearchParam(entry.getKey());
+
+      String param = entry.getKey();
+
+      OccurrenceSearchParameter p = findSearchParam(param);
+
+      // look for dynamic rank facet names
+      if (p == null) {
+        String normedType = param.toUpperCase().replaceAll("[. _-]", "");
+        // check if this is a checklist parameter
+        for (OccurrenceSearchParameter cp : checklistParameters) {
+          if (cp.name().replaceAll("[. _-]", "").equalsIgnoreCase(normedType)) {
+            p = cp;
+            break;
+          }
+        }
+      }
+
+      if (p == null) {
+        if (param.startsWith("TAXON_DEPTH_")){
+          p = new OccurrenceSearchParameter(param, String.class);
+        }
+      }
+
       if (p != null) {
         final List<String> list =
           entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
