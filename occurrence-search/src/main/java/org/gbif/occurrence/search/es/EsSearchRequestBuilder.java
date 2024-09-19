@@ -200,9 +200,8 @@ public class EsSearchRequestBuilder {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY) && params.containsKey(taxonParam)) {
       // Build the query
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termQuery(taxonField, params.get(taxonParam).iterator().next()));
-
-      // Create a NestedQueryBuilder to search within the "classifications" nested object
+          .must(QueryBuilders.termsQuery(taxonField, params.get(taxonParam))
+        );
       params.remove(taxonParam);
       bool.filter().add(checklistQuery);
     }
@@ -219,7 +218,8 @@ public class EsSearchRequestBuilder {
     if (!StringUtils.isEmpty(checklistKey) && params.containsKey(taxonParam)) {
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.termQuery("classifications."
-          + checklistKey + ".taxonKeys.keyword", params.get(taxonParam).iterator().next()));
+          + checklistKey + ".taxonKeys.keyword", params.get(taxonParam)
+        ));
       params.remove(taxonParam);
       bool.filter().add(checklistQuery);
     }
