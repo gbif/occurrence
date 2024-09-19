@@ -72,8 +72,9 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
         }
 
         if (p == null) {
-          if (f.startsWith("TAXON_DEPTH_")){
-            p = new OccurrenceSearchParameter(f, String.class);
+          Optional<Integer> depthOpt = extractTaxonDepth(f);
+          if (depthOpt.isPresent()) {
+            p = new OccurrenceSearchParameter("TAXON_DEPTH_" + depthOpt.get(), String.class);
           }
         }
 
@@ -96,6 +97,16 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
 
     return request;
   }
+
+  public Optional<Integer> extractTaxonDepth(String param) {
+    String normalized =  param.toUpperCase().replaceAll("[. _-]", "");
+    if (normalized.startsWith("TAXONDEPTH")) {
+      String depth = normalized.substring("TAXONDEPTH".length());
+      return Optional.of(Integer.parseInt(depth));
+    }
+    return Optional.empty();
+  }
+
 
   private List<OccurrenceSearchParameter> getChecklistParameters(Map<String, String[]> params) {
 
@@ -170,8 +181,9 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       }
 
       if (p == null) {
-        if (param.startsWith("TAXON_DEPTH_")){
-          p = new OccurrenceSearchParameter(param, String.class);
+        Optional<Integer> depthOpt = extractTaxonDepth(param);
+        if (depthOpt.isPresent()) {
+          p = new OccurrenceSearchParameter("TAXON_DEPTH_" + depthOpt.get(), String.class);
         }
       }
 
