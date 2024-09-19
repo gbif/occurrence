@@ -27,6 +27,7 @@ import org.apache.hadoop.hdfs.client.HdfsAdmin;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -85,9 +86,8 @@ public class HdfsSnapshotCoordinator {
       barrier.waitOnBarrier();
       log.info("Setting barrier {}", lockPath);
       barrier.setBarrier();
-      HdfsAdmin hdfsAdmin = new HdfsAdmin(fs.getUri(), fs.getConf());
       Path sourceSnapshotPath = getSourceSnapshotPath();
-      hdfsAdmin.allowSnapshot(sourceSnapshotPath);
+      allowSnapshot(fs, sourceSnapshotPath);
       Path snapshotPath = fs.createSnapshot(sourceSnapshotPath, snapshotName);
       log.info("Snapshot created {}", snapshotPath);
       log.info("Removing barrier {}", lockPath);
@@ -96,6 +96,18 @@ public class HdfsSnapshotCoordinator {
       log.error("Error handling barrier {}", configuration);
       throw new RuntimeException(ex);
     }
+  }
+
+  @SneakyThrows
+  private static void allowSnapshot(FileSystem fs, Path path) {
+    HdfsAdmin hdfsAdmin = new HdfsAdmin(fs.getUri(), fs.getConf());
+    hdfsAdmin.allowSnapshot(path);
+  }
+
+  @SneakyThrows
+  private static void disallowSnapshot(FileSystem fs, Path path) {
+    HdfsAdmin hdfsAdmin = new HdfsAdmin(fs.getUri(), fs.getConf());
+    hdfsAdmin.disallowSnapshot(path);
   }
 
   private String lockPath() {
@@ -121,8 +133,10 @@ public class HdfsSnapshotCoordinator {
       String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
       log.info("Removing barrier {}", lockPath);
+      Path sourceSnapshotPath = getSourceSnapshotPath();
+      fs.deleteSnapshot(sourceSnapshotPath, snapshotName);
+      disallowSnapshot(fs, sourceSnapshotPath);
       barrier.removeBarrier();
-      fs.deleteSnapshot(getSourceSnapshotPath(), snapshotName);
     } catch (Exception ex) {
       log.error("Error handling barrier {}", configuration);
       throw new RuntimeException(ex);
