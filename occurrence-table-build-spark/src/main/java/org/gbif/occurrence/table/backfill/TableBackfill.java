@@ -18,18 +18,19 @@ import org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.spark.sql.SparkSession;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.google.common.base.Strings;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,30 +56,46 @@ public class TableBackfill {
     SCHEMA_MIGRATION;
   }
 
-  @Data
-  @Builder
+  @Getter
+  @Parameters(separators = "=")
   public static class Command {
 
-    private final Action action;
-    private final Set<Option> options;
-    public static Command parse(String actionArg, String optionsArg) {
-      Action action = Action.valueOf(actionArg.toUpperCase());
-      Set<Option> options =
-          Arrays.stream(optionsArg.split(","))
-              .map(opt -> Option.valueOf(opt.toUpperCase()))
-              .collect(Collectors.toSet());
-      return Command.builder().action(action).options(options).build();
-    }
+    @Parameter(names={"--configFile", "-f"}, required = true)
+    private String configFile;
+
+    @Parameter(names={"--action", "-a"}, required = true)
+    private Action action;
+
+    @Parameter(names={"--options", "-o"}, required = true)
+    private Set<Option> options;
+
+    @Parameter(names={"--datasetId", "-d"}, required = false)
+    private String datasetId;
+
+    @Parameter(names={"--crawlAttempt", "-c"}, required = false)
+    private String crawlAttempt;
+  }
+
+
+  private static Command parseArguments(String[] args) {
+    Command command = new Command();
+    JCommander commander = new JCommander();
+    commander.addObject(command);
+    commander.setAcceptUnknownOptions(true);
+    commander.parse(args);
+    return command;
   }
 
   public static void main(String[] args) {
+
+    Command command = parseArguments(args);
+
     // Read config file
     TableBackfillConfiguration tableBackfillConfiguration =
-        TableBackfillConfiguration.loadFromFile(args[0]);
+        TableBackfillConfiguration.loadFromFile(command.configFile);
 
-    Command command =  Command.parse(args[1], args[2]);
-    String datasetKey = args.length >= 4? args[3] : null;
-    String crawlAttempt = args.length >= 5? args[4] : null;
+    String datasetKey = command.datasetId;
+    String crawlAttempt = command.crawlAttempt;
 
     tableBackfillConfiguration.setDatasetKey(datasetKey);
     tableBackfillConfiguration.setCrawlAttempt(crawlAttempt);
