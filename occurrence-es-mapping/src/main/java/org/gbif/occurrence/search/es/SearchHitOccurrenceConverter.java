@@ -49,14 +49,7 @@ import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
 import java.text.ParseException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -423,15 +416,24 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
       Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"), au.get("authorship"))));
 
-      //set the classification
+      //set the classification depth
+      Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
+      Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue)).values();
+
       Map<String, String> tree = (Map<String, String>) value.get("classification");
-      Map<String, String> treeKeys = (Map<String, String>) value.get("classificationKeys");
+      Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
+        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
       cl.setIucnRedListCategory((String) value.get("iucnRedListCategory"));
 
       cl.setClassification(
-        treeKeys.entrySet().stream()
-          .map(entry -> new RankedName((String) entry.getValue(), (String) tree.get(entry.getKey()), entry.getKey(), null))
+        keysSorted.stream()
+          .map(key -> new RankedName(
+            key,
+            tree.get(keyToRank.get(key)),
+            keyToRank.get(key),
+            null)
+          )
           .collect(Collectors.toList())
       );
       return cl;
