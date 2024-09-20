@@ -217,7 +217,7 @@ public class EsSearchRequestBuilder {
     OccurrenceSearchParameter taxonParam = new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class);
     if (!StringUtils.isEmpty(checklistKey) && params.containsKey(taxonParam)) {
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termQuery("classifications."
+        .must(QueryBuilders.termsQuery("classifications."
           + checklistKey + ".taxonKeys.keyword", params.get(taxonParam)
         ));
       params.remove(taxonParam);
