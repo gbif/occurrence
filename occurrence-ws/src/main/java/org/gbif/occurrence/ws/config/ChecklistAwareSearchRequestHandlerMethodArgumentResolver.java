@@ -17,11 +17,11 @@ import java.util.*;
 public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
   extends OccurrenceSearchRequestHandlerMethodArgumentResolver {
 
-  @Autowired
-  protected NameUsageMatchServiceTriage triage;
+  protected final NameUsageMatchServiceTriage triage;
 
-  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver() {
+  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver(NameUsageMatchServiceTriage triage) {
     super();
+    this.triage = triage;
   }
 
   @Override

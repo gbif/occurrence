@@ -46,7 +46,7 @@ public class OccurrenceSearchResourceTest {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
       String name = null;
       if (param.equals(OccurrenceSearchParameter.IDENTIFIED_BY_ID)) {
-        // do nothing
+        name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name()).replace("Id", "ID");
       } else if (param.equals(OccurrenceSearchParameter.RECORDED_BY_ID)) {
         name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name()).replace("Id", "ID");
       } else {
