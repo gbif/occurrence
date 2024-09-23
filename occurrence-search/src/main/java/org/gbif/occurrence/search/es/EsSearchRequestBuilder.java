@@ -291,23 +291,25 @@ public class EsSearchRequestBuilder {
   private void handleTaxonomicQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
 
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
+
       String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
 
-      // FIXME taxon key queries - check if we need to search usage.Key only
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.TAXON_KEY,
         "classifications." + checklistKey + ".taxonKeys.keyword");
 
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY,
         "classifications." + checklistKey + ".acceptedUsage.key.keyword");
 
-      triage.getChecklistRanks(checklistKey).forEach(rank -> {
-        addChecklistKeyTaxonKeyQuery(
-          checklistKey,
-          rank,
-          bool,
-          params
-        );
-      });
+      if (triage != null){
+        triage.getChecklistRanks(checklistKey).forEach(rank -> {
+          addChecklistKeyTaxonKeyQuery(
+            checklistKey,
+            rank,
+            bool,
+            params
+          );
+        });
+      }
 
       addChecklistKeyTaxonDepthQuery(params, bool);
     }
