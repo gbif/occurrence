@@ -211,14 +211,14 @@
     <download-query-tools.version>1.53.0-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>1.49-H3-SNAPSHOT</dwc-api.version>
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>1.17.0-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.16.6-eml-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
     <gbif-common-ws.version>1.28-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-metadata-profile.version>2.2-SNAPSHOT</gbif-metadata-profile.version>
+    <gbif-metadata-profile.version>2.2.1-SNAPSHOT</gbif-metadata-profile.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
     <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
     <gbif-registry.version>3.95.3</gbif-registry.version>
