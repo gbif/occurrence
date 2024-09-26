@@ -344,8 +344,10 @@ public class EsSearchRequestBuilder {
       bool.must(QueryBuilders.matchQuery(occurrenceBaseEsFieldMapper.getFullTextField(), qParam));
     }
 
+    // Add the queries based on different taxonomic levels
     EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
       QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
+
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);

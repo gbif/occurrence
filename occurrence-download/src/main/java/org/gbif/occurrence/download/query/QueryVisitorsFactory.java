@@ -64,6 +64,11 @@ public class QueryVisitorsFactory {
       }
 
       @Override
+      public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
+        return fieldMapper.getChecklistField(checklistKey, searchParameter);
+      }
+
+      @Override
       public boolean includeNullInPredicate(SimplePredicate<OccurrenceSearchParameter> predicate) {
         return fieldMapper.includeNullInPredicate(predicate);
       }

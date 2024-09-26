@@ -7,7 +7,6 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.ws.util.CommonWsUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 

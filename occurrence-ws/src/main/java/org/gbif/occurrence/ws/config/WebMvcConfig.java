@@ -14,6 +14,7 @@
 package org.gbif.occurrence.ws.config;
 
 import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
@@ -39,6 +40,7 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -109,16 +111,31 @@ public class WebMvcConfig implements WebMvcConfigurer {
           argumentResolvers.add(0, paramNameProcessor());
           adapter.setArgumentResolvers(argumentResolvers);
         }
+        if (bean instanceof AbstractJackson2HttpMessageConverter) {
+          AbstractJackson2HttpMessageConverter converter = (AbstractJackson2HttpMessageConverter) bean;
+          ObjectMapper objectMapper = converter.getObjectMapper();
+          objectMapper.registerModule(new JavaTimeModule());
+
+          objectMapper.registerModule(new SimpleModule()
+            .addKeyDeserializer(OccurrenceSearchParameter.class, new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
+            .addDeserializer(OccurrenceSearchParameter.class, new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
+          );
+          objectMapper.addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
+        }
         return bean;
       }
     };
   }
 
+
   @Primary
   @Bean
-  public ObjectMapper registryObjectMapper() {
+  public ObjectMapper objectMapper() {
     return JacksonJsonObjectMapperProvider.getObjectMapper()
         .registerModule(new JavaTimeModule())
+        .registerModule(new SimpleModule()
+          .addDeserializer(OccurrenceSearchParameter.class, new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
+        )
         .addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
   }
 

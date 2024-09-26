@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.ws;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import org.gbif.occurrence.search.configuration.NameUsageMatchServiceConfiguration;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
@@ -41,6 +39,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootApplication(exclude = {RabbitAutoConfiguration.class})
 @EnableConfigurationProperties(NameUsageMatchServiceConfiguration.class)

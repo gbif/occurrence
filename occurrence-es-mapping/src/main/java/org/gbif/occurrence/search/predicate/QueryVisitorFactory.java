@@ -52,6 +52,11 @@ public class QueryVisitorFactory {
           public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
             return fieldMapper.isVocabulary(searchParameter);
           }
+
+          @Override
+          public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
+            return fieldMapper.getChecklistField(checklistKey, searchParameter);
+          }
         });
   }
 }
