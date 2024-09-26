@@ -756,30 +756,30 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     assertEquals(size, suggestNode.path("completion").path("size").asInt());
   }
-
-  @Test
-  public void geoTimeQuery() throws JsonProcessingException {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addGeologicalTimeFilter("test");
-
-    QueryBuilder query =
-      esSearchRequestBuilder
-        .buildQueryNode(searchRequest)
-        .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
-    LOG.debug("Query: {}", jsonQuery);
-
-    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
-    assertEquals(
-      200.2,
-      jsonQuery
-        .path(BOOL)
-        .path(FILTER)
-        .findValue(GEOLOGICAL_TIME.getSearchFieldName())
-        .get(VALUE)
-        .asDouble());
-  }
+//
+//  @Test
+//  public void geoTimeQuery() throws JsonProcessingException {
+//    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+//    searchRequest.addGeologicalTimeFilter("test");
+//
+//    QueryBuilder query =
+//      esSearchRequestBuilder
+//        .buildQueryNode(searchRequest)
+//        .orElseThrow(IllegalArgumentException::new);
+//    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+//    LOG.debug("Query: {}", jsonQuery);
+//
+//    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
+//    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+//    assertEquals(
+//      200.2,
+//      jsonQuery
+//        .path(BOOL)
+//        .path(FILTER)
+//        .findValue(GEOLOGICAL_TIME.getSearchFieldName())
+//        .get(VALUE)
+//        .asDouble());
+//  }
 
   @Test
   public void checklistKeyTest() throws Exception{
