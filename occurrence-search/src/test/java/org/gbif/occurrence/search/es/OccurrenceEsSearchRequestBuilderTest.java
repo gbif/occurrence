@@ -804,15 +804,4 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
 
   }
-
-  @Test
-  public void checklistKeyHigherGenusKeyTest() {
-
-
-
-
-
-
-  }
-
 }
