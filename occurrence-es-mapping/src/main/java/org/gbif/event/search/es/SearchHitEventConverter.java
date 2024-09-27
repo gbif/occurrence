@@ -13,6 +13,35 @@
  */
 package org.gbif.event.search.es;
 
+import static org.gbif.event.search.es.EventEsField.*;
+import static org.gbif.event.search.es.EventEsField.CRAWL_ID;
+import static org.gbif.event.search.es.EventEsField.HOSTING_ORGANIZATION_KEY;
+import static org.gbif.event.search.es.EventEsField.LAST_CRAWLED;
+import static org.gbif.event.search.es.EventEsField.LAST_INTERPRETED;
+import static org.gbif.event.search.es.EventEsField.LAST_PARSED;
+import static org.gbif.event.search.es.EventEsField.MEDIA_ITEMS;
+import static org.gbif.event.search.es.EventEsField.NETWORK_KEY;
+import static org.gbif.event.search.es.EventEsField.PROTOCOL;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.IDENTIFIED_BY_ID;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.RECORDED_BY_ID;
+
+import com.google.common.collect.Maps;
+import java.net.URI;
+import java.text.ParseException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
@@ -32,7 +61,6 @@ import org.gbif.api.vocabulary.License;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceStatus;
-import org.gbif.api.vocabulary.Sex;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -40,38 +68,6 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
-
-import java.net.URI;
-import java.text.ParseException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
-
-import com.google.common.collect.Maps;
-
-import static org.gbif.event.search.es.EventEsField.*;
-import static org.gbif.event.search.es.EventEsField.CRAWL_ID;
-import static org.gbif.event.search.es.EventEsField.HOSTING_ORGANIZATION_KEY;
-import static org.gbif.event.search.es.EventEsField.LAST_CRAWLED;
-import static org.gbif.event.search.es.EventEsField.LAST_INTERPRETED;
-import static org.gbif.event.search.es.EventEsField.LAST_PARSED;
-import static org.gbif.event.search.es.EventEsField.MEDIA_ITEMS;
-import static org.gbif.event.search.es.EventEsField.NETWORK_KEY;
-import static org.gbif.event.search.es.EventEsField.PROTOCOL;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.IDENTIFIED_BY_ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.RECORDED_BY_ID;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
@@ -249,7 +245,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getStringValue(hit, PATHWAY).ifPresent(event::setPathway);
     getDateValue(hit, MODIFIED).ifPresent(event::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(event::setReferences);
-    getValue(hit, SEX, Sex::valueOf).ifPresent(event::setSex);
+    getStringValue(hit, SEX).ifPresent(event::setSex);
     getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(event::setIndividualCount);
     getStringValue(hit, IDENTIFIER)
       .ifPresent(
