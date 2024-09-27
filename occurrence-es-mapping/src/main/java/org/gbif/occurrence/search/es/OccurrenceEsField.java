@@ -228,9 +228,9 @@ public enum OccurrenceEsField implements EsField {
   FORMATION(new BaseEsField("geologicalContext.formation", DwcTerm.formation)),
   MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
   BED(new BaseEsField("geologicalContext.bed", DwcTerm.bed)),
-//  GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", null)),
-//  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", null, true)),
-//  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", null, true)),
+  GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", GbifTerm.geologicalTime)),
+  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", GbifTerm.lithostratigraphy, true)),
+  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", GbifTerm.biostratigraphy, true)),
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
@@ -403,9 +403,9 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.FORMATION, FORMATION)
       .put(OccurrenceSearchParameter.MEMBER, MEMBER)
       .put(OccurrenceSearchParameter.BED, BED)
-//      .put(OccurrenceSearchParameter.GEOLOGICAL_TIME, GEOLOGICAL_TIME)
-//      .put(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, LITHOSTRATIGRAPHY)
-//      .put(OccurrenceSearchParameter.BIOSTRATIGRAPHY, BIOSTRATIGRAPHY)
+      .put(OccurrenceSearchParameter.GEOLOGICAL_TIME, GEOLOGICAL_TIME)
+      .put(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, LITHOSTRATIGRAPHY)
+      .put(OccurrenceSearchParameter.BIOSTRATIGRAPHY, BIOSTRATIGRAPHY)
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();
