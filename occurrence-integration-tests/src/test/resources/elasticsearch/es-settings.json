@@ -4,14 +4,20 @@
   },
   "analysis": {
     "normalizer": {
+      "lowercase_ascii_folding_normalizer": {
+        "filter": [
+          "lowercase",
+          "asciifolding"
+        ],
+        "type": "custom",
+        "char_filter": []
+      },
       "lowercase_normalizer": {
         "filter": [
           "lowercase"
         ],
         "type": "custom",
-        "char_filter": [
-
-        ]
+        "char_filter": []
       }
     },
     "analyzer": {
@@ -19,9 +25,16 @@
         "filter": [
           "lowercase"
         ],
-        "char_filter": [
-
+        "char_filter": [],
+        "type": "custom",
+        "tokenizer": "keyword"
+      },
+      "lowercase_ascii_folding_analyzer": {
+        "filter": [
+          "lowercase",
+          "asciifolding"
         ],
+        "char_filter": [],
         "type": "custom",
         "tokenizer": "keyword"
       }
