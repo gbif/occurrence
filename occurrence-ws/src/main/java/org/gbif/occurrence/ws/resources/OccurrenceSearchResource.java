@@ -78,10 +78,8 @@ import org.gbif.api.vocabulary.GbifRegion;
 import org.gbif.api.vocabulary.License;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceStatus;
-import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.api.vocabulary.ThreatStatus;
-import org.gbif.api.vocabulary.TypeStatus;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
@@ -1286,7 +1284,7 @@ public class OccurrenceSearchResource {
             description =
                 "The sex of the biological individual(s) represented in the occurrence.\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
-            array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Sex.class)),
+            array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "MALE"),
@@ -1402,7 +1400,7 @@ public class OccurrenceSearchResource {
             array =
                 @ArraySchema(
                     uniqueItems = true,
-                    schema = @Schema(implementation = TypeStatus.class)),
+                    schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "HOLOTYPE"),

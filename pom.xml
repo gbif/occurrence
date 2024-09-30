@@ -221,7 +221,7 @@
     <gbif-metadata-profile.version>2.2.1-SNAPSHOT</gbif-metadata-profile.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
     <gbif-postal-service.version>1.8.0</gbif-postal-service.version>
-    <gbif-registry.version>3.95.3</gbif-registry.version>
+    <gbif-registry.version>3.97.0-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.5-SNAPSHOT</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
