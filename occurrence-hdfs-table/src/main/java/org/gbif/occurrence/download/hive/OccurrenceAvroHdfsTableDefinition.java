@@ -69,11 +69,27 @@ public class OccurrenceAvroHdfsTableDefinition {
           .endRecord()
         .noDefault();
         break;
+      case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
+        builder.name(initializableField.getHiveField()).type().nullable().record(getTypeRecordName(initializableField))
+          .fields()
+          .name("concepts").type().array().items().nullable().stringType().noDefault()
+          .name("lineage").type().nullable().array().items().nullable().stringType().noDefault()
+          .endRecord()
+          .noDefault();
+        break;
       case  HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
         builder.name(initializableField.getHiveField()).type().nullable().array().items().nullable().record(getTypeRecordName(initializableField))
           .fields()
           .requiredString("id")
           .optionalString("eventtype")
+          .endRecord()
+          .noDefault();
+        break;
+      case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
+        builder.name(initializableField.getHiveField()).type().nullable().record(getTypeRecordName(initializableField))
+          .fields()
+          .requiredString("gt")
+          .requiredString("lte")
           .endRecord()
           .noDefault();
         break;
