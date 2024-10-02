@@ -47,7 +47,10 @@ public class DownloadTerms {
     GbifTerm.gbifID, // returned multiple times, so excluded and treated by adding once at the beginning
     GbifInternalTerm.fragmentHash, // omitted entirely
     GbifInternalTerm.fragment, // omitted entirely
-    GbifTerm.numberOfOccurrences
+    GbifTerm.numberOfOccurrences,
+    GbifTerm.geologicalTime,
+    GbifTerm.lithostratigraphy,
+    GbifTerm.biostratigraphy
   );
 
   // This set is used for the HDFS table definition

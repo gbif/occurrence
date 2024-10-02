@@ -147,6 +147,9 @@ public class TermUtils {
       GbifTerm.typeDesignationType,
       GbifTerm.canonicalName,
       GbifTerm.nameType,
+      GbifTerm.geologicalTime,
+      GbifTerm.lithostratigraphy,
+      GbifTerm.biostratigraphy,
 
       // And these have been superseded by other terms or otherwise deprecated and removed
       GbifTerm.distanceAboveSurface,
