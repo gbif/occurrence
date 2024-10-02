@@ -181,7 +181,8 @@ public abstract class Queries {
    * Used for complex types like Structs which have nested array elements.
    */
   public static String toVocabularyConceptArrayHiveInitializer(Term term) {
-    return toArrayInitializer(toNestedHiveInitializer(term, "concepts"));
+    return toArrayInitializer(
+        toNestedHiveInitializer(term, "concepts"), HiveColumns.columnFor(term));
   }
 
   /**
@@ -189,6 +190,10 @@ public abstract class Queries {
    */
   public static String toArrayInitializer(String term) {
     return String.format("array_join(%1$s,'\\\\;') AS %1$s", term);
+  }
+
+  public static String toArrayInitializer(String term, String alias) {
+    return String.format("array_join(%1$s,'\\\\;') AS %2$s", term, alias);
   }
 
   /**
