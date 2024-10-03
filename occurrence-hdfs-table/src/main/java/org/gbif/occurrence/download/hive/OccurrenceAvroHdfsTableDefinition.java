@@ -88,8 +88,8 @@ public class OccurrenceAvroHdfsTableDefinition {
       case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
         builder.name(initializableField.getHiveField()).type().nullable().record(getTypeRecordName(initializableField))
           .fields()
-          .requiredString("gt")
-          .requiredString("lte")
+          .requiredFloat("gt")
+          .requiredFloat("lte")
           .endRecord()
           .noDefault();
         break;
