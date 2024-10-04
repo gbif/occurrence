@@ -36,6 +36,7 @@ import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
@@ -107,6 +108,11 @@ public class DownloadWorkflowModule  {
    */
   public static OccurrenceDownloadService downloadServiceClient(DwcTerm coreTerm, WorkflowConfiguration workflowConfiguration) {
     return DwcTerm.Event == coreTerm? clientBuilder(workflowConfiguration).build(EventDownloadClient.class) : clientBuilder(workflowConfiguration).build(OccurrenceDownloadClient.class);
+  }
+
+  /** Creates a ConceptClient to translate vocabulary params. */
+  public static ConceptClient conceptClient(WorkflowConfiguration workflowConfiguration) {
+    return clientBuilder(workflowConfiguration).build(ConceptClient.class);
   }
 
   /**

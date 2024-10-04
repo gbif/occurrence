@@ -13,9 +13,15 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import java.util.Properties;
+import java.util.function.Supplier;
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -26,13 +32,8 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.elastic.DownloadEsClient;
 import org.gbif.occurrence.download.predicate.EsPredicateUtil;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
-
-import java.util.Properties;
-import java.util.function.Supplier;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.gbif.occurrence.search.es.VocabularyFieldTranslator;
+import org.gbif.vocabulary.client.ConceptClient;
 
 @Slf4j
 public class DownloadWorkflow {
@@ -41,6 +42,7 @@ public class DownloadWorkflow {
   private static final int ERROR_COUNT = -1;
 
   private final OccurrenceDownloadService downloadService;
+  private final ConceptClient conceptClient;
 
   private final DwcTerm coreDwcTerm;
 
@@ -61,6 +63,8 @@ public class DownloadWorkflow {
     downloadService =
         DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
     download = downloadService.get(downloadKey);
+    conceptClient = DownloadWorkflowModule.conceptClient(workflowConfiguration);
+    translateVocabs(download);
     this.sqlDownloadRunner =
         SqlDownloadRunner.builder()
             .workflowConfiguration(workflowConfiguration)
@@ -158,5 +162,16 @@ public class DownloadWorkflow {
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
         .esFieldMapper(DownloadWorkflowModule.esFieldMapper(workflowConfiguration.getEsIndexType()))
         .build();
+  }
+
+  private void translateVocabs(Download download) {
+    if (download.getRequest() instanceof PredicateDownloadRequest) {
+      PredicateDownloadRequest predicateDownloadRequest =
+          (PredicateDownloadRequest) download.getRequest();
+      Predicate translatedPredicate =
+          VocabularyFieldTranslator.translateVocabs(
+              predicateDownloadRequest.getPredicate(), conceptClient);
+      predicateDownloadRequest.setPredicate(translatedPredicate);
+    }
   }
 }

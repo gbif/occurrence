@@ -2,10 +2,14 @@ package org.gbif.occurrence.search.es;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.DisjunctionPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.Predicate;
 import org.junit.jupiter.api.Test;
 
 public class VocabularyFieldTranslatorTest {
@@ -55,5 +59,44 @@ public class VocabularyFieldTranslatorTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> VocabularyFieldTranslator.translateVocabs(params, new ConceptClientMock()));
+  }
+
+  @Test
+  public void predicatesTest() {
+    EqualsPredicate<OccurrenceSearchParameter> equalsPredicate =
+        new EqualsPredicate<>(OccurrenceSearchParameter.GEOLOGICAL_TIME, "neogene", false);
+    Predicate translatedPredicate =
+        VocabularyFieldTranslator.translateVocabs(equalsPredicate, new ConceptClientMock());
+    assertTrue(translatedPredicate instanceof EqualsPredicate);
+    EqualsPredicate<OccurrenceSearchParameter> tep =
+        (EqualsPredicate<OccurrenceSearchParameter>) translatedPredicate;
+    assertEquals(OccurrenceSearchParameter.GEOLOGICAL_TIME, tep.getKey());
+    assertEquals("23.03", tep.getValue());
+
+    EqualsPredicate<OccurrenceSearchParameter> rangeEqualsPredicate =
+        new EqualsPredicate<>(OccurrenceSearchParameter.GEOLOGICAL_TIME, "mesozoic,cenozoic", false);
+    Predicate rangeTranslatedPredicate =
+        VocabularyFieldTranslator.translateVocabs(rangeEqualsPredicate, new ConceptClientMock());
+    assertTrue(rangeTranslatedPredicate instanceof EqualsPredicate);
+    EqualsPredicate<OccurrenceSearchParameter> trp = (EqualsPredicate<OccurrenceSearchParameter>) rangeTranslatedPredicate;
+    assertEquals(OccurrenceSearchParameter.GEOLOGICAL_TIME, trp.getKey());
+    assertEquals("0.0,251.902", trp.getValue());
+
+    DisjunctionPredicate disjunctionPredicate =
+        new DisjunctionPredicate(Arrays.asList(equalsPredicate, rangeEqualsPredicate));
+    Predicate translatedDisjunctionPredicate =
+        VocabularyFieldTranslator.translateVocabs(disjunctionPredicate, new ConceptClientMock());
+    assertTrue(translatedDisjunctionPredicate instanceof DisjunctionPredicate);
+    DisjunctionPredicate tdp = (DisjunctionPredicate) translatedDisjunctionPredicate;
+    assertEquals(2, tdp.getPredicates().size());
+    tdp.getPredicates()
+        .forEach(
+            p -> {
+              assertTrue(p instanceof EqualsPredicate);
+              EqualsPredicate<OccurrenceSearchParameter> ep = (EqualsPredicate<OccurrenceSearchParameter>) p;
+              assertEquals(OccurrenceSearchParameter.GEOLOGICAL_TIME, ep.getKey());
+              assertNotEquals(ep.getValue(), equalsPredicate.getValue());
+              assertNotEquals(ep.getValue(), rangeEqualsPredicate.getValue());
+            });
   }
 }
