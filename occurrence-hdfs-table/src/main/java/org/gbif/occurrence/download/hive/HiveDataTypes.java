@@ -71,7 +71,8 @@ public final class HiveDataTypes {
       GbifTerm.projectId,
       DwcTerm.higherGeography,
       DwcTerm.georeferencedBy,
-      DwcTerm.associatedSequences
+      DwcTerm.associatedSequences,
+      GbifTerm.checklistKey
     );
 
   // dates are all stored as BigInt
