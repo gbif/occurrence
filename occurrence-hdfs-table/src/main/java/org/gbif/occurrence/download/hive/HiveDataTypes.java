@@ -72,6 +72,7 @@ public final class HiveDataTypes {
       DwcTerm.higherGeography,
       DwcTerm.georeferencedBy,
       DwcTerm.associatedSequences,
+      GbifTerm.geologicalTime,
       GbifTerm.checklistKey
     );
 

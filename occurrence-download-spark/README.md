@@ -1,6 +1,6 @@
 # Occurrence Download Spark
 This project enables de executions of GBIF downloads using Spark 3.3.0.
-It supports both small and big downloads using Elasticsearch and Saprk SQL.
+It supports both small and big downloads using Elasticsearch and Spark SQL.
 
 It also contains the definition of a Docker images that can be used to run
 this project in a Docker or Kubernetes environment.
