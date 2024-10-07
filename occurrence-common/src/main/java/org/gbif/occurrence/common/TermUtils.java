@@ -150,7 +150,8 @@ public class TermUtils {
 
       // And these have been superseded by other terms or otherwise deprecated and removed
       GbifTerm.distanceAboveSurface,
-      GbifTerm.distanceAboveSurfaceAccuracy
+      GbifTerm.distanceAboveSurfaceAccuracy,
+      GbifTerm.checklistKey
       );
 
     return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))
@@ -306,7 +307,9 @@ public class TermUtils {
       DwcTerm.formation,
       DwcTerm.member,
       DwcTerm.bed,
-      GbifTerm.projectId);
+      GbifTerm.projectId,
+      GbifTerm.checklistKey
+    );
   }
 
   /**
