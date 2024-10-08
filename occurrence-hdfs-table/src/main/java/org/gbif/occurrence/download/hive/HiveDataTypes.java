@@ -47,6 +47,7 @@ public final class HiveDataTypes {
   public static final String TYPE_BIGINT = "BIGINT";
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   public static final String TYPE_VOCABULARY_STRUCT = "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
+  public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
   // An index of types for terms, if used in the interpreted context
@@ -159,6 +160,8 @@ public final class HiveDataTypes {
       return TYPE_ARRAY_PARENT_STRUCT;
     } else if (isVocabulary(term)) {
       return TYPE_VOCABULARY_STRUCT;
+    } else if (term.equals(GbifInternalTerm.classifications)) {
+      return TYPE_MAP_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }
