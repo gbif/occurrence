@@ -151,6 +151,7 @@ public class TermUtils {
       // And these have been superseded by other terms or otherwise deprecated and removed
       GbifTerm.distanceAboveSurface,
       GbifTerm.distanceAboveSurfaceAccuracy,
+      GbifTerm.geologicalTime,
       GbifTerm.checklistKey
       );
 
