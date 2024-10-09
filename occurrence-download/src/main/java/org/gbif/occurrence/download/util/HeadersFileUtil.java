@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.util;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.ByteArrayInputStream;
@@ -120,7 +121,7 @@ public class HeadersFileUtil {
    * Returns the headers names of download columns.
    */
   public static String getInterpretedTableHeader() {
-    return getTableHeader(TermUtils.interpretedTerms());
+    return getTableHeader(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS);
   }
 
   /**
