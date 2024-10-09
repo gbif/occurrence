@@ -16,3 +16,11 @@ if [[ $IS_M2RELEASEBUILD = true ]]; then
   docker tag docker.gbif.org/${MODULE}:${POM_VERSION} docker.gbif.org/${MODULE}:latest
   docker push docker.gbif.org/${MODULE}:latest
 fi
+
+echo "Removing local Docker image: docker.gbif.org/${MODULE}:${POM_VERSION}"
+docker rmi docker.gbif.org/${MODULE}:${POM_VERSION}
+
+if [[ $IS_M2RELEASEBUILD = true ]]; then
+  echo "Removing local Docker image with latest tag: docker.gbif.org/${MODULE}:latest"
+  docker rmi docker.gbif.org/${MODULE}:latest
+fi
