@@ -55,12 +55,17 @@ public class DownloadTerms {
     .addAll(EXCLUSIONS_INTERPRETED)
     .add(GbifTerm.verbatimScientificName).build();
 
-  public static final Set<Term> EXCLUSIONS_DOWNLOAD =
+  public static final Set<Term> DWCA_EXCLUSIONS_DOWNLOAD =
       new ImmutableSet.Builder<Term>()
-          .addAll(EXCLUSIONS_INTERPRETED)
           .add(GbifTerm.geologicalTime)
           .add(GbifTerm.lithostratigraphy)
           .add(GbifTerm.biostratigraphy)
+          .build();
+
+  public static final Set<Term> EXCLUSIONS_DOWNLOAD =
+      new ImmutableSet.Builder<Term>()
+          .addAll(EXCLUSIONS_INTERPRETED)
+          .addAll(DWCA_EXCLUSIONS_DOWNLOAD)
           .build();
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =

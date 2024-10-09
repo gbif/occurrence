@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.action;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -112,7 +114,16 @@ public class DownloadWorkflowModule  {
 
   /** Creates a ConceptClient to translate vocabulary params. */
   public static ConceptClient conceptClient(WorkflowConfiguration workflowConfiguration) {
-    return clientBuilder(workflowConfiguration).build(ConceptClient.class);
+    return new ClientBuilder()
+        .withUrl(workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY))
+        .withCredentials(
+            workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
+            workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY))
+        .withObjectMapper(
+            JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
+                .registerModule(new JavaTimeModule()))
+        .withFormEncoder()
+        .build(ConceptClient.class);
   }
 
   /**
