@@ -13,19 +13,15 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-
+import com.google.common.collect.ImmutableMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.ImmutableMap;
-
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 /**
@@ -200,6 +196,10 @@ public abstract class Queries {
 
   public static String toArrayInitializer(String term, String alias) {
     return String.format("array_join(%1$s,'\\\\;') AS %2$s", term, alias);
+  }
+
+  public static String toArrayInitializerWithoutAlias(String term) {
+    return String.format("array_join(%1$s,'\\\\;')", term);
   }
 
   /**
