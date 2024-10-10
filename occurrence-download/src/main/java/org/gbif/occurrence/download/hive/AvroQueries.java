@@ -17,7 +17,8 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 /**
- * Utilities related to the actual queries executed at runtime — these functions for generating AVRO downloads.
+ * Utilities related to the actual queries executed at runtime — these functions for generating AVRO
+ * downloads.
  */
 public class AvroQueries extends TsvQueries {
 
@@ -40,5 +41,4 @@ public class AvroQueries extends TsvQueries {
       return HiveColumns.columnFor(term);
     }
   }
-
 }

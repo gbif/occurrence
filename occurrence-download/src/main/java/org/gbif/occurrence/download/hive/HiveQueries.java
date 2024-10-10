@@ -33,11 +33,7 @@ public class HiveQueries extends TsvQueries {
     if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return toLocalISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {
-      if (HiveColumnsUtils.isHiveArray(term)) {
-        return toVocabularyConceptArrayHiveInitializer(term);
-      } else {
         return toVocabularyConceptHiveInitializer(term);
-      }
     } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {
       return toISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {

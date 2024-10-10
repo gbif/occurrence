@@ -26,6 +26,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.common.collect.ImmutableMap;
 
+import org.gbif.occurrence.common.TermUtils;
+
 /**
  * Utilities related to the actual queries executed at runtime.
  * The queries relate closely to the data definitions (obviously) and this class provides the bridge between the
@@ -174,13 +176,17 @@ public abstract class Queries {
    * Used for complex types like Structs which have nested elements.
    */
   public static String toVocabularyConceptHiveInitializer(Term term) {
-    return toNestedHiveInitializer(term, "concept");
+    if (TermUtils.isArray(term)) {
+      return toVocabularyConceptArrayHiveInitializer(term);
+    } else {
+      return toNestedHiveInitializer(term, "concept");
+    }
   }
 
   /**
    * Used for complex types like Structs which have nested array elements.
    */
-  public static String toVocabularyConceptArrayHiveInitializer(Term term) {
+  private static String toVocabularyConceptArrayHiveInitializer(Term term) {
     return toArrayInitializer(
         toNestedHiveInitializer(term, "concepts"), HiveColumns.columnFor(term));
   }
