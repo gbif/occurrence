@@ -19,7 +19,8 @@ import org.gbif.occurrence.common.TermUtils;
 import java.util.Locale;
 
 /**
- * Utilities related to the actual queries executed at runtime — these functions for generating AVRO downloads.
+ * Utilities related to the actual queries executed at runtime — these functions for generating AVRO
+ * downloads.
  */
 class ParquetQueries extends Queries {
 
@@ -41,7 +42,11 @@ class ParquetQueries extends Queries {
   @Override
   String toInterpretedHiveInitializer(Term term) {
     if (TermUtils.isVocabulary(term)) {
-      return toVocabularyConceptHiveInitializer(term);
+      if (TermUtils.isArray(term)) {
+        return toArrayInitializerWithoutAlias(toNestedHiveInitializer(term, "concepts"));
+      } else {
+        return toNestedHiveInitializer(term, "concept");
+      }
     } else {
       return HiveColumns.columnFor(term);
     }
