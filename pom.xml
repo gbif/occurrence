@@ -179,7 +179,7 @@
     <servlet-api.version>2.5</servlet-api.version>
     <metainf-services.version>1.7</metainf-services.version>
 
-    <super-csv.version>2.0.1</super-csv.version>
+    <super-csv.version>2.4.0</super-csv.version>
     <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
 
     <!-- These must be compatible with Spark version (see https://stackoverflow.com/a/50114083) -->
