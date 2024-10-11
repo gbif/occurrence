@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>0.195.0-H3-ICEBERG-SNAPSHOT</version>
+  <version>0.195.5-H3-ICEBERG-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -251,7 +251,7 @@
     <lucene.version>8.7.0</lucene.version>
 
     <!-- Spark -->
-    <spark.version>3.5.0</spark.version>
+    <spark.version>3.5.1</spark.version>
     <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
     <iceberg.version>1.6.0</iceberg.version>
