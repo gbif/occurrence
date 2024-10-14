@@ -41,9 +41,11 @@ class ParquetQueries extends Queries {
 
   @Override
   String toInterpretedHiveInitializer(Term term) {
-    if (TermUtils.isVocabulary(term)) {
+    if (TermUtils.isInterpretedLocalDateSeconds(term)) {
+      return "cast(from_unixtime(" + HiveColumns.columnFor(term) +") as timestamp)";
+    } else if (TermUtils.isVocabulary(term)) {
       if (TermUtils.isArray(term)) {
-        return toArrayInitializerWithoutAlias(toNestedHiveInitializer(term, "concepts"));
+        return toNestedHiveInitializer(term, "concepts");
       } else {
         return toNestedHiveInitializer(term, "concept");
       }
