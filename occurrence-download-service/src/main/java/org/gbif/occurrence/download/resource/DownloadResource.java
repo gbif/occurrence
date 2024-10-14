@@ -53,7 +53,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -339,7 +339,7 @@ public class DownloadResource {
       return ResponseEntity.ok(
           createDownload(request, authentication, principal, parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatusCode()).body(rse.getReason());
     }
   }
 
@@ -499,7 +499,7 @@ public class DownloadResource {
               principal,
               parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatusCode()).body(rse.getReason());
     }
   }
 

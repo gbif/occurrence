@@ -37,10 +37,17 @@ import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.remoteauth.IdentityServiceClient;
 import org.gbif.ws.remoteauth.LoggedUser;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
-import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
+import org.gbif.ws.remoteauth.app.GbifAppRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.app.GbifAppRequestFilter;
+import org.gbif.ws.remoteauth.basic.BasicAuthRequestFilter;
+import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;
+import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;
+import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;
 import org.gbif.ws.security.*;
 import org.gbif.ws.server.filter.AppIdentityFilter;
+import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
+import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
 import org.junit.jupiter.api.Disabled;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
@@ -59,6 +66,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.test.context.ActiveProfiles;
 
 /** SpringBoot app used for IT tests only. */
@@ -234,17 +249,52 @@ public class OccurrenceWsItConfiguration {
 
   /** Empty config class to include the config made by WebMvcConfig. */
   @Configuration
-  public static class WebMvcConfigIT extends WebMvcConfig {}
+  public class WebMvcConfigIT extends WebMvcConfig {}
 
   /** Empty config class to include the config made by OccurrenceMethodSecurityConfiguration. */
   @Configuration
-  public static class OccurrenceMethodSecurityConfigurationIT
+  public class OccurrenceMethodSecurityConfigurationIT
       extends RoleMethodSecurityConfiguration {}
 
   @Configuration
-  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
-      super(context, remoteAuthClient);
+  @EnableWebSecurity
+  public class SecurityConfiguration {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+      ApplicationContext applicationContext = http.getSharedObject(ApplicationContext.class);
+      RemoteAuthClient remoteAuthClient = http.getSharedObject(RemoteAuthClient.class);
+
+      AuthenticationManagerBuilder authenticationManagerBuilder =
+        http.getSharedObject(AuthenticationManagerBuilder.class);
+      authenticationManagerBuilder.authenticationProvider(new BasicRemoteAuthenticationProvider(remoteAuthClient));
+      authenticationManagerBuilder.authenticationProvider(new JwtRemoteBasicAuthenticationProvider(remoteAuthClient));
+      authenticationManagerBuilder.authenticationProvider(new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
+      AuthenticationManager authenticationManager = authenticationManagerBuilder.getOrBuild();
+
+      http.authorizeRequests()
+        .anyRequest()
+        .permitAll()
+        .and()
+        .httpBasic(AbstractHttpConfigurer::disable)
+        .addFilterAfter(
+          applicationContext.getBean(HttpServletRequestWrapperFilter.class),
+          CsrfFilter.class)
+        .addFilterAfter(
+          applicationContext.getBean(RequestHeaderParamUpdateFilter.class),
+          HttpServletRequestWrapperFilter.class)
+        .addFilterAfter(
+          new BasicAuthRequestFilter(authenticationManager),
+          RequestHeaderParamUpdateFilter.class)
+        .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
+        .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
+        .csrf(AbstractHttpConfigurer::disable)
+        .cors(AbstractHttpConfigurer::disable)
+        .sessionManagement(httpSecuritySessionManagementConfigurer ->
+          httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+      return http.build();
     }
   }
 

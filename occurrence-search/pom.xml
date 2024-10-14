@@ -52,6 +52,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.cloud</groupId>
@@ -87,6 +93,10 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -130,12 +140,6 @@
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-high-level-client</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-api</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
@@ -152,16 +156,36 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId> org.elasticsearch.client</groupId>
+      <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client</artifactId>
     </dependency>
     <dependency>
-      <groupId> org.elasticsearch</groupId>
+      <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch-core</artifactId>
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.apache.logging.log4j</groupId>-->
+<!--          <artifactId>log4j</artifactId>-->
+<!--        </exclusion>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.apache.logging.log4j</groupId>-->
+<!--          <artifactId>log4j-to-slf4j</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
     </dependency>
     <dependency>
-      <groupId> org.elasticsearch</groupId>
+      <groupId>org.elasticsearch</groupId>
       <artifactId>elasticsearch</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-to-slf4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -187,10 +211,16 @@
 
     <!-- added to avoid conflicts with es client -->
     <dependency>
-    <groupId>org.apache.logging.log4j</groupId>
+      <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
       <version>${log4j-api.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j-api.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
@@ -211,16 +241,16 @@
     </dependency>
 
     <!-- Test scope -->
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-core</artifactId>
-      <scope>test</scope>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>ch.qos.logback</groupId>-->
+<!--      <artifactId>logback-classic</artifactId>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>ch.qos.logback</groupId>-->
+<!--      <artifactId>logback-core</artifactId>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
 
     <dependency>
       <groupId>net.sf.supercsv</groupId>
