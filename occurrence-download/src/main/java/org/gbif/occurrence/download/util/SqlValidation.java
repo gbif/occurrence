@@ -80,6 +80,14 @@ public class SqlValidation {
       family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_EQDGCCode",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.GeoDistanceUDF
     additionalOperators.add(new SqlFunction("gbif_geoDistance",
       SqlKind.OTHER_FUNCTION,
@@ -98,14 +106,6 @@ public class SqlValidation {
 
     // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
     additionalOperators.add(new SqlFunction("gbif_MGRSCode",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.CHAR,
-      null,
-      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
-    // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_EQDGCCode",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
