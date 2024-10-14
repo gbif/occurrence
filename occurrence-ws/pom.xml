@@ -70,6 +70,8 @@
               <goal>repackage</goal>
             </goals>
             <configuration>
+              <!-- Fixes a nestedPath issue - see https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes#nested-jar-support -->
+              <loaderImplementation>CLASSIC</loaderImplementation>
               <attach>true</attach>
               <classifier>exec</classifier>
             </configuration>
@@ -148,6 +150,14 @@
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
       <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-jaxb-annotations</artifactId>
+        </exclusion>
       	<exclusion>
       		<groupId>asm</groupId>
       		<artifactId>asm</artifactId>
@@ -166,12 +176,22 @@
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>download-query-tools</artifactId>
       <exclusions>
+        <exclusion>
+          <groupId>jakarta.ws.rs</groupId>
+          <artifactId>jakarta.ws.rs-api</artifactId>
+        </exclusion>
       	<exclusion>
       		<groupId>com.google.guava</groupId>
       		<artifactId>guava</artifactId>
       	</exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+      <version>10.0.0</version>
+    </dependency>
+
 <!--    <dependency>-->
 <!--      <groupId>org.gbif</groupId>-->
 <!--      <artifactId>gbif-common-ws</artifactId>-->
@@ -220,6 +240,10 @@
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-search</artifactId>
       <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
         <exclusion>
           <artifactId>commons-logging</artifactId>
           <groupId>commons-logging</groupId>
@@ -275,6 +299,16 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-logging</artifactId>
+          <groupId>commons-logging</groupId>
+        </exclusion>
+        <exclusion>
+        	<groupId>com.google.guava</groupId>
+        	<artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.vocabulary</groupId>
@@ -445,8 +479,8 @@
 
     <!-- Validation -->
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate.validator</groupId>
@@ -463,13 +497,21 @@
       <artifactId>logback-classic</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
-      <artifactId>jcl-over-slf4j</artifactId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.slf4j</groupId>-->
+<!--      <artifactId>slf4j-simple</artifactId>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.slf4j</groupId>-->
+<!--      <artifactId>jcl-over-slf4j</artifactId>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jul-to-slf4j</artifactId>
@@ -496,10 +538,10 @@
       <groupId>com.yammer.metrics</groupId>
       <artifactId>metrics-core</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.yammer.metrics</groupId>
-      <artifactId>metrics-jersey</artifactId>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>com.yammer.metrics</groupId>-->
+<!--      <artifactId>metrics-jersey</artifactId>-->
+<!--    </dependency>-->
     <dependency>
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>

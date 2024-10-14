@@ -59,23 +59,7 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
         OccurrenceSearchParameter p = this.findSearchParam(f);
 
         // look for dynamic rank facet names
-        if (p == null) {
-          String normedType = f.toUpperCase().replaceAll("[. _-]", "");
-          // check if this is a checklist parameter
-          for (OccurrenceSearchParameter cp : checklistParameters) {
-            if (cp.name().replaceAll("[. _-]", "").equalsIgnoreCase(normedType)) {
-              p = cp;
-              break;
-            }
-          }
-        }
-
-        if (p == null) {
-          Optional<Integer> depthOpt = extractTaxonDepth(f);
-          if (depthOpt.isPresent()) {
-            p = new OccurrenceSearchParameter("TAXON_DEPTH_" + depthOpt.get(), String.class);
-          }
-        }
+        p = getOccurrenceSearchParameter(checklistParameters, f, p);
 
         if (p != null) {
           searchRequest.addFacets(p);
@@ -168,23 +152,7 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       OccurrenceSearchParameter p = findSearchParam(param);
 
       // look for dynamic rank facet names
-      if (p == null) {
-        String normedType = param.toUpperCase().replaceAll("[. _-]", "");
-        // check if this is a checklist parameter
-        for (OccurrenceSearchParameter cp : checklistParameters) {
-          if (cp.name().replaceAll("[. _-]", "").equalsIgnoreCase(normedType)) {
-            p = cp;
-            break;
-          }
-        }
-      }
-
-      if (p == null) {
-        Optional<Integer> depthOpt = extractTaxonDepth(param);
-        if (depthOpt.isPresent()) {
-          p = new OccurrenceSearchParameter("TAXON_DEPTH_" + depthOpt.get(), String.class);
-        }
-      }
+      p = getOccurrenceSearchParameter(checklistParameters, param, p);
 
       if (p != null) {
         final List<String> list =
@@ -196,6 +164,27 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
         }
       }
     }
+  }
+
+  private OccurrenceSearchParameter getOccurrenceSearchParameter(List<OccurrenceSearchParameter> checklistParameters, String param, OccurrenceSearchParameter p) {
+    if (p == null) {
+      String normedType = param.toUpperCase().replaceAll("[. _-]", "");
+      // check if this is a checklist parameter
+      for (OccurrenceSearchParameter cp : checklistParameters) {
+        if (cp.name().replaceAll("[. _-]", "").equalsIgnoreCase(normedType)) {
+          p = cp;
+          break;
+        }
+      }
+    }
+
+    if (p == null) {
+      Optional<Integer> depthOpt = extractTaxonDepth(param);
+      if (depthOpt.isPresent()) {
+        p = new OccurrenceSearchParameter("TAXON_DEPTH_" + depthOpt.get(), String.class);
+      }
+    }
+    return p;
   }
 
   private static String getFirstIgnoringCase(String parameter, Map<String, String[]> params) {

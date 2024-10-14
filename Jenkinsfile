@@ -13,9 +13,9 @@ pipeline {
   }
   stages {
 
-    stage('Maven build: Main project (Java 11)') {
+    stage('Maven build: Main project (Java 17)') {
       tools {
-        jdk 'OpenJDK11'
+        jdk 'OpenJDK17'
       }
       steps {
         configFileProvider([

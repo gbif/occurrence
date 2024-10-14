@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.config;
 
+import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -53,7 +55,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+//import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.google.common.collect.Lists;
 
 @Configuration
@@ -143,13 +145,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
   public XmlMapper xmlMapper() {
     XmlMapper xmlMapper = new XmlMapper();
     xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    xmlMapper.registerModules(Arrays.asList(new SimpleModule(), new JaxbAnnotationModule()));
+    xmlMapper.registerModules(Arrays.asList(new SimpleModule(), new JakartaXmlBindAnnotationModule()));
     return xmlMapper;
   }
 
   @Bean
   public Jackson2ObjectMapperBuilderCustomizer customJson() {
-    return builder -> builder.modulesToInstall(new JaxbAnnotationModule());
+    return builder -> builder.modulesToInstall(new JakartaXmlBindAnnotationModule());
   }
 
   @Override
@@ -174,5 +176,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
       return AnnotatedElementUtils.hasAnnotation(beanType, RestController.class);
     }
   }
-
 }
