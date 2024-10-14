@@ -45,7 +45,7 @@ public class DownloadLauncherServiceResource implements DownloadLauncherService 
   @Hidden
   @Secured(ADMIN_ROLE)
   @DeleteMapping("/unlock/{downloadKey}")
-  public void unlock(@PathVariable String downloadKey) {
+  public void unlock(@PathVariable("downloadKey") String downloadKey) {
     lockerService.unlock(downloadKey);
   }
 }
