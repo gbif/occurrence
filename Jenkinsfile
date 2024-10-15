@@ -13,6 +13,20 @@ pipeline {
   }
   stages {
 
+    stage('Maven build: mini cluster module (Java 17)') {
+      tools {
+        jdk 'OpenJDK17'
+      }
+      steps {
+        configFileProvider([
+            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
+          ]) {
+          // occurrence-table-build-trino needs jdk17 because the trino library uses jdk17
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl \'!occurrence-hadoop-minicluster\''
+        }
+      }
+    }
+
     stage('Maven build: Main project (Java 17)') {
       tools {
         jdk 'OpenJDK17'
@@ -22,7 +36,7 @@ pipeline {
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS'),
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
           ]) {
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B -pl !occurrence-table-build-trino'
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B -pl !occurrence-table-build-trino -pl \'!occurrence-hadoop-minicluster\''
         }
       }
     }
