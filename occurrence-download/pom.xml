@@ -21,16 +21,15 @@
   <properties>
     <hadoop-compress.version>1.4-H3-SNAPSHOT</hadoop-compress.version>
     <metrics-core.version>2.2.0</metrics-core.version>
-    <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
     <akka-actor.version>2.6.19</akka-actor.version>
     <es.httpclient.version>4.5.10</es.httpclient.version>
-
     <!-- The timestamp is used to set the start date for the coordinator job -->
     <!-- We want the coordinator to run at 05:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T05:00Z'</maven.build.timestamp.format>
     <minimumMavenVersion>3.6.0</minimumMavenVersion>
+    <log4j.version>2.23.1</log4j.version>
   </properties>
 
   <build>
@@ -149,6 +148,12 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>commmons-logging</groupId>
+          <artifactId>commmons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
@@ -193,12 +198,22 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-ws</artifactId>
       <scope>compile</scope>
       <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-tomcat</artifactId>
@@ -259,15 +274,11 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
+
     <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils</artifactId>
@@ -378,11 +389,11 @@
       </exclusions>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>log4j</groupId>-->
+<!--      <artifactId>log4j</artifactId>-->
+<!--      <version>${log4j.version}</version>-->
+<!--    </dependency>-->
 
     <!-- Small downloads process -->
     <dependency>
@@ -420,14 +431,20 @@
       <artifactId>elasticsearch-rest-high-level-client</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>org.apache.logging.log4j</groupId>
-          <artifactId>log4j-api</artifactId>
+          <groupId>commmons-logging</groupId>
+          <artifactId>commmons-logging</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client-sniffer</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>commmons-logging</groupId>
+          <artifactId>commmons-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Match elasticsearch-rest-high-level-client httpclient version -->
