@@ -22,7 +22,7 @@ pipeline {
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
           ]) {
           // occurrence-table-build-trino needs jdk17 because the trino library uses jdk17
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl occurrence-hadoop-minicluster'
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -pl occurrence-hadoop-minicluster'
         }
       }
     }
