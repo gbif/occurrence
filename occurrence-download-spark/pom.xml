@@ -12,7 +12,6 @@
 
   <properties>
     <scala-java8-compat.version>1.0.2</scala-java8-compat.version>
-    <cluster.spark.version>3.5.0</cluster.spark.version>
     <slf4j.version>2.0.7</slf4j.version>
   </properties>
 
@@ -130,33 +129,26 @@
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-catalyst_${scala.tools.version}</artifactId>
-      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.tools.version}</artifactId>
-      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_${scala.tools.version}</artifactId>
-      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-yarn_${scala.tools.version}</artifactId>
-      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-hive_${scala.tools.version}</artifactId>
-      <version>${cluster.spark.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.iceberg</groupId>
       <artifactId>iceberg-spark-runtime-3.5_${scala.tools.version}</artifactId>
-      <version>${iceberg.version}</version>
-      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
