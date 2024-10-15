@@ -47,7 +47,7 @@ public class DownloadWorkflowModuleTestIT {
      curatorTestingCluster.start();
      embeddedElastic =
        new ElasticsearchContainer(
-         "docker.elastic.co/elasticsearch/elasticsearch:7.10.0-arm64");// + getEsVersion());
+         "docker.elastic.co/elasticsearch/elasticsearch:" + getEsVersion());
      embeddedElastic.start();
    }
 
