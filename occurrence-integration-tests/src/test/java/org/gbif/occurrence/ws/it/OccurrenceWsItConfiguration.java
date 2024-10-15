@@ -222,7 +222,7 @@ public class OccurrenceWsItConfiguration {
   /** Gets a connection from the embedded HBase mini-cluster. */
   @Bean
   public Connection hBaseConnection(HBaseServer hBaseServer) throws IOException {
-    return hBaseServer.getConnection();
+      return hBaseServer.getConnection();
   }
 
   /** HBase configuration made from HBase mini-cluster. */
@@ -257,45 +257,45 @@ public class OccurrenceWsItConfiguration {
       extends RoleMethodSecurityConfiguration {}
 
   @Configuration
-  @EnableWebSecurity
+//  @EnableWebSecurity
   public class SecurityConfiguration {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-      ApplicationContext applicationContext = http.getSharedObject(ApplicationContext.class);
-      RemoteAuthClient remoteAuthClient = http.getSharedObject(RemoteAuthClient.class);
-
-      AuthenticationManagerBuilder authenticationManagerBuilder =
-        http.getSharedObject(AuthenticationManagerBuilder.class);
-      authenticationManagerBuilder.authenticationProvider(new BasicRemoteAuthenticationProvider(remoteAuthClient));
-      authenticationManagerBuilder.authenticationProvider(new JwtRemoteBasicAuthenticationProvider(remoteAuthClient));
-      authenticationManagerBuilder.authenticationProvider(new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
-      AuthenticationManager authenticationManager = authenticationManagerBuilder.getOrBuild();
-
-      http.authorizeRequests()
-        .anyRequest()
-        .permitAll()
-        .and()
-        .httpBasic(AbstractHttpConfigurer::disable)
-        .addFilterAfter(
-          applicationContext.getBean(HttpServletRequestWrapperFilter.class),
-          CsrfFilter.class)
-        .addFilterAfter(
-          applicationContext.getBean(RequestHeaderParamUpdateFilter.class),
-          HttpServletRequestWrapperFilter.class)
-        .addFilterAfter(
-          new BasicAuthRequestFilter(authenticationManager),
-          RequestHeaderParamUpdateFilter.class)
-        .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
-        .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
-        .csrf(AbstractHttpConfigurer::disable)
-        .cors(AbstractHttpConfigurer::disable)
-        .sessionManagement(httpSecuritySessionManagementConfigurer ->
-          httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
-      return http.build();
-    }
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//
+//      ApplicationContext applicationContext = http.getSharedObject(ApplicationContext.class);
+//      RemoteAuthClient remoteAuthClient = http.getSharedObject(RemoteAuthClient.class);
+//
+//      AuthenticationManagerBuilder authenticationManagerBuilder =
+//        http.getSharedObject(AuthenticationManagerBuilder.class);
+//      authenticationManagerBuilder.authenticationProvider(new BasicRemoteAuthenticationProvider(remoteAuthClient));
+//      authenticationManagerBuilder.authenticationProvider(new JwtRemoteBasicAuthenticationProvider(remoteAuthClient));
+//      authenticationManagerBuilder.authenticationProvider(new GbifAppRemoteAuthenticationProvider(remoteAuthClient));
+//      AuthenticationManager authenticationManager = authenticationManagerBuilder.getOrBuild();
+//
+//      http.authorizeRequests()
+//        .anyRequest()
+//        .permitAll()
+//        .and()
+//        .httpBasic(AbstractHttpConfigurer::disable)
+//        .addFilterAfter(
+//          applicationContext.getBean(HttpServletRequestWrapperFilter.class),
+//          CsrfFilter.class)
+//        .addFilterAfter(
+//          applicationContext.getBean(RequestHeaderParamUpdateFilter.class),
+//          HttpServletRequestWrapperFilter.class)
+//        .addFilterAfter(
+//          new BasicAuthRequestFilter(authenticationManager),
+//          RequestHeaderParamUpdateFilter.class)
+//        .addFilterAfter(new JwtRequestFilter(authenticationManager), BasicAuthRequestFilter.class)
+//        .addFilterAfter(new GbifAppRequestFilter(authenticationManager), JwtRequestFilter.class)
+//        .csrf(AbstractHttpConfigurer::disable)
+//        .cors(AbstractHttpConfigurer::disable)
+//        .sessionManagement(httpSecuritySessionManagementConfigurer ->
+//          httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//        );
+//      return http.build();
+//    }
   }
 
   @Bean
