@@ -10,7 +10,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Veuillez consulter <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> pour plus de détails, <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}santé</a> sur l'état actuel des systèmes du GBIF.org, et réessayez dans quelques minutes.
+  Veuillez consulter <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> pour plus de détails, <a href="${portal}system-health" style="color: #4ba2ce;text-decoration: none;">${portal}santé</a> sur l'état actuel des systèmes du GBIF.org, et réessayez dans quelques minutes.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
