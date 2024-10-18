@@ -1538,16 +1538,6 @@ public class OccurrenceSearchResource {
   }
 
   /**
-   * Convert a predicate query to the query used by ElasticSearch, intended for use by internal systems like the portal.
-   */
-  @Hidden
-  @PostMapping("predicate/toesquery")
-  @SneakyThrows
-  public String toEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
-    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
-  }
-
-  /**
    * This same limit property is used on all the suggest methods.
    */
   @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})

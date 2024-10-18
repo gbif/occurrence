@@ -19,14 +19,18 @@ import java.time.format.DateTimeFormatter;
 
 import org.apache.spark.sql.api.java.UDF1;
 
-public class ToLocalISO8601Udf implements UDF1<Long,String> {
+/**
+ * A simple UDF for Hive to convert an epoch time in seconds to a string in ISO 8601 format, without zone information.
+ * If the input value is null or can't be parsed, null is returned.
+ */
+public class SecondsToLocalISO8601Udf implements UDF1<Long,String> {
 
-  private static String toLocalIso8601(Long value) {
-    return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochMilli(value).atZone(ZoneOffset.UTC));
+  private static String secondsToLocalIso8601(Long value) {
+    return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(Instant.ofEpochSecond(value).atZone(ZoneOffset.UTC));
   }
 
   @Override
   public String call(Long field) throws Exception {
-    return field != null? toLocalIso8601(field) : null;
+    return field != null ? secondsToLocalIso8601(field) : null;
   }
 }

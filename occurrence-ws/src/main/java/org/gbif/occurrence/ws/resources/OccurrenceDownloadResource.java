@@ -31,18 +31,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(
   name = "Occurrence downloads",
-  description = "This API provides services to request bulk downloads of occurrence records and retrieve " +
+  description = "**For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads).** " +
+    "*The documentation here is automatically generated from the Java code.  It is always up-to-date, but the structure for the main " +
+    "download request method is complex.*\n\n" +
+    "This API provides services to request bulk downloads of occurrence records and retrieve " +
     "information about those downloads.\n\n" +
     "Occurrence downloads are created asynchronously — the user requests a download and, once complete, is sent an " +
     "email with a link to the resulting file.\n\n" +
     "It is necessary to register as a user at [GBIF.org](https://www.gbif.org/) to create a download request, " +
     "and use HTTP authentication using the username (not the email) and password.\n\n" +
-    "Internally we use a [Java web service client](https://github.com/gbif/occurrence/tree/master/occurrence-ws-client) " +
-    "for the consumption of these HTTP-based, RESTful web services. It may be of interest to those coding against the API.\n\n" +
     "### Occurrence Download Predicates\n\n" +
-    "For the API reference for download predicates expand the `predicate` section of the request body schema on the " +
-    "[creation API call](#operation/requestDownload).\n\n" +
-    "For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads.html)\n\n" +
+    "For the API reference for download predicates expand the “Schema” → `predicate` section of the request body schema on the " +
+    "[creation API call](#Occurrence%20downloads/requestDownload) (the first one after this text).\n\n" +
     "### Occurrence Download Limits\n\n" +
     "Occurrence downloads demand significant computational resources, and are monitored and limited according to the " +
     "GBIF platform load. In order to avoid that downloads requested by a single user utilize most of the resources " +

@@ -20,6 +20,9 @@ import org.apache.spark.sql.api.java.UDF5;
 
 import lombok.SneakyThrows;
 
+/**
+ * A simple UDF to test if two coordinates are within a given distance.
+ */
 public class GeoDistanceUdf implements UDF5<Double,Double,String,Double,Double,Boolean> {
 
   @Override

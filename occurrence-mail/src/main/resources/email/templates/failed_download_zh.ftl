@@ -10,7 +10,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  请通过 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}事件/下载/${download.key}</a>了解更多详情，通过 <a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}健康</a> 查看GBIF系统的当前状态，几分钟后再试。
+  请通过 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}事件/下载/${download.key}</a>了解更多详情，通过 <a href="${portal}system-health" style="color: #4ba2ce;text-decoration: none;">${portal}健康</a> 查看GBIF系统的当前状态，几分钟后再试。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">

@@ -266,7 +266,7 @@ public class TableBackfill {
             : createExtensionTable(extensionTable));
 
     List<Column> columns =
-        extensionTable.getFields().stream()
+        extensionTable.getFieldNames().stream()
             .filter(
                 field ->
                     !configuration.isUsePartitionedTable()

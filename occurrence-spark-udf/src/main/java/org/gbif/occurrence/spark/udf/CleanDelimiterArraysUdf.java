@@ -18,6 +18,11 @@ import org.apache.spark.sql.api.java.UDF1;
 import scala.collection.JavaConverters;
 import scala.collection.mutable.WrappedArray;
 
+/**
+ * A simple UDF for Hive that replaces specials characters with blanks. The characters replaced by
+ * this UDF can break a download format and those are: tabs, line breaks and new lines. If the input
+ * value is null or can't be parsed, an empty string is returned.
+ */
 public class CleanDelimiterArraysUdf implements UDF1<WrappedArray<String>,String[]> {
 
   private static final CleanDelimiters CLEAN_DELIMITERS = new CleanDelimiters();

@@ -5,9 +5,8 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.195.5-H3-SNAPSHOT</version>
+    <version>0.195.7-H3-SNAPSHOT</version>
   </parent>
-
 
   <artifactId>maven-extension-avsc-schema-generator</artifactId>
   <packaging>maven-plugin</packaging>

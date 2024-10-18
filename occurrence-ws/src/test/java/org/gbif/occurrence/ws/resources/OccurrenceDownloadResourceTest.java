@@ -20,16 +20,19 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.api.vocabulary.UserRole;
 import org.gbif.occurrence.download.service.CallbackService;
 
 import java.security.Principal;
 import java.util.Collections;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,6 +55,8 @@ public class OccurrenceDownloadResourceTest {
 
   private OccurrenceDownloadResource resource;
   private PredicateDownloadRequest dl;
+  private SqlDownloadRequest sqlDl;
+  private SqlDownloadRequest badSqlDl;
   private Principal principal;
 
   @Test
@@ -82,6 +87,21 @@ public class OccurrenceDownloadResourceTest {
     assertEquals(HttpStatus.METHOD_FAILURE, response.getStatusCode());
   }
 
+  @Disabled
+  @Test
+  public void testStartSqlDownload() {
+    prepareMocks(USER, false);
+    ResponseEntity<String> response = resource.startDownload(sqlDl, null, principal, null);
+    assertThat(response.getBody(), equalTo(JOB_ID));
+  }
+
+  @Test
+  public void testStartInvalidSqlDownload() {
+    prepareMocks(USER, false);
+    ResponseEntity<String> response = resource.startDownload(badSqlDl, null, principal, null);
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+  }
+
   private void prepareMocks(String user, boolean failedCreation) {
     String archiveServerUrl = "http://test/";
     CallbackService callbackService = mock(CallbackService.class);
@@ -90,6 +110,7 @@ public class OccurrenceDownloadResourceTest {
 
     GbifUser gbifUser = new GbifUser();
     gbifUser.setUserName(user);
+    gbifUser.addRole(UserRole.REGISTRY_ADMIN);
     principal = new GbifUserPrincipal(gbifUser);
 
     Authentication auth = mock(Authentication.class);
@@ -107,12 +128,30 @@ public class OccurrenceDownloadResourceTest {
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
             Collections.singleton(Extension.AUDUBON));
+    sqlDl =
+        new SqlDownloadRequest(
+           "SELECT gbifid FROM occurrence",
+           USER,
+           null,
+           true,
+          DownloadType.OCCURRENCE,
+          DownloadFormat.SQL_TSV_ZIP);
+    badSqlDl =
+        new SqlDownloadRequest(
+           "SELECT * FROM occurrence",
+           USER,
+           null,
+           true,
+          DownloadType.OCCURRENCE,
+          DownloadFormat.SQL_TSV_ZIP);
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.emptyList());
     when(downloadService.listByUser(any(), any(), any(), any(), any())).thenReturn(empty);
     if (!failedCreation) {
       when(service.create(dl, null)).thenReturn(JOB_ID);
+      when(service.create(sqlDl, null)).thenReturn(JOB_ID);
+      when(service.create(badSqlDl, null)).thenReturn(JOB_ID);
     } else {
       when(service.create(dl, null))
           .thenThrow(

@@ -14,15 +14,13 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.Term;
+import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
-
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test cases for generated extensions tables.
@@ -39,14 +37,14 @@ public class ExtensionTableTest {
   }
 
   /**
-   * Reserved word are treated correctly.
+   * Reserved words are treated correctly.
    */
   @Test
   public void reservedWordTest() {
     ExtensionTable extendedMofTable = new ExtensionTable(Extension.IDENTIFICATION);
 
     //Double underscore removed in the produced column name
-    assertTrue(extendedMofTable.getFields().contains(cleanDelimitersInitializer("order_")));
+    assertTrue(extendedMofTable.getFieldInitializers().contains(cleanDelimitersInitializer("order_")));
   }
 
   @Test
@@ -58,31 +56,51 @@ public class ExtensionTableTest {
    * Fields with special names.
    */
   @Test
-  public void especialCasesTest() {
+  public void specialCasesTest() {
     ExtensionTable dnaDerivedTable = new ExtensionTable(Extension.DNA_DERIVED_DATA);
 
     //datasetkey and gbifid are processed without initializers, this is true for all tables
-    assertTrue(dnaDerivedTable.getFields().contains(ExtensionTable.DATASET_KEY_FIELD));
-    assertTrue(dnaDerivedTable.getFields().contains(ExtensionTable.GBIFID_FIELD));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(ExtensionTable.DATASET_KEY_FIELD));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(ExtensionTable.GBIFID_FIELD));
 
     //Special cases are started with backticks to be compliant with Hive syntax
-    assertTrue(dnaDerivedTable.getFields().contains(cleanDelimitersInitializer("`_16srecover`")));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("_16srecover")));
+    assertEquals("cleanDelimiters(`_16srecover`) AS `16srecover`", cleanDelimitersInitializer("_16srecover"));
 
-    //Double underscore removed in the produced column name
-    assertTrue(dnaDerivedTable.getFields().contains(cleanDelimitersInitializer("v__16srecover")));
+    // Double underscore removed in the produced column name
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("v__16srecover")));
+    assertEquals("cleanDelimiters(v__16srecover) AS v_16srecover", cleanDelimitersInitializer("v__16srecover"));
   }
 
   /**
-   * Audobon overloads/borrows terms from other extensions or namespaces.
+   * Audubon overloads/borrows terms from other extensions or namespaces.
    */
   @Test
   public void audobonBorrowedTermsTest() {
-    //Audobon overloads some term names of Dc and DcTerms
+    //Audubon overloads some term names of Dc and DcTerms
     ExtensionTable audobonTable = new ExtensionTable(Extension.AUDUBON);
     Stream.of("rights", "creator", "source", "language", "type")
       .forEach(term -> {
-        assertTrue(audobonTable.getFields().contains(cleanDelimitersInitializer("dc_" + term)));
-        assertTrue(audobonTable.getFields().contains(cleanDelimitersInitializer("dcterms_" + term)));
+        assertTrue(audobonTable.getFieldInitializers().contains(cleanDelimitersInitializer("dc_" + term)));
+        assertTrue(audobonTable.getFieldInitializers().contains(cleanDelimitersInitializer("dcterms_" + term)));
       });
+  }
+
+  /**
+   * Check all terms are known.
+   */
+  @Test
+  public void interpretedFieldsAsTermsTest() {
+    for (Extension ext : Extension.availableExtensions()) {
+      System.out.println("Extension " + ext);
+      ExtensionTable extensionTable = new ExtensionTable(ext);
+
+      for (Term t : extensionTable.getInterpretedFieldsAsTerms()) {
+        //System.out.println(t);
+        if (t instanceof UnknownError) {
+          fail("Unknown term "+t);
+        }
+      }
+    }
   }
 }

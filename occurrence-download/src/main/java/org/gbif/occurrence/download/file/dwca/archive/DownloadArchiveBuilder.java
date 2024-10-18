@@ -152,7 +152,7 @@ public class DownloadArchiveBuilder {
         appendPreCompressedFile(
             out,
             new Path(configuration.getExtensionDataFileName(extensionTable)),
-            extensionTable.getHiveTableName() + ".txt",
+            "verbatim/" + extensionTable.getHiveTableName() + ".txt",
             HeadersFileUtil.getExtensionInterpretedHeader(extensionTable));
       }
     }
