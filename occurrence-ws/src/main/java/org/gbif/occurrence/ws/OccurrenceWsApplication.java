@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -41,7 +42,7 @@ import org.springframework.context.annotation.FilterType;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@SpringBootApplication(exclude = {RabbitAutoConfiguration.class})
+@SpringBootApplication(exclude = {RabbitAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class})
 @EnableConfigurationProperties(NameUsageMatchServiceConfiguration.class)
 @ComponentScan(
     basePackages = {
