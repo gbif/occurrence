@@ -42,7 +42,6 @@ public class RabbitConfiguration {
   }
 
   @Bean
-  @Primary
   Queue launcherQueue(DownloadServiceConfiguration configuration) {
     return QueueBuilder.durable(configuration.getLauncherQueueName())
         .deadLetterExchange("")
@@ -58,6 +57,7 @@ public class RabbitConfiguration {
   }
 
   @Bean
+  @Primary
   public Binding launcherQueueBinding(Queue launcherQueue) {
     return BindingBuilder.bind(launcherQueue)
         .to(new DirectExchange(DOWNLOADS_EXCHANGE))
