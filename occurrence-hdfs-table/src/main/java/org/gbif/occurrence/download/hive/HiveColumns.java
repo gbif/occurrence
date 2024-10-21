@@ -52,8 +52,10 @@ public final class HiveColumns {
    * Escapes the name if required.
    */
   public static String escapeColumnName(String columnName) {
-    String newColumnName = RESERVED_WORDS.contains(columnName) ? columnName + '_' : columnName;
-    return START_WITH_DIGIT_OR_UNDERSCORE.matcher(newColumnName).matches()? '`' + newColumnName + '`' : newColumnName;
+    if (RESERVED_WORDS.contains(columnName) || START_WITH_DIGIT_OR_UNDERSCORE.matcher(columnName).matches()) {
+      return '`' + columnName + '`';
+    }
+    return columnName;
   }
 
   /**
@@ -70,9 +72,9 @@ public final class HiveColumns {
     return escapeColumnName(issue.name().toLowerCase());
   }
 
-  private static String hiveColumnName(String columnName) {
+  public static String hiveColumnName(String columnName) {
     String hiveColumnName = columnName;
-    if(columnName.startsWith("_")) {
+    if (columnName.startsWith("_")) {
       hiveColumnName = columnName.substring(1);
     } else if (columnName.startsWith("v__")) {
       hiveColumnName = columnName.substring(0,2) + columnName.substring(3);
@@ -92,6 +94,13 @@ public final class HiveColumns {
    */
   public static String cleanDelimitersInitializer(String column) {
     return "cleanDelimiters(" + escapeColumnName(column) + ") AS " + hiveColumnName(column);
+  }
+
+  /**
+   * Creates a column expression using the UDF cleanDelimiters(columnName).
+   */
+  public static String cleanDelimitersInitializer(String column, String asColumn) {
+    return "cleanDelimiters(" + escapeColumnName(column) + ") AS " + hiveColumnName(asColumn);
   }
 
   /**

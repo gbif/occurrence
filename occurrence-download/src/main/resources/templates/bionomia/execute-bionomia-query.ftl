@@ -29,8 +29,8 @@ AS SELECT
   basisOfRecord,
   -- Interpreted terms
   countryCode,
-  toLocalISO8601(dateidentified) AS dateIdentified,
-  toLocalISO8601(eventdategte) AS eventDate,
+  secondsToLocalISO8601(dateidentified) AS dateIdentified,
+  secondsToLocalISO8601(eventdategte) AS eventDate,
   array_contains(mediaType, 'StillImage') AS hasImage,
   kingdom,
   family,

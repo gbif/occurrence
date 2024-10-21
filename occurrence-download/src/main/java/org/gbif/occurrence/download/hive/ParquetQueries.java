@@ -13,10 +13,9 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import java.util.Locale;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-
-import java.util.Locale;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating AVRO
@@ -41,9 +40,13 @@ class ParquetQueries extends Queries {
 
   @Override
   String toInterpretedHiveInitializer(Term term) {
-    if (TermUtils.isVocabulary(term)) {
+    if (TermUtils.isInterpretedLocalDateSeconds(term)
+        || TermUtils.isInterpretedUtcDateSeconds(term)
+        || TermUtils.isInterpretedUtcDateMilliseconds(term)) {
+      return "cast(from_unixtime(" + HiveColumns.columnFor(term) + ") as timestamp)";
+    } else if (TermUtils.isVocabulary(term)) {
       if (TermUtils.isArray(term)) {
-        return toArrayInitializerWithoutAlias(toNestedHiveInitializer(term, "concepts"));
+        return toNestedHiveInitializer(term, "concepts");
       } else {
         return toNestedHiveInitializer(term, "concept");
       }

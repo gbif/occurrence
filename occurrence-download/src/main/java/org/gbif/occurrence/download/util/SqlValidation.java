@@ -13,18 +13,6 @@
  */
 package org.gbif.occurrence.download.util;
 
-import org.gbif.occurrence.download.hive.HiveDataTypes;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
-import org.gbif.occurrence.query.sql.HiveSqlQuery;
-import org.gbif.occurrence.query.sql.HiveSqlValidator;
-
-import java.util.*;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import calcite_gbif_shaded.com.google.common.collect.ImmutableMap;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataType;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -38,13 +26,16 @@ import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunction;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunctionCategory;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.ReturnTypes;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeFactoryImpl;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeFamily;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeName;
+import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
 import lombok.SneakyThrows;
+import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.occurrence.download.hive.HiveDataTypes;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
+import org.gbif.occurrence.query.sql.HiveSqlValidator;
+
+import java.util.*;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 
@@ -66,20 +57,19 @@ public class SqlValidation {
 
   private final HiveSqlValidator hiveSqlValidator;
 
-
   public SqlValidation() {
     this(null);
   }
   public SqlValidation(String database) {
     this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
-    OccurrenceTable testTable = new OccurrenceTable("occurrence");
-    rootSchema.add(testTable.getTableName(), testTable);
+    OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence");
+    rootSchema.add(occurrenceTable.getTableName(), occurrenceTable);
     if (database != null) {
       rootSchema.add(CATALOG + "." + database, new AbstractSchema() {
         @Override
         protected Map<String, Table> getTableMap() {
-          return Collections.singletonMap("occurrence", testTable);
+          return Collections.singletonMap("occurrence", occurrenceTable);
         }
       });
     }
@@ -102,6 +92,14 @@ public class SqlValidation {
       family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_EQDGCCode",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.GeoDistanceUDF
     additionalOperators.add(new SqlFunction("gbif_geoDistance",
       SqlKind.OTHER_FUNCTION,
@@ -110,16 +108,16 @@ public class SqlValidation {
       family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_MGRSCode",
+    // org.gbif.occurrence.hive.udf.Isea3hCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_ISEA3HCode",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
       family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_EQDGCCode",
+    // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_MGRSCode",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -134,16 +132,16 @@ public class SqlValidation {
       OperandTypes.STRING_OPTIONAL_STRING,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // org.gbif.occurrence.hive.udf.ToISO8601UDF
-    additionalOperators.add(new SqlFunction("gbif_toISO8601",
+    // org.gbif.occurrence.hive.udf.SecondsToISO8601UDF
+    additionalOperators.add(new SqlFunction("gbif_secondsToISO8601",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
       family(SqlTypeFamily.ANY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // org.gbif.occurrence.hive.udf.ToLocalISO8601UDF
-    additionalOperators.add(new SqlFunction("gbif_toLocalISO8601",
+    // org.gbif.occurrence.hive.udf.SecondsToLocalISO8601UDF
+    additionalOperators.add(new SqlFunction("gbif_secondsToLocalISO8601",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -151,7 +149,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // brickhouse.udf.collect.JoinArrayUDF
-    additionalOperators.add(new SqlFunction("array_join",
+    additionalOperators.add(new SqlFunction("gbif_joinArray",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -161,8 +159,7 @@ public class SqlValidation {
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);
   }
 
-  @SneakyThrows
-  public HiveSqlQuery validateAndParse(String sql) {
+  public HiveSqlQuery validateAndParse(String sql) throws QueryBuildingException {
     String databaseFq = database == null? CATALOG : CATALOG + "." + database;
     return new HiveSqlQuery(hiveSqlValidator, sql, databaseFq);
   }

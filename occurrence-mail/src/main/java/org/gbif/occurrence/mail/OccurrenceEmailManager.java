@@ -17,6 +17,7 @@ import org.gbif.api.model.common.AbstractGbifUser;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
@@ -162,13 +163,14 @@ public class OccurrenceEmailManager {
   }
 
   /**
-   * Gets a human readable version of the occurrence search query used.
+   * Gets a human-readable version of the occurrence search query used.
    */
   public String getHumanQuery(Download download, Locale locale) {
     try {
-      String query =
-          new HumanPredicateBuilder(titleLookup)
-              .humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+      String query = download.getRequest() instanceof PredicateDownloadRequest
+        ? new HumanPredicateBuilder(titleLookup)
+          .humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate())
+        : ((SqlDownloadRequest) download.getRequest()).getSql();
 
       if ("{ }".equals(query)) {
         LOG.debug("Empty query was used");
@@ -177,7 +179,7 @@ public class OccurrenceEmailManager {
 
       if (query.length() > 1000) {
         LOG.debug("Query is too long, abbreviate");
-        query = query.substring(0, 1000) + MESSAGE_SOURCE.getMessage("download.query.abbreviated", null, locale);
+        query = query.substring(0, 1000) + " " + MESSAGE_SOURCE.getMessage("download.query.abbreviated", null, locale);
       }
       return query;
     } catch (Exception e) {

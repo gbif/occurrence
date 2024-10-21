@@ -13,6 +13,15 @@
  */
 package org.gbif.occurrence.download.service;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import lombok.extern.slf4j.Slf4j;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
@@ -29,37 +38,21 @@ import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
-
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
@@ -152,9 +145,14 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     if (request instanceof PredicateDownloadRequest) {
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
     } else if (request instanceof SqlDownloadRequest) {
-      SqlValidation sqlValidation = new SqlValidation();
-      HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
-      log.debug("HiveSqlQuery {}", sqlQuery.getSql());
+      try {
+        SqlValidation sqlValidation = new SqlValidation();
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
+        log.debug("HiveSqlQuery {}", sqlQuery.getSql());
+      } catch (QueryBuildingException qbe) {
+        // Shouldn't happen, as the query has already been validated by this point.
+        throw new RuntimeException(qbe);
+      }
     }
 
     String exceedComplexityLimit = null;

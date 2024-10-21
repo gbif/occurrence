@@ -13,47 +13,14 @@
  */
 package org.gbif.occurrence.search.es;
 
-import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.CARDINALITIES;
-import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
-import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_WILDCARD;
-import static org.gbif.occurrence.search.es.EsQueryUtils.extractFacetLimit;
-import static org.gbif.occurrence.search.es.EsQueryUtils.extractFacetOffset;
-
 import com.google.common.annotations.VisibleForTesting;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
-import org.elasticsearch.common.geo.builders.CoordinatesBuilder;
-import org.elasticsearch.common.geo.builders.LineStringBuilder;
-import org.elasticsearch.common.geo.builders.MultiPolygonBuilder;
-import org.elasticsearch.common.geo.builders.PointBuilder;
-import org.elasticsearch.common.geo.builders.PolygonBuilder;
-import org.elasticsearch.common.geo.builders.ShapeBuilder;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
-import org.elasticsearch.index.query.GeoShapeQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.common.geo.builders.*;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.join.aggregations.ChildrenAggregationBuilder;
 import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.script.Script;
@@ -84,6 +51,17 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
+import java.util.stream.Collectors;
+
+import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
 

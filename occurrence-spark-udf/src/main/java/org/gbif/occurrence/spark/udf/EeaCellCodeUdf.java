@@ -17,6 +17,10 @@ import org.gbif.occurrence.cube.functions.EeaCellCode;
 
 import org.apache.spark.sql.api.java.UDF4;
 
+/**
+ * Randomize a point according to its coordinateUncertainty (or some other distance), and determine the
+ * EEA Reference Grid Cell in which the randomized point lies.
+ */
 public class EeaCellCodeUdf implements UDF4<Integer,Double,Double,Double,String> {
 
   private final EeaCellCode eeaCellCode = new EeaCellCode();

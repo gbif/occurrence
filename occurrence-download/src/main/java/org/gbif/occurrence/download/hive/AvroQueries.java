@@ -30,11 +30,11 @@ public class AvroQueries extends TsvQueries {
   @Override
   String toInterpretedHiveInitializer(Term term) {
     if (TermUtils.isInterpretedLocalDateSeconds(term)) {
-      return toLocalISO8601Initializer(term);
+      return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {
-      return toISO8601Initializer(term);
+      return secondsToISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {
-      return toISO8601MillisInitializer(term);
+      return millisecondsToISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {
       return toVocabularyConceptHiveInitializer(term);
     } else {

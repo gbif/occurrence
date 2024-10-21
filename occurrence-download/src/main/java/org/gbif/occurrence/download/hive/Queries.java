@@ -198,10 +198,6 @@ public abstract class Queries {
     return String.format("array_join(%1$s,'\\\\;') AS %2$s", term, alias);
   }
 
-  public static String toArrayInitializerWithoutAlias(String term) {
-    return String.format("array_join(%1$s,'\\\\;')", term);
-  }
-
   /**
    * Transforms the term into a joinArray(…) expression.
    */

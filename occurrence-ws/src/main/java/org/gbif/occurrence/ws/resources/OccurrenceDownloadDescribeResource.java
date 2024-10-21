@@ -13,30 +13,7 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.HiveColumnsUtils;
-import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.hive.AvroQueries;
-import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.hive.HiveQueries;
-import org.gbif.occurrence.download.hive.InitializableField;
-
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.google.common.collect.ImmutableSet;
-
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
@@ -47,6 +24,27 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Builder;
 import lombok.Data;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.HiveColumnsUtils;
+import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.download.hive.AvroQueries;
+import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.hive.HiveQueries;
+import org.gbif.occurrence.download.hive.InitializableField;
+import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gbif.occurrence.common.HiveColumnsUtils.HIVE_RESERVED_WORDS;
 
@@ -163,6 +161,9 @@ public class OccurrenceDownloadDescribeResource {
     private final Table interpreted = Table.builder()
       .fields(toFieldList(HIVE_QUERIES.selectInterpretedFields(false), true))
       .build();
+
+    private final List<String> verbatimExtensions =
+      Extension.availableExtensions().stream().map(Extension::getRowType).collect(Collectors.toList());
 
     /**
      * Transforms Map<String,InitializableField> queryFields into a List<Field>.

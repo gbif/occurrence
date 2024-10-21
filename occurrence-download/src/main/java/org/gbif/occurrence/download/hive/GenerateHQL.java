@@ -52,7 +52,6 @@ public class GenerateHQL {
   private static final String SIMPLE_AVRO_DOWNLOAD_DIR = "download-workflow/simple-avro/hive-scripts";
   private static final String SIMPLE_PARQUET_DOWNLOAD_DIR = "download-workflow/simple-parquet/hive-scripts";
   private static final String SIMPLE_WITH_VERBATIM_AVRO_DOWNLOAD_DIR = "download-workflow/simple-with-verbatim-avro/hive-scripts";
-  private static final String IUCN_DOWNLOAD_DIR = "download-workflow/iucn/hive-scripts";
   private static final String MAP_OF_LIFE_DOWNLOAD_DIR = "download-workflow/map-of-life/hive-scripts";
 
   private static final String BIONOMIA_DOWNLOAD_DIR = "download-workflow/bionomia/hive-scripts";
@@ -81,7 +80,6 @@ public class GenerateHQL {
       File simpleWithVerbatimAvroDownloadDir = new File(outDir, SIMPLE_WITH_VERBATIM_AVRO_DOWNLOAD_DIR);
       File simpleAvroDownloadDir = new File(outDir, SIMPLE_AVRO_DOWNLOAD_DIR);
       File simpleParquetDownloadDir = new File(outDir, SIMPLE_PARQUET_DOWNLOAD_DIR);
-      File iucnDownloadDir = new File(outDir, IUCN_DOWNLOAD_DIR);
       File mapOfLifeDownloadDir = new File(outDir, MAP_OF_LIFE_DOWNLOAD_DIR);
       File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
       File bionomiaSchemasDir = new File(outDir, BIONOMIA_DOWNLOAD_DIR);
@@ -92,7 +90,6 @@ public class GenerateHQL {
       simpleAvroDownloadDir.mkdirs();
       simpleParquetDownloadDir.mkdirs();
       simpleWithVerbatimAvroDownloadDir.mkdirs();
-      iucnDownloadDir.mkdirs();
       mapOfLifeDownloadDir.mkdirs();
       avroSchemasDir.mkdirs();
       bionomiaSchemasDir.mkdirs();
@@ -112,7 +109,6 @@ public class GenerateHQL {
       generateSimpleParquetQueryHQL(cfg, simpleParquetDownloadDir);
       generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
       generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
-      generateIucnQueryHQL(cfg, iucnDownloadDir);
       generateMapOfLifeQueryHQL(cfg, mapOfLifeDownloadDir);
       generateMapOfLifeSchema(cfg, mapOfLifeDownloadDir.getParentFile());
       generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
@@ -141,10 +137,10 @@ public class GenerateHQL {
    */
   public static void generateOccurrenceAvroTableHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
 
-    try (FileWriter createTableScript = new FileWriter(new File(outDir, "create-occurrence-avro.q"));
+    try (FileWriter createTableScript = new FileWriter(new File(outDir, "create-occurrence-hive-tables.q"));
          FileWriter swapTablesScript = new FileWriter(new File(outDir, "swap-tables.q"));
          FileWriter dropExtensionsTablesScript = new FileWriter(new File(outDir, "drop-extension-tables.q"))) {
-      Template createTableTemplate = cfg.getTemplate("create-tables/create-occurrence-avro.ftl");
+      Template createTableTemplate = cfg.getTemplate("create-tables/create-occurrence-hive-tables.ftl");
       Map<String, Object> data = ImmutableMap.of(FIELDS, OccurrenceHDFSTableDefinition.definition(),
                                                  "extensions", ExtensionTable.tableExtensions());
       createTableTemplate.process(data, createTableScript);
@@ -433,33 +429,6 @@ public class GenerateHQL {
     simpleFields.values().forEach(initializableField -> avroField(builder, initializableField));
     verbatimFields.values().forEach(initializableField -> avroField(builder, initializableField));
     return builder.endRecord();
-  }
-
-  /**
-   * Generates the Hive query file used for IUCN's custom format downloads.
-   */
-  private static void generateIucnQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
-    try (FileWriter out = new FileWriter(new File(outDir, "execute-iucn-query.q"))) {
-      generateIucnQueryHQL(templateConfig(), out);
-    }
-  }
-
-  public static void generateIucnQueryHQL(Configuration cfg, Writer out) throws IOException, TemplateException {
-    Template template = templateConfig().getTemplate("iucn-download/execute-iucn-query.ftl");
-    Map<String, Object> data = ImmutableMap.of(
-      "verbatimFields", AVRO_QUERIES.selectVerbatimFields(),
-      "interpretedFields", AVRO_QUERIES.selectInterpretedFields(true),
-      "internalFields", AVRO_QUERIES.selectInternalFields(true)
-    );
-    template.process(data, out);
-  }
-
-  @SneakyThrows
-  public static String iucnQueryHQL() {
-    try (StringWriter out = new StringWriter()) {
-      generateIucnQueryHQL(templateConfig(), out);
-      return out.toString();
-    }
   }
 
   /**

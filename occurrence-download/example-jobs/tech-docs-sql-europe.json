@@ -1,0 +1,7 @@
+{
+  "sendNotification": true,
+  "creator": "MattBlissett",
+  "notification_address": ["mblissett@gbif.org"],
+  "format": "SQL_TSV_ZIP",
+  "sql": "SELECT datasetKey, countryCode, COUNT(*) FROM occurrence WHERE continent = 'EUROPE' GROUP BY datasetKey, countryCode"
+}

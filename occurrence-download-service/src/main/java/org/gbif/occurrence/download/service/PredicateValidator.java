@@ -136,10 +136,10 @@ public class PredicateValidator {
   }
 
   /**
-   * handles within predicate, validates the Geometry.
+   * handles GeoDistance predicate.
    */
   public void visit(GeoDistancePredicate geoDistance) {
-    SearchTypeValidator.validate(OccurrenceSearchParameter.GEO_DISTANCE, geoDistance.getGeoDistance().toGeoDistanceString());
+    return;
   }
 
   /**

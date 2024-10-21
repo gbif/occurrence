@@ -13,15 +13,27 @@
  */
 package org.gbif.occurrence.download.resource;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.apache.commons.lang3.StringUtils;
+import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.DownloadType;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -30,34 +42,6 @@ import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.net.URI;
-import java.security.Principal;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,45 +54,32 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.net.URI;
+import java.security.Principal;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import io.swagger.v3.oas.annotations.extensions.Extension;
-import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static org.gbif.api.model.occurrence.Download.Status.FILE_ERASED;
-import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
-import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
-import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
-import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertMonthlyDownloadBypass;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
+import static java.lang.annotation.ElementType.*;
+import static org.gbif.api.model.occurrence.Download.Status.*;
+import static org.gbif.api.vocabulary.UserRole.INVITED_TESTER;
+import static org.gbif.api.vocabulary.UserRole.REGISTRY_ADMIN;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.*;
 
 @Validated
 public class DownloadResource {
@@ -293,8 +264,8 @@ public class DownloadResource {
       description =
           "Starts the process of creating a download file. See the predicates "
               + "section to consult the requests accepted by this service and the limits section to refer "
-              + "for information of how this service is limited per user. "
-              + "**Experimental** SQL downloads are also created with this call.",
+              + "for information of how this service is limited per user.\n\n"
+              + "**Experimental** SQL downloads are also created with this call, currently for invited testers only.",
       extensions =
           @Extension(
               name = "Order",
@@ -304,6 +275,37 @@ public class DownloadResource {
         @Parameter(name = "source", hidden = true),
         @Parameter(name = "User-Agent", in = ParameterIn.HEADER, hidden = true)
       })
+  @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    content = @Content(
+      schema = @Schema(
+        oneOf = {PredicateDownloadRequest.class, SqlDownloadRequest.class},
+        example = "{\n" +
+          "  \"creator\": \"gbif_username\",\n" +
+          "  \"sendNotification\": true,\n" +
+          "  \"notification_address\": [\"gbif@example.org\"],\n" +
+          "  \"format\": \"DWCA\",\n" +
+          "  \"predicate\": {\n" +
+          "    \"type\": \"and\",\n" +
+          "    \"predicates\": [\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"COUNTRY\",\n" +
+          "        \"value\": \"FR\"\n" +
+          "      },\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"YEAR\",\n" +
+          "        \"value\": \"2017\"\n" +
+          "      }\n" +
+          "    ]\n" +
+          "  },\n" +
+          "  \"verbatimExtensions\": [\n" +
+          "    \"http://rs.tdwg.org/ac/terms/Multimedia\"\n" +
+          "  ]\n" +
+          "}"
+      )
+    )
+  )
   @ApiResponses(
       value = {
         @ApiResponse(
@@ -362,7 +364,7 @@ public class DownloadResource {
     // User matches (or admin user)
     assertLoginMatches(downloadRequest, authentication, userAuthenticated);
 
-    if (!assertMonthlyDownloadBypass(authentication)
+    if (!checkUserInRole(authentication, REGISTRY_ADMIN)
         && downloadRequest instanceof PredicateDownloadRequest) {
       PredicateDownloadRequest predicateDownloadRequest =
           (PredicateDownloadRequest) downloadRequest;
@@ -406,9 +408,17 @@ public class DownloadResource {
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+      } catch (QueryBuildingException qbe) {
+        LOG.info("SQL is invalid: {}", qbe.getMessage());
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, qbe.getMessage(), qbe);
       } catch (Exception e) {
-        LOG.warn("SQL is INVALID: "+e.getMessage(), e);
+        LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+      }
+
+      // Restrict SQL downloads to admin users and invited testers
+      if (!checkUserInRole(authentication, REGISTRY_ADMIN, INVITED_TESTER)) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Currently limited to invited test users");
       }
     }
 
@@ -450,23 +460,28 @@ public class DownloadResource {
     if (downloadRequest.getFormat().equals(DownloadFormat.SQL_TSV_ZIP)) {
       try {
         String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
-        LOG.info("Received SQL download request «{}»", userSql);
+        LOG.info("Received SQL download request for validation «{}»", userSql);
         HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
         ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getSql());
         return ResponseEntity.ok(downloadRequest);
-      } catch (Exception e) {
-        // TODO: Better return format for failures.
-        LOG.info("SQL is invalid: "+e.getMessage(), e);
+      } catch (QueryBuildingException qbe) {
+        LOG.info("SQL is invalid: {}", qbe.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("status", "INVALID");
-        body.put("message", e.getMessage());
+        body.put("reason", qbe.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+      } catch (Exception e) {
+        LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", "INVALID");
+        body.put("reason", e.getMessage());
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
-        body.put("track", sw.toString());
+        body.put("trace", sw.toString());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
       }
     } else {
@@ -506,20 +521,36 @@ public class DownloadResource {
   /**
    * Download predicate from a search string.
    */
-  @Hidden
+  @Operation(
+    operationId = "searchToPredicate",
+    summary = "Converts a plain search query into a download predicate.",
+    description =
+      "Takes a search query used for the ordinary search API and returns a predicate suitable for the download " +
+        "API.  In many cases, a query from the website can be converted using this method.",
+    extensions =
+    @Extension(
+      name = "Order",
+      properties = @ExtensionProperty(name = "Order", value = "0050")))
+  @Parameters(
+    value = {
+      @Parameter(name = "notification_address", description = "Email notification address."),
+      @Parameter(name = "format", description = "Download format."),
+      @Parameter(name = "verbatimExtensions", description = "Verbatim extensions to include in a Darwin Core Archive " +
+        "download."),
+    })
   @GetMapping("predicate")
   public DownloadRequest downloadPredicate(
       @Autowired HttpServletRequest httpRequest,
       @RequestParam(name = "notification_address", required = false) String emails,
       @RequestParam("format") String format,
-      @RequestParam(name = "extensions", required = false) String extensions,
+      @RequestParam(name = "verbatimExtensions", required = false) String verbatimExtensions,
       @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
     Set<org.gbif.api.vocabulary.Extension> requestExtensions =
-        Optional.ofNullable(asSet(extensions))
+        Optional.ofNullable(asSet(verbatimExtensions))
             .map(
                 exts ->
                     exts.stream()
@@ -532,15 +563,14 @@ public class DownloadResource {
         predicate,
         creator,
         notificationAddress,
-        true,
+        notificationAddress != null,
         downloadFormat,
         downloadType,
         requestExtensions);
   }
 
   /**
-   * Search existingDownloads for a download with a format and predicate matching newDownload, from
-   * cutoff at the earliest.
+   * Search existingDownloads for a download with a format and predicate matching newDownload.
    *
    * @return The download key, if there's a match.
    */

@@ -11,22 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.service;
+package org.gbif.occurrence.spark.udf;
 
-/**
- * Wraps an Exception thrown during processing a {@link org.gbif.api.model.occurrence.Download}.
- */
-public class QueryBuildingException extends Exception {
+import org.junit.jupiter.api.Test;
 
-  private static final long serialVersionUID = 0;
+import static org.junit.jupiter.api.Assertions.*;
 
-  /**
-   * Creates a new instance with the given cause.
-   *
-   * @param cause wrapped cause
-   */
-  public QueryBuildingException(Throwable cause) {
-    super(cause);
+public class SecondsToLocalISO8601UDFTest {
+
+  @Test
+  public void testLocalDateFormatter() throws Exception {
+    SecondsToLocalISO8601Udf function = new SecondsToLocalISO8601Udf();
+
+    assertNull(function.call(null));
+    assertEquals("2020-04-02T16:48:54", function.call(1_585_846_134L).toString());
   }
-
 }
