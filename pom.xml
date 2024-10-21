@@ -117,7 +117,7 @@
     <spring-cloud-bootstrap.version>4.1.4</spring-cloud-bootstrap.version>
     <spring-cloud-openfeign.version>4.1.3</spring-cloud-openfeign.version>
     <mybatis-spring-boot-starter.version>3.0.3</mybatis-spring-boot-starter.version>
-    <mybatis-spring-boot-starter-Test.version>3.0.3</mybatis-spring-boot-starter-Test.version>
+    <mybatis-spring-boot-starter-test.version>3.0.3</mybatis-spring-boot-starter-test.version>
     <feign.version>10.12</feign.version>
     <spring-boot-admin.version>3.3.4</spring-boot-admin.version>
     <springdoc-openapi-ui.version>1.8.0</springdoc-openapi-ui.version>
@@ -152,7 +152,7 @@
     <commons-io.version>2.4</commons-io.version>
     <commmons-lang.version>3.12.0</commmons-lang.version>
     <curator.version>5.5.0</curator.version>
-    <curator-Test.version>5.5.0</curator-Test.version>
+    <curator-test.version>5.5.0</curator-test.version>
     <dbunit.version>2.4.9</dbunit.version>
     <geotools.version>20.5</geotools.version>
     <grizzly-servlet-webserver.version>1.9.61</grizzly-servlet-webserver.version>
@@ -215,7 +215,7 @@
     <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
     <gbif-api.version>1.18.0-multitaxonomy-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
-    <gbif-common-Test.version>0.7</gbif-common-Test.version>
+    <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
     <gbif-common-ws.version>1.29-multitaxonomy-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
@@ -393,7 +393,7 @@
         <artifactId>gbif-common-ws</artifactId>
         <version>${gbif-common-ws.version}</version>
         <classifier>tests</classifier>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>
@@ -539,9 +539,9 @@
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>
-        <artifactId>gbif-common-Test</artifactId>
+        <artifactId>gbif-common-test</artifactId>
         <classifier>tests</classifier>
-        <version>${gbif-common-Test.version}</version>
+        <version>${gbif-common-test.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.kvs</groupId>
@@ -932,13 +932,13 @@
             <artifactId>slf4j-log4j12</artifactId>
           </exclusion>
         </exclusions>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-testing-util</artifactId>
         <version>${hbase.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -1156,15 +1156,15 @@
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>
-        <artifactId>curator-Test</artifactId>
-        <version>${curator-Test.version}</version>
+        <artifactId>curator-test</artifactId>
+        <version>${curator-test.version}</version>
         <exclusions>
           <exclusion>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
           </exclusion>
         </exclusions>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
 
       <!-- geotools -->
@@ -1392,79 +1392,79 @@
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
         <version>${hamcrest.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-core</artifactId>
         <version>${powermock-mockito.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-api-easymock</artifactId>
         <version>${powermock-mockito.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-module-junit4</artifactId>
         <version>${powermock-mockito.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-api-mockito</artifactId>
         <version>${powermock-mockito.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.dbunit</groupId>
         <artifactId>dbunit</artifactId>
         <version>${dbunit.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>elasticsearch</artifactId>
         <version>${testcontainers-elasticsearch.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
         <version>${junit-jupiter.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
         <version>${junit-jupiter.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-junit-jupiter</artifactId>
         <version>${mockito-junit-jupiter.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.codehaus.janino</groupId>
         <artifactId>commons-compiler</artifactId>
         <version>${commons-compiler.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.codehaus.janino</groupId>
         <artifactId>janino</artifactId>
         <version>${janino.version}</version>
-        <scope>Test</scope>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
