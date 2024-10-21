@@ -588,7 +588,7 @@
     "doc" : "https://w3id.org/gensc/terms/MIXS:0000065",
     "default" : null
   }, {
-    "name" : "v__16srecover",
+    "name" : "v_16srecover",
     "type" : [ "null", "string" ],
     "doc" : "https://w3id.org/gensc/terms/MIXS:0000065",
     "default" : null
@@ -598,7 +598,7 @@
     "doc" : "https://w3id.org/gensc/terms/MIXS:0000066",
     "default" : null
   }, {
-    "name" : "v__16srecoversoftware",
+    "name" : "v_16srecoversoftware",
     "type" : [ "null", "string" ],
     "doc" : "https://w3id.org/gensc/terms/MIXS:0000066",
     "default" : null

@@ -18,6 +18,9 @@ import org.gbif.dwc.terms.Term;
 import javax.annotation.concurrent.Immutable;
 
 import lombok.Data;
+
+import static org.gbif.occurrence.download.hive.HiveColumns.escapeColumnName;
+
 /**
  * A field encapsulates the information linking the Hive field to the Term in the enumeration, the type for the Hive table
  * and a SQL fragment that can be used to initialize the field.  This is useful for create tables as follows:
@@ -30,6 +33,7 @@ import lombok.Data;
 public class InitializableField {
 
   private final String initializer;
+  private final String columnName;
   private final String hiveField;
   private final String hiveDataType;
   private final Term term;
@@ -38,16 +42,18 @@ public class InitializableField {
    * Default behavior is to initialize with the same as the Hive table column, implying the column is a straight copy
    * with the same name as an existing table.
    */
-  public InitializableField(Term term, String hiveField, String hiveDataType) {
+  public InitializableField(Term term, String columnName, String hiveDataType) {
     this.term = term;
-    this.hiveField = hiveField;
+    this.columnName = columnName;
+    this.hiveField = escapeColumnName(columnName);
     this.hiveDataType = hiveDataType;
     initializer = hiveField;
   }
 
-  public InitializableField(Term term, String hiveField, String hiveDataType, String initializer) {
+  public InitializableField(Term term, String columnName, String hiveDataType, String initializer) {
     this.term = term;
-    this.hiveField = hiveField;
+    this.columnName = columnName;
+    this.hiveField = escapeColumnName(columnName);
     this.hiveDataType = hiveDataType;
     this.initializer = initializer == null ? hiveField : initializer; // for safety
   }

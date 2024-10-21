@@ -53,12 +53,12 @@
     "doc" : "http://purl.org/dc/terms/creator",
     "default" : null
   }, {
-    "name" : "date_",
+    "name" : "date",
     "type" : [ "null", "string" ],
     "doc" : "http://purl.org/dc/terms/date",
     "default" : null
   }, {
-    "name" : "v_date_",
+    "name" : "v_date",
     "type" : [ "null", "string" ],
     "doc" : "http://purl.org/dc/terms/date",
     "default" : null
