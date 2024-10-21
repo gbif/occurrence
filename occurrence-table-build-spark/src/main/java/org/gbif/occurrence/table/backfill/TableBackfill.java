@@ -100,6 +100,8 @@ public class TableBackfill {
     tableBackfillConfiguration.setDatasetKey(datasetKey);
     tableBackfillConfiguration.setCrawlAttempt(crawlAttempt);
 
+    log.info("Running TableBackfill using parameters {}", tableBackfillConfiguration);
+
     TableBackfill backfill = new TableBackfill(tableBackfillConfiguration);
 
     backfill.run(command);
