@@ -113,6 +113,11 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+    </dependency>
+
     <!-- To avoid classpath clash -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
