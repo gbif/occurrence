@@ -52,10 +52,8 @@ public final class HiveColumns {
    * Escapes the name if required.
    */
   public static String escapeColumnName(String columnName) {
-    if (RESERVED_WORDS.contains(columnName) || START_WITH_DIGIT_OR_UNDERSCORE.matcher(columnName).matches()) {
-      return '`' + columnName + '`';
-    }
-    return columnName;
+    String newColumnName = RESERVED_WORDS.contains(columnName) ? columnName + '_' : columnName;
+    return START_WITH_DIGIT_OR_UNDERSCORE.matcher(newColumnName).matches()? '`' + newColumnName + '`' : newColumnName;
   }
 
   /**
