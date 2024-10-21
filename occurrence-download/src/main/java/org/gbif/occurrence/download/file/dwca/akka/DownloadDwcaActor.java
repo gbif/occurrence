@@ -50,6 +50,7 @@ import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvBeanWriter;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvBeanWriter;
@@ -119,7 +120,11 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends AbstractAct
       try {
         String outPath = work.getJobDataFileName() + '_' + new ExtensionTable(ext).getHiveTableName();
         log.info("Writing to extension file {}", outPath);
-      return new CsvMapWriter(new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), CsvPreference.TAB_PREFERENCE);
+        CsvPreference preference =
+          new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+            .useEncoder(new DefaultCsvEncoder())
+            .build();
+      return new CsvMapWriter(new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), preference);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
     }
@@ -206,19 +211,29 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends AbstractAct
 
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
-    try (
-      ICsvMapWriter intCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
-                                                                               + TableSuffixes.INTERPRETED_SUFFIX,
-                                                                               StandardCharsets.UTF_8),
-                                                    CsvPreference.TAB_PREFERENCE);
-      ICsvMapWriter verbCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
-                                                                                + TableSuffixes.VERBATIM_SUFFIX,
-                                                                                StandardCharsets.UTF_8),
-                                                     CsvPreference.TAB_PREFERENCE);
-      ICsvBeanWriter multimediaCsvWriter = new CsvBeanWriter(new FileWriterWithEncoding(work.getJobDataFileName()
-                                                                                        + TableSuffixes.MULTIMEDIA_SUFFIX,
-                                                                                        StandardCharsets.UTF_8),
-                                                             CsvPreference.TAB_PREFERENCE)) {
+    CsvPreference preference =
+        new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+            .useEncoder(new DefaultCsvEncoder())
+            .build();
+
+    try (ICsvMapWriter intCsvWriter =
+            new CsvMapWriter(
+                new FileWriterWithEncoding(
+                    work.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX,
+                    StandardCharsets.UTF_8),
+                preference);
+        ICsvMapWriter verbCsvWriter =
+            new CsvMapWriter(
+                new FileWriterWithEncoding(
+                    work.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
+                    StandardCharsets.UTF_8),
+                preference);
+        ICsvBeanWriter multimediaCsvWriter =
+            new CsvBeanWriter(
+                new FileWriterWithEncoding(
+                    work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX,
+                    StandardCharsets.UTF_8),
+                preference)) {
       searchQueryProcessor.processQuery(work, record -> {
           try {
             // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.

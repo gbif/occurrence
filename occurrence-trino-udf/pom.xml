@@ -12,7 +12,7 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <gbif-api.version>1.16.1-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>1.17.0-SNAPSHOT</gbif-api.version>
     <lucene.version>8.7.0</lucene.version>
     <trino.version>414</trino.version>
     <slice.version>0.45</slice.version>

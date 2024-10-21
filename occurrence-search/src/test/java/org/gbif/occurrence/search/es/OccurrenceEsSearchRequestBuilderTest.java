@@ -13,28 +13,25 @@
  */
 package org.gbif.occurrence.search.es;
 
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Set;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.MediaType;
-
-import java.io.IOException;
-import java.util.Set;
-
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class OccurrenceEsSearchRequestBuilderTest {
 
@@ -760,24 +757,71 @@ public class OccurrenceEsSearchRequestBuilderTest {
   @Test
   public void geoTimeQuery() throws JsonProcessingException {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addGeologicalTimeFilter("test");
+    searchRequest.addGeologicalTimeFilter("cenozoic");
 
     QueryBuilder query =
-      esSearchRequestBuilder
-        .buildQueryNode(searchRequest)
-        .orElseThrow(IllegalArgumentException::new);
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
-      200.2,
-      jsonQuery
-        .path(BOOL)
-        .path(FILTER)
-        .findValue(GEOLOGICAL_TIME.getSearchFieldName())
-        .get(VALUE)
-        .asDouble());
+        66.0,
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValue(GEOLOGICAL_TIME.getSearchFieldName())
+            .get(VALUE)
+            .asDouble());
+  }
+
+  @Test
+  public void geoTimeRangeQuery() throws JsonProcessingException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addGeologicalTimeFilter("miocene,pliocene");
+
+    QueryBuilder query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
+    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+    JsonNode rangeNode =
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValue(RANGE)
+            .path(GEOLOGICAL_TIME.getSearchFieldName());
+    assertEquals(2.58, rangeNode.get(FROM).asDouble());
+    assertEquals(23.03, rangeNode.get(TO).asDouble());
+    assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
+
+    searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addGeologicalTimeFilter("*,pliocene");
+
+    query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
+    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+    rangeNode =
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValue(RANGE)
+            .path(GEOLOGICAL_TIME.getSearchFieldName());
+    assertEquals(2.58, rangeNode.get(FROM).asDouble());
+    assertFalse(rangeNode.hasNonNull(TO));
+    assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
   }
 }

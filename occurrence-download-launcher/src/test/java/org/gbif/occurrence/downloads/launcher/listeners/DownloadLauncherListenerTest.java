@@ -22,6 +22,7 @@ import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -36,7 +37,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 
-public class DownloadLauncherListenerTest {
+class DownloadLauncherListenerTest {
 
   @Mock
   private DownloadLauncher jobManager;
@@ -55,7 +56,7 @@ public class DownloadLauncherListenerTest {
   }
 
   @Test
-  public void testHandleMessageRunningStatus() throws Exception {
+  void testHandleMessageRunningStatus() throws Exception {
     String downloadKey = "test-key";
 
     PredicateDownloadRequest request = new PredicateDownloadRequest();
@@ -69,20 +70,44 @@ public class DownloadLauncherListenerTest {
     DownloadLauncherMessage downloadLauncherMessage =
         new DownloadLauncherMessage(downloadKey, request);
 
-    Mockito.when(jobManager.create(downloadKey))
+    Mockito.when(jobManager.createRun(downloadKey))
         .thenReturn(DownloadLauncher.JobStatus.RUNNING);
-    Mockito.when(jobManager.getStatusByName(downloadKey)).thenReturn(Optional.of(Status.RUNNING));
+    Mockito.when(jobManager.getStatusByName(downloadKey))
+      .thenReturn(Optional.of(Status.RUNNING));
 
     listener.handleMessage(downloadLauncherMessage);
 
-    Mockito.verify(jobManager).create(downloadKey);
+    Mockito.verify(jobManager).createRun(downloadKey);
     Mockito.verify(lockerService).lock(downloadKey, Thread.currentThread());
   }
 
   @Test
-  public void testHandleMessageFailedStatus() {
-    Assertions.assertThrows(AmqpRejectAndDontRequeueException.class,() -> {
-      String downloadKey = "test-key";
+  void testHandleMessageFailedStatus() {
+    String downloadKey = "test-key";
+
+    PredicateDownloadRequest request = new PredicateDownloadRequest();
+    request.setCreator("testUser");
+    request.setFormat(DownloadFormat.DWCA);
+    request.setNotificationAddresses(Collections.singleton("testEmail"));
+    request.setPredicate(
+        new EqualsPredicate(
+            OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
+
+    DownloadLauncherMessage downloadLauncherMessage =
+        new DownloadLauncherMessage(downloadKey, request);
+
+    Mockito.when(jobManager.createRun(downloadKey)).thenReturn(DownloadLauncher.JobStatus.FAILED);
+
+    Mockito.when(downloadUpdaterService.isStatusFinished(downloadKey)).thenReturn(Boolean.TRUE);
+
+    listener.handleMessage(downloadLauncherMessage);
+
+    Mockito.verifyNoInteractions(jobManager);
+  }
+
+  @Test
+  void testHandleMessageAlreadyFinishedStatus() {
+    String downloadKey = "test-key";
 
     PredicateDownloadRequest request = new PredicateDownloadRequest();
     request.setCreator("testUser");
@@ -95,16 +120,37 @@ public class DownloadLauncherListenerTest {
     DownloadLauncherMessage downloadLauncherMessage =
       new DownloadLauncherMessage(downloadKey, request);
 
-    Mockito.when(jobManager.create(downloadKey))
-      .thenReturn(DownloadLauncher.JobStatus.FAILED);
-
-    Mockito.when(downloadUpdaterService.isStatusFinished(downloadKey))
-      .thenReturn(Boolean.TRUE);
+    Mockito.when(jobManager.createRun(downloadKey))
+      .thenReturn(JobStatus.FINISHED);
 
     listener.handleMessage(downloadLauncherMessage);
 
-    Mockito.verify(jobManager).create(downloadKey);
-    Mockito.verify(downloadUpdaterService).isStatusFinished(downloadKey);
-    });
+    Mockito.verify(downloadUpdaterService).updateStatus(downloadKey, Status.SUCCEEDED);
+  }
+
+  @Test
+  void testHandleMessageAlreadyFailedStatus() {
+    Assertions.assertThrows(
+        AmqpRejectAndDontRequeueException.class,
+        () -> {
+          String downloadKey = "test-key";
+
+          PredicateDownloadRequest request = new PredicateDownloadRequest();
+          request.setCreator("testUser");
+          request.setFormat(DownloadFormat.DWCA);
+          request.setNotificationAddresses(Collections.singleton("testEmail"));
+          request.setPredicate(
+              new EqualsPredicate(
+                  OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
+
+          DownloadLauncherMessage downloadLauncherMessage =
+              new DownloadLauncherMessage(downloadKey, request);
+
+          Mockito.when(jobManager.createRun(downloadKey)).thenReturn(JobStatus.FAILED);
+
+          listener.handleMessage(downloadLauncherMessage);
+
+          Mockito.verify(downloadUpdaterService).updateStatus(downloadKey, Status.FAILED);
+        });
   }
 }

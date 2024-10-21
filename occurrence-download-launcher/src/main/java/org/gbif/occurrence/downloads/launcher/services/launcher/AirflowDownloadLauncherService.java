@@ -13,6 +13,23 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher;
 
+import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
@@ -21,26 +38,9 @@ import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
-
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -134,14 +134,29 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus create(String downloadKey) {
+  public JobStatus createRun(String downloadKey) {
     try {
       Download download = downloadClient.get(downloadKey);
-      JsonNode response = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::createRun).apply(getAirflowBody(download));
+
+      Optional<Status> status = getStatusByName(download.getKey());
+
+      // Send task to Airflow is no statuses found
+      if (status.isEmpty()) {
+        JsonNode response =
+            Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::createRun)
+                .apply(getAirflowBody(download));
+        log.info("Create a run for: {}", response);
+      } else if (status.get() == SUCCEEDED) {
+        log.info("downloadKey {} is already has finished statuses", downloadKey);
+        return JobStatus.FINISHED;
+      } else if (FINISH_STATUSES.contains(status.get())) {
+        log.info("downloadKey {} is already in one of failed statuses: {}", downloadKey, status.get());
+        return JobStatus.FAILED;
+      } else if (EXECUTING_STATUSES.contains(status.get())){
+        log.info("downloadKey {} is already in one of running statuses: {}", downloadKey, status.get());
+      }
 
       asyncStatusCheck(download.getKey());
-
-      log.info("Response {}", response);
       return JobStatus.RUNNING;
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
@@ -150,7 +165,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   @Override
-  public JobStatus cancel(String downloadKey) {
+  public JobStatus cancelRun(String downloadKey) {
     try {
       String dagId = downloadDagId(downloadKey);
       JsonNode jsonNode = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::deleteRun).apply(dagId);
@@ -170,49 +185,52 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     JsonNode jsonStatus = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::getRun).apply(dagId);
     JsonNode state = jsonStatus.get("state");
 
-    // State can be null if DAG was killed/cancelled
     if (state == null) {
-      return Optional.of(Status.CANCELLED);
+      return Optional.empty();
     }
 
-    String status = state.asText();
-    if ("queued".equalsIgnoreCase(status)) {
-      return Optional.of(Status.PREPARING);
+    switch (state.asText()) {
+      case "queued":
+      case "scheduled":
+      case "rescheduled":
+      case "up_for_retry":
+      case "up_for_reschedule":
+        return Optional.of(Status.PREPARING);
+      case "running":
+      case "restarting":
+      case "retry":
+        return Optional.of(Status.RUNNING);
+      case "success":
+        return Optional.of(SUCCEEDED);
+      case "failed":
+      case "removed":
+      case "upstream_failed":
+        return Optional.of(Status.FAILED);
+      default:
+        return Optional.empty();
     }
-    if ("running".equalsIgnoreCase(status) || "rescheduled".equalsIgnoreCase(status) || "retry".equalsIgnoreCase(status)) {
-      return Optional.of(Status.RUNNING);
-    }
-    if ("success".equalsIgnoreCase(status)) {
-      return Optional.of(Status.SUCCEEDED);
-    }
-    if ("failed".equalsIgnoreCase(status)) {
-      return Optional.of(Status.FAILED);
-    }
-    return Optional.empty();
   }
 
   @Override
   public List<Download> renewRunningDownloadsStatuses(List<Download> downloads) {
     List<Download> result = new ArrayList<>(downloads.size());
     for (Download download : downloads) {
-      String sparkAppName = normalize(download.getKey());
-      Optional<Status> status = getStatusByName(sparkAppName);
-      if (status.isPresent()) {
+      Optional<Status> status = getStatusByName(download.getKey());
+      if (status.isPresent() && download.getStatus() != status.get()) {
+        log.info(
+            "Update download {} status from {} to {}",
+            download.getKey(),
+            download.getStatus(),
+            status.get());
         download.setStatus(status.get());
-      } else {
-        log.warn("Can't find spark application status for the download {}", sparkAppName);
+        result.add(download);
+      } else if (status.isEmpty()) {
+        log.warn("Can't find spark application status for the download {}", download.getKey());
+      } else if (download.getStatus() == status.get()) {
+        log.info("download key {} status didn't change", download.getKey());
       }
-      result.add(download);
     }
     return result;
-  }
-
-  /**
-   * A lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters, '-' or '.'.
-   * Must start and end with an alphanumeric character and its max lentgh is 64 characters.
-   */
-  private static String normalize(String sparkAppName) {
-    return "download-" + sparkAppName.toLowerCase().replace("_to_", "-").replace("_", "-");
   }
 
   private void asyncStatusCheck(String downloadKey) {
@@ -221,7 +239,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
           try {
 
             Optional<Status> status = getStatusByName(downloadKey);
-            while (status.isPresent() && Status.SUCCEEDED != status.get() && Status.FAILED != status.get()) {
+            while (status.isPresent() && SUCCEEDED != status.get() && Status.FAILED != status.get()) {
               TimeUnit.SECONDS.sleep(airflowConfiguration.apiCheckDelaySec);
               status = getStatusByName(downloadKey);
             }

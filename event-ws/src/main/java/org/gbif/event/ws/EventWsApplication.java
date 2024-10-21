@@ -13,6 +13,7 @@
  */
 package org.gbif.event.ws;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -26,7 +27,6 @@ import org.gbif.ws.security.GbifAuthServiceImpl;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
@@ -39,8 +39,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootApplication(
     exclude = {

@@ -13,7 +13,7 @@ SELECT
   family,
   speciesKey,
   species,
-  COALESCE(sex, 'NOT_SUPPLIED') AS sex,
+  COALESCE(occurrence.sex.concept, 'NOT_SUPPLIED') AS sex,
   COALESCE(occurrence.lifestage.concept, 'NOT_SUPPLIED') AS lifestage,
   -- Measurements
   COUNT(*) AS occurrences,

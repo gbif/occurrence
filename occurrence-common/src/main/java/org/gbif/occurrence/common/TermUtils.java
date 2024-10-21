@@ -536,4 +536,10 @@ public class TermUtils {
     return SQLColumnsUtils.isVocabulary(term);
   }
 
+  /**
+   * @return true if the term is a handled/annotated as an array.
+   */
+  public static boolean isArray(Term term) {
+    return SQLColumnsUtils.isSQLArray(term);
+  }
 }

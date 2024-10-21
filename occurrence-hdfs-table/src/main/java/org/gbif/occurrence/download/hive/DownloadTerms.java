@@ -55,6 +55,19 @@ public class DownloadTerms {
     .addAll(EXCLUSIONS_INTERPRETED)
     .add(GbifTerm.verbatimScientificName).build();
 
+  public static final Set<Term> DWCA_EXCLUSIONS_DOWNLOAD =
+      new ImmutableSet.Builder<Term>()
+          .add(GbifTerm.geologicalTime)
+          .add(GbifTerm.lithostratigraphy)
+          .add(GbifTerm.biostratigraphy)
+          .build();
+
+  public static final Set<Term> EXCLUSIONS_DOWNLOAD =
+      new ImmutableSet.Builder<Term>()
+          .addAll(EXCLUSIONS_INTERPRETED)
+          .addAll(DWCA_EXCLUSIONS_DOWNLOAD)
+          .build();
+
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS).immutableCopy();
 
@@ -62,7 +75,7 @@ public class DownloadTerms {
    * The interpreted terms included in a DWCA download.
    */
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS =
-    Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS_INTERPRETED).immutableCopy();
+    Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS_DOWNLOAD).immutableCopy();
 
   /*
    * The verbatim terms included in a DWCA download.
