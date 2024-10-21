@@ -44,7 +44,7 @@ public class ExtensionTableTest {
     ExtensionTable extendedMofTable = new ExtensionTable(Extension.IDENTIFICATION);
 
     //Double underscore removed in the produced column name
-    assertTrue(extendedMofTable.getFieldInitializers().contains(cleanDelimitersInitializer("order_")));
+    assertTrue(extendedMofTable.getFieldInitializers().contains(cleanDelimitersInitializer("order")));
   }
 
   @Test
@@ -68,8 +68,8 @@ public class ExtensionTableTest {
     assertEquals("cleanDelimiters(`_16srecover`) AS `16srecover`", cleanDelimitersInitializer("_16srecover"));
 
     // Double underscore removed in the produced column name
-    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("v__16srecover")));
-    assertEquals("cleanDelimiters(v__16srecover) AS v_16srecover", cleanDelimitersInitializer("v__16srecover"));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("v_16srecover")));
+    assertEquals("cleanDelimiters(v_16srecover) AS v_16srecover", cleanDelimitersInitializer("v_16srecover"));
   }
 
   /**
