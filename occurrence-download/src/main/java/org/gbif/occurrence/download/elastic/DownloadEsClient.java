@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.elastic;
 
+import org.elasticsearch.index.query.QueryBuilder;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.download.predicate.EsPredicateUtil;
@@ -58,9 +59,12 @@ public class DownloadEsClient implements Closeable {
    */
   @SneakyThrows
   public long getRecordCount(Predicate predicate) {
-    CountRequest countRequest = new CountRequest().indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper));
+    QueryBuilder queryBuilder = EsPredicateUtil.searchQuery(predicate, esFieldMapper);
+    CountRequest countRequest = new CountRequest()
+      .indices(esIndex)
+      .query(queryBuilder);
     // to debug the query
-    log.info("Download count request {}", countRequest.toString());
+    log.info("Download count request {}", queryBuilder.toString());
     CountResponse response = esClient.count(countRequest, RequestOptions.DEFAULT);
     log.info("Download record count {}", response.getCount());
     return response.getCount();
