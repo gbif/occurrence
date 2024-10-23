@@ -12,7 +12,6 @@
   <name>Occurrence :: Mail</name>
 
   <properties>
-    <spring-boot.version>2.7.18</spring-boot.version>
     <spring-boot-maven-plugin.version>${spring-boot.version}</spring-boot-maven-plugin.version>
   </properties>
 
@@ -65,8 +64,8 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
     </dependency>
   </dependencies>
 
