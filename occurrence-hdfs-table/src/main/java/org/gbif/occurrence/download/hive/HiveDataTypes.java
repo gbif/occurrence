@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+import org.gbif.occurrence.common.TermUtils;
 
 import static org.gbif.occurrence.common.TermUtils.isVocabulary;
 
@@ -47,8 +48,10 @@ public final class HiveDataTypes {
   public static final String TYPE_BIGINT = "BIGINT";
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   public static final String TYPE_VOCABULARY_STRUCT = "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
+  public static final String TYPE_VOCABULARY_ARRAY_STRUCT = "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
   public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
+  public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
   // An index of types for terms, if used in the interpreted context
   private static final Map<Term, String> TYPED_TERMS;
@@ -73,10 +76,7 @@ public final class HiveDataTypes {
       DwcTerm.higherGeography,
       DwcTerm.georeferencedBy,
       DwcTerm.associatedSequences,
-      GbifTerm.geologicalTime,
-      GbifTerm.checklistKey,
-      GbifTerm.lithostratigraphy,
-      GbifTerm.biostratigraphy
+      GbifTerm.checklistKey
     );
 
   // dates are all stored as BigInt
@@ -158,8 +158,14 @@ public final class HiveDataTypes {
       return TYPE_STRING; // verbatim are always string
     } else if (GbifInternalTerm.parentEventGbifId == term) {
       return TYPE_ARRAY_PARENT_STRUCT;
+    } else if (GbifTerm.geologicalTime == term) {
+      return GEOLOGICAL_RANGE_STRUCT;
     } else if (isVocabulary(term)) {
-      return TYPE_VOCABULARY_STRUCT;
+      if (TermUtils.isArray(term)) {
+        return TYPE_VOCABULARY_ARRAY_STRUCT;
+      } else {
+        return TYPE_VOCABULARY_STRUCT;
+      }
     } else if (term.equals(GbifInternalTerm.classifications)) {
       return TYPE_MAP_STRUCT;
     } else {

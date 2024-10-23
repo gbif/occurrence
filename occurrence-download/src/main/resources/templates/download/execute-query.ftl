@@ -62,7 +62,7 @@ SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
 --
 -- Creates the multimedia table
--- These will be small tables, so provide reducer hint to MR, to stop is spawning huge numbers
+-- These will be small tables, so provide reducer hint to MR, to stop it spawning huge numbers
 --
 SET mapred.reduce.tasks=5;
 -- Disabling hive auto join https://issues.apache.org/jira/browse/HIVE-2601.
@@ -86,4 +86,3 @@ SET spark.sql.shuffle.partitions=1;
 CREATE TABLE ${r"${citationTable}"}
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
-

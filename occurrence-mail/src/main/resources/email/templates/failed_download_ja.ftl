@@ -10,7 +10,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  詳細については <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> を、 GBIF.orgの現在のシステム正常性については<a href="${portal}health" style="color: #4ba2ce;text-decoration: none;">${portal}health</a> をご確認いただき、時間をおいてから再度お試しください。
+  詳細については <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> を、 GBIF.orgの現在のシステム正常性については<a href="${portal}system-health" style="color: #4ba2ce;text-decoration: none;">${portal}system-health</a> をご確認いただき、時間をおいてから再度お試しください。
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">

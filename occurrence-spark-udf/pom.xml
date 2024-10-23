@@ -94,6 +94,16 @@
       <artifactId>cache2k-core</artifactId>
       <scope>runtime</scope>
     </dependency>
+
+    <!-- required by it tests -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
   </dependencies>
 
 </project>

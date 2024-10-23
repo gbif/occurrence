@@ -17,6 +17,10 @@ import org.gbif.occurrence.cube.functions.MilitaryGridReferenceSystemCellCode;
 
 import org.apache.spark.sql.api.java.UDF4;
 
+/**
+ * Randomize a point according to its coordinateUncertainty (or some other distance), and determine the
+ * Military Grid Reference System Grid Cell in which the randomized point lies.
+ */
 public class MilitaryGridReferenceSystemCellCodeUdf implements UDF4<Integer,Double,Double,Double,String> {
 
   private final MilitaryGridReferenceSystemCellCode mgrsCellCode = new MilitaryGridReferenceSystemCellCode();

@@ -21,42 +21,25 @@ import org.gbif.ws.remoteauth.IdentityServiceClient;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
 import org.gbif.ws.remoteauth.RestTemplateRemoteAuthClient;
-import org.gbif.ws.remoteauth.app.GbifAppRemoteAuthenticationProvider;
-import org.gbif.ws.remoteauth.app.GbifAppRequestFilter;
-import org.gbif.ws.remoteauth.basic.BasicAuthRequestFilter;
-import org.gbif.ws.remoteauth.basic.BasicRemoteAuthenticationProvider;
-import org.gbif.ws.remoteauth.jwt.JwtRemoteBasicAuthenticationProvider;
-import org.gbif.ws.remoteauth.jwt.JwtRequestFilter;
 import org.gbif.ws.security.AppKeySigningService;
 import org.gbif.ws.security.FileSystemKeyStore;
 import org.gbif.ws.security.GbifAuthServiceImpl;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
-import org.gbif.ws.server.filter.HttpServletRequestWrapperFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
-import org.gbif.ws.server.filter.RequestHeaderParamUpdateFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CsrfFilter;
 
 @SpringBootApplication(
     exclude = {
-//      ElasticSearchRestHealthContributorAutoConfiguration.class,
       RabbitAutoConfiguration.class
     })
 @EnableConfigurationProperties

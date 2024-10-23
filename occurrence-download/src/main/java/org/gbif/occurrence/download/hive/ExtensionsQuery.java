@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 

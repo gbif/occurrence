@@ -233,11 +233,11 @@ public class OccurrenceWsItConfiguration {
 
   /** Empty config class to include the config made by WebMvcConfig. */
   @Configuration
-  public class WebMvcConfigIT extends WebMvcConfig {}
+  public static class WebMvcConfigIT extends WebMvcConfig {}
 
   /** Empty config class to include the config made by OccurrenceMethodSecurityConfiguration. */
   @Configuration
-  public class OccurrenceMethodSecurityConfigurationIT
+  public static class OccurrenceMethodSecurityConfigurationIT
       extends RoleMethodSecurityConfiguration {}
 
   @Configuration

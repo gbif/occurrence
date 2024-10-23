@@ -17,7 +17,8 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 /**
- * Utilities related to the actual queries executed at runtime — these functions for generating AVRO downloads.
+ * Utilities related to the actual queries executed at runtime — these functions for generating AVRO
+ * downloads.
  */
 public class AvroQueries extends TsvQueries {
 
@@ -29,16 +30,15 @@ public class AvroQueries extends TsvQueries {
   @Override
   String toInterpretedHiveInitializer(Term term) {
     if (TermUtils.isInterpretedLocalDateSeconds(term)) {
-      return toLocalISO8601Initializer(term);
+      return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {
-      return toISO8601Initializer(term);
+      return secondsToISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {
-      return toISO8601MillisInitializer(term);
+      return millisecondsToISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {
       return toVocabularyConceptHiveInitializer(term);
     } else {
       return HiveColumns.columnFor(term);
     }
   }
-
 }

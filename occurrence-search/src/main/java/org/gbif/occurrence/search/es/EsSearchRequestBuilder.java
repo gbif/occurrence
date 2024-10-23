@@ -13,47 +13,15 @@
  */
 package org.gbif.occurrence.search.es;
 
-import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.CARDINALITIES;
-import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_SEPARATOR;
-import static org.gbif.occurrence.search.es.EsQueryUtils.RANGE_WILDCARD;
-import static org.gbif.occurrence.search.es.EsQueryUtils.extractFacetLimit;
-import static org.gbif.occurrence.search.es.EsQueryUtils.extractFacetOffset;
-
 import com.google.common.annotations.VisibleForTesting;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.geo.ShapeRelation;
-import org.elasticsearch.common.geo.builders.CoordinatesBuilder;
-import org.elasticsearch.common.geo.builders.LineStringBuilder;
-import org.elasticsearch.common.geo.builders.MultiPolygonBuilder;
-import org.elasticsearch.common.geo.builders.PointBuilder;
-import org.elasticsearch.common.geo.builders.PolygonBuilder;
-import org.elasticsearch.common.geo.builders.ShapeBuilder;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.GeoDistanceQueryBuilder;
-import org.elasticsearch.index.query.GeoShapeQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.common.geo.builders.*;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.join.aggregations.ChildrenAggregationBuilder;
 import org.elasticsearch.join.query.JoinQueryBuilders;
 import org.elasticsearch.script.Script;
@@ -86,7 +54,17 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
+import java.util.stream.Collectors;
+
+import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
 
@@ -327,8 +305,6 @@ public class EsSearchRequestBuilder {
           .must(QueryBuilders.termQuery(esFieldToUse, e.getValue().iterator().next()));
         bool.filter().add(checklistQuery);
       });
-
-    // "classifications." + checklistKey + ".classificationDepth." +  depth + ".keyword"
   }
 
   @SneakyThrows
@@ -344,10 +320,8 @@ public class EsSearchRequestBuilder {
       bool.must(QueryBuilders.matchQuery(occurrenceBaseEsFieldMapper.getFullTextField(), qParam));
     }
 
-    // Add the queries based on different taxonomic levels
     EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
-      QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
-
+        QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
@@ -624,7 +598,6 @@ public class EsSearchRequestBuilder {
     GbifTerm.kingdomKey, "kingdom"
   );
 
-
   private boolean isTaxonomic(OccurrenceSearchParameter param) {
     return param == OccurrenceSearchParameter.ACCEPTED_TAXON_KEY
         || param == OccurrenceSearchParameter.TAXON_KEY;
@@ -740,11 +713,11 @@ public class EsSearchRequestBuilder {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
         if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
           queries.add(
-            QueryBuilders.boolQuery()
-              .should(buildRangeQuery(esField, value))
-              .should(
-                QueryBuilders.boolQuery()
-                  .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
+              QueryBuilders.boolQuery()
+                  .should(buildRangeQuery(esField, value))
+                  .should(
+                      QueryBuilders.boolQuery()
+                          .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
         } else {
           queries.add(buildRangeQuery(esField, value));
         }
@@ -802,7 +775,7 @@ public class EsSearchRequestBuilder {
       // range.
       // i.e. Q:eventDate=1980 will match rec:eventDate=1980-02, but not
       // rec:eventDate=1980-10-01/1982-02-02.
-      builder.relation("within");
+      builder.relation(EsQueryUtils.WITHIN);
     } else {
       String[] values = value.split(RANGE_SEPARATOR);
       if (!RANGE_WILDCARD.equals(values[0])) {
@@ -810,6 +783,12 @@ public class EsSearchRequestBuilder {
       }
       if (!RANGE_WILDCARD.equals(values[1])) {
         builder.lte(values[1]);
+      }
+
+      if (esField
+          .getSearchFieldName()
+          .equals(OccurrenceEsField.GEOLOGICAL_TIME.getSearchFieldName())) {
+        builder.relation(EsQueryUtils.WITHIN);
       }
     }
 

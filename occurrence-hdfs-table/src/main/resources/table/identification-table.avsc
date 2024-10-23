@@ -253,12 +253,12 @@
     "doc" : "http://rs.tdwg.org/dwc/terms/class",
     "default" : null
   }, {
-    "name" : "order_",
+    "name" : "order",
     "type" : [ "null", "string" ],
     "doc" : "http://rs.tdwg.org/dwc/terms/order",
     "default" : null
   }, {
-    "name" : "v_order_",
+    "name" : "v_order",
     "type" : [ "null", "string" ],
     "doc" : "http://rs.tdwg.org/dwc/terms/order",
     "default" : null

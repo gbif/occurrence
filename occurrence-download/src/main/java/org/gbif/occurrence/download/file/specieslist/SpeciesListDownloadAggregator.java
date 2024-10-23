@@ -46,6 +46,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
@@ -123,8 +124,12 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
   }
 
   private void exportToFile(String outputFileName, SpeciesListCollector speciesListCollector) {
+    CsvPreference preference =
+      new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+        .useEncoder(new DefaultCsvEncoder())
+        .build();
     try (ICsvMapWriter csvMapWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), CsvPreference.TAB_PREFERENCE)) {
+        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), preference)) {
       Set<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
       distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
         try {

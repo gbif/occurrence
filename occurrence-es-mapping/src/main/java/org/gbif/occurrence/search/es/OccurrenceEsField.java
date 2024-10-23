@@ -60,7 +60,7 @@ public enum OccurrenceEsField implements EsField {
   IDENTIFIED_BY_ID(new BaseEsField("identifiedByIds.value", DwcTerm.identifiedByID)),
   RECORD_NUMBER(new BaseEsField("recordNumber", DwcTerm.recordNumber, true)),
   BASIS_OF_RECORD(new BaseEsField("basisOfRecord", DwcTerm.basisOfRecord)),
-  TYPE_STATUS(new BaseEsField("typeStatus", DwcTerm.typeStatus)),
+  TYPE_STATUS(new BaseEsField("typeStatus.lineage", "typeStatus.concepts", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("occurrenceStatus", DwcTerm.occurrenceStatus)),
   IS_SEQUENCED(new BaseEsField("isSequenced", GbifTerm.isSequenced)),
   ASSOCIATED_SEQUENCES(new BaseEsField("associatedSequences", DwcTerm.associatedSequences)),
@@ -119,7 +119,6 @@ public enum OccurrenceEsField implements EsField {
   REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
   CLASSIFICATIONS(new BaseEsField("classifications", null)),
-
   CHECKLIST_KEY(new BaseEsField("associatedClassifications", GbifTerm.checklistKey)),
 
   // Legacy Taxonomic classification - these mappings are not used if checklistKey is specified
@@ -234,7 +233,7 @@ public enum OccurrenceEsField implements EsField {
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
-  SEX(new BaseEsField("sex", DwcTerm.sex)),
+  SEX(new BaseEsField("sex.lineage", "sex.concept", DwcTerm.sex)),
   IDENTIFIER(new BaseEsField("identifier", DcTerm.identifier)),
   INDIVIDUAL_COUNT(new BaseEsField("individualCount", DwcTerm.individualCount)),
   RELATION(new BaseEsField("relation", DcTerm.relation)),

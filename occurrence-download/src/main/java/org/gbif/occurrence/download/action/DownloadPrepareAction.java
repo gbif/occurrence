@@ -13,26 +13,13 @@
  */
 package org.gbif.occurrence.download.action;
 
-import org.gbif.api.exception.QueryBuildingException;
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.hive.ExtensionsQuery;
-import org.gbif.occurrence.download.query.QueryVisitorsFactory;
-import org.gbif.occurrence.download.util.DownloadRequestUtils;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-
-import java.io.*;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import lombok.Builder;
+import lombok.Data;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -45,17 +32,31 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.hive.ExtensionsQuery;
+import org.gbif.occurrence.download.query.QueryVisitorsFactory;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-
-import lombok.Builder;
-import lombok.Data;
-import lombok.SneakyThrows;
+import java.io.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -97,6 +98,12 @@ public class DownloadPrepareAction implements Closeable {
   private static final String HIVE_DB = "hive_db";
 
   private static final String HIVE_QUERY = "hive_query";
+
+  private static final String USER_SQL = "user_sql"; // SQL downloads
+
+  private static final String USER_SQL_WHERE = "user_sql_where"; // SQL downloads
+
+  private static final String USER_SQL_HEADER = "user_sql_header"; // SQL downloads
 
   private static final String DOWNLOAD_KEY = "download_key";
 
@@ -164,30 +171,38 @@ public class DownloadPrepareAction implements Closeable {
 
       Download download = getDownload(downloadKey);
 
-      setRequestExtensionsParam(download, props);
       props.setProperty(DOWNLOAD_KEY, downloadKey);
       // '-' is replaced by '_' because it's not allowed in hive table names
       props.setProperty(DOWNLOAD_TABLE_NAME, DownloadUtils.downloadTableName(downloadKey));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
-      props.setProperty(CORE_TERM_NAME, coreTerm.name());
-      props.setProperty(SOURCE_TABLE, coreTerm.name().toLowerCase());
 
-      Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
-      String searchQuery = searchQuery(predicate);
-      long recordCount = getRecordCount(searchQuery);
-      props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
-      if (isSmallDownloadCount(recordCount)) {
-        props.setProperty(SEARCH_QUERY, StringEscapeUtils.escapeXml10(searchQuery));
-      }
-      props.setProperty(
-          HIVE_QUERY,
-          StringEscapeUtils.escapeXml10(
-              QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate)));
-      if (recordCount >= 0
-          && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
-        updateTotalRecordsCount(download, recordCount);
-      }
+      if (download.getRequest() instanceof SqlDownloadRequest) {
+        SqlValidation sv = new SqlValidation();
 
+        String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
+        HiveSqlQuery sqlQuery = sv.validateAndParse(userSql);
+        props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(sqlQuery.getSql()));
+        props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10(sqlQuery.getSqlWhere()));
+        props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10(String.join("\t", sqlQuery.getSqlSelectColumnNames())));
+      } else if (download.getRequest() instanceof PredicateDownloadRequest) {
+        setRequestExtensionsParam(download, props);
+        props.setProperty(CORE_TERM_NAME, coreTerm.name());
+        props.setProperty(SOURCE_TABLE, coreTerm.name().toLowerCase());
+
+        Predicate predicate = OBJECT_MAPPER.readValue(rawPredicate, Predicate.class);
+        String searchQuery = searchQuery(predicate);
+        long recordCount = getRecordCount(searchQuery);
+        props.setProperty(IS_SMALL_DOWNLOAD, isSmallDownloadCount(recordCount).toString());
+        if (isSmallDownloadCount(recordCount)) {
+          props.setProperty(SEARCH_QUERY, StringEscapeUtils.escapeXml10(searchQuery));
+        }
+        props.setProperty(HIVE_QUERY, StringEscapeUtils.escapeXml10(QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate)));
+        if (recordCount >= 0 && DownloadFormat.valueOf(downloadFormat.trim()) != DownloadFormat.SPECIES_LIST) {
+          updateTotalRecordsCount(download, recordCount);
+        }
+      } else {
+        throw new IllegalStateException("Unsupported download class");
+      }
       persist(oozieProp, props);
     } else {
       throw new IllegalStateException(

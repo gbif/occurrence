@@ -36,16 +36,23 @@ import java.util.function.Consumer;
 import static io.trino.spi.type.BigintType.*;
 
 /**
- * Parses year, month and day only.
+ * Parses year, month, day, eventDate, startDayOfYear and endDayOfYear.
  *
- * <p>Usage example:
+ * Quick test example:
  *
- * <p>SELECT gbifid, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)),
- * from_unixtime(floor(d.epoch_to/1000)), v_eventdate, v_year, v_month, v_day, v_startdayofyear,
- * v_enddayofyear FROM (SELECT gbifid, v_eventdate, v_year, v_month, v_day, v_startdayofyear,
- * v_enddayofyear, parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear)
- * d FROM prod_h.occurrence WHERE v_startdayofyear IS NOT NULL AND v_eventdate IS NULL LIMIT 10000 )
- * r LIMIT 100000;
+ * SELECT
+ *    c, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)), from_unixtime(floor(d.epoch_to/1000)), d.issue,
+ *    v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear
+ *  FROM
+ *    (SELECT
+ *       c, v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear,
+ *       parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear) d
+ *     FROM prod_h.occurrence
+ *     WHERE v_eventdate IS NOT NULL
+ *     LIMIT 1000
+ *    ) r;
+ *
+ * See the script at the root of this module for a full example for testing parsing.
  */
 public class DateParseUDF {
 

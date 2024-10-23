@@ -65,7 +65,7 @@ public class QueryVisitorsFactory {
 
       @Override
       public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
-        return fieldMapper.getChecklistField(checklistKey, searchParameter);
+        return "classifications." + checklistKey + ".taxonKeys.keyword";
       }
 
       @Override

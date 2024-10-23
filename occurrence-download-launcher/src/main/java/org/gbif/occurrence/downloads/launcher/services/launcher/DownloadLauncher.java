@@ -23,9 +23,9 @@ import java.util.Optional;
  */
 public interface DownloadLauncher {
 
-  JobStatus create(String downloadKey);
+  JobStatus createRun(String downloadKey);
 
-  JobStatus cancel(String downloadKey);
+  JobStatus cancelRun(String downloadKey);
 
   Optional<Download.Status> getStatusByName(String downloadKey) throws Exception;
 
@@ -34,6 +34,7 @@ public interface DownloadLauncher {
   enum JobStatus {
     RUNNING,
     FAILED,
+    FINISHED,
     CANCELLED
   }
 }

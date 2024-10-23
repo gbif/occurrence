@@ -55,7 +55,7 @@ public class ExtensionSchemasLoader {
   }
 
   /**
-   * Parses the Avro Schema name into a Extension enumeration.
+   * Parses the Avro Schema name into an Extension enumeration.
    */
   private static Extension parseExtension(String name) {
     return Extension.valueOf(Arrays.stream(name.replace("Table", "").split("(?=[A-Z])"))

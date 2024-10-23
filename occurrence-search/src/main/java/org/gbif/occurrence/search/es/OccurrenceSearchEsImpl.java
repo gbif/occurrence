@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
-
 import javax.annotation.Nullable;
 import javax.validation.constraints.Min;
 import lombok.SneakyThrows;
@@ -42,15 +41,9 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
-import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,7 +328,6 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       hasValidReplaces = false;
 
       Collection<String> scientificNames = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
-
       Collection<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
       String checklistKey = null;
       if (checklistKeys != null && !checklistKeys.isEmpty()) {

@@ -93,7 +93,7 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <module>occurrence-hadoop-minicluster</module>
+<!--    <module>occurrence-hadoop-minicluster</module>-->
     <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
@@ -181,7 +181,7 @@
     <servlet-api.version>2.5</servlet-api.version>
     <metainf-services.version>1.7</metainf-services.version>
 
-    <super-csv.version>2.0.1</super-csv.version>
+    <super-csv.version>2.4.0</super-csv.version>
     <commons-beanutils-core.version>1.8.3</commons-beanutils-core.version>
 
     <!-- These must be compatible with Spark version (see https://stackoverflow.com/a/50114083) -->
@@ -220,17 +220,17 @@
     <gbif-common-ws.version>1.29-multitaxonomy-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-metadata-profile.version>2.2</gbif-metadata-profile.version>
-    <gbif-parsers.version>0.63</gbif-parsers.version>
+    <gbif-metadata-profile.version>2.3</gbif-metadata-profile.version>
+    <gbif-parsers.version>0.67</gbif-parsers.version>
     <gbif-postal-service.version>1.9.1-SNAPSHOT</gbif-postal-service.version>
-    <gbif-registry.version>3.95.3</gbif-registry.version>
+    <gbif-registry.version>3.97.0-multitaxonomy-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>0.5-SNAPSHOT</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>2.0-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>1.1</gbif-cli.version>
     <gbif-predicates.version>1.3.3-multitaxonomy-SNAPSHOT</gbif-predicates.version>
-    <gbif-occurrence-cube-functions.version>0.2.1</gbif-occurrence-cube-functions.version>
+    <gbif-occurrence-cube-functions.version>0.3.1</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 
     <!-- Sonar -->
@@ -253,7 +253,7 @@
     <lucene.version>8.7.0</lucene.version>
 
     <!-- Spark -->
-    <spark.version>3.3.0</spark.version>
+    <spark.version>3.5.1</spark.version>
     <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
     <iceberg.version>1.4.3</iceberg.version>
@@ -1121,7 +1121,7 @@
 
       <!-- curator for talking to zookeeper -->
       <!-- See https://curator.apache.org/zk-compatibility.html for notes on compatibility with ZooKeeper 3.4.
-           Note especially the different (old) version used for curator-Test. -->
+           Note especially the different (old) version used for curator-test. -->
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-client</artifactId>
@@ -1359,6 +1359,7 @@
         <groupId>org.apache.iceberg</groupId>
         <artifactId>iceberg-spark-runtime-3.5_${scala.tools.version}</artifactId>
         <version>${iceberg.version}</version>
+        <scope>runtime</scope>
       </dependency>
       <dependency>
         <groupId>org.scala-lang</groupId>

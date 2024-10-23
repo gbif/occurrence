@@ -47,8 +47,6 @@ occurrence:
       limit: 300
       offset: 200000
 spring:
-  config:
-    import: ""
   cloud:
     zookeeper:
       enabled: false

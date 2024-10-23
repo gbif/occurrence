@@ -33,6 +33,7 @@ import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
@@ -84,9 +85,15 @@ public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor 
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
-    try (ICsvMapWriter csvMapWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName(),
-                                                                                  StandardCharsets.UTF_8),
-                                                       CsvPreference.TAB_PREFERENCE)) {
+    CsvPreference preference =
+        new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+            .useEncoder(new DefaultCsvEncoder())
+            .build();
+
+    try (ICsvMapWriter csvMapWriter =
+        new CsvMapWriter(
+            new FileWriterWithEncoding(work.getJobDataFileName(), StandardCharsets.UTF_8),
+            preference)) {
 
       searchQueryProcessor.processQuery(work, record -> {
           try {

@@ -37,13 +37,13 @@ public class XmlToAvscGeneratorMojoTest {
     mojo.execute();
 
     // Should
-    Path result = Paths.get(path, "identification-table.avsc");
+    Path result = Paths.get(path, "dna-derived-data-table.avsc");
     Assert.assertTrue(Files.exists(result));
 
     Schema schema = new Schema.Parser().parse(result.toFile());
-    Assert.assertEquals("IdentificationTable", schema.getName());
-    Assert.assertEquals("org.gbif.pipelines.io.avro.dwc", schema.getNamespace());
-    Assert.assertEquals(78, schema.getFields().size());
-    Assert.assertNotNull(schema.getField("order_"));
+    Assert.assertEquals("DnaDerivedDataTable", schema.getName());
+    Assert.assertEquals("org.gbif.pipelines.io.avro.gbif", schema.getNamespace());
+    Assert.assertEquals(240, schema.getFields().size());
+    Assert.assertNotNull(schema.getField("v_16srecover"));
   }
 }

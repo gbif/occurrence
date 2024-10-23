@@ -33,26 +33,26 @@ abstract class TsvQueries extends Queries {
   }
 
   /**
-   * Transforms the term into toLocalISO8601(hiveColumn) expression.
+   * Transforms the term into a secondsToLocalISO8601(hiveColumn) expression.
    */
-  protected static String toLocalISO8601Initializer(Term term) {
+  protected static String secondsToLocalISO8601Initializer(Term term) {
     final String column = HiveColumns.columnFor(term);
-    return "toLocalISO8601(" + column + ") AS " + column;
+    return "secondsToLocalISO8601(" + column + ") AS " + column;
   }
 
   /**
-   * Transforms the term into toISO8601(hiveColumn) expression.
+   * Transforms the term into secondsToISO8601(hiveColumn) expression.
    */
-  protected static String toISO8601Initializer(Term term) {
+  protected static String secondsToISO8601Initializer(Term term) {
     final String column = HiveColumns.columnFor(term);
-    return "toISO8601(" + column + ") AS " + column;
+    return "secondsToISO8601(" + column + ") AS " + column;
   }
 
   /**
-   * Transforms the term into toISO8601(hiveColumn) expression.
+   * Transforms the term into millisecondsToISO8601(hiveColumn) expression.
    */
-  protected static String toISO8601MillisInitializer(Term term) {
+  protected static String millisecondsToISO8601Initializer(Term term) {
     final String column = HiveColumns.columnFor(term);
-    return "toISO8601Millis(" + column + ") AS " + column;
+    return "millisecondsToISO8601(" + column + ") AS " + column;
   }
 }

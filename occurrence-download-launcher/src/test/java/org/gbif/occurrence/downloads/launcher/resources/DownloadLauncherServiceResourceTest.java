@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class DownloadLauncherServiceResourceTest {
+class DownloadLauncherServiceResourceTest {
 
   private MockMvc mockMvc;
   private LockerService lockerService;
@@ -37,14 +37,14 @@ public class DownloadLauncherServiceResourceTest {
   }
 
   @Test
-  public void testUnlockAll() throws Exception {
+  void testUnlockAll() throws Exception {
     mockMvc.perform(MockMvcRequestBuilders.delete("/unlock")).andExpect(status().isOk());
 
     Mockito.verify(lockerService).unlockAll();
   }
 
   @Test
-  public void testUnlock() throws Exception {
+  void testUnlock() throws Exception {
     String downloadKey = "test-key";
     mockMvc
         .perform(MockMvcRequestBuilders.delete("/unlock/" + downloadKey))

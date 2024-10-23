@@ -84,7 +84,6 @@ public class PredicateFactoryTest {
     assertNotNull(predicate);
   }
 
-
   @Test
   public void testInChecklistKeyTaxonDepthPredicate() {
     Map<String, String[]> params = new HashMap<>();

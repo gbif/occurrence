@@ -13,13 +13,14 @@
  */
 package org.gbif.occurrence.ws.config;
 
-import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule;
+
 import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
 
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule;
 import com.google.common.collect.Lists;
 
 @Configuration
@@ -174,4 +176,5 @@ public class WebMvcConfig implements WebMvcConfigurer {
       return AnnotatedElementUtils.hasAnnotation(beanType, RestController.class);
     }
   }
+
 }

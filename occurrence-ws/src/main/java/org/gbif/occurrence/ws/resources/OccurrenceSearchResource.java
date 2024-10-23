@@ -68,8 +68,16 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.util.Range;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.*;
+import org.gbif.api.vocabulary.BasisOfRecord;
+import org.gbif.api.vocabulary.Continent;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.GbifRegion;
+import org.gbif.api.vocabulary.License;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.api.vocabulary.OccurrenceStatus;
+import org.gbif.api.vocabulary.TaxonomicStatus;
+import org.gbif.api.vocabulary.ThreatStatus;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
@@ -79,7 +87,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Occurrence resource.
@@ -1278,7 +1293,7 @@ public class OccurrenceSearchResource {
             description =
                 "The sex of the biological individual(s) represented in the occurrence.\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
-            array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Sex.class)),
+            array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "MALE"),
@@ -1395,7 +1410,7 @@ public class OccurrenceSearchResource {
             array =
                 @ArraySchema(
                     uniqueItems = true,
-                    schema = @Schema(implementation = TypeStatus.class)),
+                    schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "HOLOTYPE"),

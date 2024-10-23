@@ -30,11 +30,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.avro.JsonProperties;
@@ -52,9 +50,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class XmlToAvscGeneratorMojo extends AbstractMojo {
 
   private static final TermFactory TERM_FACTORY = TermFactory.instance();
-
-  private static final Set<String> RESERVED_WORDS =
-      new HashSet<>(Arrays.asList("date", "order", "format", "group"));
 
   @Parameter(property = "avroschemageneration.pathToWrite")
   private String pathToWrite;
@@ -134,7 +129,7 @@ public class XmlToAvscGeneratorMojo extends AbstractMojo {
       // Add fields
       fields.add(createField(fName, ep.getQualname()));
       // Add RAW fields
-      fields.add(createField("v_" + fName, ep.getQualname()));
+      fields.add(createField(("v_" + fName).replaceAll("__+", "_"), ep.getQualname()));
     }
 
     String[] extraNamespace =
@@ -168,11 +163,10 @@ public class XmlToAvscGeneratorMojo extends AbstractMojo {
   }
 
   private String normalizeFieldName(String name) {
-    String normalizedNamed =
-        name.toLowerCase().trim().replace("-", "").replace("_", "").replace(":", "_");
-    if (RESERVED_WORDS.contains(normalizedNamed)) {
-      return normalizedNamed + '_';
-    }
+    String normalizedNamed = name.toLowerCase().trim()
+      .replace("-", "")
+      .replace("_", "")
+      .replace(":", "_");
     if (Character.isDigit(normalizedNamed.charAt(0))) {
       return '_' + normalizedNamed;
     }

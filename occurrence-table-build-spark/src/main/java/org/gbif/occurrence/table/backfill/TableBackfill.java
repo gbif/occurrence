@@ -107,7 +107,6 @@ public class TableBackfill {
             .config("spark.sql.catalog.iceberg.type", "hive")
             .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
             .config("spark.sql.defaultCatalog", "iceberg")
-            .config("spark.master", "local[*]")
       ;
 
     if (configuration.getHiveThriftAddress() != null) {
@@ -159,7 +158,7 @@ public class TableBackfill {
         insertOverwriteMultimediaTable(spark);
       }
     } finally {
-//      snapshotAction.deleteHdfsSnapshot(jobId);
+      snapshotAction.deleteHdfsSnapshot(jobId);
       log.info("Creation finished");
     }
   }
@@ -270,7 +269,7 @@ public class TableBackfill {
             : createExtensionTable(extensionTable));
 
     List<Column> columns =
-        extensionTable.getFields().stream()
+        extensionTable.getFieldNames().stream()
             .filter(
                 field ->
                     !configuration.isUsePartitionedTable()
@@ -436,10 +435,6 @@ public class TableBackfill {
   }
 
   private String createPartitionedTableIfNotExists() {
-    return createPartitionedTableIfNotExists(configuration);
-  }
-
-  public static String createPartitionedTableIfNotExists(TableBackfillConfiguration configuration) {
     return String.format(
         "CREATE EXTERNAL TABLE IF NOT EXISTS %s ("
             + OccurrenceHDFSTableDefinition.definition().stream()
@@ -461,10 +456,6 @@ public class TableBackfill {
   }
 
   private Column[] selectFromAvro() {
-    return selectFromAvro(configuration);
-  }
-
-  public static Column[] selectFromAvro(TableBackfillConfiguration configuration) {
     List<Column> columns =
         OccurrenceHDFSTableDefinition.definition().stream()
             .filter(

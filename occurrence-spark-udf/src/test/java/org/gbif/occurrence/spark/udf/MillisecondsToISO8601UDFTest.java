@@ -11,21 +11,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.predicate;
+package org.gbif.occurrence.spark.udf;
 
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.model.predicate.Predicate;
+import org.junit.jupiter.api.Test;
 
-/** Search request that uses a predicate filter like the ones used un downloads. */
-public class OccurrencePredicateSearchRequest extends OccurrenceSearchRequest {
+import static org.junit.jupiter.api.Assertions.*;
 
-  private Predicate predicate;
+public class MillisecondsToISO8601UDFTest {
 
-  public Predicate getPredicate() {
-    return predicate;
-  }
+  @Test
+  public void testUtcDateFormatter() throws Exception {
+    MillisecondsToISO8601Udf function = new MillisecondsToISO8601Udf();
 
-  public void setPredicate(Predicate predicate) {
-    this.predicate = predicate;
+    assertNull(function.call(null));
+    assertEquals("2020-04-02T16:48:54Z", function.call(1_585_846_134_000L).toString());
+    assertEquals("2020-04-02T16:48:54.001Z", function.call(1_585_846_134_001L).toString());
   }
 }

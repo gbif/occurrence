@@ -71,7 +71,5 @@ public class EventWsConfiguration {
         rabbitProperties.getVirtualHost()));
   }
   @Configuration
-  public static class EventSearchConfigurationWs extends OccurrenceSearchConfiguration {
-
-  }
+  public static class EventSearchConfigurationWs extends OccurrenceSearchConfiguration {}
 }

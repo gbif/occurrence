@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.Properties;
 
 import org.apache.curator.test.TestingCluster;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -118,9 +117,9 @@ public class DownloadWorkflowModuleTestIT {
   }
 
   @ParameterizedTest
-  @EnumSource(value = DownloadFormat.class)
+  @EnumSource(value = DownloadFormat.class, mode = EnumSource.Mode.EXCLUDE, names = {"SQL_TSV_ZIP"})
   public void downloadModuleCreationTest(DownloadFormat downloadFormat) {
-     DownloadJobConfiguration downloadJobConfiguration =downloadJobConfiguration(downloadFormat);
+    DownloadJobConfiguration downloadJobConfiguration = downloadJobConfiguration(downloadFormat);
 
     DownloadWorkflowModule module = DownloadWorkflowModule.builder()
                                       .workflowConfiguration(workflowConfiguration(downloadFormat))

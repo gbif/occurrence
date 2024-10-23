@@ -83,12 +83,12 @@
     "doc" : "http://www.w3.org/2003/01/geo/wgs84_pos#longitude",
     "default" : null
   }, {
-    "name" : "format_",
+    "name" : "format",
     "type" : [ "null", "string" ],
     "doc" : "http://purl.org/dc/terms/format",
     "default" : null
   }, {
-    "name" : "v_format_",
+    "name" : "v_format",
     "type" : [ "null", "string" ],
     "doc" : "http://purl.org/dc/terms/format",
     "default" : null

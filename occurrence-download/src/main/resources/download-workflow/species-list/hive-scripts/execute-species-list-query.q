@@ -46,4 +46,3 @@ WHERE datasetkey IS NOT NULL
 GROUP BY datasetkey, license;
 
 CREATE TABLE ${downloadTableName}_count AS SELECT count(*) FROM ${downloadTableName};
-

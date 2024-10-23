@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.action;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -36,6 +38,7 @@ import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
@@ -107,6 +110,20 @@ public class DownloadWorkflowModule  {
    */
   public static OccurrenceDownloadService downloadServiceClient(DwcTerm coreTerm, WorkflowConfiguration workflowConfiguration) {
     return DwcTerm.Event == coreTerm? clientBuilder(workflowConfiguration).build(EventDownloadClient.class) : clientBuilder(workflowConfiguration).build(OccurrenceDownloadClient.class);
+  }
+
+  /** Creates a ConceptClient to translate vocabulary params. */
+  public static ConceptClient conceptClient(WorkflowConfiguration workflowConfiguration) {
+    return new ClientBuilder()
+        .withUrl(workflowConfiguration.getSetting(DefaultSettings.REGISTRY_URL_KEY))
+        .withCredentials(
+            workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
+            workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY))
+        .withObjectMapper(
+            JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
+                .registerModule(new JavaTimeModule()))
+        .withFormEncoder()
+        .build(ConceptClient.class);
   }
 
   /**

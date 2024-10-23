@@ -129,7 +129,7 @@ public class OccurrenceHeatmapRequestProvider {
 
   private static Optional<OccurrenceSearchParameter> findSearchParam(String name) {
     try {
-      return  OccurrenceSearchParameter.lookup(name);
+      return OccurrenceSearchParameter.lookup(name);
     } catch (IllegalArgumentException e) {
       // we have all params here, not only the enum ones, so this is ok to end up here a few times
     }

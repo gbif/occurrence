@@ -151,7 +151,6 @@ public class TermUtils {
       // And these have been superseded by other terms or otherwise deprecated and removed
       GbifTerm.distanceAboveSurface,
       GbifTerm.distanceAboveSurfaceAccuracy,
-      GbifTerm.geologicalTime,
       GbifTerm.checklistKey
       );
 
@@ -541,4 +540,10 @@ public class TermUtils {
     return SQLColumnsUtils.isVocabulary(term);
   }
 
+  /**
+   * @return true if the term is a handled/annotated as an array.
+   */
+  public static boolean isArray(Term term) {
+    return SQLColumnsUtils.isSQLArray(term);
+  }
 }

@@ -40,7 +40,7 @@ public class LockerService {
   }
 
   public void unlock(String id) {
-    log.info("Unlock the thread for id {}", id);
+    log.info("Checking the thread lock for id {}", id);
     Thread thread = lockMap.get(id);
     if (thread != null) {
       LockSupport.unpark(thread);

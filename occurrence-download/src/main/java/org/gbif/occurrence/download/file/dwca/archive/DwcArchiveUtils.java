@@ -162,7 +162,7 @@ public class DwcArchiveUtils {
    */
   private ArchiveFile createExtensionArchiveFile(Extension extension) {
     ExtensionTable extensionTable = new ExtensionTable(extension);
-    return createArchiveFile(extensionTable.getHiveTableName() + ".txt",
+    return createArchiveFile("verbatim/" + extensionTable.getHiveTableName() + ".txt",
                              extensionTable.getTerm(),
                              extensionTable.getInterpretedFieldsAsTerms());
   }
