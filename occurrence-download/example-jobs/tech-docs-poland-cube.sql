@@ -1,5 +1,6 @@
 -- Convert to JSON using this:
 -- grep -v -- '--' tech-docs-poland-cube.sql | jq -R -s .
+
 SELECT
   -- Dimensions:
   PRINTF('%04d-%02d', "year", "month") AS yearMonth,
@@ -28,6 +29,7 @@ WHERE occurrenceStatus = 'PRESENT'
   AND "year" >= 2000
   AND kingdomKey = 1
   AND hasCoordinate = TRUE
+  AND (coordinateUncertaintyInMeters <= 1000 OR coordinateUncertaintyInMeters IS NULL)
   AND speciesKey IS NOT NULL
   AND NOT ARRAY_CONTAINS(issue, 'ZERO_COORDINATE')
   AND NOT ARRAY_CONTAINS(issue, 'COORDINATE_OUT_OF_RANGE')
@@ -47,3 +49,5 @@ ORDER BY
   yearMonth DESC,
   eeaCellCode ASC,
   speciesKey ASC;
+
+-- This query is the example linked from the technical documentation site: https://techdocs.gbif.org/en/data-use/data-cubes
