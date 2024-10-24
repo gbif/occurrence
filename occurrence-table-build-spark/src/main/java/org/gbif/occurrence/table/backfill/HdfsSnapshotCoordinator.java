@@ -14,6 +14,8 @@
 package org.gbif.occurrence.table.backfill;
 
 
+import java.nio.file.Paths;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.barriers.DistributedBarrier;
@@ -21,9 +23,11 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.client.HdfsAdmin;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -33,9 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @AllArgsConstructor
-public class HdfsSnapshotAction {
+public class HdfsSnapshotCoordinator {
 
   private final TableBackfillConfiguration configuration;
+
+  private final TableBackfill.Command command;
 
   private final Configuration hadoopConfiguration;
 
@@ -53,6 +59,18 @@ public class HdfsSnapshotAction {
       .build();
   }
 
+  private Path getSourceSnapshotPath() {
+    return getSourceSnapshotPath(configuration);
+  }
+
+  private static Path getSourceSnapshotPath(TableBackfillConfiguration configuration) {
+    if(configuration.getDatasetKey() == null) {
+      return new Path(configuration.getMergedTableDirectory(), configuration.getCoreName().toLowerCase());
+    }
+
+    return new Path(configuration.getIngestDirectory(), configuration.getDatasetKey() +  '/' + configuration.getCrawlAttempt() + '/' + configuration.getCoreName().toLowerCase() + "_table/");
+  }
+
   /**
    * Performs the START/SET or END/REMOVE on a barrier based on the action.
    * @param directory to snapshot
@@ -62,13 +80,15 @@ public class HdfsSnapshotAction {
     try(CuratorFramework curator = curator()) {
       FileSystem fs = FileSystem.get(hadoopConfiguration);
       curator.start();
-      String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
+      String lockPath = lockPath();
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
       log.info("Waiting for barrier {}", lockPath);
       barrier.waitOnBarrier();
       log.info("Setting barrier {}", lockPath);
       barrier.setBarrier();
-      Path snapshotPath = fs.createSnapshot(new Path(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase()), snapshotName);
+      Path sourceSnapshotPath = getSourceSnapshotPath();
+      allowSnapshot(fs, sourceSnapshotPath);
+      Path snapshotPath = fs.createSnapshot(sourceSnapshotPath, snapshotName);
       log.info("Snapshot created {}", snapshotPath);
       log.info("Removing barrier {}", lockPath);
       barrier.removeBarrier();
@@ -76,6 +96,26 @@ public class HdfsSnapshotAction {
       log.error("Error handling barrier {}", configuration);
       throw new RuntimeException(ex);
     }
+  }
+
+  @SneakyThrows
+  private static void allowSnapshot(FileSystem fs, Path path) {
+    HdfsAdmin hdfsAdmin = new HdfsAdmin(fs.getUri(), fs.getConf());
+    hdfsAdmin.allowSnapshot(path);
+  }
+
+  @SneakyThrows
+  private static void disallowSnapshot(FileSystem fs, Path path) {
+    HdfsAdmin hdfsAdmin = new HdfsAdmin(fs.getUri(), fs.getConf());
+    hdfsAdmin.disallowSnapshot(path);
+  }
+
+  private String lockPath() {
+    String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
+    if(configuration.getDatasetKey() != null) {
+      lockPath += "/" + configuration.getDatasetKey();
+    }
+    return lockPath;
   }
 
 
@@ -93,11 +133,24 @@ public class HdfsSnapshotAction {
       String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();
       DistributedBarrier barrier = new DistributedBarrier(curator, lockPath);
       log.info("Removing barrier {}", lockPath);
+      Path sourceSnapshotPath = getSourceSnapshotPath();
+      fs.deleteSnapshot(sourceSnapshotPath, snapshotName);
+      disallowSnapshot(fs, sourceSnapshotPath);
       barrier.removeBarrier();
-      fs.deleteSnapshot(new Path(configuration.getSourceDirectory(), configuration.getCoreName().toLowerCase()), snapshotName);
     } catch (Exception ex) {
       log.error("Error handling barrier {}", configuration);
       throw new RuntimeException(ex);
     }
+  }
+
+  public static String getSnapshotPath(TableBackfillConfiguration configuration, String dataDirectory, String jobId) {
+    String path =
+      Paths.get(getSourceSnapshotPath(configuration).toString(),
+          ".snapshot",
+          jobId,
+          dataDirectory.toLowerCase())
+        .toString();
+    log.info("Snapshot path {}", path);
+    return path;
   }
 }

@@ -92,6 +92,10 @@ public class ExtensionTable {
     return leafNamespace + '_' + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, schema.getName()) + ".avsc";
   }
 
+  private String columnName(Schema.Field field) {
+    return HiveColumns.escapeColumnName(field.name());
+  }
+
   private String initializer(Schema.Field field) {
     String fieldName = field.name();
     String hiveColumn = HiveColumns.hiveColumnName(field.name());
@@ -100,10 +104,14 @@ public class ExtensionTable {
     } else {
       return cleanDelimitersInitializer(field.name(), hiveColumn);
     }
-    }
+  }
 
   public List<String> getFieldNames() {
     return schema.getFields().stream().map(f -> hiveColumnName(f.name())).collect(Collectors.toList());
+  }
+
+  public List<String> getFields() {
+    return schema.getFields().stream().map(this::initializer).collect(Collectors.toList());
   }
 
   public List<String> getFieldInitializers() {
