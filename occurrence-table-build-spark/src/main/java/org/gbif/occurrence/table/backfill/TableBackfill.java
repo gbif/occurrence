@@ -459,19 +459,19 @@ public class TableBackfill {
                 field ->
                     !configuration.isUsePartitionedTable()
                         || !field
-                            .getHiveField()
+                            .getColumnName()
                             .equalsIgnoreCase(
                                 "datasetkey")) // Partitioned columns must be at the end
             .map(
                 field ->
-                    field.getInitializer().equals(field.getHiveField())
-                        ? col(field.getHiveField())
+                    field.getInitializer().equals(field.getColumnName())
+                        ? col(field.getColumnName())
                         : callUDF(
                                 field
                                     .getInitializer()
                                     .substring(0, field.getInitializer().indexOf("(")),
-                                col(field.getHiveField()))
-                            .alias(field.getHiveField()))
+                                col(field.getColumnName()))
+                            .alias(field.getColumnName()))
             .collect(Collectors.toList());
 
     // Partitioned columns must be at the end
