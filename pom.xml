@@ -93,7 +93,7 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
-    <module>occurrence-hadoop-minicluster</module>
+<!--    <module>occurrence-hadoop-minicluster</module>-->
     <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
@@ -220,7 +220,7 @@
     <gbif-common-ws.version>1.29-multitaxonomy-SNAPSHOT</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
-    <gbif-metadata-profile.version>2.3</gbif-metadata-profile.version>
+    <gbif-metadata-profile.version>2.6</gbif-metadata-profile.version>
     <gbif-parsers.version>0.67</gbif-parsers.version>
     <gbif-postal-service.version>1.9.1-SNAPSHOT</gbif-postal-service.version>
     <gbif-registry.version>3.97.0-multitaxonomy-SNAPSHOT</gbif-registry.version>

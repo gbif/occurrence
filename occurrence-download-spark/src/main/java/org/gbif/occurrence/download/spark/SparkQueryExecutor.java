@@ -15,8 +15,6 @@ package org.gbif.occurrence.download.spark;
 
 import org.gbif.occurrence.download.sql.QueryExecutor;
 
-import java.io.IOException;
-
 import org.apache.spark.sql.SparkSession;
 
 import lombok.AllArgsConstructor;

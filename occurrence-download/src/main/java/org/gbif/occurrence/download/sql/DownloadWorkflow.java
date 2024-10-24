@@ -79,9 +79,9 @@ public class DownloadWorkflow {
   public void run() {
     if (download.getRequest().getFormat() != DownloadFormat.SPECIES_LIST) {
       long recordCount = recordCount(download);
-      updateTotalRecordsCount(download, recordCount);
       if (isSmallDownloadCount(recordCount)) {
         runFromElastic();
+        updateTotalRecordsCount(download, recordCount);
       } else {
         sqlDownloadRunner.run();
       }
