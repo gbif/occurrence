@@ -96,21 +96,21 @@ public class DownloadWorkflow {
     settings.setProperty(
         DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,
         download.getRequest().getFormat().toString());
-    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
+    WorkflowConfiguration configuration = new WorkflowConfiguration(settings);
     FromSearchDownloadAction.run(
-        workflowConfiguration,
+        configuration,
         DownloadJobConfiguration.builder()
             .searchQuery(
                 EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
                         DownloadWorkflowModule.esFieldMapper(
-                            workflowConfiguration.getEsIndexType()))
+                            configuration.getEsIndexType()))
                     .toString())
             .downloadKey(download.getKey())
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
-            .sourceDir(workflowConfiguration.getTempDir())
+            .sourceDir(configuration.getTempDir())
             .isSmallDownload(true)
-            .downloadFormat(workflowConfiguration.getDownloadFormat())
+            .downloadFormat(configuration.getDownloadFormat())
             .coreTerm(coreDwcTerm)
             .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
             .build());
@@ -133,11 +133,11 @@ public class DownloadWorkflow {
   }
 
   /** Method that determines if the search query produces a "small" download file. */
-  private Boolean isSmallDownloadCount(long recordCount) {
+  private boolean isSmallDownloadCount(long recordCount) {
     return isSmallDownloadCount(recordCount, workflowConfiguration);
   }
 
-  public static Boolean isSmallDownloadCount(
+  public static boolean isSmallDownloadCount(
       long recordCount, WorkflowConfiguration workflowConfiguration) {
     return recordCount != ERROR_COUNT
         && recordCount

@@ -15,8 +15,6 @@ package org.gbif.occurrence.download.spark;
 
 import org.gbif.occurrence.download.sql.QueryExecutor;
 
-import java.io.IOException;
-
 import org.apache.spark.sql.SparkSession;
 
 import lombok.AllArgsConstructor;
@@ -26,7 +24,7 @@ public class SparkQueryExecutor implements QueryExecutor {
   private SparkSession sparkSession;
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     sparkSession.close();
   }
 
