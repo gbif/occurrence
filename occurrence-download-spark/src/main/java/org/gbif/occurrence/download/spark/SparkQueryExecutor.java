@@ -26,7 +26,7 @@ public class SparkQueryExecutor implements QueryExecutor {
   private SparkSession sparkSession;
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     sparkSession.close();
   }
 
