@@ -159,6 +159,8 @@ public final class HiveDataTypes {
       return TYPE_ARRAY_PARENT_STRUCT;
     } else if (GbifTerm.geologicalTime == term) {
       return GEOLOGICAL_RANGE_STRUCT;
+    } else if (term == DwcTerm.typeStatus) {
+      return TYPE_VOCABULARY_ARRAY_STRUCT;
     } else if (isVocabulary(term)) {
       if (TermUtils.isArray(term)) {
         return TYPE_VOCABULARY_ARRAY_STRUCT;
