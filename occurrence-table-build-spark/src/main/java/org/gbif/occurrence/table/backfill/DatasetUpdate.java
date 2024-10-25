@@ -148,10 +148,10 @@ public class DatasetUpdate {
     List<Column> columns = OccurrenceHDFSTableDefinition.definition().stream()
       .filter(field -> !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
       .map(field -> field.getInitializer().equals(field.getHiveField()) ?
-          col("```" + field.getPipelinesAvroName() + "```")
+          col(field.getAvroInitializer())
           : callUDF(
           field.getInitializer().substring(0, field.getInitializer().indexOf("(")),
-          col("```" + field.getPipelinesAvroName() + "```")
+          col(field.getAvroInitializer())
         ).alias(field.getHiveField())
       )
       .collect(Collectors.toList());
