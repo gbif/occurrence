@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -227,5 +228,15 @@ public class OccurrenceHDFSTableDefinition {
                                   // not verbatim context
                                   initializer,
                                   avroInitializer);
+  }
+
+
+  public static void main(String[] args) {
+    String test = OccurrenceHDFSTableDefinition.definition().stream()
+        // Excluding partitioned columns
+        .map(InitializableField::getAvroInitializer)
+        .collect(Collectors.joining("\n, "));
+
+    System.out.println(test);
   }
 }
