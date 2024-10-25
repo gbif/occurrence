@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.hive.InitializableField;
 
 import java.util.List;
@@ -27,6 +28,7 @@ import lombok.Data;
 
 @Data
 @Builder
+@Slf4j
 public class DataTable {
 
   private final SparkSession spark;
@@ -98,9 +100,9 @@ public class DataTable {
 
   private void insertOverwrite(String targetTableName, String selectFields, String sourceTable, String partitionColumn, String partitionValue) {
     String partitionClause = (!Strings.isNullOrEmpty(partitionValue)? " PARTITION (" + partitionColumn + " = '" + partitionValue + "') " : " ");
-    spark.sql("INSERT OVERWRITE TABLE " + targetTableName +
-              partitionClause +
-             "SELECT " + selectFields + " FROM " + sourceTable);
+    String sqlClause = "INSERT OVERWRITE TABLE " + targetTableName + partitionClause + "SELECT " + selectFields + " FROM " + sourceTable;
+    log.info("Executing SQL clause {}", sqlClause);
+    spark.sql(sqlClause);
   }
 
   public void swap(String oldPrefix, String newPrefix) {
