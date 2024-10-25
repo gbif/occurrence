@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
@@ -38,6 +39,7 @@ import static org.apache.spark.sql.functions.col;
  */
 @Data
 @Builder
+@Slf4j
 public class DatasetUpdate {
 
   /**
@@ -126,7 +128,7 @@ public class DatasetUpdate {
       UDFS.registerUdfs(spark);
       Column[] cols = selectFromAvro();
       // to be removed
-      System.out.println("Inserting into " + Arrays.stream(cols).map(Column::toString).collect(Collectors.joining(", ")));
+      log.info("Inserting into " + Arrays.stream(cols).map(Column::toString).collect(Collectors.joining(", ")));
       spark.read()
         .format("com.databricks.spark.avro")
         .load(sourceDir + "/*.avro")
