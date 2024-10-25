@@ -13,20 +13,20 @@
  */
 package org.gbif.occurrence.spark.udf;
 
-import org.gbif.occurrence.cube.functions.Isea3hCellCode;
+import org.gbif.occurrence.cube.functions.DmsGridCellCode;
 
 import org.apache.spark.sql.api.java.UDF4;
 
 /**
- * Randomize a point according to its coordinateUncertainty (or some other distance), and determine the
- * ISEA3H Cell in which the randomized point lies at the given resolution.
+ * Randomize a point according to its coordinateUncertainty (or some other distance), and given the
+ * grid cell size determine the grid cell (with an invented identifier scheme) in which the point falls.
  */
-public class Isea3hCellCodeUdf implements UDF4<Integer,Double,Double,Double,String> {
+public class DegreeMinuteSecondGridCellCodeUdf implements UDF4<Integer,Double,Double,Double,String> {
 
-  private final Isea3hCellCode isea3hCellCode = new Isea3hCellCode();
+  private final DmsGridCellCode dmsGridCellCode = new DmsGridCellCode();
 
   @Override
   public String call(Integer level, Double lat, Double lon, Double coordinateUncertaintyInMeters) throws Exception {
-    return isea3hCellCode.fromCoordinate(level, lat, lon, coordinateUncertaintyInMeters);
+     return dmsGridCellCode.fromCoordinate(level, lat, lon, coordinateUncertaintyInMeters);
   }
 }

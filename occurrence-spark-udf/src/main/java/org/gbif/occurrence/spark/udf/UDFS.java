@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.spark.udf;
 
-
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 
@@ -33,6 +32,7 @@ public class UDFS {
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
 
     // SQL Downloads
+    sparkSession.udf().register("gbif_DMSGCCode", new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_EEARGCode", new EeaCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_ISEA3HCode", new Isea3hCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_MGRSCode", new MilitaryGridReferenceSystemCellCodeUdf(), DataTypes.StringType);
