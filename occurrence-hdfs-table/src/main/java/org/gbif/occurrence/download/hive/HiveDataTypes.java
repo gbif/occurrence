@@ -63,7 +63,7 @@ public final class HiveDataTypes {
       DwcTerm.recordedByID,
       DwcTerm.identifiedByID,
       GbifInternalTerm.dwcaExtension,
-      DwcTerm.typeStatus,
+//      DwcTerm.typeStatus,
       DwcTerm.datasetID,
       DwcTerm.datasetName,
       DwcTerm.recordedBy,
