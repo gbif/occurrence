@@ -81,7 +81,7 @@ public final class HiveDataTypes {
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(
     DwcTerm.dateIdentified,
-//    GbifTerm.lastInterpreted,
+    GbifTerm.lastInterpreted,
     GbifTerm.lastParsed,
     GbifTerm.lastCrawled,
     DcTerm.modified,
