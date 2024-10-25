@@ -98,7 +98,7 @@ public class OccurrenceHDFSTableDefinition {
     for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {
       // if there is custom handling registered for the term, use it
       if (initializers.containsKey(t)) {
-        builder.add(interpretedField(t, initializers.get(t)));
+        builder.add(interpretedField(t, initializers.get(t), initializers.get(t)));
       } else {
         builder.add(interpretedField(t)); // will just use the term name as usual
       }
@@ -131,7 +131,7 @@ public class OccurrenceHDFSTableDefinition {
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
       if (!DownloadTerms.EXCLUSIONS.contains(t)) {
         if (initializers.containsKey(t)) {
-          builder.add(interpretedField(t, initializers.get(t)));
+          builder.add(interpretedField(t, initializers.get(t), initializers.get(t)));
         } else {
           builder.add(interpretedField(t));
         }
@@ -193,7 +193,8 @@ public class OccurrenceHDFSTableDefinition {
     return new InitializableField(term, column,
                                   // no escape needed, due to prefix
                                   HiveDataTypes.typeForTerm(term, true), // verbatim context
-                                  cleanDelimitersInitializer(column) //remove delimiters '\n', '\t', etc.
+                                  cleanDelimitersInitializer(column), //remove delimiters '\n', '\t', etc.
+                                  cleanDelimitersInitializer(column)
     );
   }
 
@@ -203,27 +204,28 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static InitializableField interpretedField(Term term) {
     if (HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
-      return interpretedField(term, cleanDelimitersInitializer(term)); // no initializer
+      return interpretedField(term, cleanDelimitersInitializer(term, true), cleanDelimitersInitializer(term, false));
     }
     if (HiveDataTypes.TYPE_ARRAY_STRING.equals(HiveDataTypes.typeForTerm(term, false))
         && ARRAYS_FROM_VERBATIM_VALUES.contains(term)) {
-      return interpretedField(term, cleanDelimitersArrayInitializer(term)); // no initializer
+      return interpretedField(term, cleanDelimitersArrayInitializer(term, true), cleanDelimitersArrayInitializer(term, false));
     }
 
-    return interpretedField(term, null); // no initializer
+    return interpretedField(term, null, null); // no initializer
   }
 
   /**
    * Constructs a Field for the given term, when used in the interpreted context, and setting it up with the
    * given initializer.
    */
-  private static InitializableField interpretedField(Term term, String initializer) {
+  private static InitializableField interpretedField(Term term, String initializer, String avroInitializer) {
     return new InitializableField(term,
                                   term.simpleName().toLowerCase(Locale.ENGLISH),
                                   // note that Columns takes care of whether this is mounted
                                   // on a verbatim or an interpreted column for us
                                   HiveDataTypes.typeForTerm(term, false),
                                   // not verbatim context
-                                  initializer);
+                                  initializer,
+                                  avroInitializer);
   }
 }

@@ -48,6 +48,19 @@ public final class HiveColumns {
     return escapeColumnName(term.simpleName().toLowerCase());
   }
 
+  public static String columnFor(Term term, boolean escape) {
+    String columnName = term.simpleName().toLowerCase();
+    if (!escape && RESERVED_WORDS.contains(columnName)) {
+      return columnName;
+    }
+    return escape? escapeColumnName(term.simpleName().toLowerCase()) : columnName;
+  }
+
+
+  public static boolean isReservedWord(String columnName) {
+    return RESERVED_WORDS.contains(columnName);
+  }
+
   /**
    * Escapes the name if required.
    */
@@ -89,6 +102,10 @@ public final class HiveColumns {
     return cleanDelimitersInitializer(columnFor(term));
   }
 
+  public static String cleanDelimitersInitializer(Term term, boolean escape) {
+    return cleanDelimitersInitializer(columnFor(term, escape));
+  }
+
   /**
    * Creates a column expression using the UDF cleanDelimiters(columnName).
    */
@@ -115,5 +132,9 @@ public final class HiveColumns {
    */
   public static String cleanDelimitersArrayInitializer(Term term) {
     return cleanDelimitersArrayInitializer(columnFor(term));
+  }
+
+  public static String cleanDelimitersArrayInitializer(Term term, boolean escape) {
+    return cleanDelimitersArrayInitializer(columnFor(term, escape));
   }
 }

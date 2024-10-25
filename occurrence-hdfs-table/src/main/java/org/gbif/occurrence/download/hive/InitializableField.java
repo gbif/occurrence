@@ -33,6 +33,7 @@ import static org.gbif.occurrence.download.hive.HiveColumns.escapeColumnName;
 public class InitializableField {
 
   private final String initializer;
+  private final String avroInitializer;
   private final String columnName;
   private final String hiveField;
   private final String hiveDataType;
@@ -43,18 +44,15 @@ public class InitializableField {
    * with the same name as an existing table.
    */
   public InitializableField(Term term, String columnName, String hiveDataType) {
-    this.term = term;
-    this.columnName = columnName;
-    this.hiveField = escapeColumnName(columnName);
-    this.hiveDataType = hiveDataType;
-    initializer = hiveField;
+    this(term, columnName, hiveDataType, null, null);
   }
 
-  public InitializableField(Term term, String columnName, String hiveDataType, String initializer) {
+  public InitializableField(Term term, String columnName, String hiveDataType, String initializer, String avroInitializer) {
     this.term = term;
     this.columnName = columnName;
     this.hiveField = escapeColumnName(columnName);
     this.hiveDataType = hiveDataType;
     this.initializer = initializer == null ? hiveField : initializer; // for safety
+    this.avroInitializer = avroInitializer == null? columnName : avroInitializer;
   }
 }
