@@ -227,7 +227,7 @@ public class TableBackfill {
   private String occurrenceTableFields() {
     return OccurrenceHDFSTableDefinition.definition().stream()
       // Excluding partitioned columns
-      .filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey"))
+      //.filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey"))
       .map(InitializableField::getAvroInitializer)
       .collect(Collectors.joining(", ")) + (!configuration.isUsePartitionedTable()? ", datasetkey" : "");
   }
