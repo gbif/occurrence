@@ -63,7 +63,6 @@ public final class HiveDataTypes {
       DwcTerm.recordedByID,
       DwcTerm.identifiedByID,
       GbifInternalTerm.dwcaExtension,
-//      DwcTerm.typeStatus,
       DwcTerm.datasetID,
       DwcTerm.datasetName,
       DwcTerm.recordedBy,
@@ -160,8 +159,6 @@ public final class HiveDataTypes {
       return TYPE_ARRAY_PARENT_STRUCT;
     } else if (GbifTerm.geologicalTime == term) {
       return GEOLOGICAL_RANGE_STRUCT;
-    } else if (term == DwcTerm.typeStatus || term == DwcTerm.sex) {
-      return TYPE_VOCABULARY_STRUCT;
     } else if (isVocabulary(term)) {
       if (TermUtils.isArray(term)) {
         return TYPE_VOCABULARY_ARRAY_STRUCT;
