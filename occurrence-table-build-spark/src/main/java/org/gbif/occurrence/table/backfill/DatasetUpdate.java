@@ -13,9 +13,11 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -37,6 +39,7 @@ import static org.apache.spark.sql.functions.col;
  */
 @Data
 @Builder
+@Slf4j
 public class DatasetUpdate {
 
   /**
@@ -120,13 +123,16 @@ public class DatasetUpdate {
    * Performs an INSERT OVERWRITE into the target table.
    */
   private void createOrUpdatePartition(SparkSession spark) {
-    if(!isDirectoryEmpty(sourceDir, spark)) {
+    if (!isDirectoryEmpty(sourceDir, spark)) {
       spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       UDFS.registerUdfs(spark);
+      Column[] cols = selectFromAvro();
+      // to be removed
+      log.info("Inserting into " + Arrays.stream(cols).map(Column::toString).collect(Collectors.joining(", ")));
       spark.read()
         .format("com.databricks.spark.avro")
         .load(sourceDir + "/*.avro")
-        .select(selectFromAvro())
+        .select(cols)
         .write()
         .format("parquet")
         .option("compression", "snappy")
@@ -141,14 +147,17 @@ public class DatasetUpdate {
   private Column[] selectFromAvro() {
     List<Column> columns = OccurrenceHDFSTableDefinition.definition().stream()
       .filter(field -> !field.getHiveField().equalsIgnoreCase("datasetkey")) //Partitioned columns must be at the end
-      .map(field -> field.getInitializer().equals(field.getHiveField())?  col(field.getHiveField()) : callUDF(field.getInitializer().substring(0, field.getInitializer().indexOf("(")), col(field.getHiveField())).alias(field.getHiveField()))
+      .map(field -> field.getInitializer().equals(field.getHiveField()) ?
+          col("```" + field.getPipelinesAvroName() + "```")
+          : callUDF(
+          field.getInitializer().substring(0, field.getInitializer().indexOf("(")),
+          col("```" + field.getPipelinesAvroName() + "```")
+        ).alias(field.getHiveField())
+      )
       .collect(Collectors.toList());
 
     //Partitioned columns must be at the end
     columns.add(col("datasetkey"));
-
     return columns.toArray(new Column[]{});
   }
-
-
 }
