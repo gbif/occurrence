@@ -16,6 +16,7 @@ package org.gbif.occurrence.table.backfill;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -120,13 +121,16 @@ public class DatasetUpdate {
    * Performs an INSERT OVERWRITE into the target table.
    */
   private void createOrUpdatePartition(SparkSession spark) {
-    if(!isDirectoryEmpty(sourceDir, spark)) {
+    if (!isDirectoryEmpty(sourceDir, spark)) {
       spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       UDFS.registerUdfs(spark);
+      Column[] cols = selectFromAvro();
+      // to be removed
+      System.out.println("Inserting into " + Arrays.stream(cols).map(Column::toString).collect(Collectors.joining(", ")));
       spark.read()
         .format("com.databricks.spark.avro")
         .load(sourceDir + "/*.avro")
-        .select(selectFromAvro())
+        .select(cols)
         .write()
         .format("parquet")
         .option("compression", "snappy")
