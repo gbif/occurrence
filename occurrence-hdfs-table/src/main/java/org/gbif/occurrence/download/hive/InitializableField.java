@@ -34,6 +34,7 @@ public class InitializableField {
 
   private final String initializer;
   private final String columnName;
+  private final String pipelinesAvroName;
   private final String hiveField;
   private final String hiveDataType;
   private final Term term;
@@ -45,6 +46,7 @@ public class InitializableField {
   public InitializableField(Term term, String columnName, String hiveDataType) {
     this.term = term;
     this.columnName = columnName;
+    this.pipelinesAvroName = columnName == "order" || columnName == "group" ? columnName + "_" : columnName;
     this.hiveField = escapeColumnName(columnName);
     this.hiveDataType = hiveDataType;
     initializer = hiveField;
@@ -53,6 +55,7 @@ public class InitializableField {
   public InitializableField(Term term, String columnName, String hiveDataType, String initializer) {
     this.term = term;
     this.columnName = columnName;
+    this.pipelinesAvroName = columnName == "order" || columnName == "group" ? columnName + "_" : columnName;
     this.hiveField = escapeColumnName(columnName);
     this.hiveDataType = hiveDataType;
     this.initializer = initializer == null ? hiveField : initializer; // for safety
