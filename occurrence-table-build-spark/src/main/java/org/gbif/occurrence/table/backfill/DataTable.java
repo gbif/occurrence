@@ -99,8 +99,10 @@ public class DataTable {
   }
 
   private void insertOverwrite(String targetTableName, String selectFields, String sourceTable, String partitionColumn, String partitionValue) {
+    spark.sql("DROP TABLE IF EXISTS " + targetTableName);
     String partitionClause = (!Strings.isNullOrEmpty(partitionValue)? " PARTITION (" + partitionColumn + " = '" + partitionValue + "') " : " ");
-    String sqlClause = "INSERT OVERWRITE TABLE " + targetTableName + partitionClause + "SELECT " + selectFields + " FROM " + sourceTable;
+
+    String sqlClause = "CREATE TABLE " + targetTableName + partitionClause + " AS SELECT " + selectFields + " FROM " + sourceTable;
     log.info("Executing SQL clause {}", sqlClause);
     spark.sql(sqlClause);
   }
