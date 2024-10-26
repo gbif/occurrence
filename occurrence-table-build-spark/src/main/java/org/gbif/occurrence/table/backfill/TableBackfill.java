@@ -165,7 +165,7 @@ public class TableBackfill {
         createMultimediaTable(spark);
       }
     } finally {
-      snapshotAction.deleteHdfsSnapshot(jobId);
+//      snapshotAction.deleteHdfsSnapshot(jobId);
       log.info("Creation finished");
     }
   }
