@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -25,6 +26,7 @@ import lombok.SneakyThrows;
 
 @Data
 @Builder
+@Slf4j
 public class ExternalAvroTable {
 
   private final String tableName;
@@ -44,9 +46,12 @@ public class ExternalAvroTable {
   }
 
   public void create(SparkSession spark) {
-    spark.sql("CREATE EXTERNAL TABLE " + tableName + " USING AVRO " +
-                      "OPTIONS( 'format' = 'avro', 'schema' = '" + schema.toString(true) + "') " +
-                      "LOCATION '" + location +  "' TBLPROPERTIES('iceberg.catalog'='location_based_table')");
+    String sql = "CREATE EXTERNAL TABLE " + tableName + " USING AVRO " +
+      "OPTIONS( 'format' = 'avro', 'schema' = '" + schema.toString(true) + "') " +
+      "LOCATION '" + location +  "' TBLPROPERTIES('iceberg.catalog'='location_based_table')";
+
+    log.info("Executing Create SQL clause for {} : {}", tableName, sql);
+    spark.sql(sql);
   }
 
   public void reCreate(SparkSession spark) {
