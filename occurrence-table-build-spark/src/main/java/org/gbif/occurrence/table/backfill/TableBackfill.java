@@ -228,8 +228,8 @@ public class TableBackfill {
     return OccurrenceHDFSTableDefinition.definition().stream()
       // Excluding partitioned columns
       //.filter(field -> !configuration.isUsePartitionedTable() || !field.getHiveField().equalsIgnoreCase("datasetkey"))
-      .map(InitializableField::getAvroInitializer)
-      .collect(Collectors.joining(", ")) + (!configuration.isUsePartitionedTable()? ", datasetkey" : "");
+      .map(InitializableField::getAvroInitializerWithCast)
+      .collect(Collectors.joining(", ")) + (!configuration.isUsePartitionedTable() ? ", datasetkey" : "");
   }
 
   private void swapTables(Command command, SparkSession spark) {

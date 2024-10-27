@@ -55,4 +55,24 @@ public class InitializableField {
     this.initializer = initializer == null ? hiveField : initializer; // for safety
     this.avroInitializer = avroInitializer == null? columnName : avroInitializer;
   }
+
+  public String getAvroInitializerWithCast() {
+    if (hiveDataType.equalsIgnoreCase("BIGINT")) {
+      return "CAST(" + avroInitializer + " AS " + hiveDataType + ")";
+    }
+    if (hiveDataType.equalsIgnoreCase("DOUBLE")) {
+      return "CAST(" + avroInitializer + " AS " + hiveDataType + ")";
+    }
+    if (hiveDataType.equalsIgnoreCase("TIMESTAMP")) {
+      return "CAST(" + avroInitializer + " AS " + hiveDataType + ")";
+    }
+    if (hiveDataType.equalsIgnoreCase("BOOLEAN")) {
+      return "CAST(" + avroInitializer + " AS " + hiveDataType + ")";
+    }
+    if (hiveDataType.equalsIgnoreCase("INT")) {
+      return "CAST(" + avroInitializer + " AS " + hiveDataType + ")";
+    }
+    return avroInitializer;
+  }
+
 }
