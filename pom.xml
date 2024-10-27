@@ -167,7 +167,7 @@
     <httpclient.version>4.5.2</httpclient.version>
     <httpcore.version>4.4.13</httpcore.version>
 
-    <jackson.version>2.17.1</jackson.version>
+    <jackson.version>2.18.0</jackson.version>
     <json.version>20220320</json.version>
     <jcommander.version>1.35</jcommander.version>
     <slf4j.version>2.0.7</slf4j.version>
@@ -256,7 +256,7 @@
     <spark.version>3.5.1</spark.version>
     <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
-    <iceberg.version>1.4.3</iceberg.version>
+    <iceberg.version>1.6.1</iceberg.version>
     <scala.library.version>2.12.17</scala.library.version>
 
     <resilience4j.version>1.7.0</resilience4j.version>
