@@ -41,7 +41,7 @@ public class DataTable {
 
   private final String partitionValue;
 
-  private final String fields;
+  private final List<InitializableField> fields;
 
 
   public static DataTable from(TableBackfillConfiguration configuration, SparkSession spark, String partitionColumn, List<InitializableField> fields) {
@@ -51,21 +51,15 @@ public class DataTable {
             .tableName(configuration.getTableNameWithPrefix())
             .partitionColumn(partitionColumn)
             .partitionValue(configuration.getDatasetKey())
-            .fields(fields(partitionColumn, configuration.getDatasetKey(), fields))
+            .fields(fields)
             .build();
   }
 
-  private static String fields(String partitionColumn, String partitionValue, List<InitializableField> fields) {
-    if (partitionValue != null) {
-      return fields.stream()
-        .filter(field -> !field.getHiveField().equalsIgnoreCase(partitionColumn) && partitionValue != null) // Excluding partitioned columns
-        .map(field -> field.getHiveField() + " " + field.getHiveDataType())
-        .collect(Collectors.joining(", "));
-    } else {
-      return fields.stream()
-        .map(field -> field.getHiveField() + " " + field.getHiveDataType())
-        .collect(Collectors.joining(", \n"));
-    }
+  private String createTableFields() {
+    return fields.stream()
+      .filter(field -> !partitioned || !field.getColumnName().equalsIgnoreCase(partitionColumn))
+      .map(field -> field.getHiveField() + " " + field.getHiveDataType())
+      .collect(Collectors.joining(", \n"));
   }
 
   public DataTable createTableIfNotExists() {
@@ -79,12 +73,12 @@ public class DataTable {
 
   private void createParquetTableIfNotExists() {
     spark.sql("CREATE TABLE IF NOT EXISTS " + tableName +
-              " (" + fields +") STORED AS PARQUET TBLPROPERTIES ('parquet.compression'='SNAPPY')");
+              " (" + createTableFields() +") STORED AS PARQUET TBLPROPERTIES ('parquet.compression'='SNAPPY')");
   }
 
   private void createPartitionedTableIfNotExists() {
     spark.sql( "CREATE TABLE IF NOT EXISTS " + tableName +
-            " (" + fields + ") USING iceberg PARTITIONED BY(" + partitionColumn + " STRING) " +
+            " (" + createTableFields() + ") USING iceberg PARTITIONED BY(" + partitionColumn + " STRING) " +
             "TBLPROPERTIES ('parquet.compression'='GZIP', 'auto.purge'='true')");
   }
 
