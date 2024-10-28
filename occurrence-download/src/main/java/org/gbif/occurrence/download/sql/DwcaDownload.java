@@ -14,7 +14,6 @@
 package org.gbif.occurrence.download.sql;
 
 import org.gbif.api.model.occurrence.Download;
-import org.gbif.occurrence.download.citations.CitationsPersister;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
@@ -52,9 +51,6 @@ public class DwcaDownload {
 
       // Create the Archive
       zipAndArchive();
-
-      //update download info in the Registry
-      updateDownload();
 
     } finally {
       // Drop tables
@@ -101,32 +97,6 @@ public class DwcaDownload {
             .build();
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
-
-  private String getDatabasePath() {
-    return workflowConfiguration.getHiveDBPath() + "/";
-  }
-
-  private String getWarehouseCitationTablePath() {
-    return getWarehouseTableSuffixPath("citation");
-  }
-
-  private String getWarehouseTableSuffixPath(String prefix) {
-    return getDatabasePath() + '/' + queryParameters.getDownloadTableName() + "_" + prefix + '/';
-  }
-
-  /**
-   * Updates the download metadata in the registry.
-   */
-  @SneakyThrows
-  private void updateDownload() {
-    CitationsPersister.readCitationsAndUpdateLicense(workflowConfiguration.getHdfsNameNode(),
-      getWarehouseCitationTablePath(), new CitationsPersister.PersistUsage(download.getKey(),
-        download.getRequest().getType().getCoreTerm(),
-        workflowConfiguration.getRegistryWsUrl(),
-        workflowConfiguration.getRegistryUser(),
-        workflowConfiguration.getRegistryPassword()));
-  }
-
 
   private void dropTables() {
     SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);

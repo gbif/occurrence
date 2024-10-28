@@ -162,11 +162,13 @@ public class DwcaArchiveBuilder {
         metadataBuilder.accept(constituentDataset);
       })
       .onFinish(datasetUsages -> {
-        //Persist Dataset Usages
         downloadUsagesPersist.persistUsages(download.getKey(), datasetUsages);
 
-        // persist the License assigned to the download
-        downloadUsagesPersist.persistDownloadLicense(download, constituentsDatasetsProcessor.getSelectedLicense());
+        Long totalCount = datasetUsages.values().stream().reduce(0L, Long::sum);
+        download.setLicense(constituentsDatasetsProcessor.getSelectedLicense());
+        download.setTotalRecords(totalCount);
+
+        downloadUsagesPersist.persistDownload(download);
 
         // metadata about the entire archive data
         metadataBuilder.writeMetadata();
