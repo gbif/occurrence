@@ -16,6 +16,7 @@ package org.gbif.occurrence.table.backfill;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.hive.InitializableField;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,7 +53,7 @@ public class DataTable {
             .tableName(configuration.getTableNameWithPrefix())
             .partitionColumn(partitionColumn)
             .partitionValue(configuration.getDatasetKey())
-            .fields(fields.stream().collect(Collectors.toMap(InitializableField::getHiveField, InitializableField::getHiveDataType)))
+            .fields(fields.stream().collect(Collectors.toMap(InitializableField::getHiveField, InitializableField::getHiveDataType, (x, y) -> y, LinkedHashMap::new)))
             .build();
   }
 

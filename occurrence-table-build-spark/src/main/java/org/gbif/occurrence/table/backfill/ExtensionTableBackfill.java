@@ -15,6 +15,7 @@ package org.gbif.occurrence.table.backfill;
 
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
@@ -70,7 +71,7 @@ public class ExtensionTableBackfill {
       .partitionValue(configuration.getDatasetKey())
       .fields(schema.getFields()
         .stream()
-        .collect(Collectors.toMap(Schema.Field::name, field -> "STRING")))
+        .collect(Collectors.toMap(Schema.Field::name, field -> "STRING", (x, y) -> y, LinkedHashMap::new)))
       .build();
   }
 
