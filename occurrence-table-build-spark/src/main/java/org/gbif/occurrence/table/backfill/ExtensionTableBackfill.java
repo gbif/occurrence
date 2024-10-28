@@ -64,19 +64,16 @@ public class ExtensionTableBackfill {
   }
 
   public static DataTable datatable(TableBackfillConfiguration configuration, SparkSession spark, String partitionColumn, Schema schema, String tableName) {
-
-    Map<String, String> fields = schema.getFields()
-      .stream()
-      .collect(Collectors.toMap(Schema.Field::name, field -> "STRING", (x, y) -> y, LinkedHashMap::new));
-    fields.put("datasetkey", "STRING");
-
     return DataTable.builder()
       .spark(spark)
       .partitioned(configuration.isUsePartitionedTable())
       .tableName(tableName)
       .partitionColumn(partitionColumn)
       .partitionValue(configuration.getDatasetKey())
-      .fields(fields)
+      .fields(schema.getFields()
+        .stream()
+        .collect(Collectors.toMap(Schema.Field::name, field -> "STRING", (x, y) -> y, LinkedHashMap::new))
+      )
       .build();
   }
 
