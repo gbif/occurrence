@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.hive.InitializableField;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.spark.sql.SparkSession;
@@ -41,7 +42,7 @@ public class DataTable {
 
   private final String partitionValue;
 
-  private final List<InitializableField> fields;
+  private final Map<String,String> fields;
 
 
   public static DataTable from(TableBackfillConfiguration configuration, SparkSession spark, String partitionColumn, List<InitializableField> fields) {
@@ -51,14 +52,14 @@ public class DataTable {
             .tableName(configuration.getTableNameWithPrefix())
             .partitionColumn(partitionColumn)
             .partitionValue(configuration.getDatasetKey())
-            .fields(fields)
+            .fields(fields.stream().collect(Collectors.toMap(InitializableField::getHiveField, InitializableField::getHiveDataType)))
             .build();
   }
 
   private String createTableFields() {
-    return fields.stream()
-      .filter(field -> !partitioned || !field.getColumnName().equalsIgnoreCase(partitionColumn))
-      .map(field -> field.getHiveField() + " " + field.getHiveDataType())
+    return fields.entrySet().stream()
+      .filter(field -> !partitioned || !field.getKey().equalsIgnoreCase(partitionColumn))
+      .map(field -> field.getKey() + " " + field.getValue())
       .collect(Collectors.joining(", \n"));
   }
 

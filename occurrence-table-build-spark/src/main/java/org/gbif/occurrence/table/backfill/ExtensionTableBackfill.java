@@ -70,9 +70,7 @@ public class ExtensionTableBackfill {
       .partitionValue(configuration.getDatasetKey())
       .fields(schema.getFields()
         .stream()
-        .filter(field -> !field.name().equalsIgnoreCase(partitionColumn))
-        .map(field -> field.name() + " STRING")
-        .collect(Collectors.joining(",\n")))
+        .collect(Collectors.toMap(Schema.Field::name, field -> "STRING")))
       .build();
   }
 
