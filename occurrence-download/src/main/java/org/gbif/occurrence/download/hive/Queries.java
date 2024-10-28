@@ -191,18 +191,18 @@ public abstract class Queries {
    * Transforms the term into a joinArray(…) expression.
    */
   public static String toArrayInitializer(String term) {
-    return String.format("array_join(%1$s,'\\\\;') AS %1$s", term);
+    return String.format("array_join(%1$s,'\\;') AS %1$s", term);
   }
 
   public static String toArrayInitializer(String term, String alias) {
-    return String.format("array_join(%1$s,'\\\\;') AS %2$s", term, alias);
+    return String.format("array_join(%1$s,'\\;') AS %2$s", term, alias);
   }
 
   /**
    * Transforms the term into a joinArray(…) expression.
    */
   public static String toArrayInitializer(Term term) {
-    return String.format("array_join(%1$s,'\\\\;') AS %1$s", HiveColumns.columnFor(term));
+    return String.format("array_join(%1$s,'\\;') AS %1$s", HiveColumns.columnFor(term));
   }
 
   /**
