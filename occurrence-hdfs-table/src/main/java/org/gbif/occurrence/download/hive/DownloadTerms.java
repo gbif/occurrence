@@ -58,6 +58,7 @@ public class DownloadTerms {
           .add(GbifTerm.geologicalTime)
           .add(GbifTerm.lithostratigraphy)
           .add(GbifTerm.biostratigraphy)
+          .add(GbifTerm.checklistKey)
           .build();
 
   public static final Set<Term> EXCLUSIONS_DOWNLOAD =
@@ -142,7 +143,6 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.lastInterpreted),
     Pair.of(Group.INTERPRETED, GbifTerm.mediaType),
     Pair.of(Group.INTERPRETED, GbifTerm.issue),
-    Pair.of(Group.INTERPRETED, GbifTerm.checklistKey),
     Pair.of(Group.INTERPRETED, GbifTerm.geologicalTime)
   );
 
@@ -192,7 +192,6 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.species),
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
     Pair.of(Group.INTERPRETED, IucnTerm.iucnRedListCategory),
-    Pair.of(Group.INTERPRETED, GbifTerm.checklistKey),
     Pair.of(Group.INTERPRETED, DcTerm.license)
   );
 
@@ -221,8 +220,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.genusKey),
     Pair.of(Group.INTERPRETED, GbifTerm.species),
     Pair.of(Group.INTERPRETED, GbifTerm.speciesKey),
-    Pair.of(Group.INTERPRETED, IucnTerm.iucnRedListCategory),
-    Pair.of(Group.INTERPRETED, GbifTerm.checklistKey)
+    Pair.of(Group.INTERPRETED, IucnTerm.iucnRedListCategory)
   );
 
   /**
