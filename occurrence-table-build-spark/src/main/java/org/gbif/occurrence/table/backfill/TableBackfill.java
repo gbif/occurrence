@@ -229,7 +229,7 @@ public class TableBackfill {
       // Excluding partitioned columns
       .filter(field -> !field.getHiveField().equalsIgnoreCase("datasetkey"))
       .map(InitializableField::getAvroInitializer)
-      .collect(Collectors.joining(", ")) + (configuration.getDatasetKey() != null? ", datasetkey" : "");
+      .collect(Collectors.joining(", ")) + ", datasetkey";
   }
 
   private void swapTables(Command command, SparkSession spark) {
