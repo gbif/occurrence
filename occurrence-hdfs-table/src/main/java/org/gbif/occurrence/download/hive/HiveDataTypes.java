@@ -54,7 +54,7 @@ public final class HiveDataTypes {
   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
   // An index of types for terms, if used in the interpreted context
-  private static final Map<Term, String> TYPED_TERMS;
+  public static final Map<Term, String> TYPED_TERMS;
   private static final Set<Term> ARRAY_STRING_TERMS =
     ImmutableSet.of(
       GbifTerm.mediaType,
@@ -63,7 +63,6 @@ public final class HiveDataTypes {
       DwcTerm.recordedByID,
       DwcTerm.identifiedByID,
       GbifInternalTerm.dwcaExtension,
-      DwcTerm.typeStatus,
       DwcTerm.datasetID,
       DwcTerm.datasetName,
       DwcTerm.recordedBy,
@@ -94,16 +93,6 @@ public final class HiveDataTypes {
     DwcTerm.year,
     DwcTerm.month,
     DwcTerm.day,
-    GbifTerm.taxonKey,
-    GbifTerm.kingdomKey,
-    GbifTerm.phylumKey,
-    GbifTerm.classKey,
-    GbifTerm.orderKey,
-    GbifTerm.familyKey,
-    GbifTerm.genusKey,
-    GbifTerm.subgenusKey,
-    GbifTerm.speciesKey,
-    GbifTerm.acceptedTaxonKey,
     GbifInternalTerm.crawlId,
     GbifInternalTerm.identifierCount,
     DwcTerm.individualCount);
@@ -160,6 +149,10 @@ public final class HiveDataTypes {
       return TYPE_ARRAY_PARENT_STRUCT;
     } else if (GbifTerm.geologicalTime == term) {
       return GEOLOGICAL_RANGE_STRUCT;
+    } else if (term == DwcTerm.typeStatus) {
+      return TYPE_VOCABULARY_ARRAY_STRUCT;
+    } else if (term == DwcTerm.sex) {
+      return TYPE_VOCABULARY_STRUCT;
     } else if (isVocabulary(term)) {
       if (TermUtils.isArray(term)) {
         return TYPE_VOCABULARY_ARRAY_STRUCT;
