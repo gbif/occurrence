@@ -48,8 +48,8 @@ public class ExtensionTableBackfill {
       extensionTable.getFields().stream()
         .filter(
           // Excluding partitioned columns
-          field -> !configuration.isUsePartitionedTable() || !field.equalsIgnoreCase("datasetkey"))
-        .collect(Collectors.joining(",")) + (!configuration.isUsePartitionedTable()? ", datasetkey" : "");
+          field -> !field.equalsIgnoreCase("datasetkey"))
+        .collect(Collectors.joining(",")) + ", datasetkey";
 
     ExternalAvroTable avroTable =
     ExternalAvroTable.create(HdfsSnapshotCoordinator.getSnapshotPath(configuration, extensionTable.getExtension().name().toLowerCase() + "_table", jobId), extensionTable.getSchema(), extensionAvroTableName(extensionTable));
