@@ -16,6 +16,7 @@ package org.gbif.occurrence.table.backfill;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
@@ -53,7 +54,7 @@ public class ExtensionTableBackfill {
     ExternalAvroTable avroTable =
     ExternalAvroTable.create(HdfsSnapshotCoordinator.getSnapshotPath(configuration, extensionTable.getExtension().name().toLowerCase() + "_table", jobId), extensionTable.getSchema(), extensionAvroTableName(extensionTable));
 
-    if(avroTable.isSourceLocationNotEmpty(spark.sparkContext().hadoopConfiguration())) {
+    if (avroTable.isSourceLocationNotEmpty(spark.sparkContext().hadoopConfiguration())) {
       datatable(configuration, spark, "datasetkey", extensionTable.getSchema(), extensionTableName(extensionTable))
         .createTableIfNotExists()
         .insertOverwriteFromAvro(avroTable, select);
@@ -63,15 +64,19 @@ public class ExtensionTableBackfill {
   }
 
   public static DataTable datatable(TableBackfillConfiguration configuration, SparkSession spark, String partitionColumn, Schema schema, String tableName) {
+
+    Map<String, String> fields = schema.getFields()
+      .stream()
+      .collect(Collectors.toMap(Schema.Field::name, field -> "STRING", (x, y) -> y, LinkedHashMap::new));
+    fields.put("datasetkey", "STRING");
+
     return DataTable.builder()
       .spark(spark)
       .partitioned(configuration.isUsePartitionedTable())
       .tableName(tableName)
       .partitionColumn(partitionColumn)
       .partitionValue(configuration.getDatasetKey())
-      .fields(schema.getFields()
-        .stream()
-        .collect(Collectors.toMap(Schema.Field::name, field -> "STRING", (x, y) -> y, LinkedHashMap::new)))
+      .fields(fields)
       .build();
   }
 
