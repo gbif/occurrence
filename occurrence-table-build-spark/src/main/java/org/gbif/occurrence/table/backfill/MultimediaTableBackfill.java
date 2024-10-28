@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -29,6 +30,7 @@ import static org.apache.spark.sql.functions.col;
 
 @Data
 @Builder
+@Slf4j
 public class MultimediaTableBackfill {
 
   private TableBackfillConfiguration configuration;
@@ -74,7 +76,7 @@ public class MultimediaTableBackfill {
 
   public void insertOverwriteMultimediaTable() {
     createMultimediaRecordsView();
-
+    log.info("Inserting multimedia records into table {}", multimediaTableName());
     spark.sql(insertOverWriteMultimediaTable());
   }
 
@@ -135,7 +137,7 @@ public class MultimediaTableBackfill {
 
     String selectClause = "SELECT gbifid, type, format, identifier, references, title, description, " +
       "source, audience, created, creator, contributor, publisher, license, " +
-      "rightsHolder" + (!configuration.isUsePartitionedTable()? ", datasetkey": "") +  " FROM mm_records";
+      "rightsHolder, datasetkey FROM mm_records";
 
     return "INSERT OVERWRITE TABLE " +  multimediaTableName() + "\n" + partitionClause + selectClause;
   }
