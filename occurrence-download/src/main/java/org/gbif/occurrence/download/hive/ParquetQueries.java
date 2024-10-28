@@ -18,7 +18,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 /**
- * Utilities related to the actual queries executed at runtime — these functions for generating AVRO
+ * Utilities related to the actual queries executed at runtime — these functions for generating Parquet
  * downloads.
  */
 class ParquetQueries extends Queries {
@@ -35,7 +35,7 @@ class ParquetQueries extends Queries {
 
   @Override
   String toHiveInitializer(Term term) {
-    return HiveColumns.columnFor(term);
+    return term.simpleName().toLowerCase();
   }
 
   @Override
@@ -51,7 +51,7 @@ class ParquetQueries extends Queries {
         return toNestedHiveInitializer(term, "concept");
       }
     } else {
-      return HiveColumns.columnFor(term);
+      return term.simpleName().toLowerCase();
     }
   }
 }

@@ -70,7 +70,7 @@ public class OccurrenceOccurrenceDownloadResourceIT {
             .withCredentials(
                 TEST_USER.getUserName(),
                 TEST_USER
-                    .getUserName()) // actually no needed since the remote auth client is mocked
+                    .getUserName()) // actually not needed since the remote auth client is mocked
             .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
             .withFormEncoder();
 

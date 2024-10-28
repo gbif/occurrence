@@ -28,7 +28,6 @@ import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
-import lombok.SneakyThrows;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
@@ -173,7 +172,7 @@ public class SqlValidation {
   }
 
   /**
-   * Table definition for testing
+   * Occurrence table definition for validation
    */
   class OccurrenceTable extends AbstractTable {
 
@@ -189,6 +188,7 @@ public class SqlValidation {
       RelDataTypeFactory.Builder builder = typeFactory.builder();
 
       RelDataType varChar = tdf.createSqlType(SqlTypeName.VARCHAR);
+      RelDataType doubleType = tdf.createSqlType(SqlTypeName.DOUBLE);
 
       // String array definition
       RelDataType varCharArray = tdf.createArrayType(varChar, -1);
@@ -198,11 +198,21 @@ public class SqlValidation {
         Arrays.asList(varChar, varCharArray),
         Arrays.asList("concept", "lineage"));
 
+      // Vocabulary array definition: "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>"
+      RelDataType vocabularyArray = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
+        Arrays.asList(varCharArray, varCharArray),
+        Arrays.asList("concepts", "lineage"));
+
       // Array of key-value pairs: ARRAY<STRUCT<id: STRING,eventType: STRING>>
       RelDataType keyValuePair = tdf.createStructType(Arrays.asList(
         new AbstractMap.SimpleEntry<>("id", varChar),
         new AbstractMap.SimpleEntry<>("eventType", varChar)));
       RelDataType parentEventGbifId = tdf.createArrayType(keyValuePair, -1);
+
+      // Geological range structure: STRUCT<gt: DOUBLE,lte: DOUBLE>
+      RelDataType geologicalRange = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
+        Arrays.asList(doubleType, doubleType),
+        Arrays.asList("gt", "lte"));
 
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
         field -> {
@@ -216,8 +226,18 @@ public class SqlValidation {
               builder.add(field.getHiveField(), vocabulary);
               break;
 
+            case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
+              // typeStatus.
+              builder.add(field.getHiveField(), vocabularyArray);
+              break;
+
             case HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
               // Currently only parentEventGbifId, which doesn't seem to be set.
+              builder.add(field.getHiveField(), parentEventGbifId);
+              break;
+
+            case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
+              // geologicalTime
               builder.add(field.getHiveField(), parentEventGbifId);
               break;
 

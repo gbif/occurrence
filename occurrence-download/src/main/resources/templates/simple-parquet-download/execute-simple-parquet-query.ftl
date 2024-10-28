@@ -16,7 +16,7 @@ DROP TABLE IF EXISTS ${r"${downloadTableName}"}_citation;
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${downloadTableName}"} (
 <#list parquetFields as key, field>
-  `${field.hiveField}` ${field.hiveDataType}<#if key_has_next>,</#if>
+  `${field.columnName}` ${field.hiveDataType}<#if key_has_next>,</#if>
 </#list>
 )
 STORED AS PARQUET
