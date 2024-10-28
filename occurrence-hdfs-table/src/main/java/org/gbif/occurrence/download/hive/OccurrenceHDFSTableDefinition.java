@@ -88,7 +88,7 @@ public class OccurrenceHDFSTableDefinition {
 
     // the following terms are manipulated when transposing from Avro to hive by using UDFs and custom HQL
     Map<Term, String> initializers = ImmutableMap.<Term, String>builder()
-                                      .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
+//                                      .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
                                       .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
