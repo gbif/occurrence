@@ -74,7 +74,7 @@ public class TableBackfillConfiguration {
 
   private String prefixTable;
 
-  private String datasetKey;
+  @Nullable private String datasetKey;
 
   private String crawlAttempt;
 

@@ -51,14 +51,14 @@ public class DataTable {
             .tableName(configuration.getTableNameWithPrefix())
             .partitionColumn(partitionColumn)
             .partitionValue(configuration.getDatasetKey())
-            .fields(fields(partitionColumn, fields))
+            .fields(fields(partitionColumn, configuration.getDatasetKey(), fields))
             .build();
   }
 
-  private static String fields(String partitionColumn, List<InitializableField> fields) {
-    if (partitionColumn != null) {
+  private static String fields(String partitionColumn, String partitionValue, List<InitializableField> fields) {
+    if (partitionValue != null) {
       return fields.stream()
-        .filter(field -> !field.getHiveField().equalsIgnoreCase(partitionColumn)) // Excluding partitioned columns
+        .filter(field -> !field.getHiveField().equalsIgnoreCase(partitionColumn) && partitionValue != null) // Excluding partitioned columns
         .map(field -> field.getHiveField() + " " + field.getHiveDataType())
         .collect(Collectors.joining(", "));
     } else {
