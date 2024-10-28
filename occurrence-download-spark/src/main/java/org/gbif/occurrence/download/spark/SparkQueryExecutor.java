@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.sql.QueryExecutor;
 
 import org.apache.spark.sql.SparkSession;
@@ -20,6 +21,7 @@ import org.apache.spark.sql.SparkSession;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
+@Slf4j
 public class SparkQueryExecutor implements QueryExecutor {
   private SparkSession sparkSession;
 
@@ -30,6 +32,7 @@ public class SparkQueryExecutor implements QueryExecutor {
 
   @Override
   public void accept(String sql) {
+    log.info("Download SQL: {}", sql);
     sparkSession.sql(sql);
   }
 }
