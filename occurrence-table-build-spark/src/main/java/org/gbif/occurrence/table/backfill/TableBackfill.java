@@ -470,7 +470,7 @@ public class TableBackfill {
                                 field
                                     .getInitializer()
                                     .substring(0, field.getInitializer().indexOf("(")),
-                                col(field.getPipelinesAvroName()))
+                                col(field.getColumnName()))
                             .alias(field.getColumnName()))
             .collect(Collectors.toList());
 
