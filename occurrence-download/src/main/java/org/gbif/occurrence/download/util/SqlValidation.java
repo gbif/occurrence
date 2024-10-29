@@ -218,31 +218,31 @@ public class SqlValidation {
         field -> {
           switch (field.getHiveDataType()) {
             case HiveDataTypes.TYPE_ARRAY_STRING:
-              builder.add(field.getHiveField(), varCharArray);
+              builder.add(field.getColumnName(), varCharArray);
               break;
 
             case HiveDataTypes.TYPE_VOCABULARY_STRUCT:
               // lifeStage, eventType, earlistEonOrLowestEonotherm, etc.
-              builder.add(field.getHiveField(), vocabulary);
+              builder.add(field.getColumnName(), vocabulary);
               break;
 
             case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
               // typeStatus.
-              builder.add(field.getHiveField(), vocabularyArray);
+              builder.add(field.getColumnName(), vocabularyArray);
               break;
 
             case HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
               // Currently only parentEventGbifId, which doesn't seem to be set.
-              builder.add(field.getHiveField(), parentEventGbifId);
+              builder.add(field.getColumnName(), parentEventGbifId);
               break;
 
             case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
               // geologicalTime
-              builder.add(field.getHiveField(), parentEventGbifId);
+              builder.add(field.getColumnName(), parentEventGbifId);
               break;
 
             default:
-              builder.add(field.getHiveField(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
+              builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
           }
         }
       );
