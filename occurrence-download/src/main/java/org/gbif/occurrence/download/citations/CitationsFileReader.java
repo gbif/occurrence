@@ -84,6 +84,7 @@ public abstract class CitationsFileReader {
    */
   public static void readCitationsAndUpdateLicense(String nameNode, String citationPath,
                                    BiConsumer<Map<UUID,Long>,Map<UUID,License>> consumer) throws IOException {
+    log.info("Reading citations from nameNode {}, citationPath {}", nameNode, citationPath);
     Map<UUID,Long> datasetsCitation = new HashMap<>();
     Map<UUID, License> datasetLicenseCollector = new HashMap<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
