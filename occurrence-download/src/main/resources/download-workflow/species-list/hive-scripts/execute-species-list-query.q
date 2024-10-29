@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS ${downloadTableName}_citation;
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${downloadTableName}_tmp STORED AS ORC
 AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus,
-          kingdom, kingdomkey, phylum, phylumkey, class, classkey, order_, orderkey, family, familykey,
+          kingdom, kingdomkey, phylum, phylumkey, class, classkey, order, orderkey, family, familykey,
           genus, genuskey, species, specieskey, iucnredlistcategory, datasetkey, license
 FROM iceberg.${hiveDB}.occurrence
 WHERE ${whereClause};
@@ -27,10 +27,10 @@ SET hive.merge.mapredfiles=false;
 CREATE TABLE ${downloadTableName} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, COUNT(taxonkey) AS numberOfOccurrences, taxonrank, taxonomicstatus, kingdom, kingdomkey,
-          phylum, phylumkey, class, classkey, order_, orderkey, family, familykey, genus, genuskey, species, specieskey, iucnredlistcategory
+          phylum, phylumkey, class, classkey, order, orderkey, family, familykey, genus, genuskey, species, specieskey, iucnredlistcategory
 FROM ${downloadTableName}_tmp
 GROUP BY taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey, class, classkey,
-         order_, orderkey, family, familykey, genus, genuskey, species, specieskey, iucnredlistcategory;
+         order, orderkey, family, familykey, genus, genuskey, species, specieskey, iucnredlistcategory;
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
