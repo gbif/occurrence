@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.citations;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
@@ -42,6 +43,7 @@ import com.google.common.base.Strings;
 /**
  * Reads a dataset's citations file for consumption.
  */
+@Slf4j
 public abstract class CitationsFileReader {
 
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
@@ -61,10 +63,15 @@ public abstract class CitationsFileReader {
     Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
     String datasetKey = tsvLineIterator.next();
     tsvLineIterator.next();
-    String licenseStr = tsvLineIterator.next();
-    Optional<License> license = License.fromString(licenseStr);
 
-    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(datasetKey), license.isPresent()? license.get(): null);
+    Optional<License> license = Optional.empty();
+    if (tsvLineIterator.hasNext()) {
+      license = License.fromString(tsvLineIterator.next());
+    } else {
+      log.warn("No license found for dataset {}", datasetKey);
+    }
+
+    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(datasetKey), license.isPresent() ? license.get(): null);
   }
 
   /**
