@@ -94,13 +94,19 @@ public abstract class CitationsFileReader {
                new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), StandardCharsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
             if (!Strings.isNullOrEmpty(tsvLine)) {
+              log.info("Processing line: {}", tsvLine);
               // Prepare citation object and add it to list
               // Cope with occurrences within one dataset having different license
               Map.Entry<UUID, Long> citationEntry = toDatasetOccurrenceDownloadUsage(tsvLine);
               Map.Entry<UUID, License> licenseEntry = toDatasetOccurrenceDownloadLicense(tsvLine);
               datasetsCitation.merge(citationEntry.getKey(), citationEntry.getValue(), Long::sum);
-              datasetLicenseCollector.merge(licenseEntry.getKey(), licenseEntry.getValue(),
-                (a,b) -> License.getMostRestrictive(a, b, b));
+              // FIXME this is masking a problem
+              if (licenseEntry.getValue() != null) {
+                datasetLicenseCollector.merge(licenseEntry.getKey(), licenseEntry.getValue(),
+                  (a, b) -> License.getMostRestrictive(a, b, b));
+              } else {
+                log.warn("No license found for dataset {}", citationEntry.getKey());
+              }
             }
           }
         }
