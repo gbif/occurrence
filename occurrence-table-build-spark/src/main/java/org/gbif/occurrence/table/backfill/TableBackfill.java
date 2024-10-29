@@ -22,9 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -121,7 +119,7 @@ public class TableBackfill {
   }
 
   private void createTableUsingSpark(SparkSession spark) {
-    // Create Hive Table if it doesn't exist
+    spark.sparkContext().setJobDescription("Create " + configuration.getTableNameWithPrefix());
     spark.sql(createTableIfNotExists());
     fromAvroToTable(
         spark,
@@ -208,22 +206,12 @@ public class TableBackfill {
 
   @SneakyThrows
   private void createExtensionTablesParallel(SparkSession spark) {
-    CountDownLatch doneSignal = new CountDownLatch(ExtensionTable.tableExtensions().size());
-    ExecutorService executor =
-        Executors.newFixedThreadPool(ExtensionTable.tableExtensions().size());
-    ExtensionTable.tableExtensions()
-        .forEach(
-            extensionTable ->
-                executor.submit(
-                    new Runnable() {
-                      @Override
-                      public void run() {
-                        createExtensionTable(spark, extensionTable);
-                        doneSignal.countDown();
-                      }
-                    }));
-    doneSignal.await();
-    executor.shutdown();
+    CompletableFuture<?>[] futures =
+        ExtensionTable.tableExtensions().stream()
+            .map(table -> CompletableFuture.runAsync(() -> createExtensionTable(spark, table)))
+            .toArray(CompletableFuture[]::new);
+
+    CompletableFuture.allOf(futures).get();
   }
 
   @SneakyThrows
@@ -260,6 +248,9 @@ public class TableBackfill {
   }
 
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
+    log.info("Create extansion table: {}", extensionTable.getHiveTableName());
+    spark.sparkContext().setJobDescription("Create " + extensionTable.getHiveTableName());
+
     spark.sql(
         configuration.isUsePartitionedTable()
             ? createExtensionExternalTable(extensionTable)
