@@ -119,7 +119,9 @@ public class TableBackfill {
   }
 
   private void createTableUsingSpark(SparkSession spark) {
+    log.info("Creating Avro and Parquet Table for " + configuration.getTableName());
     spark.sparkContext().setJobDescription("Create " + configuration.getTableNameWithPrefix());
+
     spark.sql(createTableIfNotExists());
     fromAvroToTable(
         spark,
@@ -129,6 +131,14 @@ public class TableBackfill {
         );
   }
 
+  private void createMultimediaTable(SparkSession spark) {
+    log.info("Creating Multimedia Table");
+    spark.sparkContext().setJobDescription("Create " + multimediaTableName());
+
+    spark.sql(createIfNotExistsGbifMultimedia());
+    insertOverwriteMultimediaTable(spark);
+  }
+
   private void executeCreateAction(Command command, SparkSession spark) {
     HdfsSnapshotAction snapshotAction =
         new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
@@ -136,23 +146,20 @@ public class TableBackfill {
       log.info("Using {} as snapshot name of source directory", jobId);
       snapshotAction.createHdfsSnapshot(jobId);
       UDFS.registerUdfs(spark);
+
       if (command.getOptions().contains(Option.ALL)
           || command.getOptions().contains(Option.TABLE)) {
-        log.info("Creating Avro and Parquet Table for " + configuration.getTableName());
         createTableUsingSpark(spark);
       }
 
       if (command.getOptions().contains(Option.ALL)
           || command.getOptions().contains(Option.EXTENSIONS)) {
-        log.info("Creating Extension tables");
         createExtensionTablesParallel(spark);
       }
 
       if (command.getOptions().contains(Option.ALL)
           || command.getOptions().contains(Option.MULTIMEDIA)) {
-        log.info("Creating Multimedia Table");
-        spark.sql(createIfNotExistsGbifMultimedia());
-        insertOverwriteMultimediaTable(spark);
+        createMultimediaTable(spark);
       }
     } finally {
       snapshotAction.deleteHdfsSnapshot(jobId);
@@ -206,6 +213,8 @@ public class TableBackfill {
 
   @SneakyThrows
   private void createExtensionTablesParallel(SparkSession spark) {
+    log.info("Creating Extension tables");
+
     CompletableFuture<?>[] futures =
         ExtensionTable.tableExtensions().stream()
             .map(table -> CompletableFuture.runAsync(() -> createExtensionTable(spark, table)))
@@ -356,6 +365,7 @@ public class TableBackfill {
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
+
     spark
         .table("occurrence")
         .select(
