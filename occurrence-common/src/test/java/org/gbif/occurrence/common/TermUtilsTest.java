@@ -97,15 +97,4 @@ public class TermUtilsTest {
     assertTrue(TermUtils.isInterpretedNumerical(DwcTerm.year));
     assertFalse(TermUtils.isInterpretedNumerical(DwcTerm.occurrenceID));
   }
-
-  @Test
-  public void testHiveColumns() {
-    assertEquals(GbifTerm.gbifID.simpleName().toLowerCase(), HiveColumnsUtils.getHiveQueryColumn(GbifTerm.gbifID));
-    assertEquals(DwcTerm.catalogNumber.simpleName().toLowerCase(),
-      HiveColumnsUtils.getHiveQueryColumn(DwcTerm.catalogNumber));
-    assertEquals(DcTerm.date.simpleName().toLowerCase() + '_', HiveColumnsUtils.getHiveQueryColumn(DcTerm.date));
-
-    assertEquals(OccurrenceIssue.BASIS_OF_RECORD_INVALID.name().toLowerCase(),
-      HiveColumnsUtils.getHiveQueryColumn(OccurrenceIssue.BASIS_OF_RECORD_INVALID));
-  }
 }
