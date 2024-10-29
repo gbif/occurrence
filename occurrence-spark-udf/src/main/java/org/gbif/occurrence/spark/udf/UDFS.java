@@ -28,6 +28,7 @@ public class UDFS {
     sparkSession.udf().register("secondsToLocalISO8601", new SecondsToLocalISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("millisecondsToISO8601", new MillisecondsToISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("stringArrayLike", new StringArrayLikeGenericUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
 
