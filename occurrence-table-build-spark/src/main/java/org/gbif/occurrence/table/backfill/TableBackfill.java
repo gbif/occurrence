@@ -290,7 +290,7 @@ public class TableBackfill {
     fromAvroToTable(
         spark,
         getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
-        columns.toArray(new Column[] {}), // SELECT
+        columns.toArray(Column[]::new), // SELECT
         extensionTableName(extensionTable)); // INSERT OVERWRITE INTO
   }
 
@@ -407,7 +407,7 @@ public class TableBackfill {
             callUDF("cleanDelimiters", col("mm_record.publisher")).alias("publisher"),
             callUDF("cleanDelimiters", col("mm_record.license")).alias("license"),
             callUDF("cleanDelimiters", col("mm_record.rightsHolder")).alias("rightsHolder"))
-        .registerTempTable("mm_records");
+        .createOrReplaceTempView("mm_records");
 
     spark.sql(
         String.format(
