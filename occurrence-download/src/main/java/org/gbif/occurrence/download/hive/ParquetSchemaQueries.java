@@ -17,6 +17,8 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
+import java.util.Locale;
+
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating AVRO downloads.
@@ -53,11 +55,11 @@ class ParquetSchemaQueries extends Queries {
 
   @Override
   String toHiveInitializer(Term term) {
-    return term.simpleName();
+    return term.simpleName().toLowerCase(Locale.UK);
   }
 
   @Override
   String toInterpretedHiveInitializer(Term term) {
-    return term.simpleName();
+    return term.simpleName().toLowerCase(Locale.UK);
   }
 }

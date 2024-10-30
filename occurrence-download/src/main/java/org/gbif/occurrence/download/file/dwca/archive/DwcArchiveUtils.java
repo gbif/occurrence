@@ -23,6 +23,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.File;
@@ -143,7 +144,7 @@ public class DwcArchiveUtils {
 
     Archive downloadArchive = new Archive();
 
-    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, TermUtils.interpretedTerms(), TermUtils.identicalInterpretedTerms());
+    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, TermUtils.identicalInterpretedTerms());
     downloadArchive.setCore(core);
 
     ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, coreTerm, TermUtils.verbatimTerms());
