@@ -137,7 +137,7 @@ public class MultimediaTableBackfill {
 
     String selectClause = "SELECT gbifid, type, format, identifier, references, title, description, " +
       "source, audience, created, creator, contributor, publisher, license, " +
-      "rightsHolder, datasetkey FROM mm_records";
+      "rightsHolder" + (configuration.getDatasetKey() == null? ", datasetkey" : "") + " FROM mm_records";
 
     return "INSERT OVERWRITE TABLE " +  multimediaTableName() + "\n" + partitionClause + selectClause;
   }
