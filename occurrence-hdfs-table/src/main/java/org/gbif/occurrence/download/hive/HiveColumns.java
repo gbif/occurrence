@@ -56,6 +56,13 @@ public final class HiveColumns {
     return escapeColumnName(term.simpleName().toLowerCase());
   }
 
+  public static String columnFor(String columnName, boolean escape) {
+    if (!escape && RESERVED_WORDS.contains(columnName)) {
+      return columnName + "_";
+    }
+    return escapeColumnName(columnName);
+  }
+
   /**
    * Escapes the name if required.
    */

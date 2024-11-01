@@ -23,6 +23,7 @@ import org.apache.spark.sql.SparkSession;
 
 import lombok.Builder;
 import lombok.Data;
+import org.gbif.occurrence.download.hive.HiveColumns;
 
 @Data
 @Builder
@@ -48,6 +49,7 @@ public class ExtensionTableBackfill {
         .filter(
           // Excluding partitioned columns
           field -> !field.equalsIgnoreCase("datasetkey"))
+        .map(field -> HiveColumns.columnFor(field, true))
         .collect(Collectors.joining(",")) + (configuration.getDatasetKey() == null? ", datasetkey" : "");
 
     ExternalAvroTable avroTable =
@@ -97,7 +99,7 @@ public class ExtensionTableBackfill {
       "CREATE TABLE IF NOT EXISTS %s\n"
         + '('
         + extensionTable.getSchema().getFields().stream()
-        .map(f -> f.name() + " STRING")
+        .map(f -> HiveColumns.escapeColumnName(f.name()) + " STRING")
         .collect(Collectors.joining(",\n"))
         + ')'
         + "STORED AS PARQUET TBLPROPERTIES ('parquet.compression'='GZIP')\n",
@@ -110,7 +112,7 @@ public class ExtensionTableBackfill {
         + '('
         + extensionTable.getSchema().getFields().stream()
         .filter(f -> !f.name().equalsIgnoreCase("datasetkey"))
-        .map(f -> f.name() + " STRING")
+        .map(f -> HiveColumns.escapeColumnName(f.name()) + " STRING")
         .collect(Collectors.joining(",\n"))
         + ')'
         + " USING iceberg PARTITIONED BY(datasetkey STRING) \n"
