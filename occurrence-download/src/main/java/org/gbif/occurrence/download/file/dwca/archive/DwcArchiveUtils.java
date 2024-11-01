@@ -144,7 +144,7 @@ public class DwcArchiveUtils {
 
     Archive downloadArchive = new Archive();
 
-    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, TermUtils.identicalInterpretedTerms());
+    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID, TermUtils.identicalInterpretedTerms());
     downloadArchive.setCore(core);
 
     ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, coreTerm, TermUtils.verbatimTerms());

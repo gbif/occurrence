@@ -13,12 +13,9 @@
  */
 package org.gbif.occurrence.download.util;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.ByteArrayInputStream;
@@ -33,7 +30,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
-import static org.gbif.occurrence.download.hive.DownloadTerms.DWCA_EXCLUSIONS_DOWNLOAD;
+import static org.gbif.occurrence.download.hive.DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID;
 
 /**
  * Utility class that generates a headers file for occurrence downloads.
@@ -126,9 +123,7 @@ public class HeadersFileUtil {
    * Returns the headers names of download columns.
    */
   public static String getInterpretedTableHeader() {
-    return getTableHeader(
-        Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), DWCA_EXCLUSIONS_DOWNLOAD)
-            .immutableCopy());
+    return getTableHeader(DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
   }
 
   /**

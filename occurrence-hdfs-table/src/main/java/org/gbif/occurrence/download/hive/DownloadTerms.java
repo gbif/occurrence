@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -25,6 +22,11 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.util.Set;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
@@ -39,8 +41,9 @@ public class DownloadTerms {
     INTERPRETED
   }
 
-  // This list of exclusion is used for the download query only
-  // Ensure it corresponds with org.gbif.occurrence.download.util.HeadersFileUtil!
+  /**
+   * Terms not used in HDFS or downloads.
+   */
   public static final Set<Term> EXCLUSIONS_INTERPRETED = ImmutableSet.of(
     GbifTerm.gbifID, // returned multiple times, so excluded and treated by adding once at the beginning
     GbifInternalTerm.fragmentHash, // omitted entirely
@@ -48,26 +51,34 @@ public class DownloadTerms {
     GbifTerm.numberOfOccurrences
   );
 
-  // This set is used for the HDFS table definition
-  public static final Set<Term> EXCLUSIONS = new ImmutableSet.Builder<Term>()
+  /**
+   * This set is used for the HDFS table definition
+   */
+  public static final Set<Term> EXCLUSIONS_HDFS = new ImmutableSet.Builder<Term>()
     .addAll(EXCLUSIONS_INTERPRETED)
     .add(GbifTerm.verbatimScientificName).build();
 
-  public static final Set<Term> DWCA_EXCLUSIONS_DOWNLOAD =
+  /**
+   * Terms present in HDFS but not included in a DWCA download
+   */
+  public static final Set<Term> EXCLUSIONS_DWCA_DOWNLOAD =
       new ImmutableSet.Builder<Term>()
           .add(GbifTerm.geologicalTime)
           .add(GbifTerm.lithostratigraphy)
           .add(GbifTerm.biostratigraphy)
           .build();
 
+  /**
+   * Terms not used in DWCA downloads.
+   */
   public static final Set<Term> EXCLUSIONS_DOWNLOAD =
       new ImmutableSet.Builder<Term>()
           .addAll(EXCLUSIONS_INTERPRETED)
-          .addAll(DWCA_EXCLUSIONS_DOWNLOAD)
+          .addAll(EXCLUSIONS_DWCA_DOWNLOAD)
           .build();
 
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_HDFS =
-    Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS).immutableCopy();
+    Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS_HDFS).immutableCopy();
 
   /**
    * The interpreted terms included in a DWCA download.
@@ -75,17 +86,24 @@ public class DownloadTerms {
   public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS =
     Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS_DOWNLOAD).immutableCopy();
 
+  /**
+   * The interpreted terms included in a DWCA download, with GBIFID first.
+   */
+  public static final Set<Term> DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID =
+    Sets.difference(ImmutableSet.copyOf(TermUtils.interpretedTerms()), EXCLUSIONS_DWCA_DOWNLOAD)
+      .immutableCopy();
+
   /*
    * The verbatim terms included in a DWCA download.
    */
   public static final Set<Term> DOWNLOAD_VERBATIM_TERMS =
-    Sets.difference(ImmutableSet.copyOf(TermUtils.verbatimTerms()), EXCLUSIONS).immutableCopy();
+    Sets.difference(ImmutableSet.copyOf(TermUtils.verbatimTerms()), EXCLUSIONS_HDFS).immutableCopy();
 
   /*
    * The multimedia terms included in a DWCA download.
    */
   public static final Set<Term> DOWNLOAD_MULTIMEDIA_TERMS =
-    Sets.difference(ImmutableSet.copyOf(TermUtils.multimediaTerms()), EXCLUSIONS).immutableCopy();
+    Sets.difference(ImmutableSet.copyOf(TermUtils.multimediaTerms()), EXCLUSIONS_HDFS).immutableCopy();
 
   /**
    * The terms that will be included in the interpreted table if also present in ${@link

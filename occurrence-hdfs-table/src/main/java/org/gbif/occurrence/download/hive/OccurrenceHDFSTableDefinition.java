@@ -129,7 +129,7 @@ public class OccurrenceHDFSTableDefinition {
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
-      if (!DownloadTerms.EXCLUSIONS.contains(t)) {
+      if (!DownloadTerms.EXCLUSIONS_HDFS.contains(t)) {
         if (initializers.containsKey(t)) {
           builder.add(interpretedField(t, initializers.get(t)));
         } else {
