@@ -47,19 +47,19 @@ class ParquetSchemaQueries extends Queries {
   @Override
   String toVerbatimHiveInitializer(Term term) {
     if (term.simpleName().startsWith("verbatim")) {
-      return term.simpleName();
+      return term.simpleName().toLowerCase(Locale.ROOT);
     } else {
-      return "verbatim" + Character.toUpperCase(term.simpleName().charAt(0)) + term.simpleName().substring(1);
+      return "verbatim" + term.simpleName().toLowerCase(Locale.ROOT);
     }
   }
 
   @Override
   String toHiveInitializer(Term term) {
-    return term.simpleName().toLowerCase(Locale.UK);
+    return term.simpleName().toLowerCase(Locale.ROOT);
   }
 
   @Override
   String toInterpretedHiveInitializer(Term term) {
-    return term.simpleName().toLowerCase(Locale.UK);
+    return term.simpleName().toLowerCase(Locale.ROOT);
   }
 }
