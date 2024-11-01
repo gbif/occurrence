@@ -13,10 +13,6 @@
  */
 package org.gbif.occurrence.ws.it;
 
-import java.io.IOException;
-import java.util.Collections;
-import org.apache.hadoop.hbase.client.Connection;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.UserRole;
@@ -41,6 +37,12 @@ import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
 import org.gbif.ws.security.*;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
+
+import java.io.IOException;
+import java.util.Collections;
+
+import org.apache.hadoop.hbase.client.Connection;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.jupiter.api.Disabled;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;

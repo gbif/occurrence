@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.table.backfill;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.avro.Schema;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -23,6 +22,7 @@ import org.apache.spark.sql.SparkSession;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Builder

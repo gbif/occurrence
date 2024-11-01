@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -34,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

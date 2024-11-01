@@ -15,12 +15,11 @@ package org.gbif.occurrence.ws.config;
 
 
 import org.gbif.api.model.common.search.SearchParameter;
-
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
 
 import java.util.ArrayList;

@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.table.backfill;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
@@ -30,6 +29,7 @@ import org.apache.spark.sql.SparkSession;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.apache.spark.sql.functions.callUDF;
 import static org.apache.spark.sql.functions.col;

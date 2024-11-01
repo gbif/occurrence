@@ -16,7 +16,6 @@ package org.gbif.occurrence.table.backfill;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;

@@ -28,7 +28,6 @@ import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
-import org.gbif.api.util.VocabularyUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

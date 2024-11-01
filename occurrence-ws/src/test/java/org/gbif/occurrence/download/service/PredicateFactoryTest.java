@@ -14,11 +14,11 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.Predicate;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gbif.api.model.predicate.Predicate;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;

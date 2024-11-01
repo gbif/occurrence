@@ -15,9 +15,10 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
-import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
+
+import org.junit.jupiter.api.Test;
 
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
 import static org.junit.jupiter.api.Assertions.*;

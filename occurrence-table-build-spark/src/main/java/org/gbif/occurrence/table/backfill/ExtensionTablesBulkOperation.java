@@ -15,6 +15,7 @@ package org.gbif.occurrence.table.backfill;
 
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,21 +60,39 @@ public class ExtensionTablesBulkOperation {
     CountDownLatch doneSignal = new CountDownLatch(ExtensionTable.tableExtensions().size());
     ExecutorService executor =
       Executors.newFixedThreadPool(ExtensionTable.tableExtensions().size());
+    // Thread-safe collection to track any exceptions thrown by threads
+    ConcurrentLinkedQueue<Exception> exceptions = new ConcurrentLinkedQueue<>();
+
     ExtensionTable.tableExtensions()
-      .forEach(
-        extensionTable ->
-          executor.submit(
-            () -> {
-              ExtensionTableBackfill.builder()
-                .jobId(jobId)
-                .configuration(configuration)
-                .extensionTable(extensionTable)
-                .spark(spark)
-                .build()
-                .createTable();
-              doneSignal.countDown();
-            }));
+      .forEach(extensionTable ->
+        executor.submit(() -> {
+          try {
+            ExtensionTableBackfill.builder()
+              .jobId(jobId)
+              .configuration(configuration)
+              .extensionTable(extensionTable)
+              .spark(spark)
+              .build()
+              .createTable();
+          } catch (Exception e) {
+            // Add exception to queue to track errors
+            exceptions.add(e);
+          } finally {
+            // Ensure latch is decremented even if an exception occurs
+            doneSignal.countDown();
+          }
+        })
+      );
     doneSignal.await();
     executor.shutdown();
+
+    // Check if there were any exceptions
+    if (!exceptions.isEmpty()) {
+      // Log all exceptions or rethrow an aggregated exception
+      for (Exception e : exceptions) {
+        log.error("Error creating extension table", e);
+      }
+      throw new RuntimeException("Failed to create some extension tables; check logs for details.");
+    }
   }
 }

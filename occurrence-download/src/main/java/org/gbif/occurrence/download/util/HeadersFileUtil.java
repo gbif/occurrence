@@ -13,12 +13,8 @@
  */
 package org.gbif.occurrence.download.util;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +26,9 @@ import java.util.List;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteStreams;
 
 import static org.gbif.occurrence.download.hive.DownloadTerms.DWCA_EXCLUSIONS_DOWNLOAD;

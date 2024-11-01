@@ -14,6 +14,7 @@
 package org.gbif.occurrence.search.configuration;
 
 import org.gbif.occurrence.search.es.EsConfig;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;

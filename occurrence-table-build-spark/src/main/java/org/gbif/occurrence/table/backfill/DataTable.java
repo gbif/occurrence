@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.table.backfill;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.hive.InitializableField;
 
 import java.util.LinkedHashMap;
@@ -27,6 +26,7 @@ import com.google.common.base.Strings;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Builder

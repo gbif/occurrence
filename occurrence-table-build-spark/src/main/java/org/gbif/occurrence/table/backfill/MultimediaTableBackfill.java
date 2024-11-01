@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.table.backfill;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -24,6 +23,7 @@ import com.google.common.base.Strings;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import static org.apache.spark.sql.functions.*;
 import static org.apache.spark.sql.functions.col;

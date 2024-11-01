@@ -18,6 +18,7 @@ import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.utils.file.FileUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -28,7 +29,6 @@ import java.util.Map;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.gbif.utils.file.FileUtils;
 
 import static org.gbif.occurrence.download.util.HeadersFileUtil.appendHeaders;
 import static org.gbif.occurrence.download.util.HeadersFileUtil.getExtensionInterpretedHeader;

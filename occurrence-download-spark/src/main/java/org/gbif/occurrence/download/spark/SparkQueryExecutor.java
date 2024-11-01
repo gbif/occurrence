@@ -13,12 +13,12 @@
  */
 package org.gbif.occurrence.download.spark;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.sql.QueryExecutor;
 
 import org.apache.spark.sql.SparkSession;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @AllArgsConstructor
 @Slf4j
