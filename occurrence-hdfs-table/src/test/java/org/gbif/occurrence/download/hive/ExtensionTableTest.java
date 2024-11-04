@@ -45,7 +45,7 @@ public class ExtensionTableTest {
     ExtensionTable extendedMofTable = new ExtensionTable(Extension.IDENTIFICATION);
 
     //Double underscore removed in the produced column name
-    assertTrue(extendedMofTable.getFieldInitializers().contains("order_ AS `order`"));
+    assertTrue(extendedMofTable.getFieldInitializers().contains(cleanDelimitersInitializer("order_", "`order`")));
   }
 
   @Test
