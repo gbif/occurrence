@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.search.es;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -726,5 +728,21 @@ public class OccurrenceEsSearchRequestBuilderTest {
                  suggestNode.path("completion").path("field").asText());
 
     assertEquals(size, suggestNode.path("completion").path("size").asInt());
+  }
+
+  @Test
+  public void multipleRangesTest() throws JsonProcessingException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1900,1950");
+    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1990,1999");
+    QueryBuilder query =
+      esSearchRequestBuilder
+        .buildQueryNode(searchRequest)
+        .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+    JsonNode shouldNode = jsonQuery.path(BOOL).path(FILTER).get(0).path(BOOL).path(SHOULD);
+    assertEquals(2, shouldNode.size());
+    assertEquals(2, shouldNode.findValues(RANGE).size());
   }
 }
