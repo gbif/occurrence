@@ -824,4 +824,22 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertFalse(rangeNode.hasNonNull(TO));
     assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
   }
+
+  @Test
+  public void multipleRangesTest() throws JsonProcessingException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1900,1950");
+    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1990,1999");
+
+    QueryBuilder query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    JsonNode shouldNode = jsonQuery.path(BOOL).path(FILTER).get(0).path(BOOL).path(SHOULD);
+    assertEquals(2, shouldNode.size());
+    assertEquals(2, shouldNode.findValues(RANGE).size());
+  }
 }
