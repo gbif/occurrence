@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import lombok.Getter;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -49,10 +50,13 @@ public class ExtensionTable {
   //Section used to distinguish class names in the same packages
   private final String leafNamespace;
 
+  @Getter
   private final Schema schema;
 
+  @Getter
   private final Extension extension;
 
+  @Getter
   private final Term term;
 
   public static Set<Extension> getSupportedExtensions() {
@@ -74,10 +78,6 @@ public class ExtensionTable {
     this.extension = extension;
     leafNamespace = schema.getNamespace().replace(EXT_PACKAGE + '.', "").replace('.', '_');
     term = TERM_FACTORY.findTerm(extension.getRowType());
-  }
-
-  public Extension getExtension() {
-    return extension;
   }
 
   public String getHiveTableName() {
@@ -102,7 +102,7 @@ public class ExtensionTable {
     if (fieldName.equalsIgnoreCase(GBIFID_FIELD) || fieldName.equalsIgnoreCase(DATASET_KEY_FIELD)) {
       return hiveColumn;
     } else {
-      return cleanDelimitersInitializer(field.name(), hiveColumn);
+      return cleanDelimitersInitializer(HiveColumns.columnFor(field.name(), true), hiveColumn);
     }
   }
 
@@ -116,14 +116,6 @@ public class ExtensionTable {
 
   public List<String> getFieldInitializers() {
     return schema.getFields().stream().map(this::initializer).collect(Collectors.toList());
-  }
-
-  public Schema getSchema() {
-    return schema;
-  }
-
-  public Term getTerm() {
-    return term;
   }
 
   public Set<String> getInterpretedFields() {
