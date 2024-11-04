@@ -559,36 +559,26 @@ public class EsSearchRequestBuilder {
 
     // collect queries for each value
     List<String> parsedValues = new ArrayList<>();
+
+    List<QueryBuilder> queryBuilders = new ArrayList<>();
     for (String value : values) {
-      if (isNumericRange(value)) {
+      if (isNumericRange(value) || occurrenceBaseEsFieldMapper.isDateField(esField)) {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
+        queryBuilders.add(rangeQueryBuilder);
         if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
-          queries.add(
-            QueryBuilders.boolQuery()
-              .should(buildRangeQuery(esField, value))
-              .should(
-                QueryBuilders.boolQuery()
-                  .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
-        } else {
-          queries.add(buildRangeQuery(esField, value));
-        }
-        continue;
-      } else if (occurrenceBaseEsFieldMapper.isDateField(esField)) {
-        RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
-        if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
-          queries.add(
+          queryBuilders.add(
               QueryBuilders.boolQuery()
-                  .should(buildRangeQuery(esField, value))
-                  .should(
-                      QueryBuilders.boolQuery()
-                          .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
-        } else {
-          queries.add(buildRangeQuery(esField, value));
+                  .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName())));
         }
         continue;
       }
-
       parsedValues.add(parseParamValue(value, param));
+    }
+
+    if (!queryBuilders.isEmpty()) {
+      BoolQueryBuilder ranges = QueryBuilders.boolQuery();
+      queryBuilders.forEach(ranges::should);
+      queries.add(ranges);
     }
 
     String fieldName =
