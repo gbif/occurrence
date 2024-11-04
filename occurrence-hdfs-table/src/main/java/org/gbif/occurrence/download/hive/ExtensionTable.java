@@ -102,7 +102,7 @@ public class ExtensionTable {
     if (fieldName.equalsIgnoreCase(GBIFID_FIELD) || fieldName.equalsIgnoreCase(DATASET_KEY_FIELD)) {
       return hiveColumn;
     } else {
-      return cleanDelimitersInitializer(HiveColumns.columnFor(field.name(), true), hiveColumn);
+      return cleanDelimitersInitializer(HiveColumns.columnFor(fieldName, false), hiveColumn);
     }
   }
 
@@ -160,7 +160,4 @@ public class ExtensionTable {
     return verbatimFields;
   }
 
-  public static void main(String[] args) {
-    tableExtensions().forEach(t -> System.out.println(t.toString()));
-  }
 }
