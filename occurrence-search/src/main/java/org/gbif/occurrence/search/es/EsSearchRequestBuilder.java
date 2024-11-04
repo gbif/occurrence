@@ -13,7 +13,17 @@
  */
 package org.gbif.occurrence.search.es;
 
+import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+
 import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
@@ -51,17 +61,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
-import java.util.stream.Collectors;
-
-import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
 
@@ -543,36 +542,26 @@ public class EsSearchRequestBuilder {
 
     // collect queries for each value
     List<String> parsedValues = new ArrayList<>();
+
+    List<QueryBuilder> queryBuilders = new ArrayList<>();
     for (String value : values) {
-      if (isNumericRange(value)) {
+      if (isNumericRange(value) || occurrenceBaseEsFieldMapper.isDateField(esField)) {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
+        queryBuilders.add(rangeQueryBuilder);
         if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
-          queries.add(
+          queryBuilders.add(
               QueryBuilders.boolQuery()
-                  .should(buildRangeQuery(esField, value))
-                  .should(
-                      QueryBuilders.boolQuery()
-                          .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
-        } else {
-          queries.add(buildRangeQuery(esField, value));
-        }
-        continue;
-      } else if (occurrenceBaseEsFieldMapper.isDateField(esField)) {
-        RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
-        if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
-          queries.add(
-              QueryBuilders.boolQuery()
-                  .should(buildRangeQuery(esField, value))
-                  .should(
-                      QueryBuilders.boolQuery()
-                          .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName()))));
-        } else {
-          queries.add(buildRangeQuery(esField, value));
+                  .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName())));
         }
         continue;
       }
-
       parsedValues.add(parseParamValue(value, param));
+    }
+
+    if (!queryBuilders.isEmpty()) {
+      BoolQueryBuilder ranges = QueryBuilders.boolQuery();
+      queryBuilders.forEach(ranges::should);
+      queries.add(ranges);
     }
 
     String fieldName =
