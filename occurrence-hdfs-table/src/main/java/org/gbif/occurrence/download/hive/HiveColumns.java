@@ -48,6 +48,10 @@ public final class HiveColumns {
     return escapeColumnName(term.simpleName().toLowerCase());
   }
 
+  public static boolean isReservedWord(String name) {
+    return RESERVED_WORDS.contains(name);
+  }
+
   public static String columnFor(Term term, boolean escape) {
     String columnName = term.simpleName().toLowerCase();
     if (!escape && RESERVED_WORDS.contains(columnName)) {

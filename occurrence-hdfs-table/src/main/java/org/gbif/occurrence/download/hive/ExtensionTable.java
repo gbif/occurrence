@@ -59,6 +59,10 @@ public class ExtensionTable {
   @Getter
   private final Term term;
 
+  private final Set<String> interpretedFields;
+
+  private final Set<String> verbatimFields;
+
   public static Set<Extension> getSupportedExtensions() {
     return EXTENSION_TABLES.keySet();
   }
@@ -78,6 +82,8 @@ public class ExtensionTable {
     this.extension = extension;
     leafNamespace = schema.getNamespace().replace(EXT_PACKAGE + '.', "").replace('.', '_');
     term = TERM_FACTORY.findTerm(extension.getRowType());
+    this.interpretedFields = getInterpretedFields();
+    this.verbatimFields = getVerbatimFields();
   }
 
   public String getHiveTableName() {
@@ -99,8 +105,8 @@ public class ExtensionTable {
   private String initializer(Schema.Field field) {
     String fieldName = field.name();
     String hiveColumn = HiveColumns.hiveColumnName(field.name());
-    if (fieldName.equalsIgnoreCase(GBIFID_FIELD) || fieldName.equalsIgnoreCase(DATASET_KEY_FIELD)) {
-      return hiveColumn;
+    if (interpretedFields.contains(hiveColumn)) {
+      return HiveColumns.isReservedWord(fieldName)? HiveColumns.columnFor(fieldName, false) +  " AS " + hiveColumn: hiveColumn;
     } else {
       return cleanDelimitersInitializer(HiveColumns.columnFor(fieldName, false), hiveColumn);
     }
@@ -160,4 +166,8 @@ public class ExtensionTable {
     return verbatimFields;
   }
 
+  public static void main(String[] args) {
+    ExtensionTable table = new ExtensionTable(Extension.IDENTIFICATION);
+    table.getFieldInitializers().forEach(System.out::println);
+  }
 }
