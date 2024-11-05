@@ -29,6 +29,8 @@ import org.gbif.occurrence.search.es.OccurrenceEsField;
 import java.util.Set;
 
 import org.apache.hadoop.fs.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import lombok.Builder;
 import lombok.Data;
@@ -37,6 +39,7 @@ import lombok.Data;
 @Data
 public class DownloadJobConfiguration {
 
+  private static final Logger log = LoggerFactory.getLogger(DownloadJobConfiguration.class);
   /** Occurrence download key/identifier. */
   private final String downloadKey;
 
@@ -183,9 +186,11 @@ public class DownloadJobConfiguration {
   }
 
   public String getExtensionDataFileName(ExtensionTable extensionTable) {
-    return isSmallDownload
-        ? getDownloadTempDir() + extensionTable.getHiveTableName() + ".txt"
+    String out = isSmallDownload
+        ? getDownloadTempDir() + "verbatim/" + extensionTable.getHiveTableName() + ".txt"
         : getDownloadTempDir("_ext_" + extensionTable.getHiveTableName());
+    log.info("Extension data file name: {}", out);
+    return out;
   }
 
   /**
