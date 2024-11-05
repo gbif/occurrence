@@ -219,7 +219,6 @@ public class TableBackfill {
     }
   }
 
-  @SneakyThrows
   private void createExtensionTablesParallel(SparkSession spark) {
     ExtensionTablesBulkOperation.of(spark).createExtensionTablesParallel(jobId, configuration);
   }
