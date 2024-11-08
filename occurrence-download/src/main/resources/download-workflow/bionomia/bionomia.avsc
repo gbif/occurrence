@@ -9,7 +9,7 @@
   "namespace": "org.gbif.occurrence.download.bionomia.avro",
   "type": "record",
   "fields": [
-    {"name": "gbifID",             "type": "string" },
+    {"name": "gbifID",             "type": "long" },
     {"name": "datasetKey",         "type": "string" },
     {"name": "license",            "type": "string" },
     {"name": "basisOfRecord",      "type": "string" },
