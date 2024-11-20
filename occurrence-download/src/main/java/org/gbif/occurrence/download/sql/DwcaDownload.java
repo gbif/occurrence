@@ -119,12 +119,16 @@ public class DwcaDownload {
    */
   @SneakyThrows
   private void updateDownload() {
-    CitationsPersister.readCitationsAndUpdateLicense(workflowConfiguration.getHdfsNameNode(),
-      getWarehouseCitationTablePath(), new CitationsPersister.PersistUsage(download.getKey(),
+    CitationsPersister.readCitationsAndUpdateLicense(
+      workflowConfiguration.getHdfsNameNode(),
+      getWarehouseCitationTablePath(),
+      new CitationsPersister.PersistUsage(
+        download.getKey(),
         download.getRequest().getType().getCoreTerm(),
         workflowConfiguration.getRegistryWsUrl(),
         workflowConfiguration.getRegistryUser(),
-        workflowConfiguration.getRegistryPassword()));
+        workflowConfiguration.getRegistryPassword())
+    );
   }
 
 
