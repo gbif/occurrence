@@ -15,7 +15,6 @@ package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.api.vocabulary.License;
 
 import java.util.Map;
 import java.util.UUID;
@@ -39,14 +38,13 @@ public class DownloadUsagesPersist {
   }
 
   /**
-   * Persist download license that was assigned to the occurrence download.
+   * Persist upadated download.
    */
-  public void persistDownloadLicense(Download download, License license) {
+  public void persistDownload(Download download) {
     try {
-      download.setLicense(license);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
-      log.error("Error updating download license, downloadKey: {}, license: {}", download.getKey(), license, ex);
+      log.error("Error updating download, downloadKey: {}", download.getKey(), ex);
     }
   }
 }

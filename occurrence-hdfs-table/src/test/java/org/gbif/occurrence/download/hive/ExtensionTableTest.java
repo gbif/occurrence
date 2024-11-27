@@ -15,10 +15,9 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
+import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
-
-import org.junit.jupiter.api.Test;
 
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,7 +67,7 @@ public class ExtensionTableTest {
     assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("_16srecover")));
     assertEquals("cleanDelimiters(`_16srecover`) AS `16srecover`", cleanDelimitersInitializer("_16srecover"));
 
-    //Double underscore removed in the produced column name
+    // Double underscore removed in the produced column name
     assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("v_16srecover")));
     assertEquals("cleanDelimiters(v_16srecover) AS v_16srecover", cleanDelimitersInitializer("v_16srecover"));
   }

@@ -13,6 +13,11 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import java.util.Properties;
+import java.util.function.Supplier;
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -29,13 +34,6 @@ import org.gbif.occurrence.download.predicate.EsPredicateUtil;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.search.es.VocabularyFieldTranslator;
 import org.gbif.vocabulary.client.ConceptClient;
-
-import java.util.Properties;
-import java.util.function.Supplier;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DownloadWorkflow {

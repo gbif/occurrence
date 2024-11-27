@@ -14,7 +14,6 @@
 package org.gbif.occurrence.common;
 
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
@@ -28,7 +27,6 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Sets;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -96,16 +94,5 @@ public class TermUtilsTest {
   public void testIsInterpretedNumerical() throws Exception {
     assertTrue(TermUtils.isInterpretedNumerical(DwcTerm.year));
     assertFalse(TermUtils.isInterpretedNumerical(DwcTerm.occurrenceID));
-  }
-
-  @Test
-  public void testHiveColumns() {
-    assertEquals(GbifTerm.gbifID.simpleName().toLowerCase(), HiveColumnsUtils.getHiveQueryColumn(GbifTerm.gbifID));
-    assertEquals(DwcTerm.catalogNumber.simpleName().toLowerCase(),
-      HiveColumnsUtils.getHiveQueryColumn(DwcTerm.catalogNumber));
-    assertEquals(DcTerm.date.simpleName().toLowerCase() + '_', HiveColumnsUtils.getHiveQueryColumn(DcTerm.date));
-
-    assertEquals(OccurrenceIssue.BASIS_OF_RECORD_INVALID.name().toLowerCase(),
-      HiveColumnsUtils.getHiveQueryColumn(OccurrenceIssue.BASIS_OF_RECORD_INVALID));
   }
 }

@@ -132,15 +132,15 @@ public class SimpleDownload {
   private String[] getMultiArchiveFileEntries() {
     DownloadFormat format = download.getRequest().getFormat();
     if (DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO == format) {
-      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".avro",""};
+      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().simpleName().toLowerCase() + ".avro",""};
     }
 
     if (DownloadFormat.SIMPLE_PARQUET == format) {
-      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".parquet",""};
+      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().simpleName().toLowerCase() + ".parquet",""};
     }
 
     if (DownloadFormat.BIONOMIA == format) {
-      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().toString().toLowerCase() + ".avro", "",
+      return new String[]{getWarehouseTablePath(), workflowConfiguration.getCoreTerm().simpleName().toLowerCase() + ".avro", "",
                           getWarehouseTableSuffixPath("agents"), "agents.avro","",
                           getWarehouseTableSuffixPath("families"), "families.avro","",
                           getWarehouseTableSuffixPath("identifiers"), "identifiers.avro",""};

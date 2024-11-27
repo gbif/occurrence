@@ -44,6 +44,7 @@ public class OccurrenceSearchResourceTest {
             .collect(Collectors.toSet());
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+
       String name = null;
       if (param.equals(OccurrenceSearchParameter.IDENTIFIED_BY_ID)) {
         name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name()).replace("Id", "ID");

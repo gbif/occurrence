@@ -1589,8 +1589,6 @@ public class EsQueryVisitorTest {
     OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     Arrays.stream(OccurrenceSearchParameter.values())
         .filter(esFieldMapper::isVocabulary)
-        //FIXME temp fix, to be discussed !
-        .filter(f -> f != OccurrenceSearchParameter.SEX && f != OccurrenceSearchParameter.TYPE_STATUS)
         .forEach(
             param -> {
               try {

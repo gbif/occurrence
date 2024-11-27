@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.ws.config;
 
-
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;

@@ -52,18 +52,14 @@ public class DownloadUsagesPersistTest {
    * Tests the DownloadUsagesPersist.update method.
    */
   @Test
-  public void persistDownloadLicenseTest() {
+  public void persistDownloadTest() {
     //Creates mock instances
     OccurrenceDownloadService occurrenceDownloadService = mock(OccurrenceDownloadService.class);
     DownloadUsagesPersist downloadUsagesPersist = DownloadUsagesPersist.create(occurrenceDownloadService);
 
     //Persists a download with a new license
     Download download = new Download();
-    download.setLicense(License.UNSPECIFIED);
-    downloadUsagesPersist.persistDownloadLicense(download, License.CC_BY_4_0);
-
-    //Verify the license has changed
-    assertEquals(download.getLicense(), License.CC_BY_4_0);
+    downloadUsagesPersist.persistDownload(download);
 
     //Verify the mock occurrence download service is called
     verify(occurrenceDownloadService, times(1)).update(any());
