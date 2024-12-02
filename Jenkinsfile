@@ -34,7 +34,7 @@ pipeline {
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS'),
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
           ]) {
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B -pl !occurrence-table-build-trino'
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B -pl !occurrence-trino-udf'
         }
       }
     }
@@ -52,8 +52,8 @@ pipeline {
         configFileProvider([
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
           ]) {
-          // occurrence-table-build-trino needs jdk17 because the trino library uses jdk17
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl occurrence-table-build-trino'
+          // occurrence-trino-udf needs jdk17 because the trino library uses jdk17
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl occurrence-trino-udf'
         }
       }
     }
@@ -102,7 +102,7 @@ pipeline {
                   [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
                           variable: 'MAVEN_SETTINGS_XML')]) {
               git 'https://github.com/gbif/vocabulary.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B -pl !occurrence-table-build-trino release:prepare release:perform $RELEASE_ARGS'
+              sh 'mvn -s $MAVEN_SETTINGS_XML -B -pl !occurrence-trino-udf release:prepare release:perform $RELEASE_ARGS'
           }
       }
     }
@@ -125,7 +125,7 @@ pipeline {
                   [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
                           variable: 'MAVEN_SETTINGS_XML')]) {
               git 'https://github.com/gbif/vocabulary.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B -pl occurrence-table-build-trino release:prepare release:perform $RELEASE_ARGS'
+              sh 'mvn -s $MAVEN_SETTINGS_XML -B -pl occurrence-trino-udf release:prepare release:perform $RELEASE_ARGS'
           }
       }
     }
