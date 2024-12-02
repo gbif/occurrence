@@ -102,7 +102,7 @@ pipeline {
                   [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
                           variable: 'MAVEN_SETTINGS_XML')]) {
               git 'https://github.com/gbif/vocabulary.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -pl !occurrence-table-build-trino $RELEASE_ARGS'
+              sh 'mvn -s $MAVEN_SETTINGS_XML -B -pl !occurrence-table-build-trino release:prepare release:perform $RELEASE_ARGS'
           }
       }
     }
@@ -125,7 +125,7 @@ pipeline {
                   [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
                           variable: 'MAVEN_SETTINGS_XML')]) {
               git 'https://github.com/gbif/vocabulary.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -pl occurrence-table-build-trino $RELEASE_ARGS'
+              sh 'mvn -s $MAVEN_SETTINGS_XML -B -pl occurrence-table-build-trino release:prepare release:perform $RELEASE_ARGS'
           }
       }
     }
