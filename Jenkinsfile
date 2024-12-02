@@ -84,7 +84,7 @@ pipeline {
       }
     }
 
-    stage('Maven release (Java 11)') {
+    stage('Maven release: Main project (Java 11)') {
       tools {
         jdk 'OpenJDK11'
       }
@@ -107,7 +107,7 @@ pipeline {
       }
     }
 
-    stage('Trino module (Java 17) Maven release') {
+    stage('Maven release: Trino module (Java 17) ') {
       tools {
         jdk 'OpenJDK17'
       }
@@ -130,7 +130,7 @@ pipeline {
       }
     }
 
-     stage('Release Docker images: Downloads') {
+     stage('Docker Release: Downloads') {
        when {
         allOf {
           expression { params.RELEASE };
@@ -142,7 +142,7 @@ pipeline {
       }
      }
 
-     stage('Release Docker images: Table build') {
+     stage('Docker Release: Table build') {
       when {
         allOf {
           expression { params.RELEASE };
