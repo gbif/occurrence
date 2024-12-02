@@ -412,7 +412,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       Map<String, Object> value = (Map<String, Object>) m.getValue();
 
       Classification cl = new Classification();
-      cl.setDatasetKey(datasetKey);
+      cl.setChecklistKey(datasetKey);
 
       //set the usage
       Map<String, String> usage = (Map<String, String>) value.get("usage");
