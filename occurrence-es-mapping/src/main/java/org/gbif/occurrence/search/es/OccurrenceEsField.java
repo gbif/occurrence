@@ -119,7 +119,7 @@ public enum OccurrenceEsField implements EsField {
   REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
   CLASSIFICATIONS(new BaseEsField("classifications", null)),
-  CHECKLIST_KEY(new BaseEsField("associatedClassifications", GbifTerm.checklistKey)),
+  CHECKLIST_KEY(new BaseEsField("checklistKey", GbifTerm.checklistKey)),
 
   // Legacy Taxonomic classification - these mappings are not used if checklistKey is specified
   USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
