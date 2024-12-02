@@ -65,7 +65,7 @@ pipeline {
         }
       }
       steps {
-        sh 'build/occurrence-download-spark-docker-build.sh $(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)'
+        sh 'build/occurrence-download-spark-docker-build.sh $(mvn -q -Dexec.executable="echo" -Dexec.args="${project.version}" --non-recursive exec:exec)'
       }
     }
 
@@ -76,7 +76,7 @@ pipeline {
         }
       }
       steps {
-        sh 'build/occurrence-table-build-spark-docker-build.sh $(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)'
+        sh 'build/occurrence-table-build-spark-docker-build.sh $(mvn -q -Dexec.executable="echo" -Dexec.args="${project.version}" --non-recursive exec:exec)'
       }
     }
 
