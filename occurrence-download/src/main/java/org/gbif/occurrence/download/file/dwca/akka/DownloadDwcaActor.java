@@ -35,8 +35,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvBeanWriter;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvBeanWriter;
@@ -59,7 +61,7 @@ import org.supercsv.util.CsvContext;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
-import akka.actor.UntypedActor;
+import akka.actor.AbstractActor;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -72,7 +74,7 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  */
 @Slf4j
 @AllArgsConstructor
-public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActor {
+public class DownloadDwcaActor<T extends VerbatimOccurrence> extends AbstractActor {
 
   private final SearchQueryProcessor<T> searchQueryProcessor;
 
@@ -80,7 +82,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
 
   private final Function<T,Map<String,String>> interpretedMapper;
 
-  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new HashMap<>();
+  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new EnumMap<>(Extension.class);
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -118,7 +120,11 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
       try {
         String outPath = work.getJobDataFileName() + '_' + new ExtensionTable(ext).getHiveTableName();
         log.info("Writing to extension file {}", outPath);
-      return new CsvMapWriter(new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), CsvPreference.TAB_PREFERENCE);
+        CsvPreference preference =
+          new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+            .useEncoder(new DefaultCsvEncoder())
+            .build();
+      return new CsvMapWriter(new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), preference);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
     }
@@ -141,12 +147,11 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
    */
   private void writeMediaObjects(ICsvBeanWriter multimediaCsvWriter, T record) throws IOException {
     List<MediaObject> multimedia = getMedia(record);
-    if (multimedia != null) {
-      for (MediaObject mediaObject : multimedia) {
-        multimediaCsvWriter.write(new InnerMediaObject(mediaObject, getRecordKey(record)),
-                                  MULTIMEDIA_COLUMNS,
-                                  MEDIA_CELL_PROCESSORS);
-      }
+    for (MediaObject mediaObject : multimedia) {
+      multimediaCsvWriter.write(
+          new InnerMediaObject(mediaObject, getRecordKey(record)),
+          MULTIMEDIA_COLUMNS,
+          MEDIA_CELL_PROCESSORS);
     }
   }
 
@@ -160,14 +165,14 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
     if (record instanceof Occurrence) {
       return ((Occurrence)record).getMedia();
     }
-    return null;
+    return Collections.emptyList();
   }
 
   /**
    * Writes the extensions objects into the file referenced by extensionCsvWriter.
    */
   private void writeExtensions(DownloadFileWork work, T record) throws IOException {
-    if (record.getExtensions() != null && !work.getExtensions().isEmpty()) {
+    if (!work.getExtensions().isEmpty()) {
       Map<String,List<Map<Term, String>>> exportExtensions = record.getExtensions()
         .entrySet().stream()
         .filter(e ->  work.getExtensions().contains(Extension.fromRowType(e.getKey())))
@@ -206,19 +211,29 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
 
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
-    try (
-      ICsvMapWriter intCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
-                                                                               + TableSuffixes.INTERPRETED_SUFFIX,
-                                                                               StandardCharsets.UTF_8),
-                                                    CsvPreference.TAB_PREFERENCE);
-      ICsvMapWriter verbCsvWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName()
-                                                                                + TableSuffixes.VERBATIM_SUFFIX,
-                                                                                StandardCharsets.UTF_8),
-                                                     CsvPreference.TAB_PREFERENCE);
-      ICsvBeanWriter multimediaCsvWriter = new CsvBeanWriter(new FileWriterWithEncoding(work.getJobDataFileName()
-                                                                                        + TableSuffixes.MULTIMEDIA_SUFFIX,
-                                                                                        StandardCharsets.UTF_8),
-                                                             CsvPreference.TAB_PREFERENCE)) {
+    CsvPreference preference =
+        new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+            .useEncoder(new DefaultCsvEncoder())
+            .build();
+
+    try (ICsvMapWriter intCsvWriter =
+            new CsvMapWriter(
+                new FileWriterWithEncoding(
+                    work.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX,
+                    StandardCharsets.UTF_8),
+                preference);
+        ICsvMapWriter verbCsvWriter =
+            new CsvMapWriter(
+                new FileWriterWithEncoding(
+                    work.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
+                    StandardCharsets.UTF_8),
+                preference);
+        ICsvBeanWriter multimediaCsvWriter =
+            new CsvBeanWriter(
+                new FileWriterWithEncoding(
+                    work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX,
+                    StandardCharsets.UTF_8),
+                preference)) {
       searchQueryProcessor.processQuery(work, record -> {
           try {
             // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
@@ -245,12 +260,10 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends UntypedActo
   }
 
   @Override
-  public void onReceive(Object message) throws Exception {
-    if (message instanceof DownloadFileWork) {
-      doWork((DownloadFileWork) message);
-    } else {
-      unhandled(message);
-    }
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(DownloadFileWork.class, this::doWork)
+      .build();
   }
 
   /**

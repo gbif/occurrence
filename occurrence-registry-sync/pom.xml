@@ -4,13 +4,13 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.195.9-SNAPSHOT</version>
+    <version>0.195.7-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-registry-sync</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Registry Synchronizer</name>
+  <name>Occurrence :: Registry Synchronizer</name>
 
   <distributionManagement>
     <site>
@@ -18,6 +18,10 @@
       <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
     </site>
   </distributionManagement>
+
+  <properties>
+    <commons-logging.test.version>1.1.3</commons-logging.test.version>
+  </properties>
 
   <build>
     <resources>
@@ -81,7 +85,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava-cdh.version}</version>
     </dependency>
 
     <dependency>
@@ -93,7 +96,6 @@
     <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper</artifactId>
-      <version>${zookeeper.version}</version>
       <scope>runtime</scope>
       <exclusions>
         <exclusion>
@@ -170,22 +172,19 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
-      <version>1.1.3</version>
+      <version>${commons-logging.test.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

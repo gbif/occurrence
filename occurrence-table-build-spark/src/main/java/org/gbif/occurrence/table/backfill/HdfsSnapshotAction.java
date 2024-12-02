@@ -87,6 +87,7 @@ public class HdfsSnapshotAction {
    */
   public void deleteHdfsSnapshot(String snapshotName) {
     try( CuratorFramework curator = curator()) {
+      log.info("Deleting snapshot {}", snapshotName);
       FileSystem fs = FileSystem.get(hadoopConfiguration);
       curator.start();
       String lockPath = configuration.getHdfsLock().getPath() + configuration.getHdfsLock().getName();

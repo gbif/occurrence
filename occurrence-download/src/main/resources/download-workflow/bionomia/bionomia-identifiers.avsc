@@ -1,9 +1,3 @@
-/**
- * Bionomia identifiers table record format.
- *
- * This schema may change according to the requirements of the Bionomia project.
- */
-
 {
   "name": "BionomiaIdentifiers",
   "namespace": "org.gbif.occurrence.download.bionomia.avro",

@@ -4,13 +4,13 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.195.9-SNAPSHOT</version>
+    <version>0.195.7-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-ws</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Web service</name>
+  <name>Occurrence :: Web service</name>
 
   <distributionManagement>
     <site>
@@ -148,6 +148,10 @@
       		<groupId>com.google.guava</groupId>
       		<artifactId>guava</artifactId>
       	</exclusion>
+        <exclusion>
+          <groupId>org.gbif.datacite</groupId>
+          <artifactId>datacite-rest-client</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -261,6 +265,15 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.gbif</groupId>
+      <artifactId>gbif-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.vocabulary</groupId>
+      <artifactId>vocabulary-rest-ws-client</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
     </dependency>
@@ -358,6 +371,11 @@
       <artifactId>jackson-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
     </dependency>
@@ -372,21 +390,7 @@
       <artifactId>jts-core</artifactId>
     </dependency>
 
-    <!-- hadoop -->
-    <dependency>
-      <groupId>org.apache.oozie</groupId>
-      <artifactId>oozie-client</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>slf4j-simple</artifactId>
-          <groupId>org.slf4j</groupId>
-        </exclusion>
-        <exclusion>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+    <!-- Hadoop -->
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-client</artifactId>
@@ -415,11 +419,23 @@
         	<groupId>org.mortbay.jetty</groupId>
         	<artifactId>jetty-util</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>javax.servlet-api</artifactId>
+          <groupId>javax.servlet</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jersey-servlet</artifactId>
+          <groupId>com.sun.jersey</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 
 
-    <!-- validation -->
+    <!-- Validation -->
     <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
@@ -433,7 +449,7 @@
       <artifactId>jsr305</artifactId>
     </dependency>
 
-    <!-- logging -->
+    <!-- Logging -->
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
@@ -459,50 +475,6 @@
       <artifactId>logstash-logback-encoder</artifactId>
     </dependency>
 
-    <!-- Test dependencies -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.junit.vintage</groupId>
-          <artifactId>junit-vintage-engine</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-junit-jupiter</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.javassist</groupId>
-      <artifactId>javassist</artifactId>
-      <version>${javassist.version}</version>
-      <scope>test</scope>
-    </dependency>
-
     <!-- OTHER -->
     <dependency>
       <groupId>javax.mail</groupId>
@@ -524,11 +496,46 @@
       <groupId>xml-apis</groupId>
       <artifactId>xml-apis</artifactId>
     </dependency>
-    <!-- GBIF microservice dependencies -->
+
+    <!-- Test dependencies -->
     <dependency>
-      <groupId>org.gbif</groupId>
-      <artifactId>gbif-common</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.vintage</groupId>
+          <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.javassist</groupId>
+      <artifactId>javassist</artifactId>
+      <version>${javassist.version}</version>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
 </project>

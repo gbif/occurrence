@@ -14,14 +14,6 @@ SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
-CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
-CREATE TEMPORARY FUNCTION geoDistance AS 'org.gbif.occurrence.hive.udf.GeoDistanceUDF';
-CREATE TEMPORARY FUNCTION toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
-CREATE TEMPORARY FUNCTION toISO8601Millis AS 'org.gbif.occurrence.hive.udf.ToISO8601MillisUDF';
-CREATE TEMPORARY FUNCTION toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
-CREATE TEMPORARY FUNCTION joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
-CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF';
-
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${downloadTableName}"};
 DROP TABLE IF EXISTS ${r"${downloadTableName}"}_citation;
@@ -33,13 +25,13 @@ AS SELECT
 <#list fields as field>
   ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
-FROM ${r"${tableName}"}
+FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
-SET mapred.reduce.tasks=1;
+SET spark.sql.shuffle.partitions=1;
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;

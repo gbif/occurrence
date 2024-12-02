@@ -65,7 +65,7 @@ class BaseDownloadTestCase(unittest.TestCase):
   def test_is_successful(self):
     """ Is this a successful download (download.status = SUCCEEDED)?
     """
-    self.assertEquals('SUCCEEDED', self.download['status'], 'Not a succeeded download, it is {}'.format(self.download['status']))
+    self.assertEqual('SUCCEEDED', self.download['status'], 'Not a succeeded download, it is {}'.format(self.download['status']))
 
   def test_has_datasets(self):
     """ Does this download have at least 1 dataset (download.numberDatasets > 0)?
@@ -101,7 +101,7 @@ class CsvDownloadTest(BaseDownloadTestCase):
     """
     num_lines = self.num_lines_in_file(self.csv_file)
     self.assertTrue(num_lines > 1, 'Number of lines can be 0 or 1, actual value {}'.format(num_lines))
-    self.assertEquals(num_lines - 1, int(self.download['totalRecords']), 'Number records in json response {}  vs number of lines {} differ'.format(self.download['totalRecords'], num_lines))
+    self.assertEqual(num_lines - 1, int(self.download['totalRecords']), 'Number records in json response {}  vs number of lines {} differ'.format(self.download['totalRecords'], num_lines))
 
   def test_columns_alignment(self):
     """ Have the header, second and last records the same number of columns?
@@ -126,7 +126,7 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     """
     num_int_lines = self.num_lines_in_file(self.intepreted_file)
     num_verb_lines = self.num_lines_in_file(self.verbatim_file)
-    self.assertEquals(num_int_lines, num_verb_lines, 'Number of lines in verbatim {} and interpreted {}files differ'.format(num_verb_lines, num_int_lines))
+    self.assertEqual(num_int_lines, num_verb_lines, 'Number of lines in verbatim {} and interpreted {}files differ'.format(num_verb_lines, num_int_lines))
 
   def test_verbatim_columns_alignment(self):
     """ Have the header, second and last records the same number of columns?
@@ -152,15 +152,15 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     num_of_verb_cols = int(verbatim_extension.field[-1]['index'])
     interpreted_nr_columns = self.columns_in_file(self.intepreted_file)
     verbatim_nr_columns = self.columns_in_file(self.verbatim_file)
-    self.assertEquals(num_of_core_cols, interpreted_nr_columns, 'Number meta.xml core columns {} differ to number columns in core file {}'.format(num_of_core_cols, interpreted_nr_columns))
-    self.assertEquals(num_of_verb_cols, verbatim_nr_columns, 'Number meta.xml core columns {} differ to number columns in core file {}'.format(num_of_verb_cols, verbatim_nr_columns))
+    self.assertEqual(num_of_core_cols, interpreted_nr_columns, 'Number meta.xml core columns {} differ to number columns in core file {}'.format(num_of_core_cols, interpreted_nr_columns))
+    self.assertEqual(num_of_verb_cols, verbatim_nr_columns, 'Number meta.xml core columns {} differ to number columns in core file {}'.format(num_of_verb_cols, verbatim_nr_columns))
 
   def test_count_eml_files(self):
     """ Do the number of datasets and exported eml files match?
     """
     num_eml_files = len(next(os.walk(os.path.join(self.download_extract_path,'dataset')))[2])
     num_datasets = int(self.download['numberDatasets'])
-    self.assertEquals(num_eml_files, num_datasets, 'Number of reported datasets {} and eml files {} differ'.format(num_datasets, num_eml_files))
+    self.assertEqual(num_eml_files, num_datasets, 'Number of reported datasets {} and eml files {} differ'.format(num_datasets, num_eml_files))
 
   def test_citations_count(self):
     """ Has the citations file the right number of records?
@@ -168,7 +168,7 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     # -1 removes the header
     num_citations_records = self.num_lines_in_file(self.citations_file) - 1
     num_datasets = int(self.download['numberDatasets'])
-    self.assertEquals(num_citations_records, num_datasets, 'Number of reported datasets {} and citations entries {} differ'.format(num_datasets, num_citations_records))
+    self.assertEqual(num_citations_records, num_datasets, 'Number of reported datasets {} and citations entries {} differ'.format(num_datasets, num_citations_records))
 
   def test_rights_count(self):
     """ Has the rights file the correct number of records?
@@ -176,7 +176,7 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     num_lines = self.num_lines_in_file(self.rights_file)
     num_rights_records = num_lines if num_lines == 1 else num_lines / 2
     num_datasets = int(self.download['numberDatasets'])
-    self.assertEquals(num_rights_records, num_datasets, 'Number of reported datasets {} and rights entries {} differ'.format(num_datasets, num_rights_records))
+    self.assertEqual(num_rights_records, num_datasets, 'Number of reported datasets {} and rights entries {} differ'.format(num_datasets, num_rights_records))
 
   def test_extensions_exist(self):
     """ All extensions in meta.xml have existing files?
@@ -190,7 +190,7 @@ class DwcaDownloadTest(BaseDownloadTestCase):
     """
     meta_xml = etree.parse(self.meta_xml_file)
     for extension in self.download.get('verbatimExtensions', []):
-      self.assertEquals(1, len(meta_xml.xpath('/xmlns:archive/xmlns:extension[@rowType="' + extension + '"]/xmlns:files/xmlns:location/text()', namespaces={'xmlns': 'http://rs.tdwg.org/dwc/text/'})),
+      self.assertEqual(1, len(meta_xml.xpath('/xmlns:archive/xmlns:extension[@rowType="' + extension + '"]/xmlns:files/xmlns:location/text()', namespaces={'xmlns': 'http://rs.tdwg.org/dwc/text/'})),
                         'Requested extension no present in meta.xml')
 
 class SpeciesListDownloadTest(BaseDownloadTestCase):

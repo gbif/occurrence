@@ -3,15 +3,19 @@
   <parent>
     <artifactId>occurrence-motherpom</artifactId>
     <groupId>org.gbif.occurrence</groupId>
-    <version>0.195.9-SNAPSHOT</version>
+    <version>0.195.7-H3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>occurrence-integration-tests</artifactId>
-  <name>Occurrence Integration Tests</name>
+  <name>Occurrence :: Integration Tests</name>
 
   <properties>
     <main.basedir>${project.parent.basedir}</main.basedir>
+    <hadoop.version>3.2.4</hadoop.version>
+    <guava.version>27.0.1-jre</guava.version>
+    <jersey-servlet.version>1.10</jersey-servlet.version>
+    <snappy-java.version>1.1.10.3</snappy-java.version>
   </properties>
 
   <dependencies>
@@ -20,7 +24,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava-hbase-test.version}</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -52,6 +56,13 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.xerial.snappy</groupId>
+      <artifactId>snappy-java</artifactId>
+      <version>${snappy-java.version}</version>
+      <scope>test</scope>
+    </dependency>
+
 
     <!-- ES -->
     <dependency>
@@ -100,6 +111,20 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-download-service</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.jackson</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
@@ -116,10 +141,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common-ws</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.pipelines</groupId>
-      <artifactId>ingest-gbif-fragmenter</artifactId>
     </dependency>
 
     <!-- Third party dependencies -->
@@ -148,23 +169,24 @@
     <dependency>
       <groupId>org.apache.hbase</groupId>
       <artifactId>hbase-testing-util</artifactId>
+      <version>${hbase.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
+      <version>${hadoop.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-client</artifactId>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-servlet</artifactId>
+      <version>${jersey-servlet.version}</version>
     </dependency>
+
     <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase-common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <classifier>tests</classifier>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>${okhttp.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

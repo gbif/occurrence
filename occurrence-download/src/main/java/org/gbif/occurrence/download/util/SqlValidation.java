@@ -19,16 +19,14 @@ import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeFactory;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeSystem;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.StructKind;
 import calcite_gbif_shaded.org.apache.calcite.schema.SchemaPlus;
+import calcite_gbif_shaded.org.apache.calcite.schema.Table;
+import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractSchema;
 import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractTable;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunction;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunctionCategory;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.ReturnTypes;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeFactoryImpl;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeFamily;
-import calcite_gbif_shaded.org.apache.calcite.sql.type.SqlTypeName;
+import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
@@ -36,15 +34,16 @@ import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.gbif.occurrence.query.sql.HiveSqlValidator;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 
 public class SqlValidation {
+
+  //Spark/Hive Catalog
+  private static final String CATALOG = "iceberg";
+
+  private final String database;
 
   private static final Map<String, SqlTypeName> HIVE_TYPE_MAPPING = ImmutableMap.<String, SqlTypeName>builder()
     .put(HiveDataTypes.TYPE_STRING, SqlTypeName.VARCHAR)
@@ -58,9 +57,21 @@ public class SqlValidation {
   private final HiveSqlValidator hiveSqlValidator;
 
   public SqlValidation() {
+    this(null);
+  }
+  public SqlValidation(String database) {
+    this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
     OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence");
     rootSchema.add(occurrenceTable.getTableName(), occurrenceTable);
+    if (database != null) {
+      rootSchema.add(CATALOG + "." + database, new AbstractSchema() {
+        @Override
+        protected Map<String, Table> getTableMap() {
+          return Collections.singletonMap("occurrence", occurrenceTable);
+        }
+      });
+    }
 
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
@@ -70,6 +81,14 @@ public class SqlValidation {
       ReturnTypes.BOOLEAN,
       null,
       family(SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.hive.udf.DmsCellCodeUDF
+    additionalOperators.add(new SqlFunction("gbif_DMSGCode",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.EeaCellCodeUDF
@@ -120,16 +139,16 @@ public class SqlValidation {
       OperandTypes.STRING_OPTIONAL_STRING,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // org.gbif.occurrence.hive.udf.ToISO8601UDF
-    additionalOperators.add(new SqlFunction("gbif_toISO8601",
+    // org.gbif.occurrence.hive.udf.SecondsToISO8601UDF
+    additionalOperators.add(new SqlFunction("gbif_secondsToISO8601",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
       family(SqlTypeFamily.ANY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // org.gbif.occurrence.hive.udf.ToLocalISO8601UDF
-    additionalOperators.add(new SqlFunction("gbif_toLocalISO8601",
+    // org.gbif.occurrence.hive.udf.SecondsToLocalISO8601UDF
+    additionalOperators.add(new SqlFunction("gbif_secondsToLocalISO8601",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -148,11 +167,12 @@ public class SqlValidation {
   }
 
   public HiveSqlQuery validateAndParse(String sql) throws QueryBuildingException {
-    return new HiveSqlQuery(hiveSqlValidator, sql);
+    String databaseFq = database == null? CATALOG : CATALOG + "." + database;
+    return new HiveSqlQuery(hiveSqlValidator, sql, databaseFq);
   }
 
   /**
-   * Table definition for testing
+   * Occurrence table definition for validation
    */
   class OccurrenceTable extends AbstractTable {
 
@@ -168,6 +188,7 @@ public class SqlValidation {
       RelDataTypeFactory.Builder builder = typeFactory.builder();
 
       RelDataType varChar = tdf.createSqlType(SqlTypeName.VARCHAR);
+      RelDataType doubleType = tdf.createSqlType(SqlTypeName.DOUBLE);
 
       // String array definition
       RelDataType varCharArray = tdf.createArrayType(varChar, -1);
@@ -177,31 +198,51 @@ public class SqlValidation {
         Arrays.asList(varChar, varCharArray),
         Arrays.asList("concept", "lineage"));
 
+      // Vocabulary array definition: "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>"
+      RelDataType vocabularyArray = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
+        Arrays.asList(varCharArray, varCharArray),
+        Arrays.asList("concepts", "lineage"));
+
       // Array of key-value pairs: ARRAY<STRUCT<id: STRING,eventType: STRING>>
       RelDataType keyValuePair = tdf.createStructType(Arrays.asList(
         new AbstractMap.SimpleEntry<>("id", varChar),
         new AbstractMap.SimpleEntry<>("eventType", varChar)));
       RelDataType parentEventGbifId = tdf.createArrayType(keyValuePair, -1);
 
+      // Geological range structure: STRUCT<gt: DOUBLE,lte: DOUBLE>
+      RelDataType geologicalRange = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
+        Arrays.asList(doubleType, doubleType),
+        Arrays.asList("gt", "lte"));
+
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
         field -> {
           switch (field.getHiveDataType()) {
             case HiveDataTypes.TYPE_ARRAY_STRING:
-              builder.add(field.getHiveField(), varCharArray);
+              builder.add(field.getColumnName(), varCharArray);
               break;
 
             case HiveDataTypes.TYPE_VOCABULARY_STRUCT:
               // lifeStage, eventType, earlistEonOrLowestEonotherm, etc.
-              builder.add(field.getHiveField(), vocabulary);
+              builder.add(field.getColumnName(), vocabulary);
+              break;
+
+            case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
+              // typeStatus.
+              builder.add(field.getColumnName(), vocabularyArray);
               break;
 
             case HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
               // Currently only parentEventGbifId, which doesn't seem to be set.
-              builder.add(field.getHiveField(), parentEventGbifId);
+              builder.add(field.getColumnName(), parentEventGbifId);
+              break;
+
+            case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
+              // geologicalTime
+              builder.add(field.getColumnName(), parentEventGbifId);
               break;
 
             default:
-              builder.add(field.getHiveField(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
+              builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
           }
         }
       );

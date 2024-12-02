@@ -13,6 +13,13 @@
  */
 package org.gbif.occurrence.search.es;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import java.util.Optional;
+import java.util.Set;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -21,16 +28,6 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-
-import java.util.Optional;
-import java.util.Set;
-
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEsField implements EsField {
@@ -63,7 +60,7 @@ public enum OccurrenceEsField implements EsField {
   IDENTIFIED_BY_ID(new BaseEsField("identifiedByIds.value", DwcTerm.identifiedByID)),
   RECORD_NUMBER(new BaseEsField("recordNumber", DwcTerm.recordNumber, true)),
   BASIS_OF_RECORD(new BaseEsField("basisOfRecord", DwcTerm.basisOfRecord)),
-  TYPE_STATUS(new BaseEsField("typeStatus", DwcTerm.typeStatus)),
+  TYPE_STATUS(new BaseEsField("typeStatus.lineage", "typeStatus.concepts", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("occurrenceStatus", DwcTerm.occurrenceStatus)),
   IS_SEQUENCED(new BaseEsField("isSequenced", GbifTerm.isSequenced)),
   ASSOCIATED_SEQUENCES(new BaseEsField("associatedSequences", DwcTerm.associatedSequences)),
@@ -226,10 +223,13 @@ public enum OccurrenceEsField implements EsField {
   FORMATION(new BaseEsField("geologicalContext.formation", DwcTerm.formation)),
   MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
   BED(new BaseEsField("geologicalContext.bed", DwcTerm.bed)),
+  GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", null)),
+  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", null, true)),
+  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", null, true)),
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
-  SEX(new BaseEsField("sex", DwcTerm.sex)),
+  SEX(new BaseEsField("sex.lineage", "sex.concept", DwcTerm.sex)),
   IDENTIFIER(new BaseEsField("identifier", DcTerm.identifier)),
   INDIVIDUAL_COUNT(new BaseEsField("individualCount", DwcTerm.individualCount)),
   RELATION(new BaseEsField("relation", DcTerm.relation)),
@@ -397,6 +397,9 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.FORMATION, FORMATION)
       .put(OccurrenceSearchParameter.MEMBER, MEMBER)
       .put(OccurrenceSearchParameter.BED, BED)
+      .put(OccurrenceSearchParameter.GEOLOGICAL_TIME, GEOLOGICAL_TIME)
+      .put(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, LITHOSTRATIGRAPHY)
+      .put(OccurrenceSearchParameter.BIOSTRATIGRAPHY, BIOSTRATIGRAPHY)
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .build();

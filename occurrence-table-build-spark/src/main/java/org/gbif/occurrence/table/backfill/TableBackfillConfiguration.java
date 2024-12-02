@@ -16,6 +16,8 @@ package org.gbif.occurrence.table.backfill;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 import org.yaml.snakeyaml.parser.ParserException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,13 +25,12 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.base.Strings;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
-
-import javax.annotation.Nullable;
 
 @Data
 @Builder
@@ -41,22 +42,21 @@ public class TableBackfillConfiguration {
 
   static {
     MAPPER.setAnnotationIntrospector(
-      new JacksonAnnotationIntrospector() {
-        @Override
-        public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
-          if (ac.hasAnnotation(
-            JsonPOJOBuilder.class)) { // If no annotation present use default as empty prefix
-            return super.findPOJOBuilderConfig(ac);
+        new JacksonAnnotationIntrospector() {
+          @Override
+          public JsonPOJOBuilder.Value findPOJOBuilderConfig(AnnotatedClass ac) {
+            if (ac.hasAnnotation(
+                JsonPOJOBuilder.class)) { // If no annotation present use default as empty prefix
+              return super.findPOJOBuilderConfig(ac);
+            }
+            return new JsonPOJOBuilder.Value("build", "");
           }
-          return new JsonPOJOBuilder.Value("build", "");
-        }
-      });
+        });
   }
 
   private final HdfsLockConfiguration hdfsLock;
 
-  @Nullable
-  private Integer tablePartitions;
+  @Nullable private Integer tablePartitions;
 
   private final String sourceDirectory;
 
@@ -70,7 +70,14 @@ public class TableBackfillConfiguration {
 
   private final String tableName;
 
-  private final String warehouseLocation;
+  private String prefixTable;
+
+  public String getTableNameWithPrefix() {
+    return Strings.isNullOrEmpty(prefixTable) ? tableName : prefixTable + "_" + tableName;
+  }
+
+  @Nullable private final String warehouseLocation;
+  @Nullable private final String hiveThriftAddress;
 
   @Data
   @Builder
@@ -82,25 +89,22 @@ public class TableBackfillConfiguration {
     private final String path;
     private final String name;
 
-    @Builder.Default
-    private final Integer connectionSleepTimeMs = 100;
+    @Builder.Default private final Integer connectionSleepTimeMs = 100;
 
-    @Builder.Default
-    private final Integer connectionMaxRetries = 5;
-
+    @Builder.Default private final Integer connectionMaxRetries = 5;
   }
 
   public static TableBackfillConfiguration loadFromFile(String fileName) {
     File file = new File(fileName);
     if (!file.exists()) {
       String message =
-        "Error reading configuration file [" + fileName + "] because it does not exist";
+          "Error reading configuration file [" + fileName + "] because it does not exist";
       log.error(message);
       throw new IllegalArgumentException(message);
     }
     try {
-        // read from YAML
-        return MAPPER.readValue(file, TableBackfillConfiguration.class);
+      // read from YAML
+      return MAPPER.readValue(file, TableBackfillConfiguration.class);
     } catch (IOException | ParserException e) {
       String message = "Error reading configuration file [" + fileName + "]";
       log.error(message);

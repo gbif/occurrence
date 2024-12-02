@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.hive;
 
-
-
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 
@@ -47,41 +45,57 @@ public class OccurrenceAvroHdfsTableDefinition {
   public static void avroField(SchemaBuilder.FieldAssembler<Schema> builder, InitializableField initializableField) {
     switch (initializableField.getHiveDataType()) {
       case HiveDataTypes.TYPE_INT:
-        builder.name(initializableField.getHiveField()).type().nullable().intType().noDefault();
+        builder.name(initializableField.getColumnName()).type().nullable().intType().noDefault();
         break;
       case HiveDataTypes.TYPE_BIGINT:
-        builder.name(initializableField.getHiveField()).type().nullable().longType().noDefault();
+        builder.name(initializableField.getColumnName()).type().nullable().longType().noDefault();
         break;
       case HiveDataTypes.TYPE_BOOLEAN:
-        builder.name(initializableField.getHiveField()).type().nullable().booleanType().noDefault();
+        builder.name(initializableField.getColumnName()).type().nullable().booleanType().noDefault();
         break;
       case HiveDataTypes.TYPE_DOUBLE:
-        builder.name(initializableField.getHiveField()).type().nullable().doubleType().noDefault();
+        builder.name(initializableField.getColumnName()).type().nullable().doubleType().noDefault();
         break;
       case HiveDataTypes.TYPE_ARRAY_STRING:
-        builder.name(initializableField.getHiveField()).type().nullable().array().items().nullable().stringType().noDefault();
+        builder.name(initializableField.getColumnName()).type().nullable().array().items().nullable().stringType().noDefault();
         break;
       case HiveDataTypes.TYPE_VOCABULARY_STRUCT:
-        builder.name(initializableField.getHiveField()).type().nullable().record(getTypeRecordName(initializableField))
+        builder.name(initializableField.getColumnName()).type().nullable().record(getTypeRecordName(initializableField))
           .fields()
           .requiredString("concept")
           .name("lineage").type().nullable().array().items().nullable().stringType().noDefault()
           .endRecord()
         .noDefault();
         break;
+      case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
+        builder.name(initializableField.getColumnName()).type().nullable().record(getTypeRecordName(initializableField))
+          .fields()
+          .name("concepts").type().array().items().nullable().stringType().noDefault()
+          .name("lineage").type().nullable().array().items().nullable().stringType().noDefault()
+          .endRecord()
+          .noDefault();
+        break;
       case  HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
-        builder.name(initializableField.getHiveField()).type().nullable().array().items().nullable().record(getTypeRecordName(initializableField))
+        builder.name(initializableField.getColumnName()).type().nullable().array().items().nullable().record(getTypeRecordName(initializableField))
           .fields()
           .requiredString("id")
           .optionalString("eventtype")
           .endRecord()
           .noDefault();
         break;
+      case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
+        builder.name(initializableField.getColumnName()).type().nullable().record(getTypeRecordName(initializableField))
+          .fields()
+          .requiredFloat("gt")
+          .requiredFloat("lte")
+          .endRecord()
+          .noDefault();
+        break;
       default:
-        if (initializableField.getHiveField().equalsIgnoreCase("gbifid")) {
-          builder.name(initializableField.getHiveField()).type().stringType().noDefault();
+        if (initializableField.getColumnName().equalsIgnoreCase("gbifid")) {
+          builder.name(initializableField.getColumnName()).type().stringType().noDefault();
         } else {
-          builder.name(initializableField.getHiveField()).type().nullable().stringType().noDefault();
+          builder.name(initializableField.getColumnName()).type().nullable().stringType().noDefault();
         }
         break;
     }

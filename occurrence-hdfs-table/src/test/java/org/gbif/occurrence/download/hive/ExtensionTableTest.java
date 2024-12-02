@@ -15,15 +15,12 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.Term;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
 
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test cases for generated extensions tables.
@@ -40,14 +37,14 @@ public class ExtensionTableTest {
   }
 
   /**
-   * Reserved word are treated correctly.
+   * Reserved words are treated correctly.
    */
   @Test
   public void reservedWordTest() {
     ExtensionTable extendedMofTable = new ExtensionTable(Extension.IDENTIFICATION);
 
     //Double underscore removed in the produced column name
-    assertTrue(extendedMofTable.getFieldInitializers().contains(cleanDelimitersInitializer("order_")));
+    assertTrue(extendedMofTable.getFieldInitializers().contains(cleanDelimitersInitializer("order")));
   }
 
   @Test
@@ -67,10 +64,12 @@ public class ExtensionTableTest {
     assertTrue(dnaDerivedTable.getFieldInitializers().contains(ExtensionTable.GBIFID_FIELD));
 
     //Special cases are started with backticks to be compliant with Hive syntax
-    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("`_16srecover`")));
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("_16srecover")));
+    assertEquals("cleanDelimiters(`_16srecover`) AS `16srecover`", cleanDelimitersInitializer("_16srecover"));
 
-    //Double underscore removed in the produced column name
-    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("v__16srecover")));
+    // Double underscore removed in the produced column name
+    assertTrue(dnaDerivedTable.getFieldInitializers().contains(cleanDelimitersInitializer("v_16srecover")));
+    assertEquals("cleanDelimiters(v_16srecover) AS v_16srecover", cleanDelimitersInitializer("v_16srecover"));
   }
 
   /**

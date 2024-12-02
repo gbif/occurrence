@@ -13,16 +13,17 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
-import org.springframework.amqp.AmqpRejectAndDontRequeueException;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /** Listener that cancels a download job. */
 @Slf4j
@@ -49,7 +50,7 @@ public class DownloadCancellationListener extends AbstractMessageCallback<Downlo
       log.info("Received message {}", downloadsMessage);
       String downloadKey = downloadsMessage.getDownloadKey();
 
-      JobStatus jobStatus = jobManager.cancel(downloadKey);
+      JobStatus jobStatus = jobManager.cancelRun(downloadKey);
       lockerService.unlock(downloadKey);
       downloadUpdaterService.markAsCancelled(downloadKey);
 
@@ -57,7 +58,6 @@ public class DownloadCancellationListener extends AbstractMessageCallback<Downlo
 
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
-      throw new AmqpRejectAndDontRequeueException(ex.getMessage());
     }
   }
 }

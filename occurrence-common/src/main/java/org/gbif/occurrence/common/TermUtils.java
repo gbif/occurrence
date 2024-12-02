@@ -43,70 +43,19 @@ import com.google.common.collect.Sets;
  * <p>Processing is a complex procedure where, e.g. several verbatim fields are inspected, and depending on their content
  * will influence different fields in the interpreted view.  One example might be a verbatim view with dwc:eventDate
  * populated, but in the interpreted view dwc:eventDate, dwc:day, dwc:month and dwc:year are present.
+ *
+ * <p>See DownloadTerms for terms used in downloads.
  */
 public class TermUtils {
 
   /**
    * The list of only the Dublin Core properties, excluding classes, used in Darwin Core or by GBIF.
-   */
-  private static final List<DcTerm> DwC_DC_PROPERTIES = dwcDcPropertyTerms();
-
-  /**
-   * The list of Darwin Core properties applicable to occurrence records, excluding classes such as Taxon and terms
-   * that are not relevant to occurrence records.
-   */
-  private static final List<DwcTerm> DwC_PROPERTIES = dwcPropertyTerms();
-
-  /**
-   * The list of GBIF properties applicable to occurrence records, excluding any classes and terms that are not
-   * relevant to occurrence records.
-   */
-  private static final List<GbifTerm> GBIF_PROPERTIES = gbifPropertyTerms();
-
-  /**
-   * The list of GADM properties applicable to occurrence records, excluding any classes and terms that are not
-   * relevant to occurrence records.
-   */
-  private static final List<GadmTerm> GADM_PROPERTIES = gadmPropertyTerms();
-
-  /**
-   * The list of terms that are subject to interpretation and <strong>may</strong> not be present in the
-   * interpreted record.  For example, dwc:maximumDepthInMeters may be present on a verbatim record, and subject to
-   * interpretation, but (at the time of writing) is not be surfaced on the interpreted object but instead contributes
-   * to the gbif:depth term.
-   */
-  private static final Set<Term> TERMS_SUBJECT_TO_INTERPRETATION = termsSubjectToInterpretation();
-
-  /**
-   * The map of term→value for terms that, after interpretation, have the same value for all occurrences.
    *
-   * For example, coordinates are reprojected to WGS84, so dwc:geodeticDatum is "WGS84" for all occurrences.
+   * <p>Note that DcTerm.identifier (perhaps unwisely) is used internally to hold the DwC-A id/coreId.
+   * Its only purpose is to join the records within the archive, and is therefore not included here
+   * as it has no meaning outside the archive.
    */
-  private static final Map<Term,String> TERMS_IDENTICAL_AFTER_INTERPRETATION = termsIdenticalAfterInterpretation();
-
-  /**
-   * The terms that are present only due to explicit interpretation.  These are often typed explicitly, such as Dates
-   * or are the result of a routine that has analyzed various verbatim fields and interpreted them into new values,
-   * such as the dwc:kingdom ... dwc:scientificName fields which are subject to a nub lookup.
-   */
-  private static final Set<Term> TERMS_POPULATED_BY_INTERPRETATION = termsPopulatedByInterpretation();
-
-  /**
-   * The terms that are subject to interpretation but not present on the interpreted occurrence.
-   */
-  private static final Set<Term> TERMS_REMOVED_DURING_INTERPRETATION =
-    Sets.difference(TERMS_SUBJECT_TO_INTERPRETATION, TERMS_POPULATED_BY_INTERPRETATION);
-
-  /**
-   * Utility to strip out classes and non-DwC non-GBIF terms from the complete Dublin Core enumeration.
-   *
-   * @return the complete list of property terms of Dublin Core used in Darwin Core or by GBIF.
-   */
-  private static List<DcTerm> dwcDcPropertyTerms() { // set to just dwc ones?
-    // Note that DcTerm.identifier (perhaps unwisely) is used internally to hold the DwC-A id/coreId.
-    // Its only purpose is to join the records within the archive, and is therefore not included here
-    // as it has no meaning outside the archive.
-    return ImmutableList.of(
+  private static final List<DcTerm> DwC_DC_PROPERTIES = ImmutableList.of(
       DcTerm.accessRights,
       DcTerm.bibliographicCitation,
       DcTerm.language,
@@ -117,82 +66,92 @@ public class TermUtils {
       DcTerm.rightsHolder,
       DcTerm.type
     );
-  }
 
   /**
-   * Utility to strip out classes from the GBIF enumeration.
-   *
-   * @return the complete list of property terms of the GBIF namespace, excluding any "class" terms and terms not
-   * relevant to occurrences.
+   * Darwin Core terms only used in Darwin Core Archive extensions.
    */
-  private static List<GbifTerm> gbifPropertyTerms() {
-    final Set<GbifTerm> exclusions = ImmutableSet.of(
-      // the following have no place on occurrence
-      GbifTerm.infraspecificMarker,
-      GbifTerm.isExtinct,
-      GbifTerm.isFreshwater,
-      GbifTerm.isHybrid,
-      GbifTerm.isMarine,
-      GbifTerm.isPlural,
-      GbifTerm.isPreferredName,
-      GbifTerm.isTerrestrial,
-      GbifTerm.livingPeriod,
-      GbifTerm.lifeForm,
-      GbifTerm.ageInDays,
-      GbifTerm.sizeInMillimeter,
-      GbifTerm.massInGram,
-      GbifTerm.organismPart,
-      GbifTerm.appendixCITES,
-      GbifTerm.typeDesignatedBy,
-      GbifTerm.typeDesignationType,
-      GbifTerm.canonicalName,
-      GbifTerm.nameType,
+  /*
+   * (Needed for the next declaration.)
+   */
+  private static final Set<DwcTerm> DwC_EXTENSION_EXCLUSIONS = ImmutableSet.<DwcTerm>builder()
+    .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT))
+    .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP))
+    .build();
 
-      // And these have been superseded by other terms or otherwise deprecated and removed
-      GbifTerm.distanceAboveSurface,
-      GbifTerm.distanceAboveSurfaceAccuracy
-      );
-
-    return Arrays.stream(GbifTerm.values()).filter(t -> !t.isClass() && !exclusions.contains(t))
+  /**
+   * The list of Darwin Core properties applicable to occurrence records, excluding classes such as Taxon and terms
+   * that are not relevant to occurrence records.
+   */
+  private static final List<DwcTerm> DwC_PROPERTIES = Arrays.stream(DwcTerm.values())
+    .filter(t ->   !t.isClass() && !DwC_EXTENSION_EXCLUSIONS.contains(t))
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
-  }
 
   /**
-   * Utility to strip out classes from the complete Gadm enumeration.
-   *
-   * @return the complete list of property terms of Gadm, excluding any "class" terms (though there are none yet)
+   * GBIF terms used only on extensions, or obsolete.
    */
-  private static List<GadmTerm> gadmPropertyTerms() {
-    return Arrays.stream(GadmTerm.values()).filter(t -> !t.isClass())
+  /*
+   * (Needed for the next declaration.)
+   */
+  private static final Set<GbifTerm> GBIF_PROPERTIES_EXCLUSIONS = ImmutableSet.of(
+    // the following have no place on occurrence
+    GbifTerm.infraspecificMarker,
+    GbifTerm.isExtinct,
+    GbifTerm.isFreshwater,
+    GbifTerm.isHybrid,
+    GbifTerm.isMarine,
+    GbifTerm.isPlural,
+    GbifTerm.isPreferredName,
+    GbifTerm.isTerrestrial,
+    GbifTerm.livingPeriod,
+    GbifTerm.lifeForm,
+    GbifTerm.ageInDays,
+    GbifTerm.sizeInMillimeter,
+    GbifTerm.massInGram,
+    GbifTerm.organismPart,
+    GbifTerm.appendixCITES,
+    GbifTerm.typeDesignatedBy,
+    GbifTerm.typeDesignationType,
+    GbifTerm.canonicalName,
+    GbifTerm.nameType,
+
+    // And these have been superseded by other terms or otherwise deprecated and removed
+    GbifTerm.distanceAboveSurface,
+    GbifTerm.distanceAboveSurfaceAccuracy
+  );
+
+  /**
+   * The list of GBIF properties applicable to occurrence records, excluding any classes and terms that are not
+   * relevant to occurrence records.
+   */
+  private static final List<GbifTerm> GBIF_PROPERTIES = Arrays.stream(GbifTerm.values())
+    .filter(t -> !t.isClass() && !GBIF_PROPERTIES_EXCLUSIONS.contains(t))
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
-  }
 
   /**
-   * Utility to strip out all classes from the DwC terms and all properties that are not applicable to an occurrence
-   * record.
-   *
-   * @return the complete list of property terms of Darwin Core, excluding any "class" terms such as Taxon and terms
-   * not relevant to occurrence records.
+   * The list of GADM properties applicable to occurrence records, excluding any classes and terms that are not
+   * relevant to occurrence records.
    */
-  private static List<DwcTerm> dwcPropertyTerms() {
-    // the following are only used in extensions
-    final Set<DwcTerm> exclusions = ImmutableSet.<DwcTerm>builder()
-      .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT))
-      .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP))
+  private static final List<GadmTerm> GADM_PROPERTIES = Arrays.stream(GadmTerm.values())
+    .filter(t -> !t.isClass())
+      .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
+
+  /**
+   * The map of term→value for terms that, after interpretation, have the same value for all occurrences.
+   *
+   * For example, coordinates are reprojected to WGS84, so dwc:geodeticDatum is "WGS84" for all occurrences.
+   */
+  private static final Map<Term,String> TERMS_IDENTICAL_AFTER_INTERPRETATION = ImmutableMap.<Term,String>builder()
+      .put(DwcTerm.geodeticDatum, Occurrence.GEO_DATUM)
       .build();
-    return Arrays.stream(DwcTerm.values()).filter(t ->   !t.isClass() && !exclusions.contains(t))
-      .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
-  }
 
   /**
-   * Lists all the terms which are populated on the occurrence object by interpretation, explicit processing or are
-   * internally generated.  These are all explicit Java properties on the
-   * {@link org.gbif.api.model.occurrence.Occurrence} class.
+   * The terms that are present only due to explicit interpretation.  These are often typed explicitly, such as Dates
+   * or are the result of a routine that has analyzed various verbatim fields and interpreted them into new values,
+   * such as the dwc:kingdom ... dwc:scientificName fields which are subject to a NUB lookup.
    *
-   * @return the terms with values that will only be populated following some interpretation
+   * <p>These are all explicit Java properties on the {@link org.gbif.api.model.occurrence.Occurrence} class.
    */
-  private static Set<Term> termsPopulatedByInterpretation() {
-    return ImmutableSet.of(
+  private static final Set<Term> TERMS_POPULATED_BY_INTERPRETATION = ImmutableSet.of(
       DwcTerm.decimalLatitude,
       DwcTerm.decimalLongitude,
       DwcTerm.continent,
@@ -307,73 +266,66 @@ public class TermUtils {
       DwcTerm.member,
       DwcTerm.bed,
       GbifTerm.projectId);
-  }
 
   /**
-   * Lists all terms that are subject to interpretation.  Some of the terms may be present on the interpreted
-   * occurrence record, but others will not.  This simply lists those that will be interpreted.
+   * The list of terms that are subject to interpretation and <strong>may</strong> not be present in the
+   * interpreted record.  For example, dwc:maximumDepthInMeters may be present on a verbatim record, and subject to
+   * interpretation, but (at the time of writing) is not be surfaced on the interpreted object but instead contributes
+   * to the gbif:depth term.
    *
-   * @return the set of terms that will be processed by interpretation routines, and may disappear from the record
+   * <p>Any term that is populated by interpretation has to be subject to interpretation if present on the
+   * verbatim record
    */
-  private static Set<Term> termsSubjectToInterpretation() {
-    // any term that is populated by interpretation has to be subject to interpretation if present on the
-    // verbatim record
-    return ImmutableSet.<Term>builder()
-      .addAll(termsPopulatedByInterpretation())
-      .add(
-        DwcTerm.decimalLatitude,
-        DwcTerm.decimalLongitude,
-        DwcTerm.verbatimLatitude,
-        DwcTerm.verbatimLongitude,
-        DwcTerm.verbatimCoordinates,
-        DwcTerm.geodeticDatum,
-        DwcTerm.coordinateUncertaintyInMeters,
-        DwcTerm.coordinatePrecision,
-        DwcTerm.continent,
-        DwcTerm.waterBody,
-        DwcTerm.stateProvince,
-        DwcTerm.country,
-        DwcTerm.countryCode,
-        DwcTerm.scientificName,
-        DwcTerm.scientificNameAuthorship,
-        DwcTerm.taxonRank,
-        DwcTerm.taxonomicStatus,
-        DwcTerm.kingdom,
-        DwcTerm.phylum,
-        DwcTerm.class_,
-        DwcTerm.order,
-        DwcTerm.family,
-        DwcTerm.genus,
-        DwcTerm.subgenus,
-        DwcTerm.genericName,
-        DwcTerm.specificEpithet,
-        DwcTerm.infraspecificEpithet,
-        DcTerm.modified,
-        DwcTerm.dateIdentified,
-        DwcTerm.eventDate,
-        DwcTerm.year,
-        DwcTerm.month,
-        DwcTerm.day,
-        DwcTerm.startDayOfYear,
-        DwcTerm.endDayOfYear,
-        DwcTerm.minimumDepthInMeters,
-        DwcTerm.maximumDepthInMeters,
-        DwcTerm.minimumElevationInMeters,
-        DwcTerm.maximumElevationInMeters,
-        DwcTerm.associatedMedia)
-      .build();
-  }
+  private static final Set<Term> TERMS_SUBJECT_TO_INTERPRETATION = ImmutableSet.<Term>builder()
+    .addAll(TERMS_POPULATED_BY_INTERPRETATION)
+    .add(
+      DwcTerm.decimalLatitude,
+      DwcTerm.decimalLongitude,
+      DwcTerm.verbatimLatitude,
+      DwcTerm.verbatimLongitude,
+      DwcTerm.verbatimCoordinates,
+      DwcTerm.geodeticDatum,
+      DwcTerm.coordinateUncertaintyInMeters,
+      DwcTerm.coordinatePrecision,
+      DwcTerm.continent,
+      DwcTerm.waterBody,
+      DwcTerm.stateProvince,
+      DwcTerm.country,
+      DwcTerm.countryCode,
+      DwcTerm.scientificName,
+      DwcTerm.scientificNameAuthorship,
+      DwcTerm.taxonRank,
+      DwcTerm.taxonomicStatus,
+      DwcTerm.kingdom,
+      DwcTerm.phylum,
+      DwcTerm.class_,
+      DwcTerm.order,
+      DwcTerm.family,
+      DwcTerm.genus,
+      DwcTerm.subgenus,
+      DwcTerm.genericName,
+      DwcTerm.specificEpithet,
+      DwcTerm.infraspecificEpithet,
+      DcTerm.modified,
+      DwcTerm.dateIdentified,
+      DwcTerm.eventDate,
+      DwcTerm.year,
+      DwcTerm.month,
+      DwcTerm.day,
+      DwcTerm.startDayOfYear,
+      DwcTerm.endDayOfYear,
+      DwcTerm.minimumDepthInMeters,
+      DwcTerm.maximumDepthInMeters,
+      DwcTerm.minimumElevationInMeters,
+      DwcTerm.maximumElevationInMeters,
+      DwcTerm.associatedMedia)
+    .build();
 
   /**
-   * Lists all terms that, after interpretation, hold the same value, and that value.
-   *
-   * @return a map of term→value for term that, due to standardization, now have identical values on all records.
+   * The terms that are subject to interpretation but not present on the interpreted occurrence.
    */
-  private static Map<Term,String> termsIdenticalAfterInterpretation() {
-    return ImmutableMap.<Term,String>builder()
-      .put(DwcTerm.geodeticDatum, Occurrence.GEO_DATUM)
-      .build();
-  }
+  private static final Set<Term> TERMS_REMOVED_DURING_INTERPRETATION =
+    Sets.difference(TERMS_SUBJECT_TO_INTERPRETATION, TERMS_POPULATED_BY_INTERPRETATION);
 
   /**
    * Term list of the extension excluding the coreid just as defined by:
@@ -536,4 +488,10 @@ public class TermUtils {
     return SQLColumnsUtils.isVocabulary(term);
   }
 
+  /**
+   * @return true if the term is a handled/annotated as an array.
+   */
+  public static boolean isArray(Term term) {
+    return SQLColumnsUtils.isSQLArray(term);
+  }
 }

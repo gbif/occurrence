@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.util;
 
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.File;
@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ArchiveFileUtils {
 
 
-  public static void initializeArchiveDir(File archiveDir,DownloadJobConfiguration configuration) {
+  public static void initializeArchiveDir(File archiveDir, DownloadJobConfiguration configuration) {
     if (!configuration.isSmallDownload()) {
       // oozie might try several times to run this job, so make sure our filesystem is clean
       cleanupFS(archiveDir);

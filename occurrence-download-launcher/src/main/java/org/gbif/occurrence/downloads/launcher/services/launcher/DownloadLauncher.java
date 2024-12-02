@@ -13,19 +13,19 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher;
 
+import org.gbif.api.model.occurrence.Download;
+
 import java.util.List;
 import java.util.Optional;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 
 /**
  * Generig service to launch, cancel or get status about a download job
  */
 public interface DownloadLauncher {
 
-  JobStatus create(DownloadLauncherMessage message);
+  JobStatus createRun(String downloadKey);
 
-  JobStatus cancel(String downloadKey);
+  JobStatus cancelRun(String downloadKey);
 
   Optional<Download.Status> getStatusByName(String downloadKey) throws Exception;
 
@@ -34,6 +34,7 @@ public interface DownloadLauncher {
   enum JobStatus {
     RUNNING,
     FAILED,
+    FINISHED,
     CANCELLED
   }
 }

@@ -14,12 +14,12 @@ SELECT
   family,
   speciesKey,
   species,
-  COALESCE(sex, 'NOT_SUPPLIED') AS sex,
+  COALESCE(occurrence.sex.concept, 'NOT_SUPPLIED') AS sex,
   COALESCE(occurrence.lifestage.concept, 'NOT_SUPPLIED') AS lifestage,
   -- Measurements
   COUNT(*) AS occurrences,
   MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
-  MIN(GBIF_TemporalUncertainty(eventDate)) AS minTemporalUncertainty,
+  MIN(GBIF_TemporalUncertainty(eventDate, eventTime)) AS minTemporalUncertainty,
   -- Higher taxon measurement
   IF(ISNULL(familyKey), NULL, SUM(COUNT(*)) OVER (PARTITION BY familyKey)) AS familyCount
 FROM

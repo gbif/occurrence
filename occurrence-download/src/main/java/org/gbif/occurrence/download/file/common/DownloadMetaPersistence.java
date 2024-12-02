@@ -15,9 +15,9 @@ package org.gbif.occurrence.download.file.common;
 
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.citations.CitationsFileReader;
 import org.gbif.occurrence.download.citations.CitationsPersister;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
@@ -42,10 +42,13 @@ public class DownloadMetaPersistence {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
     String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
+    String registryUser = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY);
+    String registryPassword = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY);
     // persists citation information.
-    CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath, new CitationsPersister.PersistUsage(downloadKey, registryWsURL, coreTerm));
+    CitationsFileReader.readCitationsAndUpdateLicense(nameNode, citationPath,
+      new CitationsPersister.PersistUsage(downloadKey, coreTerm, registryWsURL, registryUser, registryPassword));
 
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsURL);
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryUser, registryPassword, registryWsURL);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(coreTerm);
     // persists species count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);

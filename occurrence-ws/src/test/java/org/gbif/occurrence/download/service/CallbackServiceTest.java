@@ -13,6 +13,33 @@
  */
 package org.gbif.occurrence.download.service;
 
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.DownloadType;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.occurrence.mail.EmailSender;
+import org.gbif.occurrence.mail.OccurrenceEmailManager;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,33 +48,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import org.apache.oozie.client.OozieClient;
-import org.apache.oozie.client.OozieClientException;
-import org.apache.oozie.client.WorkflowJob;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.DownloadType;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.predicate.EqualsPredicate;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.api.vocabulary.Extension;
-import org.gbif.common.messaging.api.MessagePublisher;
-import org.gbif.occurrence.mail.EmailSender;
-import org.gbif.occurrence.mail.OccurrenceEmailManager;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 class CallbackServiceTest {
   private static final String DOWNLOAD_ID = "0000000-120518122602221";
@@ -61,7 +61,6 @@ class CallbackServiceTest {
   private static final String TEST_USER = "admin";
   private static final List<String> EMAILS = Collections.singletonList("tests@gbif.org");
 
-  private OozieClient oozieClient;
   private DownloadRequestServiceImpl service;
   private OccurrenceDownloadService occurrenceDownloadService;
   private OccurrenceEmailManager emailManager;
@@ -91,13 +90,12 @@ class CallbackServiceTest {
   }
 
   @BeforeEach
-  void setup() throws OozieClientException {
+  void setup() {
     emailManager = mock(OccurrenceEmailManager.class);
     emailSender = mock(EmailSender.class);
     occurrenceDownloadService = mock(OccurrenceDownloadService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
     messagePublisher = mock(MessagePublisher.class);
-    oozieClient = mock(OozieClient.class);
 
     when(downloadLimitsService.exceedsSimultaneousDownloadLimit(any(String.class)))
         .thenReturn(null);
@@ -105,13 +103,8 @@ class CallbackServiceTest {
         .thenReturn(null);
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
 
-    WorkflowJob job = mock(WorkflowJob.class);
-    when(oozieClient.getJobInfo(JOB_ID)).thenReturn(job);
-    when(job.getExternalId()).thenReturn(DOWNLOAD_ID);
-
     service =
         new DownloadRequestServiceImpl(
-            oozieClient,
             "http://gbif-dev.org/occurrence",
             "http://localhost:8080/",
             "",
@@ -138,28 +131,7 @@ class CallbackServiceTest {
   }
 
   @Test
-  void testNotificationSent() throws OozieClientException {
-    WorkflowJob job = mock(WorkflowJob.class);
-    when(oozieClient.getJobInfo(JOB_ID)).thenReturn(job);
-    when(job.getExternalId()).thenReturn(DOWNLOAD_ID);
-    when(job.getId()).thenReturn(JOB_ID);
-    when(job.getCreatedTime()).thenReturn(new Date());
-    when(job.getConf())
-        .thenReturn(
-            "<configuration>"
-                + "<property><name>"
-                + Constants.USER_PROPERTY
-                + "</name>"
-                + "<value>test</value></property>"
-                + "<property><name>"
-                + Constants.NOTIFICATION_PROPERTY
-                + "</name>"
-                + "<value>test@gbif.org</value></property>"
-                + "<property><name>"
-                + Constants.FILTER_PROPERTY
-                + "</name>"
-                + "<value>{\"type\":\"equals\",\"key\":\"DATASET_KEY\",\"value\":\"8575f23e-f762-11e1-a439-00145eb45e9a\"}</value></property>"
-                + "</configuration>");
+  void testNotificationSent() {
 
     service.processCallback(JOB_ID, SUCCEEDED);
 

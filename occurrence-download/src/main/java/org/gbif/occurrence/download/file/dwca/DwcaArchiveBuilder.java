@@ -16,8 +16,8 @@ package org.gbif.occurrence.download.file.dwca;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.dwca.archive.CitationFileReader;
 import org.gbif.occurrence.download.file.dwca.archive.ConstituentsDatasetsProcessor;
 import org.gbif.occurrence.download.file.dwca.archive.DownloadArchiveBuilder;
@@ -73,7 +73,7 @@ public class DwcaArchiveBuilder {
     this.workflowConfiguration = workflowConfiguration;
 
     //Ws clients and client utils
-    this.registryClientUtil = new RegistryClientUtil(workflowConfiguration.getRegistryWsUrl());
+    this.registryClientUtil = new RegistryClientUtil(workflowConfiguration.getRegistryUser(), workflowConfiguration.getRegistryPassword(), workflowConfiguration.getRegistryWsUrl());
     occurrenceDownloadService = getOccurrenceDownloadService();
     datasetService = getDatasetService();
     download = getDownload();
@@ -162,11 +162,13 @@ public class DwcaArchiveBuilder {
         metadataBuilder.accept(constituentDataset);
       })
       .onFinish(datasetUsages -> {
-        //Persist Dataset Usages
         downloadUsagesPersist.persistUsages(download.getKey(), datasetUsages);
 
-        // persist the License assigned to the download
-        downloadUsagesPersist.persistDownloadLicense(download, constituentsDatasetsProcessor.getSelectedLicense());
+        Long totalCount = datasetUsages.values().stream().reduce(0L, Long::sum);
+        download.setLicense(constituentsDatasetsProcessor.getSelectedLicense());
+        download.setTotalRecords(totalCount);
+
+        downloadUsagesPersist.persistDownload(download);
 
         // metadata about the entire archive data
         metadataBuilder.writeMetadata();

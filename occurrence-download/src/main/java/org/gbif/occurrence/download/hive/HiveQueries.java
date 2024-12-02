@@ -18,7 +18,8 @@ import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 
 /**
- * Utilities related to the actual queries executed at runtime — these functions for generating TSV downloads.
+ * Utilities related to the actual queries executed at runtime — these functions for generating TSV
+ * downloads.
  */
 public class HiveQueries extends TsvQueries {
 
@@ -30,25 +31,17 @@ public class HiveQueries extends TsvQueries {
   @Override
   String toInterpretedHiveInitializer(Term term) {
     if (TermUtils.isInterpretedLocalDateSeconds(term)) {
-      return toLocalISO8601Initializer(term);
+      return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {
       return toVocabularyConceptHiveInitializer(term);
     } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {
-      return toISO8601Initializer(term);
+      return secondsToISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {
-      return toISO8601MillisInitializer(term);
+      return millisecondsToISO8601Initializer(term);
     } else if (HiveColumnsUtils.isHiveArray(term)) {
       return String.format(toArrayInitializer(term), HiveColumns.columnFor(term));
     } else {
       return HiveColumns.columnFor(term);
     }
   }
-
-  /**
-   * Transforms the term into a joinArray(…) expression.
-   */
-  protected static String toArrayInitializer(Term term) {
-    return String.format("if(%1$s IS NULL,'',joinArray(%1$s,'\\\\;')) AS %1$s", HiveColumns.columnFor(term));
-  }
-
 }

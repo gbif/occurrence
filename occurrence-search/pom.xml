@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.195.9-SNAPSHOT</version>
+    <version>0.195.7-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-search</artifactId>
@@ -16,11 +16,11 @@
 
     <!-- Elasticsearch -->
     <jts-core.version>1.15.0</jts-core.version>
-    <spatial4j.version>0.7</spatial4j.version>
+    <spatial4j.version>0.8</spatial4j.version>
     <log4j-api.version>2.11.1</log4j-api.version>
   </properties>
 
-  <name>Occurrence Search service</name>
+  <name>Occurrence :: Search service</name>
 
   <distributionManagement>
     <site>
@@ -69,7 +69,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava-cdh.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -94,6 +93,10 @@
     <dependency>
       <groupId>org.gbif.predicates</groupId>
       <artifactId>es-predicates</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.vocabulary</groupId>
+      <artifactId>vocabulary-rest-ws-client</artifactId>
     </dependency>
 
     <dependency>
@@ -178,6 +181,10 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
 
     <!-- Cache -->
     <dependency>
@@ -198,7 +205,6 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
-      <version>${logback.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -212,12 +218,10 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <artifactId>org.restlet</artifactId>

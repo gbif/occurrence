@@ -13,6 +13,10 @@
  */
 package org.gbif.event.ws;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.remoteauth.IdentityServiceClient;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
@@ -23,7 +27,6 @@ import org.gbif.ws.security.GbifAuthServiceImpl;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
@@ -86,6 +89,16 @@ public class EventWsApplication {
   public RemoteAuthClient remoteAuthClient(
       RestTemplateBuilder builder, @Value("${registry.ws.url}") String gbifApiUrl) {
     return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
+  }
+
+  @Bean
+  public ConceptClient conceptClient(@Value("${api.url}") String apiUrl) {
+    return new ClientBuilder()
+      .withObjectMapper(
+        JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
+          .registerModule(new JavaTimeModule()))
+      .withUrl(apiUrl)
+      .build(ConceptClient.class);
   }
 
   @Configuration

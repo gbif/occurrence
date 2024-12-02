@@ -17,7 +17,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
@@ -42,8 +42,10 @@ public class DownloadCountAndLicensePersistence {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
     String registryWsURL = properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
+    String registryUser = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY);
+    String registryPassword = properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY);
 
-    RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryWsURL);
+    RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryUser, registryPassword, registryWsURL);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(coreTerm);
     // persists download count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);

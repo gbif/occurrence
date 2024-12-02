@@ -33,12 +33,7 @@ import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.DownloadType;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -59,14 +54,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -84,30 +72,14 @@ import java.security.Principal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static org.gbif.api.model.occurrence.Download.Status.FILE_ERASED;
-import static org.gbif.api.model.occurrence.Download.Status.PREPARING;
-import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
-import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
-import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
+import static java.lang.annotation.ElementType.*;
+import static org.gbif.api.model.occurrence.Download.Status.*;
 import static org.gbif.api.vocabulary.UserRole.INVITED_TESTER;
 import static org.gbif.api.vocabulary.UserRole.REGISTRY_ADMIN;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertLoginMatches;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.assertUserAuthenticated;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.checkUserInRole;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.*;
 
 @Validated
 public class DownloadResource {
@@ -278,9 +250,9 @@ public class DownloadResource {
 
   @Hidden
   @GetMapping("callback")
-  public ResponseEntity oozieCallback(
+  public ResponseEntity<Object> airflowCallback(
       @RequestParam("job_id") String jobId, @RequestParam("status") String status) {
-    LOG.debug("Received callback from Oozie for Job [{}] with status [{}]", jobId, status);
+    LOG.debug("Received callback from Airflow for Job [{}] with status [{}]", jobId, status);
     callbackService.processCallback(jobId, status);
     return ResponseEntity.ok().build();
   }
@@ -301,7 +273,7 @@ public class DownloadResource {
   @Parameters(
       value = {
         @Parameter(name = "source", hidden = true),
-        @Parameter(name = "User-Agent", in = ParameterIn.HEADER, hidden = true),
+        @Parameter(name = "User-Agent", in = ParameterIn.HEADER, hidden = true)
       })
   @io.swagger.v3.oas.annotations.parameters.RequestBody(
     content = @Content(
@@ -369,7 +341,7 @@ public class DownloadResource {
       return ResponseEntity.ok(
           createDownload(request, authentication, principal, parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatus()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
     }
   }
 
@@ -444,7 +416,7 @@ public class DownloadResource {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
       }
 
-      // Restrict SQL downloads to admin users
+      // Restrict SQL downloads to admin users and invited testers
       if (!checkUserInRole(authentication, REGISTRY_ADMIN, INVITED_TESTER)) {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Currently limited to invited test users");
       }
@@ -542,7 +514,7 @@ public class DownloadResource {
               principal,
               parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatus()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
     }
   }
 

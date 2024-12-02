@@ -16,11 +16,12 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
-import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,20 +36,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 
-/**
- * Generates a query file to be used to query the requested extensions of a download.
- */
+/** Generates a query file to be used to query the requested extensions of a download. */
 @Data
 @Builder
 public class ExtensionsQuery {
 
-  private final BufferedWriter writer;
+  private final Writer writer;
 
   private static final String TEMPLATE_FILE = "templates/download/execute-extensions-query.ftl";
 
-  /**
-   * Reads the template file to a string.
-   */
+  /** Reads the template file to a string. */
   @SneakyThrows
   private String readTemplateFileToString() {
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(TEMPLATE_FILE)) {
@@ -58,41 +55,36 @@ public class ExtensionsQuery {
     }
   }
 
-  /**
-   * Loads the freemarker template.
-   */
+  /** Loads the freemarker template. */
   @SneakyThrows
   private Template template() {
-    return new Template("verbatim_extensions",
-                        new StringReader(readTemplateFileToString()),
-                        new Configuration(Configuration.getVersion()));
+    return new Template(
+        "verbatim_extensions",
+        new StringReader(readTemplateFileToString()),
+        new Configuration(Configuration.getVersion()));
   }
 
-  /**
-   * Sets the template variable from a Download object.
-   */
-  private Map<String,Object> templateVariables(Download download) {
-    PredicateDownloadRequest downloadRequest = (PredicateDownloadRequest) download.getRequest();
+  /** Sets the template variable from a Download object. */
+  private Map<String, Object> templateVariables(Download download) {
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
-    HashMap<String,Object> variables = new HashMap<>();
-    Optional.ofNullable(downloadRequest.getVerbatimExtensions())
-      .ifPresent(verbatimExtensions ->
-                   variables.put("verbatim_extensions", verbatimExtensions.stream()
-                                                 .map(ExtensionTable::new)
-                                                 .collect(Collectors.toList()))
-    );
+    HashMap<String, Object> variables = new HashMap<>();
+    Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+        .ifPresent(
+            verbatimExtensions ->
+                variables.put(
+                    "verbatim_extensions",
+                    verbatimExtensions.stream()
+                        .map(ExtensionTable::new)
+                        .collect(Collectors.toList())));
     variables.put("downloadTableName", downloadTableName);
     variables.put("interpretedTable", downloadTableName + "_interpreted");
     variables.put("tableName", download.getRequest().getType().toString().toLowerCase());
     return variables;
   }
 
-  /**
-   * Generates the Hive query file querying extensions to the supplied writer.
-   */
+  /** Generates the Hive query file querying extensions to the supplied writer. */
   @SneakyThrows
   public void generateExtensionsQueryHQL(Download download) {
     template().process(templateVariables(download), writer);
   }
-
 }

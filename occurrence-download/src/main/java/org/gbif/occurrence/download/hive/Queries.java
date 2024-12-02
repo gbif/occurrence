@@ -13,18 +13,16 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-
+import com.google.common.collect.ImmutableMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.ImmutableMap;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
 /**
  * Utilities related to the actual queries executed at runtime.
@@ -174,7 +172,37 @@ public abstract class Queries {
    * Used for complex types like Structs which have nested elements.
    */
   public static String toVocabularyConceptHiveInitializer(Term term) {
-    return toNestedHiveInitializer(term, "concept");
+    if (TermUtils.isArray(term)) {
+      return toVocabularyConceptArrayHiveInitializer(term);
+    } else {
+      return toNestedHiveInitializer(term, "concept");
+    }
+  }
+
+  /**
+   * Used for complex types like Structs which have nested array elements.
+   */
+  private static String toVocabularyConceptArrayHiveInitializer(Term term) {
+    return toArrayInitializer(
+        toNestedHiveInitializer(term, "concepts"), HiveColumns.columnFor(term));
+  }
+
+  /**
+   * Transforms the term into a joinArray(…) expression.
+   */
+  public static String toArrayInitializer(String term) {
+    return String.format("array_join(%1$s,'\\;') AS %1$s", term);
+  }
+
+  public static String toArrayInitializer(String term, String alias) {
+    return String.format("array_join(%1$s,'\\;') AS %2$s", term, alias);
+  }
+
+  /**
+   * Transforms the term into a joinArray(…) expression.
+   */
+  public static String toArrayInitializer(Term term) {
+    return String.format("array_join(%1$s,'\\;') AS %1$s", HiveColumns.columnFor(term));
   }
 
   /**

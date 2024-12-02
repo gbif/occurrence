@@ -12,22 +12,6 @@
  * limitations under the License.
  */
 package org.gbif.occurrence.search.heatmap.es;
-import org.gbif.occurrence.search.es.EsField;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
-
-import java.io.IOException;
-import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.StreamSupport;
-
-import org.elasticsearch.action.search.SearchRequest;
-import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
@@ -35,14 +19,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-/**
- * Tests for ElasticSearch heatmap request builders.
- */
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.StreamSupport;
+import org.elasticsearch.action.search.SearchRequest;
+import org.gbif.occurrence.search.es.EsField;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
+import org.junit.jupiter.api.Test;
+
+/** Tests for ElasticSearch heatmap request builders. */
 public class EsHeatmapRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
-  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper());
+  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder =
+      new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper(), null);
 
   @Test
   public void heatmapRequestTest() throws IOException {
@@ -72,16 +69,11 @@ public class EsHeatmapRequestBuilderTest {
     assertEquals(30d, bbox.path("bottom_right").get(1).asDouble(), 0);
 
     // geohash_grid
-    assertTrue(
-        json.path(AGGREGATIONS)
-            .path(HEATMAP_AGGS)
-            .has(GEOHASH_GRID));
-    JsonNode jsonGeohashGrid =
-        json.path(AGGREGATIONS)
-            .path(HEATMAP_AGGS)
-            .path(GEOHASH_GRID);
+    assertTrue(json.path(AGGREGATIONS).path(HEATMAP_AGGS).has(GEOHASH_GRID));
+    JsonNode jsonGeohashGrid = json.path(AGGREGATIONS).path(HEATMAP_AGGS).path(GEOHASH_GRID);
     assertEquals(
-      OccurrenceEsField.COORDINATE_POINT.getSearchFieldName(), jsonGeohashGrid.get(FIELD).asText());
+        OccurrenceEsField.COORDINATE_POINT.getSearchFieldName(),
+        jsonGeohashGrid.get(FIELD).asText());
     assertEquals(3, jsonGeohashGrid.get(PRECISION).asInt());
 
     // geo_bounds
@@ -98,18 +90,18 @@ public class EsHeatmapRequestBuilderTest {
             .path(CELL_AGGS)
             .path(GEO_BOUNDS);
     assertEquals(
-      OccurrenceEsField.COORDINATE_POINT.getSearchFieldName(), jsonGeobounds.get(FIELD).asText());
+        OccurrenceEsField.COORDINATE_POINT.getSearchFieldName(), jsonGeobounds.get(FIELD).asText());
   }
 
-  /**
-   * Tries to find a field in the list of term filters.
-   */
+  /** Tries to find a field in the list of term filters. */
   private static Optional<String> findTermFilter(JsonNode node, EsField field) {
-    ArrayNode arrayNode = (ArrayNode)node.path(QUERY).path(BOOL).path(FILTER).get(2).path(BOOL).path(FILTER);
-    return StreamSupport.stream(Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
-              .filter(termNode -> termNode.path(TERM).has(field.getSearchFieldName()))
-              .map(termNode -> termNode.path(TERM).get(field.getSearchFieldName()).get(VALUE).asText())
-              .findFirst();
+    ArrayNode arrayNode =
+        (ArrayNode) node.path(QUERY).path(BOOL).path(FILTER).get(2).path(BOOL).path(FILTER);
+    return StreamSupport.stream(
+            Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
+        .filter(termNode -> termNode.path(TERM).has(field.getSearchFieldName()))
+        .map(termNode -> termNode.path(TERM).get(field.getSearchFieldName()).get(VALUE).asText())
+        .findFirst();
   }
 
   @Test
@@ -136,10 +128,7 @@ public class EsHeatmapRequestBuilderTest {
     }
 
     // geohash_grid
-    assertTrue(
-        json.path(AGGREGATIONS)
-            .path(HEATMAP_AGGS)
-            .has(GEOHASH_GRID));
+    assertTrue(json.path(AGGREGATIONS).path(HEATMAP_AGGS).has(GEOHASH_GRID));
 
     // geo_bounds
     assertTrue(

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.util;
 
+
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;
@@ -28,6 +29,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
+
+import static org.gbif.occurrence.download.hive.DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID;
 
 /**
  * Utility class that generates a headers file for occurrence downloads.
@@ -76,7 +79,7 @@ public class HeadersFileUtil {
     for (Term term : terms) {
       headers.add(term.simpleName());
     }
-    return TAB_JOINER.join(headers) + '\n';
+    return TAB_JOINER.join(headers) + System.lineSeparator();
   }
 
   /**
@@ -120,7 +123,7 @@ public class HeadersFileUtil {
    * Returns the headers names of download columns.
    */
   public static String getInterpretedTableHeader() {
-    return getTableHeader(TermUtils.interpretedTerms());
+    return getTableHeader(DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
   }
 
   /**

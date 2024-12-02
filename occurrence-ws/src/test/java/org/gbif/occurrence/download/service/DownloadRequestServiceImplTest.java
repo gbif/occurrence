@@ -13,16 +13,15 @@
  */
 package org.gbif.occurrence.download.service;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.apache.oozie.client.Job;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DownloadRequestServiceImplTest {
 
   @Test
   void testStatusMapCompleteness() {
-    for (Job.Status st : Job.Status.values()) {
+    for (JobStatus st : JobStatus.values()) {
       assertTrue(DownloadRequestServiceImpl.STATUSES_MAP.containsKey(st));
     }
   }

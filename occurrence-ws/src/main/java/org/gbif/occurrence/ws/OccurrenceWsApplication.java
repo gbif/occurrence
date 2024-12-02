@@ -13,6 +13,11 @@
  */
 package org.gbif.occurrence.ws;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.remoteauth.IdentityServiceClient;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
@@ -26,7 +31,6 @@ import org.gbif.ws.server.filter.IdentityFilter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -37,11 +41,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 
-@SpringBootApplication(
-    exclude = {
-      ElasticSearchRestHealthContributorAutoConfiguration.class,
-      RabbitAutoConfiguration.class
-    })
+@SpringBootApplication(exclude = {RabbitAutoConfiguration.class})
 @EnableConfigurationProperties
 @ComponentScan(
     basePackages = {
@@ -89,9 +89,18 @@ public class OccurrenceWsApplication {
     return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
   }
 
+  @Bean
+  public ConceptClient conceptClient(@Value("${api.url}") String apiUrl) {
+    return new ClientBuilder()
+        .withObjectMapper(
+            JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
+                .registerModule(new JavaTimeModule()))
+        .withUrl(apiUrl)
+        .build(ConceptClient.class);
+  }
+
   @Configuration
   public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-
     public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
       super(context, remoteAuthClient);
     }

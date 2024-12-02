@@ -22,9 +22,9 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.oozie.client.OozieClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,8 +59,6 @@ import static org.mockito.Mockito.when;
 class DownloadServiceImplTest {
   private static final Pattern REGEX = Pattern.compile("0000000-\\d{15}");
   private static final OccurrenceSearchParameter PARAM = OccurrenceSearchParameter.CATALOG_NUMBER;
-
-  @Mock private OozieClient oozieClient;
   @Mock private OccurrenceDownloadService downloadService;
   @Mock private DownloadLimitsService downloadLimitsService;
   @Mock private OccurrenceEmailManager emailManager;
@@ -76,7 +73,6 @@ class DownloadServiceImplTest {
     MessagePublisher messagePublisher = mock(MessagePublisher.class);
     requestService =
         new DownloadRequestServiceImpl(
-            oozieClient,
             "",
             "",
             "",

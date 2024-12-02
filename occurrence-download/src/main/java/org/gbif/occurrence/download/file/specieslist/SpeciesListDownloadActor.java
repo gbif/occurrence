@@ -21,7 +21,6 @@ import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
@@ -33,11 +32,11 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
-import akka.actor.UntypedActor;
+import akka.actor.AbstractActor;
 
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
-public class SpeciesListDownloadActor<T extends Occurrence> extends UntypedActor {
+public class SpeciesListDownloadActor<T extends Occurrence> extends AbstractActor {
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadActor.class);
 
   private final SearchQueryProcessor<T> searchQueryProcessor;
@@ -54,21 +53,18 @@ public class SpeciesListDownloadActor<T extends Occurrence> extends UntypedActor
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-
   @Override
-  public void onReceive(Object message) throws Exception {
-    if (message instanceof DownloadFileWork) {
-      doWork((DownloadFileWork) message);
-    } else {
-      unhandled(message);
-    }
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(DownloadFileWork.class, this::doWork)
+      .build();
   }
 
   /**
-   * Executes the job.query and creates a data file that will contains the records from job.from to
+   * Executes the job.query and creates a data file that will contain the records from job.from to
    * job.to positions.
    */
-  private void doWork(DownloadFileWork work) throws IOException {
+  private void doWork(DownloadFileWork work) {
 
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     SpeciesListCollector speciesCollector = new SpeciesListCollector();

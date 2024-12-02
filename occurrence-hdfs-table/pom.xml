@@ -3,12 +3,12 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.195.9-SNAPSHOT</version>
+    <version>0.195.7-H3-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>occurrence-hdfs-table</artifactId>
-  <name>Occurrence HDFS Table creation</name>
+  <name>Occurrence :: HDFS Table creation</name>
 
   <distributionManagement>
     <site>
@@ -16,6 +16,12 @@
       <url>http://gbif.github.io/occurrence/${project.artifactId}/</url>
     </site>
   </distributionManagement>
+
+  <properties>
+    <avro-generated-path>${project.basedir}/src/main/java-generated/</avro-generated-path>
+    <schema-generated-path>${project.basedir}/src/main/resources/table/</schema-generated-path>
+    <namespace>org.gbif.pipelines.io.avro</namespace>
+  </properties>
 
   <build>
     <resources>
@@ -28,14 +34,67 @@
         <filtering>false</filtering>
       </resource>
     </resources>
+    <plugins>
+      <!-- Generate avro schemas from XML extensions-->
+      <plugin>
+        <groupId>org.gbif.occurrence</groupId>
+        <artifactId>maven-extension-avsc-schema-generator</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <id>avroschemageneration</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>avroschemageneration</goal>
+            </goals>
+            <configuration>
+              <pathToWrite>${schema-generated-path}</pathToWrite>
+              <namespace>${namespace}.extension</namespace>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${avro-generated-path}</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Clean avro generated path -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${avro-generated-path}</directory>
+            </fileset>
+            <fileset>
+              <directory>${schema-generated-path}</directory>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
   <dependencies>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <scope>provided</scope>
     </dependency>
+
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-api</artifactId>
@@ -47,14 +106,10 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-persistence</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.pipelines</groupId>
-      <artifactId>models</artifactId>
       <exclusions>
         <exclusion>
-          <groupId>commons-logging</groupId>
-          <artifactId>commons-logging</artifactId>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -70,31 +125,39 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-mapred</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-ipc</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
     </dependency>
-
-    <!-- this needs to match cluster version -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>${guava-cdh.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
     </dependency>
 
   </dependencies>
-  <!-- END OF WORKFLOW ONLY DEPENDENCIES -->
 </project>

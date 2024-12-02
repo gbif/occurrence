@@ -49,6 +49,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.google.common.collect.Lists;
 
@@ -112,7 +113,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Primary
   @Bean
   public ObjectMapper registryObjectMapper() {
-    return JacksonJsonObjectMapperProvider.getObjectMapper().addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
+    return JacksonJsonObjectMapperProvider.getObjectMapper()
+      .registerModule(new JavaTimeModule())
+      .addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
   }
 
   @Bean

@@ -21,8 +21,8 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
-import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
@@ -62,7 +62,7 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testCallback() {
     prepareMocks(USER, false);
-    ResponseEntity<?> response = resource.oozieCallback(JOB_ID, STATUS);
+    ResponseEntity<?> response = resource.airflowCallback(JOB_ID, STATUS);
     assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
   }
 

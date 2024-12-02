@@ -9,10 +9,6 @@ SET hive.merge.mapfiles=false;
 -- Increases memory to avoid a "Container … is running beyond physical memory limits." error.
 SET mapreduce.map.memory.mb=8192;
 
-CREATE TEMPORARY FUNCTION contains AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
-CREATE TEMPORARY FUNCTION geoDistance AS 'org.gbif.occurrence.hive.udf.GeoDistanceUDF';
-CREATE TEMPORARY FUNCTION stringArrayContains AS 'org.gbif.occurrence.hive.udf.StringArrayContainsGenericUDF';
-
 -- in case this job is relaunched
 DROP TABLE IF EXISTS ${r"${downloadTableName}"};
 DROP TABLE IF EXISTS ${r"${downloadTableName}"}_citation;
@@ -20,7 +16,7 @@ DROP TABLE IF EXISTS ${r"${downloadTableName}"}_citation;
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${downloadTableName}"} (
 <#list parquetFields as key, field>
-  `${field.hiveField}` ${field.hiveDataType}<#if key_has_next>,</#if>
+  `${field.columnName}` ${field.hiveDataType}<#if key_has_next>,</#if>
 </#list>
 )
 STORED AS PARQUET
@@ -31,13 +27,13 @@ SELECT
 <#list hiveFields as key, field>
   ${field.hiveField} AS ${parquetFields[key].hiveField}<#if key_has_next>,</#if>
 </#list>
-FROM ${r"${tableName}"}
+FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
-SET mapred.reduce.tasks=1;
+SET spark.sql.shuffle.partitions=1;
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;

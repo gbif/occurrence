@@ -17,6 +17,7 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.*;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -128,7 +129,7 @@ public class OccurrenceHDFSTableDefinition {
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
-      if (!DownloadTerms.EXCLUSIONS.contains(t)) {
+      if (!DownloadTerms.EXCLUSIONS_HDFS.contains(t)) {
         if (initializers.containsKey(t)) {
           builder.add(interpretedField(t, initializers.get(t)));
         } else {
@@ -178,7 +179,7 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static InitializableField keyField() {
     return new InitializableField(GbifTerm.gbifID,
-                                  columnFor(GbifTerm.gbifID),
+                                  GbifTerm.gbifID.simpleName().toLowerCase(Locale.ENGLISH),
                                   HiveDataTypes.typeForTerm(GbifTerm.gbifID, true)
                                   // verbatim context
     );
@@ -188,7 +189,7 @@ public class OccurrenceHDFSTableDefinition {
    * Constructs a Field for the given term, when used in the verbatim context.
    */
   private static InitializableField verbatimField(Term term) {
-    String column = getVerbatimColPrefix() + term.simpleName().toLowerCase();
+    String column = getVerbatimColPrefix() + term.simpleName().toLowerCase(Locale.ENGLISH);
     return new InitializableField(term, column,
                                   // no escape needed, due to prefix
                                   HiveDataTypes.typeForTerm(term, true), // verbatim context
@@ -218,7 +219,7 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static InitializableField interpretedField(Term term, String initializer) {
     return new InitializableField(term,
-                                  columnFor(term),
+                                  term.simpleName().toLowerCase(Locale.ENGLISH),
                                   // note that Columns takes care of whether this is mounted
                                   // on a verbatim or an interpreted column for us
                                   HiveDataTypes.typeForTerm(term, false),

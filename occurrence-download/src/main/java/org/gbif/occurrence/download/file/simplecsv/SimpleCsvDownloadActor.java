@@ -33,13 +33,14 @@ import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
 import com.google.common.base.Throwables;
 
-import akka.actor.UntypedActor;
+import akka.actor.AbstractActor;
 
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
@@ -47,7 +48,7 @@ import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 /**
  * Actor that creates a part of the simple csv download file.
  */
-public class SimpleCsvDownloadActor<T extends Occurrence> extends UntypedActor {
+public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvDownloadActor.class);
 
@@ -71,24 +72,28 @@ public class SimpleCsvDownloadActor<T extends Occurrence> extends UntypedActor {
     .toArray(String[]::new);
 
   @Override
-  public void onReceive(Object message) throws Exception {
-    if (message instanceof DownloadFileWork) {
-      doWork((DownloadFileWork) message);
-    } else {
-      unhandled(message);
-    }
+  public Receive createReceive() {
+    return receiveBuilder()
+      .match(DownloadFileWork.class, this::doWork)
+      .build();
   }
 
   /**
-   * Executes the job.query and creates a data file that will contains the records from job.from to job.to positions.
+   * Executes the job.query and creates a data file that will contain the records from job.from to job.to positions.
    */
   private void doWork(DownloadFileWork work) throws IOException {
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
-    try (ICsvMapWriter csvMapWriter = new CsvMapWriter(new FileWriterWithEncoding(work.getJobDataFileName(),
-                                                                                  StandardCharsets.UTF_8),
-                                                       CsvPreference.TAB_PREFERENCE)) {
+    CsvPreference preference =
+        new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+            .useEncoder(new DefaultCsvEncoder())
+            .build();
+
+    try (ICsvMapWriter csvMapWriter =
+        new CsvMapWriter(
+            new FileWriterWithEncoding(work.getJobDataFileName(), StandardCharsets.UTF_8),
+            preference)) {
 
       searchQueryProcessor.processQuery(work, record -> {
           try {

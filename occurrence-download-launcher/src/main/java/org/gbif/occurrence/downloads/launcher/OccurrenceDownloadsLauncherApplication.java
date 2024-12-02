@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher;
 
-import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.ws.remoteauth.RemoteAuthClient;
 import org.gbif.ws.remoteauth.RemoteAuthWebSecurityConfigurer;
 import org.gbif.ws.remoteauth.RestTemplateRemoteAuthClient;
@@ -24,6 +22,7 @@ import org.gbif.ws.security.GbifAuthServiceImpl;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,7 +33,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
@@ -73,13 +71,6 @@ public class OccurrenceDownloadsLauncherApplication {
   }
 
   @Bean
-  @Primary
-  DownloadLauncher downloadLauncher(
-      ApplicationContext context, DownloadServiceConfiguration configuration) {
-    return context.getBean(configuration.getLauncherQualifier(), DownloadLauncher.class);
-  }
-
-  @Bean
   public RemoteAuthClient remoteAuthClient(
       RestTemplateBuilder builder, @Value("${registry.apiUrl}") String gbifApiUrl) {
     return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
@@ -87,7 +78,6 @@ public class OccurrenceDownloadsLauncherApplication {
 
   @Configuration
   public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-
     public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
       super(context, remoteAuthClient);
     }

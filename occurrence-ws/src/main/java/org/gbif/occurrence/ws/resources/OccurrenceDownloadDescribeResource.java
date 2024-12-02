@@ -46,8 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.gbif.occurrence.common.HiveColumnsUtils.HIVE_RESERVED_WORDS;
-
 /**
  * Resource to describe file/table formats use in GBIF occurrence downloads.
  *
@@ -272,9 +270,6 @@ public class OccurrenceDownloadDescribeResource {
       .map(field -> {
         InitializableField initializableField = field.getValue();
         String columnName = field.getKey().toLowerCase(Locale.ENGLISH);
-        if (HIVE_RESERVED_WORDS.contains(columnName)) {
-          columnName += '_';
-        }
         if (GbifTerm.verbatimScientificName == initializableField.getTerm()) {
           columnName = "v_" + DwcTerm.scientificName.simpleName().toLowerCase();
         }

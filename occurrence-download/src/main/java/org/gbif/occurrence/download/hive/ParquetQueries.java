@@ -13,13 +13,13 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import java.util.Locale;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
-import java.util.Locale;
-
 /**
- * Utilities related to the actual queries executed at runtime — these functions for generating AVRO downloads.
+ * Utilities related to the actual queries executed at runtime — these functions for generating Parquet
+ * downloads.
  */
 class ParquetQueries extends Queries {
 
@@ -35,15 +35,23 @@ class ParquetQueries extends Queries {
 
   @Override
   String toHiveInitializer(Term term) {
-    return HiveColumns.columnFor(term);
+    return term.simpleName().toLowerCase();
   }
 
   @Override
   String toInterpretedHiveInitializer(Term term) {
-    if (TermUtils.isVocabulary(term)) {
-      return toVocabularyConceptHiveInitializer(term);
+    if (TermUtils.isInterpretedLocalDateSeconds(term)
+        || TermUtils.isInterpretedUtcDateSeconds(term)
+        || TermUtils.isInterpretedUtcDateMilliseconds(term)) {
+      return "cast(from_unixtime(" + HiveColumns.columnFor(term) + ") as timestamp)";
+    } else if (TermUtils.isVocabulary(term)) {
+      if (TermUtils.isArray(term)) {
+        return toNestedHiveInitializer(term, "concepts");
+      } else {
+        return toNestedHiveInitializer(term, "concept");
+      }
     } else {
-      return HiveColumns.columnFor(term);
+      return term.simpleName().toLowerCase();
     }
   }
 }

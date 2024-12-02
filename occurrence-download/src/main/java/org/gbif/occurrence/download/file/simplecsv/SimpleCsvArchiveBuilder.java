@@ -19,9 +19,9 @@ import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.inject.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
@@ -44,8 +44,9 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
 import com.google.common.io.ByteStreams;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
 import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStream;
@@ -53,6 +54,7 @@ import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStrea
 /**
  * Utility class that creates zip file from a directory that stores the data of a Hive table.
  */
+@Slf4j
 public class SimpleCsvArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvArchiveBuilder.class);
@@ -94,6 +96,8 @@ public class SimpleCsvArchiveBuilder {
   public void mergeToZip(final FileSystem sourceFS, FileSystem targetFS, String sourcePath,
                                 String targetPath, String downloadKey, ModalZipOutputStream.MODE mode) throws IOException {
     Path outputPath = new Path(targetPath, downloadKey + ZIP_EXTENSION);
+    log.info("Creating zip file with  sourcePath:{} targetPath:{} downloadKey:{} mode:{}",
+             sourcePath, targetPath, downloadKey, mode);
     if (ModalZipOutputStream.MODE.PRE_DEFLATED == mode) {
       //Use hadoop-compress for pre_deflated files
       zipPreDeflated(sourceFS, targetFS, sourcePath, outputPath, downloadKey);
@@ -128,7 +132,7 @@ public class SimpleCsvArchiveBuilder {
       zos.closeEntry();
     } catch (Exception ex) {
       LOG.error(ERROR_ZIP_MSG, ex);
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -156,7 +160,7 @@ public class SimpleCsvArchiveBuilder {
         zos.closeEntry();
       } catch (Exception ex) {
         LOG.error(ERROR_ZIP_MSG, ex);
-        throw Throwables.propagate(ex);
+        throw new RuntimeException(ex);
       }
     }
   }

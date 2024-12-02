@@ -17,9 +17,9 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
-import org.gbif.occurrence.download.file.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadCount;
@@ -46,6 +46,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
@@ -123,8 +124,12 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
   }
 
   private void exportToFile(String outputFileName, SpeciesListCollector speciesListCollector) {
+    CsvPreference preference =
+      new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+        .useEncoder(new DefaultCsvEncoder())
+        .build();
     try (ICsvMapWriter csvMapWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), CsvPreference.TAB_PREFERENCE)) {
+        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), preference)) {
       Set<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
       distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
         try {

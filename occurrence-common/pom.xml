@@ -20,13 +20,13 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.195.9-SNAPSHOT</version>
+    <version>0.195.7-H3-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-common</artifactId>
   <packaging>jar</packaging>
 
-  <name>Occurrence Common</name>
+  <name>Occurrence :: Common</name>
   <description>Common objects for the Occurrence module that don't belong in the API</description>
 
   <distributionManagement>
@@ -82,12 +82,10 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

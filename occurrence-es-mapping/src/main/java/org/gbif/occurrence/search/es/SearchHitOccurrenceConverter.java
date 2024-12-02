@@ -14,6 +14,19 @@
 package org.gbif.occurrence.search.es;
 
 import com.google.common.collect.Maps;
+import java.net.URI;
+import java.text.ParseException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
@@ -36,7 +49,6 @@ import org.gbif.api.vocabulary.MediaType;
 import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.api.vocabulary.OccurrenceStatus;
 import org.gbif.api.vocabulary.Rank;
-import org.gbif.api.vocabulary.Sex;
 import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -47,21 +59,6 @@ import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
-
-import java.net.URI;
-import java.text.ParseException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
 
@@ -238,7 +235,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.pathway)).ifPresent(occ::setPathway);
     getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.modified)).ifPresent(occ::setModified);
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DcTerm.references), URI::create).ifPresent(occ::setReferences);
-    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.sex), Sex::valueOf).ifPresent(occ::setSex);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.sex)).ifPresent(occ::setSex);
     getListValueAsString(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.typeStatus).getValueFieldName()).ifPresent(occ::setTypeStatus);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.typifiedName)).ifPresent(occ::setTypifiedName);
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.individualCount), Integer::valueOf).ifPresent(occ::setIndividualCount);

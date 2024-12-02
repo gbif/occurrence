@@ -8,22 +8,10 @@ SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
 SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
--- For public use, prefix the functions with "gbif_" to avoid present and future collisions with SQL keywords, e.g. CONTAINS.
-CREATE TEMPORARY FUNCTION gbif_EEARGCode AS 'org.gbif.occurrence.hive.udf.EeaCellCodeUDF';
-CREATE TEMPORARY FUNCTION gbif_EQDGCCode AS 'org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF';
-CREATE TEMPORARY FUNCTION gbif_geoDistance AS 'org.gbif.occurrence.hive.udf.GeoDistanceUDF';
-CREATE TEMPORARY FUNCTION gbif_ISEA3HCode AS 'org.gbif.occurrence.hive.udf.Isea3hCellCodeUDF';
-CREATE TEMPORARY FUNCTION gbif_joinArray AS 'brickhouse.udf.collect.JoinArrayUDF';
-CREATE TEMPORARY FUNCTION gbif_MGRSCode AS 'org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF';
-CREATE TEMPORARY FUNCTION gbif_TemporalUncertainty AS 'org.gbif.occurrence.hive.udf.TemporalUncertaintyUDF';
-CREATE TEMPORARY FUNCTION gbif_toISO8601 AS 'org.gbif.occurrence.hive.udf.ToISO8601UDF';
-CREATE TEMPORARY FUNCTION gbif_toLocalISO8601 AS 'org.gbif.occurrence.hive.udf.ToLocalISO8601UDF';
-CREATE TEMPORARY FUNCTION gbif_within AS 'org.gbif.occurrence.hive.udf.ContainsUDF';
-
 -- in case this job is relaunched
-DROP TABLE IF EXISTS ${occurrenceTable};
+DROP TABLE IF EXISTS ${downloadTableName};
 
-CREATE TABLE ${occurrenceTable} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+CREATE TABLE ${downloadTableName} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
 AS ${sql};
 
@@ -32,4 +20,7 @@ SET hive.exec.compress.output=false;
 SET mapred.reduce.tasks=1;
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
-CREATE TABLE ${occurrenceTable}_count AS SELECT count(*) FROM ${occurrenceTable};
+CREATE TABLE ${downloadTableName}_count AS SELECT count(*) FROM ${downloadTableName};
+
+CREATE TABLE ${downloadTableName}_citation ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+AS SELECT datasetkey, COUNT(*) AS num_occurrences, license FROM iceberg.${hiveDB}.occurrence WHERE ${whereClause} AND datasetkey IS NOT NULL GROUP BY datasetkey, license;
