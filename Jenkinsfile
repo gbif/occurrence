@@ -4,7 +4,7 @@ pipeline {
     maven 'Maven3.6'
   }
   options {
-    buildDiscarder(logRotator(numToKeepStr: '10'))
+    buildDiscarder(logRotator(numToKeepStr: '5'))
     skipStagesAfterUnstable()
     timestamps()
   }
