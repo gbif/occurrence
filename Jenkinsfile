@@ -126,7 +126,7 @@ pipeline {
       }
     }
 
-     stage('Build and push Docker images: Downloads') {
+     stage('Release Docker images: Downloads') {
        when {
         allOf {
           expression { params.RELEASE };
@@ -138,7 +138,7 @@ pipeline {
       }
      }
 
-     stage('Build and push Docker images: Table build') {
+     stage('Release Docker images: Table build') {
       when {
         allOf {
           expression { params.RELEASE };
