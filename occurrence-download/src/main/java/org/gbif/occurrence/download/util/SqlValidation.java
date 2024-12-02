@@ -195,6 +195,9 @@ public class SqlValidation {
       // String array definition
       RelDataType varCharArray = tdf.createArrayType(varChar, -1);
 
+      // String array definition
+      RelDataType structMap = tdf.createMapType(varChar, varCharArray);
+
       // Vocabulary definition: "STRUCT<concept: STRING,lineage: ARRAY<STRING>>"
       RelDataType vocabulary = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
         Arrays.asList(varChar, varCharArray),
@@ -241,6 +244,11 @@ public class SqlValidation {
             case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
               // geologicalTime
               builder.add(field.getColumnName(), parentEventGbifId);
+              break;
+
+            case HiveDataTypes.TYPE_MAP_STRUCT:
+              // typeStatus.
+              builder.add(field.getColumnName(), structMap);
               break;
 
             default:
