@@ -28,6 +28,7 @@ import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
@@ -38,6 +39,7 @@ import java.util.*;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 
+@Slf4j
 public class SqlValidation {
 
   //Spark/Hive Catalog
@@ -242,7 +244,11 @@ public class SqlValidation {
               break;
 
             default:
-              builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
+              SqlTypeName sqlTypeName = HIVE_TYPE_MAPPING.get(field.getHiveDataType());
+              if (sqlTypeName == null){
+                log.error("Unknown Hive data type for column: {} {}", field.getColumnName(), field.getHiveDataType());
+              }
+              builder.add(field.getColumnName(), sqlTypeName);
           }
         }
       );
