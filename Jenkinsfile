@@ -110,7 +110,7 @@ pipeline {
           configFileProvider(
                   [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
                           variable: 'MAVEN_SETTINGS_XML')]) {
-              git 'https://github.com/gbif/vocabulary.git'
+              git 'https://github.com/gbif/occurrence.git'
               sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS'
           }
       }
@@ -133,7 +133,7 @@ pipeline {
           configFileProvider(
                   [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
                           variable: 'MAVEN_SETTINGS_XML')]) {
-              git 'https://github.com/gbif/vocabulary.git'
+              git 'https://github.com/gbif/occurrence.git'
               sh '''
                 cd occurrence-trino-udf
                 mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS_TRINO
