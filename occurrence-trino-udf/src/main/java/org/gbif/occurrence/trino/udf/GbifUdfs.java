@@ -28,7 +28,7 @@ public class GbifUdfs implements Plugin {
             DataCleanUdfs.class,
             DateTimeUdfs.class,
             ContainsUdf.class,
-            GeoDistanceUdf.class,
+//            GeoDistanceUdf.class,
             BasisOfRecordParseUDF.class,
             DateParseUDF.class,
             CoordinateCountryParseUDF.class,
