@@ -9,11 +9,17 @@ pipeline {
     timestamps()
   }
    parameters {
-    separator(name: "release_separator", sectionHeader: "Release Parameters")
+    separator(name: "release_separator", sectionHeader: "Release Main Project Parameters")
     booleanParam(name: 'RELEASE', defaultValue: false, description: 'Do a Maven release')
     string(name: 'RELEASE_VERSION', defaultValue: '', description: 'Release version (optional)')
     string(name: 'DEVELOPMENT_VERSION', defaultValue: '', description: 'Development version (optional)')
     booleanParam(name: 'DRY_RUN_RELEASE', defaultValue: false, description: 'Dry Run Maven release')
+
+    separator(name: "release_separator", sectionHeader: "Release Trino UDFs Parameters")
+    booleanParam(name: 'RELEASE_TRINO', defaultValue: false, description: 'Do a Maven release')
+    string(name: 'RELEASE_VERSION_TRINO', defaultValue: '', description: 'Release version (optional)')
+    string(name: 'DEVELOPMENT_VERSION_TRINO', defaultValue: '', description: 'Development version (optional)')
+    booleanParam(name: 'DRY_RUN_RELEASE_TRINO', defaultValue: false, description: 'Dry Run Maven release')
   }
   environment {
     JETTY_PORT = getPort()
@@ -116,12 +122,12 @@ pipeline {
       }
       when {
           allOf {
-              expression { params.RELEASE };
+              expression { params.RELEASE_TRINO };
               branch 'master';
           }
       }
       environment {
-          RELEASE_ARGS = createReleaseArgs()
+          RELEASE_ARGS_TRINO = createReleaseArgsTrino()
       }
       steps {
           configFileProvider(
@@ -130,7 +136,7 @@ pipeline {
               git 'https://github.com/gbif/vocabulary.git'
               sh '''
                 cd occurrence-trino-udf
-                mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS
+                mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS_TRINO
               '''
           }
       }
@@ -188,6 +194,21 @@ def createReleaseArgs() {
         args += "-DdevelopmentVersion=${params.DEVELOPMENT_VERSION} "
     }
     if (params.DRY_RUN_RELEASE) {
+        args += "-DdryRun=true"
+    }
+
+    return args
+}
+
+def createReleaseArgsTrino() {
+    def args = ""
+    if (params.RELEASE_VERSION_TRINO != '') {
+        args += "-DreleaseVersion=${params.RELEASE_VERSION_TRINO} "
+    }
+    if (params.DEVELOPMENT_VERSION_TRINO != '') {
+        args += "-DdevelopmentVersion=${params.DEVELOPMENT_VERSION_TRINO} "
+    }
+    if (params.DRY_RUN_RELEASE_TRINO) {
         args += "-DdryRun=true"
     }
 

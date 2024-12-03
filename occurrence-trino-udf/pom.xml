@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <version>0.195.7-H3-SNAPSHOT</version>
+  <version>0.195.7-jdk17-SNAPSHOT</version>
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-trino-udf</artifactId>
 
@@ -24,6 +24,22 @@
     <junit-jupiter.version>5.6.3</junit-jupiter.version>
     <geotools.version>22.2</geotools.version>
   </properties>
+
+  <distributionManagement>
+    <site>
+      <id>gh-pages</id>
+      <url>http://gbif.github.io/occurrence/</url>
+    </site>
+    <repository>
+      <id>gbif-release</id>
+      <url>https://repository.gbif.org/content/repositories/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>gbif-deploy</id>
+      <url>https://repository.gbif.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <repositories>
     <repository>
       <id>gbif-central</id>
