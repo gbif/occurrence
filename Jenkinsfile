@@ -105,7 +105,8 @@ pipeline {
         }
       }
       steps {
-        build job: "occurrence-ws-dev-deploy", wait: false, propagate: false
+        // commented because the job is currently disabled
+        // build job: "occurrence-ws-dev-deploy", wait: false, propagate: false
       }
     }
 
