@@ -24,12 +24,16 @@ public class TrailingSlashHandlerFilter extends OncePerRequestFilter {
     HttpServletResponse response,
     FilterChain filterChain
   ) throws ServletException, IOException {
-    String requestUri = request.getRequestURI();
 
-    if (requestUri.endsWith("/")) {
-      String newUrl = apiUrl + requestUri.substring(0, requestUri.length() - 1);
+    if (request.getRequestURL().toString().endsWith("/")) {
+      String newUrl = request.getRequestURL().substring(0, request.getRequestURL().length() - 1);
+      StringBuilder url = new StringBuilder(newUrl);
+      String queryString = request.getQueryString();
+      if (queryString != null) {
+        url.append("?").append(queryString);
+      }
       response.setStatus(HttpStatus.MOVED_PERMANENTLY.value());
-      response.setHeader(HttpHeaders.LOCATION, newUrl);
+      response.setHeader(HttpHeaders.LOCATION, url.toString());
       return;
     }
 
