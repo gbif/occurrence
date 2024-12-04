@@ -13,10 +13,12 @@
  */
 package org.gbif.occurrence.ws.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
-import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
+import org.gbif.rest.client.species.Metadata;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.ws.util.CommonWsUtils;
 
@@ -28,14 +30,15 @@ import org.springframework.web.context.request.WebRequest;
 import io.micrometer.core.instrument.util.StringUtils;
 
 @Component
+@Slf4j
 public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
   extends OccurrenceSearchRequestHandlerMethodArgumentResolver {
 
-  protected final NameUsageMatchServiceTriage triage;
+  protected final NameUsageMatchingService nameUsageMatchingService;
 
-  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver(NameUsageMatchServiceTriage triage) {
+  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver(NameUsageMatchingService nameUsageMatchingService) {
     super();
-    this.triage = triage;
+    this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
   @Override
@@ -105,7 +108,6 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     return Optional.empty();
   }
 
-
   private List<OccurrenceSearchParameter> getChecklistParameters(Map<String, String[]> params) {
 
     List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
@@ -121,15 +123,24 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       }
     }
 
-    if (checklistKey != null) {
-      // get a list of recognised ranks for this checklist
-      Collection<String> ranks = triage.getChecklistRanks(checklistKey);
-      ranks.forEach(rank -> {
-        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase(), String.class));
-        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class));
-      });
-    }
+    // get a list of recognised ranks for this checklist
+    loadChecklistRankParams(checklistKey, checklistParameters);
     return checklistParameters;
+  }
+
+  private void loadChecklistRankParams(String checklistKey, List<OccurrenceSearchParameter> checklistParameters) {
+    if (checklistKey != null) {
+      try {
+        // get a list of recognised ranks for this checklist
+        Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
+        metadata.getMainIndex().getNameUsageByRankCount().keySet().forEach(rank -> {
+          checklistParameters.add(new OccurrenceSearchParameter(rank, String.class));
+          checklistParameters.add(new OccurrenceSearchParameter(rank + "_KEY", String.class));
+        });
+      } catch (Exception e) {
+        log.error("Failed to get metadata for checklist {}", checklistKey, e);
+      }
+    }
   }
 
   private List<OccurrenceSearchParameter> getChecklistParameters(OccurrenceSearchRequest request) {
@@ -139,12 +150,10 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     // add support for dynamic facets for ranks ....
     if (request.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
       // get a list of recognised ranks for this checklist
-      String checklistKey = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
-      Collection<String> ranks = triage.getChecklistRanks(checklistKey);
-      ranks.forEach(rank -> {
-        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase(), String.class));
-        checklistParameters.add(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class));
-      });
+      Set<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
+      if (!checklistKeys.isEmpty()) {
+        loadChecklistRankParams(checklistKeys.iterator().next(), checklistParameters);
+      }
     }
     return checklistParameters;
   }

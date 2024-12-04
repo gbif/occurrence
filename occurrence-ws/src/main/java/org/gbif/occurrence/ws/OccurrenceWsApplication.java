@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.ws;
 
-import org.gbif.occurrence.search.configuration.NameUsageMatchServiceConfiguration;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -34,7 +33,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -44,7 +42,6 @@ import org.springframework.context.annotation.FilterType;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootApplication(exclude = {RabbitAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class})
-@EnableConfigurationProperties(NameUsageMatchServiceConfiguration.class)
 @ComponentScan(
     basePackages = {
       "org.gbif.ws.server.interceptor",

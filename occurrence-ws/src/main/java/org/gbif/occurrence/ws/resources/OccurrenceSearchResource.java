@@ -31,9 +31,9 @@ import org.gbif.api.vocabulary.OccurrenceStatus;
 import org.gbif.api.vocabulary.TaxonomicStatus;
 import org.gbif.api.vocabulary.ThreatStatus;
 import org.gbif.occurrence.search.SearchTermService;
-import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import java.lang.annotation.Inherited;
@@ -41,7 +41,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -126,18 +125,16 @@ public class OccurrenceSearchResource {
   private final SearchTermService searchTermService;
 
   private final EsSearchRequestBuilder esSearchRequestBuilder;
-  private final NameUsageMatchServiceTriage nameUsageMatchServiceTriage;
 
   @Autowired
   public OccurrenceSearchResource(
     OccurrenceSearchService searchService,
     SearchTermService searchTermService,
-    ConceptClient conceptClient, NameUsageMatchServiceTriage nameUsageMatchServiceTriage) {
+    ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;
     this.esSearchRequestBuilder =
-        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), conceptClient, nameUsageMatchServiceTriage);
-    this.nameUsageMatchServiceTriage = nameUsageMatchServiceTriage;
+        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), conceptClient, nameUsageMatchingService);
   }
 
   /**
@@ -1849,32 +1846,5 @@ public class OccurrenceSearchResource {
       OccurrenceSearchParameter.lookup(term)
         .map(parameter -> searchTermService.searchFieldTerms(query, parameter, limit))
         .orElseThrow(() -> new IllegalArgumentException("Search not supported for term " +  term));
-  }
-
-  @GetMapping("checklist/{checklistKey}/ranks")
-  @ResponseBody
-  public Collection<String> checklistRanks(@PathVariable("checklistKey") String checklistKey) {
-    return nameUsageMatchServiceTriage.getChecklistRanks(checklistKey);
-  }
-
-  @GetMapping("checklist/{checklistKey}/rankKeys")
-  @ResponseBody
-  public Collection<String> checklistRankKeys(@PathVariable("checklistKey") String checklistKey) {
-    return nameUsageMatchServiceTriage.getChecklistRanks(checklistKey)
-      .stream().map(rank -> rank + "_KEY").collect(Collectors.toList());
-  }
-
-  @PostMapping("checklist/{checklistKey}/name")
-  @ResponseBody
-  public Map<String, Map<String, String>> nameLookups(
-    @PathVariable("checklistKey") String checklistKey, @RequestBody List<String> taxonKeys) {
-    return nameUsageMatchServiceTriage.lookupNames(checklistKey, taxonKeys);
-  }
-
-  @GetMapping("checklist/{checklistKey}/name/{taxonKey}")
-  @ResponseBody
-  public Map<String, String> nameLookup(
-    @PathVariable("checklistKey") String checklistKey, @PathVariable("taxonKey") String taxonKey) {
-    return nameUsageMatchServiceTriage.lookupName(checklistKey, taxonKey);
   }
 }

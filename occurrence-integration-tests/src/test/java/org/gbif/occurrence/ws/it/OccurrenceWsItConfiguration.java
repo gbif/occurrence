@@ -19,7 +19,6 @@ import org.gbif.api.vocabulary.UserRole;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
-import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
@@ -163,11 +162,6 @@ public class OccurrenceWsItConfiguration {
     return Mockito.mock(NameUsageMatchingService.class);
   }
 
-  @Bean
-  public NameUsageMatchServiceTriage nameUsageMatchServiceTriage() {
-    return Mockito.mock(NameUsageMatchServiceTriage.class);
-  }
-
   /** Mock service to interact with the Registry. */
   @Bean
   @ConditionalOnProperty(name = "api.url", matchIfMissing = true)
@@ -183,10 +177,8 @@ public class OccurrenceWsItConfiguration {
   }
 
   @Bean
-  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver checklistAwareSearchRequestHandlerMethodArgumentResolver(
-    NameUsageMatchServiceTriage triage
-  ) {
-    return new ChecklistAwareSearchRequestHandlerMethodArgumentResolver(triage);
+  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver checklistAwareSearchRequestHandlerMethodArgumentResolver() {
+    return new ChecklistAwareSearchRequestHandlerMethodArgumentResolver(null);
   }
 
   /** Creates a DownloadRequestService using the available mock instances. */

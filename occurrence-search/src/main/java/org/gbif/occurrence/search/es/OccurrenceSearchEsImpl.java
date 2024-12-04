@@ -24,7 +24,6 @@ import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
-import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.vocabulary.client.ConceptClient;
 
@@ -50,7 +49,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import com.google.common.base.Preconditions;
 
 import lombok.SneakyThrows;
@@ -63,7 +62,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
 
-  private final NameUsageMatchServiceTriage nameUsageMatchServiceTriage;
+  private final NameUsageMatchingService nameUsageMatchingService;
   private final RestHighLevelClient esClient;
   private final String esIndex;
   private final int maxLimit;
@@ -77,7 +76,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   @Autowired
   public OccurrenceSearchEsImpl(
     RestHighLevelClient esClient,
-    NameUsageMatchServiceTriage nameUsageMatchServiceTriage,
+    NameUsageMatchingService nameUsageMatchingService,
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
@@ -90,10 +89,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.esIndex = esIndex;
     // create ES client
     this.esClient = esClient;
-    this.nameUsageMatchServiceTriage = nameUsageMatchServiceTriage;
+    this.nameUsageMatchingService = nameUsageMatchingService;
     this.esFieldMapper = esFieldMapper;
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceBaseEsFieldMapper(esFieldMapper).build();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient, nameUsageMatchServiceTriage);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient, nameUsageMatchingService);
     searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);
   }
@@ -340,7 +339,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
       for (String scientificName : scientificNames) {
 
-        NameUsageMatchResponse nameUsageMatch = nameUsageMatchServiceTriage.match(checklistKey, NameUsageMatchRequest.builder()
+        NameUsageMatchResponse nameUsageMatch = nameUsageMatchingService.match(NameUsageMatchRequest.builder()
+          .withChecklistKey(checklistKey)
           .withScientificName(scientificName)
           .withStrict(false)
           .withVerbose(false)

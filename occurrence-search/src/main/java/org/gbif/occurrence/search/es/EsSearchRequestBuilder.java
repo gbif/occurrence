@@ -22,10 +22,12 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.occurrence.search.configuration.NameUsageMatchServiceTriage;
 import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
+import org.gbif.rest.client.species.Metadata;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import java.io.IOException;
@@ -79,13 +81,14 @@ public class EsSearchRequestBuilder {
 
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final ConceptClient conceptClient;
-  private final NameUsageMatchServiceTriage triage;
+  private final NameUsageMatchingService nameUsageMatchingService;
 
   public EsSearchRequestBuilder(
-      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient, NameUsageMatchServiceTriage triage) {
+      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient,
+      NameUsageMatchingService nameUsageMatchingService) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
     this.conceptClient = conceptClient;
-    this.triage = triage;
+    this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
   public SearchRequest buildSearchRequest(OccurrenceSearchRequest searchRequest, String index) {
@@ -281,8 +284,9 @@ public class EsSearchRequestBuilder {
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY,
         "classifications." + checklistKey + ".acceptedUsage.key.keyword");
 
-      if (triage != null){
-        triage.getChecklistRanks(checklistKey).forEach(rank -> {
+      if (nameUsageMatchingService != null){
+        nameUsageMatchingService.getMetadata(checklistKey)
+          .getMainIndex().getNameUsageByRankCount().keySet().forEach(rank -> {
           addChecklistKeyTaxonKeyQuery(
             checklistKey,
             rank,
@@ -512,9 +516,13 @@ public class EsSearchRequestBuilder {
 
     if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
       String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
-      for (String rank: triage.getChecklistRanks(checklistKey)){
-        if (p.equals(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class))) {
-          return true;
+      Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
+      if (metadata != null) {
+        Set<String> ranks = metadata.getMainIndex().getNameUsageByRankCount().keySet();
+        for (String rank : ranks) {
+          if (p.equals(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class))) {
+            return true;
+          }
         }
       }
     }

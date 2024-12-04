@@ -26,6 +26,10 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
+import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.springframework.beans.factory.annotation.Value;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
@@ -90,5 +94,14 @@ public class OccurrenceSearchConfiguration  {
     }
 
     return highLevelClient;
+  }
+
+  @Bean
+  public NameUsageMatchingService nameUsageMatchingService(@Value("${nameUsageMatchingService.ws.url}") String apiUrl) {
+    return new ClientBuilder()
+        .withUrl(apiUrl)
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withFormEncoder()
+        .build(NameUsageMatchingService.class);
   }
 }
