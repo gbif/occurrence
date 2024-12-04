@@ -12,7 +12,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <gbif-api.version>2.0.0</gbif-api.version>
     <lucene.version>8.7.0</lucene.version>
-    <trino.version>414</trino.version>
+    <trino.version>451</trino.version>
     <slice.version>0.45</slice.version>
     <lombok.version>1.18.20</lombok.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
