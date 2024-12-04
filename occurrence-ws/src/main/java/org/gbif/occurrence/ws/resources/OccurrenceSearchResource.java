@@ -1508,13 +1508,6 @@ public class OccurrenceSearchResource {
     return searchService.search(request);
   }
 
-  @Hidden
-  @GetMapping("/")
-  public SearchResponse<Occurrence, OccurrenceSearchParameter> searchTrailingSlash(
-    OccurrenceSearchRequest request) {
-    return search(request);
-  }
-
   /**
    * A search request using POST rather than GET.
    */
