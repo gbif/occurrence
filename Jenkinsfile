@@ -105,7 +105,7 @@ pipeline {
         }
       }
       steps {
-        build job: "occurrence-ws-dev-deploy", wait: false
+        build job: "occurrence-ws-dev-deploy", wait: false, propagate: false
       }
     }
 
