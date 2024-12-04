@@ -76,9 +76,12 @@ pipeline {
           not { expression { params.RELEASE_TRINO } };
         }
       }
+      environment {
+          POM_VERSION = readMavenPom().getVersion()
+      }
       steps {
          sh '''
-          build/occurrence-download-spark-docker-build.sh $(mvn -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)
+          build/occurrence-download-spark-docker-build.sh $POM_VERSION
          '''
       }
     }
@@ -90,9 +93,12 @@ pipeline {
           not { expression { params.RELEASE_TRINO } };
         }
       }
+      environment {
+          POM_VERSION = readMavenPom().getVersion()
+      }
       steps {
         sh '''
-          build/occurrence-table-build-spark-docker-build.sh $(mvn -q -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec)
+          build/occurrence-table-build-spark-docker-build.sh $POM_VERSION
         '''
       }
     }
@@ -131,7 +137,7 @@ pipeline {
           }
       }
       environment {
-          RELEASE_ARGS_TRINO = createReleaseArgsTrino(params.RELEASE_VERSION_TRINO, params.DEVELOPMENT_VERSION_TRINO, params.DRY_RUN_RELEASE_TRINO)
+          RELEASE_ARGS_TRINO = createReleaseArgs(params.RELEASE_VERSION_TRINO, params.DEVELOPMENT_VERSION_TRINO, params.DRY_RUN_RELEASE_TRINO)
       }
       steps {
           configFileProvider(
@@ -214,5 +220,6 @@ def getReleaseVersion(inputVersion) {
     if (inputVersion != '') {
         return inputVersion
     }
-    return """${sh(returnStdout: true, script: '$(mvn -q -Dexec.executable=\'echo\' -Dexec.args=\'${project.version}\' --non-recursive exec:exec)')}"""
+    pomVersion = readMavenPom().getVersion()
+    return pomVersion.substring(0, pomVersion.indexOf("-SNAPSHOT"))
 }
