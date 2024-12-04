@@ -87,7 +87,6 @@ pipeline {
         allOf {
           not { expression { params.RELEASE } };
           not { expression { params.RELEASE_TRINO } };
-          branch 'dev';
         }
       }
       steps {
@@ -102,6 +101,7 @@ pipeline {
         allOf {
           not { expression { params.RELEASE } };
           not { expression { params.RELEASE_TRINO } };
+          branch 'dev';
         }
       }
       steps {
