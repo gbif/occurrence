@@ -105,8 +105,8 @@ pipeline {
         }
       }
       steps {
-        // commented because the job is currently disabled
         // build job: "occurrence-ws-dev-deploy", wait: false, propagate: false
+        echo "This stage is commented the occurrence-ws-dev-deploy is currently disabled. Please uncomment this when it's enbaled again"
       }
     }
 
