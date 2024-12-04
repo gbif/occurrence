@@ -210,6 +210,5 @@ def getReleaseVersion(inputVersion) {
     if (inputVersion != '') {
         return inputVersion
     }
-    pomVersion = readMavenPom().getVersion()
-    return pomVersion.substring(0, pomVersion.indexOf("-SNAPSHOT"))
+    return "${POM_VERSION}".substring(0, "${POM_VERSION}".indexOf("-SNAPSHOT"))
 }
