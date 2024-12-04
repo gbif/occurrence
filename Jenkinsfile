@@ -24,6 +24,7 @@ pipeline {
   }
   environment {
     JETTY_PORT = getPort()
+    POM_VERSION = readMavenPom().getVersion()
   }
   stages {
 
@@ -74,9 +75,6 @@ pipeline {
           not { expression { params.RELEASE_TRINO } };
         }
       }
-      environment {
-          POM_VERSION = readMavenPom().getVersion()
-      }
       steps {
          sh '''
           build/occurrence-download-spark-docker-build.sh $POM_VERSION
@@ -90,9 +88,6 @@ pipeline {
           not { expression { params.RELEASE } };
           not { expression { params.RELEASE_TRINO } };
         }
-      }
-      environment {
-          POM_VERSION = readMavenPom().getVersion()
       }
       steps {
         sh '''
