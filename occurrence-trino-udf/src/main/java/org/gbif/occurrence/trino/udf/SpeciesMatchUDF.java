@@ -13,16 +13,20 @@
  */
 package org.gbif.occurrence.trino.udf;
 
+import static io.trino.spi.type.IntegerType.INTEGER;
+import static io.trino.spi.type.VarcharType.VARCHAR;
+
 import io.airlift.slice.Slice;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.RowBlockBuilder;
-import io.trino.spi.block.SingleRowBlockWriter;
 import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
 import io.trino.spi.function.SqlType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.StandardTypes;
+import java.util.Optional;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.Rank;
@@ -31,12 +35,6 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.occurrence.trino.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.trino.processor.interpreters.TaxonomyInterpreter;
-
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import static io.trino.spi.type.IntegerType.INTEGER;
-import static io.trino.spi.type.VarcharType.VARCHAR;
 
 /**
  * A UDF to run a backbone species match against the GBIF API. The UDF is lazily initialized with
@@ -144,33 +142,32 @@ public class SpeciesMatchUDF {
       ParseResult<NameUsageMatch> response =
           getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
-      RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-      SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+      RowBlockBuilder blockBuilder = rowType.createBlockBuilder(null, 5);
 
       Consumer<Integer> intWriter =
           v -> {
             if (v != null) {
-              INTEGER.writeLong(builder, v);
+              INTEGER.writeLong(blockBuilder, v);
             } else {
-              builder.appendNull();
+              blockBuilder.appendNull();
             }
           };
 
       Consumer<String> stringWriter =
           v -> {
             if (v != null) {
-              VARCHAR.writeString(builder, v);
+              VARCHAR.writeString(blockBuilder, v);
             } else {
-              builder.appendNull();
+              blockBuilder.appendNull();
             }
           };
 
       Consumer<Enum> enumWriter =
           v -> {
             if (v != null) {
-              VARCHAR.writeString(builder, v.name());
+              VARCHAR.writeString(blockBuilder, v.name());
             } else {
-              builder.appendNull();
+              blockBuilder.appendNull();
             }
           };
 
@@ -203,16 +200,15 @@ public class SpeciesMatchUDF {
           stringWriter.accept(lookup.getSpecies());
         } else {
           if (response.getError() != null) {
-            log.error("Error finding species match", response.getError());
+            log.error("Error finding species match", response.getError().getMessage());
           }
           // set all fields to null
           for (int i = 0; i < 20; i++) {
-            builder.appendNull();
+            blockBuilder.appendNull();
           }
         }
 
-        blockBuilder.closeEntry();
-        return blockBuilder.build().getObject(0, Block.class);
+        return blockBuilder.build();
       }
     } catch (Exception e) {
       System.err.println(e.getMessage());
@@ -221,14 +217,12 @@ public class SpeciesMatchUDF {
 
     // if we got till here we return an empty row
     RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
 
     // set all fields to null
     for (int i = 0; i < 21; i++) {
-      builder.appendNull();
+      blockBuilder.appendNull();
     }
 
-    blockBuilder.closeEntry();
-    return blockBuilder.build().getObject(0, Block.class);
+    return blockBuilder.build();
   }
 }

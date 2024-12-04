@@ -13,46 +13,39 @@
  */
 package org.gbif.occurrence.trino.udf;
 
+import static io.trino.spi.type.BigintType.*;
+
 import io.airlift.slice.Slice;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.RowBlockBuilder;
-import io.trino.spi.block.SingleRowBlockWriter;
 import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
 import io.trino.spi.function.SqlType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.StandardTypes;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
+import java.util.Optional;
+import java.util.function.Consumer;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.date.TemporalAccessorUtils;
 import org.gbif.occurrence.trino.processor.interpreters.TemporalInterpreter;
 
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoField;
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import static io.trino.spi.type.BigintType.*;
-
 /**
  * Parses year, month, day, eventDate, startDayOfYear and endDayOfYear.
  *
- * Quick test example:
+ * <p>Quick test example:
  *
- * SELECT
- *    c, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)), from_unixtime(floor(d.epoch_to/1000)), d.issue,
- *    v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear
- *  FROM
- *    (SELECT
- *       c, v_eventdate, v_year, v_month, v_day, v_startdayofyear, v_enddayofyear,
- *       parseDate(v_year, v_month, v_day, v_eventdate, v_startdayofyear, v_enddayofyear) d
- *     FROM prod_h.occurrence
- *     WHERE v_eventdate IS NOT NULL
- *     LIMIT 1000
- *    ) r;
+ * <p>SELECT c, d.year, d.month, d.day, from_unixtime(floor(d.epoch_from/1000)),
+ * from_unixtime(floor(d.epoch_to/1000)), d.issue, v_eventdate, v_year, v_month, v_day,
+ * v_startdayofyear, v_enddayofyear FROM (SELECT c, v_eventdate, v_year, v_month, v_day,
+ * v_startdayofyear, v_enddayofyear, parseDate(v_year, v_month, v_day, v_eventdate,
+ * v_startdayofyear, v_enddayofyear) d FROM prod_h.occurrence WHERE v_eventdate IS NOT NULL LIMIT
+ * 1000 ) r;
  *
- * See the script at the root of this module for a full example for testing parsing.
+ * <p>See the script at the root of this module for a full example for testing parsing.
  */
 public class DateParseUDF {
 
@@ -154,15 +147,14 @@ public class DateParseUDF {
             new RowType.Field(Optional.of("day"), BIGINT),
             new RowType.Field(Optional.of("epoch_from"), BIGINT),
             new RowType.Field(Optional.of("epoch_to"), BIGINT));
-    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
-    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
+    RowBlockBuilder blockBuilder = rowType.createBlockBuilder(null, 5);
 
     Consumer<Long> writer =
         v -> {
           if (v != null) {
-            BIGINT.writeLong(builder, v);
+            BIGINT.writeLong(blockBuilder, v);
           } else {
-            builder.appendNull();
+            blockBuilder.appendNull();
           }
         };
 
@@ -172,8 +164,6 @@ public class DateParseUDF {
     writer.accept(parsedEpochFrom);
     writer.accept(parsedEpochTo);
 
-    blockBuilder.closeEntry();
-
-    return blockBuilder.build().getObject(0, Block.class);
+    return blockBuilder.build();
   }
 }

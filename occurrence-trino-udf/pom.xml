@@ -21,6 +21,7 @@
     <gbif.kvs.version>2.0.0</gbif.kvs.version>
     <junit-jupiter.version>5.6.3</junit-jupiter.version>
     <geotools.version>22.2</geotools.version>
+    <occurrence.version>1.0.5</occurrence.version>
 
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <maven-shade-plugin.version>3.5.0</maven-shade-plugin.version>
@@ -179,6 +180,12 @@
       </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-spark-udf</artifactId>
+      <version>${occurrence.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
