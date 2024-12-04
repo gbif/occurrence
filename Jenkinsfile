@@ -2,6 +2,7 @@ pipeline {
   agent any
   tools {
     maven 'Maven 3.8.5'
+    jdk 'OpenJDK11'
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -27,9 +28,6 @@ pipeline {
   stages {
 
     stage('Maven build: Main project (Java 11)') {
-      tools {
-        jdk 'OpenJDK11'
-      }
        when {
         allOf {
           not { expression { params.RELEASE } };
@@ -104,9 +102,6 @@ pipeline {
     }
 
     stage('Maven release: Main project (Java 11)') {
-      tools {
-        jdk 'OpenJDK11'
-      }
       when {
           allOf {
               expression { params.RELEASE };
