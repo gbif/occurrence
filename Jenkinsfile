@@ -33,6 +33,7 @@ pipeline {
        when {
         allOf {
           not { expression { params.RELEASE } };
+          not { expression { params.RELEASE_TRINO } };
         }
       }
       steps {
@@ -52,6 +53,7 @@ pipeline {
       when {
         allOf {
           not { expression { params.RELEASE } };
+          not { expression { params.RELEASE_TRINO } };
         }
       }
       steps {
@@ -71,6 +73,7 @@ pipeline {
       when {
         allOf {
           not { expression { params.RELEASE } };
+          not { expression { params.RELEASE_TRINO } };
         }
       }
       steps {
@@ -84,6 +87,7 @@ pipeline {
       when {
         allOf {
           not { expression { params.RELEASE } };
+          not { expression { params.RELEASE_TRINO } };
         }
       }
       steps {
@@ -104,7 +108,7 @@ pipeline {
           }
       }
       environment {
-          RELEASE_ARGS = createReleaseArgs()
+          RELEASE_ARGS = createReleaseArgs(params.RELEASE_VERSION, params.DEVELOPMENT_VERSION, params.DRY_RUN_RELEASE)
       }
       steps {
           configFileProvider(
@@ -127,7 +131,7 @@ pipeline {
           }
       }
       environment {
-          RELEASE_ARGS_TRINO = createReleaseArgsTrino()
+          RELEASE_ARGS_TRINO = createReleaseArgsTrino(params.RELEASE_VERSION_TRINO, params.DEVELOPMENT_VERSION_TRINO, params.DRY_RUN_RELEASE_TRINO)
       }
       steps {
           configFileProvider(
@@ -149,8 +153,11 @@ pipeline {
           branch 'master';
         }
       }
+      environment {
+          VERSION = getReleaseVersion(params.RELEASE_VERSION)
+      }
       steps {
-        sh 'build/occurrence-download-spark-docker-build.sh ${RELEASE_VERSION}'
+        sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
       }
      }
 
@@ -161,8 +168,11 @@ pipeline {
           branch 'master';
         }
       }
+      environment {
+          VERSION = getReleaseVersion(params.RELEASE_VERSION)
+      }
       steps {
-        sh 'build/occurrence-table-build-spark-docker-build.sh ${RELEASE_VERSION}'
+        sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
       }
      }
   }
@@ -185,32 +195,24 @@ def getPort() {
   }
 }
 
-def createReleaseArgs() {
+def createReleaseArgs(inputVersion, inputDevVersion, inputDryrun) {
     def args = ""
-    if (params.RELEASE_VERSION != '') {
-        args += "-DreleaseVersion=${params.RELEASE_VERSION} "
+    if (inputVersion != '') {
+        args += " -DreleaseVersion=" + inputVersion
     }
-    if (params.DEVELOPMENT_VERSION != '') {
-        args += "-DdevelopmentVersion=${params.DEVELOPMENT_VERSION} "
+    if (inputDevVersion != '') {
+        args += " -DdevelopmentVersion=" + inputDevVersion
     }
-    if (params.DRY_RUN_RELEASE) {
-        args += "-DdryRun=true"
+    if (inputDryrun) {
+        args += " -DdryRun=true"
     }
 
     return args
 }
 
-def createReleaseArgsTrino() {
-    def args = ""
-    if (params.RELEASE_VERSION_TRINO != '') {
-        args += "-DreleaseVersion=${params.RELEASE_VERSION_TRINO} "
+def getReleaseVersion(inputVersion) {
+    if (inputVersion != '') {
+        return inputVersion
     }
-    if (params.DEVELOPMENT_VERSION_TRINO != '') {
-        args += "-DdevelopmentVersion=${params.DEVELOPMENT_VERSION_TRINO} "
-    }
-    if (params.DRY_RUN_RELEASE_TRINO) {
-        args += "-DdryRun=true"
-    }
-
-    return args
+    return """${sh(returnStdout: true, script: '$(mvn -q -Dexec.executable=\'echo\' -Dexec.args=\'${project.version}\' --non-recursive exec:exec)')}"""
 }
