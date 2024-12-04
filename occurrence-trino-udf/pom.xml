@@ -27,6 +27,7 @@
     <maven-shade-plugin.version>3.5.0</maven-shade-plugin.version>
     <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
     <maven-site-plugin.version>3.21.0</maven-site-plugin.version>
+    <wagon-maven-plugin.version>2.0.0</wagon-maven-plugin.version>
   </properties>
 
   <scm>
@@ -39,7 +40,7 @@
   <distributionManagement>
     <site>
       <id>gh-pages</id>
-      <url>https://gbif.github.io/occurrence/</url>
+      <url>http://gbif.github.io/occurrence/</url>
     </site>
     <repository>
       <id>gbif-release</id>
@@ -145,10 +146,10 @@
             </compilerArguments>
             <fork>true</fork>
             <verbose>true</verbose>
-            <source>17</source>
-            <target>17</target>
+            <source>22</source>
+            <target>22</target>
             <showWarnings>true</showWarnings>
-            <compilerVersion>17</compilerVersion>
+            <compilerVersion>22</compilerVersion>
             <debug>true</debug>
           </configuration>
         </plugin>
@@ -174,8 +175,13 @@
           <artifactId>maven-site-plugin</artifactId>
           <version>${maven-site-plugin.version}</version>
           <configuration>
-            <topSiteURL>https://gbif.github.io/occurrence/</topSiteURL>
+            <topSiteURL>http://gbif.github.io/occurrence/</topSiteURL>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>wagon-maven-plugin</artifactId>
+          <version>${wagon-maven-plugin.version}</version>
         </plugin>
       </plugins>
   </build>
