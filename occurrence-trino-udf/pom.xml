@@ -6,18 +6,18 @@
   <artifactId>occurrence-trino-udf</artifactId>
 
   <properties>
-    <java.version>17</java.version>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <java.version>22</java.version>
+    <maven.compiler.source>22</maven.compiler.source>
+    <maven.compiler.target>22</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <gbif-api.version>2.0.0</gbif-api.version>
     <lucene.version>8.7.0</lucene.version>
     <trino.version>451</trino.version>
     <slice.version>0.45</slice.version>
-    <lombok.version>1.18.20</lombok.version>
+    <lombok.version>1.18.36</lombok.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
     <geocode.version>1.1</geocode.version>
-    <gbif-common-ws.version>1.24</gbif-common-ws.version>
+    <gbif-common-ws.version>2.0.3</gbif-common-ws.version>
     <gbif.kvs.version>2.0.0</gbif.kvs.version>
     <junit-jupiter.version>5.6.3</junit-jupiter.version>
     <geotools.version>22.2</geotools.version>

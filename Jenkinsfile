@@ -44,9 +44,9 @@ pipeline {
       }
     }
 
-    stage('Maven build: Trino module (Java 17)') {
+    stage('Maven build: Trino module (Java 22)') {
       tools {
-        jdk 'OpenJDK17'
+        jdk 'OpenJDK22'
       }
       when {
         allOf {
@@ -58,7 +58,7 @@ pipeline {
         configFileProvider([
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
           ]) {
-          // occurrence-trino-udf needs jdk17 because the trino library uses jdk17
+          // occurrence-trino-udf needs jdk22 because the trino spi library uses jdk22
           sh '''
             cd occurrence-trino-udf
             mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B
@@ -121,9 +121,9 @@ pipeline {
       }
     }
 
-    stage('Maven release: Trino module (Java 17) ') {
+    stage('Maven release: Trino module (Java 22) ') {
       tools {
-        jdk 'OpenJDK17'
+        jdk 'OpenJDK22'
       }
       when {
           allOf {
