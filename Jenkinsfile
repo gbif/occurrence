@@ -87,12 +87,25 @@ pipeline {
         allOf {
           not { expression { params.RELEASE } };
           not { expression { params.RELEASE_TRINO } };
+          branch 'dev';
         }
       }
       steps {
         sh '''
           build/occurrence-table-build-spark-docker-build.sh $POM_VERSION
         '''
+      }
+    }
+
+    stage('Trigger WS deploy dev2') {
+      when {
+        allOf {
+          not { expression { params.RELEASE } };
+          not { expression { params.RELEASE_TRINO } };
+        }
+      }
+      steps {
+        build job: "occurrence-ws-dev-deploy", wait: false
       }
     }
 
