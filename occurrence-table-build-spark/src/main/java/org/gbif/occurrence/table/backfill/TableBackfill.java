@@ -155,7 +155,7 @@ public class TableBackfill {
 
       if (command.getOptions().contains(Option.ALL)
           || command.getOptions().contains(Option.EXTENSIONS)) {
-        createExtensionTablesParallel(spark);
+        createExtensionTables(spark);
       }
 
       if (command.getOptions().contains(Option.ALL)
@@ -213,15 +213,14 @@ public class TableBackfill {
   }
 
   @SneakyThrows
-  private void createExtensionTablesParallel(SparkSession spark) {
+  private void createExtensionTables(SparkSession spark) {
     log.info("Creating Extension tables");
-
-    CompletableFuture<?>[] futures =
-        ExtensionTable.tableExtensions().stream()
-            .map(table -> CompletableFuture.runAsync(() -> createExtensionTable(spark, table)))
-            .toArray(CompletableFuture[]::new);
-
-    CompletableFuture.allOf(futures).get();
+    try {
+      ExtensionTable.tableExtensions().forEach(table -> createExtensionTable(spark, table));
+    } catch (Exception ex) {
+      log.error("Error creating extension tables");
+      throw  ex;
+    }
   }
 
   @SneakyThrows
@@ -365,7 +364,7 @@ public class TableBackfill {
   public void insertOverwriteMultimediaTable(SparkSession spark) {
 
     spark
-        .table("occurrence")
+        .table(configuration.getTableName())
         .select(
             col("gbifid"),
             from_json(
