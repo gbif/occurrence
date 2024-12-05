@@ -204,7 +204,7 @@
     <hdfs.namenode>hdfs://ha-nn</hdfs.namenode>
     <hive.metastore.uris>thrift://c3hivemetastore.gbif-dev.org:9083</hive.metastore.uris>
 
-    <avro.version>1.11.2</avro.version>
+    <avro.version>1.11.4</avro.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
