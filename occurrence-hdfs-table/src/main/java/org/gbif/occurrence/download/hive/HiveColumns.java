@@ -34,7 +34,7 @@ public final class HiveColumns {
   // prefix for extension columns
   private static final String VERBATIM_COL_PREFIX = "v_";
   // reserved hive words
-  private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group");
+  public static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group");
   private static final Pattern START_WITH_DIGIT_OR_UNDERSCORE = Pattern.compile("(\\d.*)|(_.*)");
 
   public static String getVerbatimColPrefix() {

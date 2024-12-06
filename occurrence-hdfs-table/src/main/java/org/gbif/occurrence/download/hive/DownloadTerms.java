@@ -56,16 +56,14 @@ public class DownloadTerms {
    */
   public static final Set<Term> EXCLUSIONS_HDFS = new ImmutableSet.Builder<Term>()
     .addAll(EXCLUSIONS_INTERPRETED)
-    .add(GbifTerm.verbatimScientificName).build();
+    .add(GbifTerm.verbatimScientificName)
+    .build();
 
   /**
    * Terms present in HDFS but not included in a DWCA download
    */
   public static final Set<Term> EXCLUSIONS_DWCA_DOWNLOAD =
       new ImmutableSet.Builder<Term>()
-          .add(GbifTerm.geologicalTime)
-          .add(GbifTerm.lithostratigraphy)
-          .add(GbifTerm.biostratigraphy)
           .build();
 
   /**

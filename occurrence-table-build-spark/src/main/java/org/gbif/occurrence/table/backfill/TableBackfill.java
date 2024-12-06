@@ -13,7 +13,10 @@
  */
 package org.gbif.occurrence.table.backfill;
 
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.hive.HiveColumns;
+import org.gbif.occurrence.download.hive.InitializableField;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
@@ -215,21 +218,14 @@ public class TableBackfill {
   @SneakyThrows
   private void createExtensionTablesParallel(SparkSession spark) {
     log.info("Creating Extension tables");
-
-    CompletableFuture<?>[] futures =
-        ExtensionTable.tableExtensions().stream()
-            .map(table -> CompletableFuture.runAsync(() -> createExtensionTable(spark, table)))
-            .toArray(CompletableFuture[]::new);
-
-    CompletableFuture.allOf(futures).get();
+    ExtensionTable.tableExtensions().forEach(table -> createExtensionTable(spark, table));
   }
 
   @SneakyThrows
   private static boolean isDirectoryEmpty(String fromSourceDir, SparkSession spark) {
-    return FileSystem.get(spark.sparkContext().hadoopConfiguration())
-            .getContentSummary(new Path(fromSourceDir))
-            .getFileCount()
-        == 0;
+    FileSystem fs = FileSystem.get(spark.sparkContext().hadoopConfiguration());
+    Path sourcePath = new Path(fromSourceDir);
+    return !fs.exists(sourcePath) || fs.getContentSummary(sourcePath).getFileCount()== 0;
   }
 
   private void fromAvroToTable(
@@ -239,7 +235,20 @@ public class TableBackfill {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
       Dataset<Row> input =
-          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select);
+        spark.read().format("avro").load(fromSourceDir + "/*.avro");
+      log.info("Avro Schema {}", java.util.Arrays.toString(input.columns()));      // Transform the `sex` column into a struct
+      /*Dataset<Row> transformedData = avroData.withColumn(
+        "new_sex",
+        toSexStruct()
+      ).withColumn("new_typestatus", toTypeStatusStruct());
+
+
+      // Replace the original `sex` column with the transformed one
+      Dataset<Row>  input  = transformedData.drop("sex")
+        .withColumnRenamed("new_sex", "sex")
+        .drop("typestatus")
+        .withColumnRenamed("new_typestatus", "typestatus").select(select);*/
+
 
       if (configuration.getTablePartitions() != null
           && input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
@@ -258,7 +267,7 @@ public class TableBackfill {
   }
 
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
-    log.info("Create extansion table: {}", extensionTable.getHiveTableName());
+    log.info("Create extension table: {}", extensionTable.getHiveTableName());
     spark.sparkContext().setJobDescription("Create " + extensionTable.getHiveTableName());
 
     spark.sql(
@@ -365,7 +374,8 @@ public class TableBackfill {
   public void insertOverwriteMultimediaTable(SparkSession spark) {
 
     spark
-        .table("occurrence")
+        .table(configuration.getTableName())
+        .filter(col("ext_multimedia").isNotNull())
         .select(
             col("gbifid"),
             from_json(
@@ -462,14 +472,13 @@ public class TableBackfill {
                             .equalsIgnoreCase(
                                 "datasetkey")) // Partitioned columns must be at the end
             .map(
-                field ->
-                    field.getInitializer().equals(field.getColumnName())
+                field -> field.getInitializer().equals(field.getColumnName()) || field.getColumnName().equals("sex") || field.getColumnName().equals("typestatus")
                         ? col(field.getColumnName())
                         : callUDF(
                                 field
                                     .getInitializer()
                                     .substring(0, field.getInitializer().indexOf("(")),
-                                col(field.getColumnName()))
+                                col(avroColumnName(field.getColumnName())))
                             .alias(field.getColumnName()))
             .collect(Collectors.toList());
 
@@ -482,6 +491,29 @@ public class TableBackfill {
         "Selecting columns from Avro {}",
         columns.stream().map(Column::toString).collect(Collectors.joining(", ")));
     return selectColumns;
+  }
+
+  private Column toSexStruct() {
+    return functions.struct(
+      functions.col("sex")
+      .alias("concept"),
+      functions.array(
+        functions.col("sex")
+      ).alias("lineage")).alias("sex");
+  }
+
+  private Column toTypeStatusStruct() {
+    return functions.struct(
+      functions.array(
+        functions.col("typestatus")
+      ).alias("concepts"),
+      functions.array(
+        functions.col("typestatus")
+      ).alias("lineage")).alias("typestatus");
+  }
+
+  private String avroColumnName(String columnName) {
+    return HiveColumns.RESERVED_WORDS.contains(columnName)? columnName+ "_": columnName;
   }
 
   private void swapTables(Command command, SparkSession spark) {
