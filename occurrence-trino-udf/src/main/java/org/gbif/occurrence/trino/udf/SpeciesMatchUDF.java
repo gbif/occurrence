@@ -19,6 +19,7 @@ import static io.trino.spi.type.VarcharType.VARCHAR;
 import io.airlift.slice.Slice;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.RowBlockBuilder;
+import io.trino.spi.block.SingleRowBlockWriter;
 import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
@@ -142,32 +143,33 @@ public class SpeciesMatchUDF {
       ParseResult<NameUsageMatch> response =
           getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
-      RowBlockBuilder blockBuilder = rowType.createBlockBuilder(null, 5);
+      RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
+      SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
 
       Consumer<Integer> intWriter =
           v -> {
             if (v != null) {
-              INTEGER.writeLong(blockBuilder, v);
+              INTEGER.writeLong(builder, v);
             } else {
-              blockBuilder.appendNull();
+              builder.appendNull();
             }
           };
 
       Consumer<String> stringWriter =
           v -> {
             if (v != null) {
-              VARCHAR.writeString(blockBuilder, v);
+              VARCHAR.writeString(builder, v);
             } else {
-              blockBuilder.appendNull();
+              builder.appendNull();
             }
           };
 
       Consumer<Enum> enumWriter =
           v -> {
             if (v != null) {
-              VARCHAR.writeString(blockBuilder, v.name());
+              VARCHAR.writeString(builder, v.name());
             } else {
-              blockBuilder.appendNull();
+              builder.appendNull();
             }
           };
 
@@ -204,11 +206,12 @@ public class SpeciesMatchUDF {
           }
           // set all fields to null
           for (int i = 0; i < 20; i++) {
-            blockBuilder.appendNull();
+            builder.appendNull();
           }
         }
 
-        return blockBuilder.build();
+        blockBuilder.closeEntry();
+        return blockBuilder.build().getObject(0, Block.class);
       }
     } catch (Exception e) {
       System.err.println(e.getMessage());
@@ -217,12 +220,14 @@ public class SpeciesMatchUDF {
 
     // if we got till here we return an empty row
     RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
+    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
 
     // set all fields to null
     for (int i = 0; i < 21; i++) {
-      blockBuilder.appendNull();
+      builder.appendNull();
     }
 
-    return blockBuilder.build();
+    blockBuilder.closeEntry();
+    return blockBuilder.build().getObject(0, Block.class);
   }
 }

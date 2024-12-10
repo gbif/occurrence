@@ -19,6 +19,7 @@ import static io.trino.spi.type.VarcharType.VARCHAR;
 import io.airlift.slice.Slice;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.RowBlockBuilder;
+import io.trino.spi.block.SingleRowBlockWriter;
 import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
@@ -147,25 +148,27 @@ public class CoordinateCountryParseUDF {
             new RowType.Field(Optional.of("latitude"), DOUBLE),
             new RowType.Field(Optional.of("longitude"), DOUBLE),
             new RowType.Field(Optional.of("country"), VARCHAR));
-    RowBlockBuilder blockBuilder = rowType.createBlockBuilder(null, 3);
+    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 3);
+    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
 
     if (parsedLatitude != null) {
-      DOUBLE.writeDouble(blockBuilder, parsedLatitude);
+      DOUBLE.writeDouble(builder, parsedLatitude);
     } else {
       blockBuilder.appendNull();
     }
     if (parsedLongitude != null) {
-      DOUBLE.writeDouble(blockBuilder, parsedLongitude);
+      DOUBLE.writeDouble(builder, parsedLongitude);
     } else {
       blockBuilder.appendNull();
     }
     if (parsedCountry != null) {
-      VARCHAR.writeString(blockBuilder, parsedCountry);
+      VARCHAR.writeString(builder, parsedCountry);
     } else {
-      blockBuilder.appendNull();
+      builder.appendNull();
     }
 
-    return blockBuilder.build();
+    blockBuilder.closeEntry();
+    return blockBuilder.build().getObject(0, Block.class);
   }
 
   private static boolean hasSpatialIssue(Collection<OccurrenceIssue> issues) {

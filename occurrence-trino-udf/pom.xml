@@ -6,13 +6,13 @@
   <artifactId>occurrence-trino-udf</artifactId>
 
   <properties>
-    <java.version>22</java.version>
-    <maven.compiler.source>22</maven.compiler.source>
-    <maven.compiler.target>22</maven.compiler.target>
+    <java.version>17</java.version>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <gbif-api.version>2.0.0</gbif-api.version>
     <lucene.version>8.7.0</lucene.version>
-    <trino.version>451</trino.version>
+    <trino.version>414</trino.version>
     <slice.version>0.45</slice.version>
     <lombok.version>1.18.36</lombok.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
@@ -141,10 +141,10 @@
           </compilerArguments>
           <fork>true</fork>
           <verbose>true</verbose>
-          <source>22</source>
-          <target>22</target>
+          <source>17</source>
+          <target>17</target>
           <showWarnings>true</showWarnings>
-          <compilerVersion>22</compilerVersion>
+          <compilerVersion>17</compilerVersion>
           <debug>true</debug>
         </configuration>
       </plugin>
@@ -210,7 +210,6 @@
       <groupId>io.trino</groupId>
       <artifactId>trino-spi</artifactId>
       <version>${trino.version}</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>

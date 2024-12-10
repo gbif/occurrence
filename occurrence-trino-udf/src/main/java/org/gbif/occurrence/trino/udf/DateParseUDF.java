@@ -18,6 +18,7 @@ import static io.trino.spi.type.BigintType.*;
 import io.airlift.slice.Slice;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.RowBlockBuilder;
+import io.trino.spi.block.SingleRowBlockWriter;
 import io.trino.spi.function.Description;
 import io.trino.spi.function.ScalarFunction;
 import io.trino.spi.function.SqlNullable;
@@ -147,14 +148,15 @@ public class DateParseUDF {
             new RowType.Field(Optional.of("day"), BIGINT),
             new RowType.Field(Optional.of("epoch_from"), BIGINT),
             new RowType.Field(Optional.of("epoch_to"), BIGINT));
-    RowBlockBuilder blockBuilder = rowType.createBlockBuilder(null, 5);
+    RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
+    SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
 
     Consumer<Long> writer =
         v -> {
           if (v != null) {
-            BIGINT.writeLong(blockBuilder, v);
+            BIGINT.writeLong(builder, v);
           } else {
-            blockBuilder.appendNull();
+            builder.appendNull();
           }
         };
 
@@ -164,6 +166,7 @@ public class DateParseUDF {
     writer.accept(parsedEpochFrom);
     writer.accept(parsedEpochTo);
 
-    return blockBuilder.build();
+    blockBuilder.closeEntry();
+    return blockBuilder.build().getObject(0, Block.class);
   }
 }
