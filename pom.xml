@@ -120,7 +120,7 @@
     <mybatis-spring-boot-starter-test.version>3.0.3</mybatis-spring-boot-starter-test.version>
     <feign.version>10.12</feign.version>
     <spring-boot-admin.version>3.3.4</spring-boot-admin.version>
-    <springdoc-openapi-ui.version>1.8.0</springdoc-openapi-ui.version>
+    <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
     <swagger-annotations.version>2.2.25</swagger-annotations.version>
 
     <!-- default configurations for all GBIF environments -->
@@ -641,8 +641,13 @@
       </dependency>
       <dependency>
         <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-ui</artifactId>
-        <version>${springdoc-openapi-ui.version}</version>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc-openapi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+        <version>${springdoc-openapi.version}</version>
       </dependency>
       <dependency>
         <groupId>io.swagger.core.v3</groupId>
