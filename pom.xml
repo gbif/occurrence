@@ -253,7 +253,7 @@
     <!-- Spark -->
     <spark.version>3.5.1</spark.version>
     <scala.tools.version>2.12</scala.tools.version>
-    <iceberg.version>1.7.1</iceberg.version>
+    <iceberg.version>1.6.1</iceberg.version>
     <scala.library.version>2.12.18</scala.library.version>
 
     <resilience4j.version>1.7.0</resilience4j.version>
