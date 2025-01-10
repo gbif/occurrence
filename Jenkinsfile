@@ -1,3 +1,5 @@
+@Library('gbif-common-jenkins-pipelines') _
+
 pipeline {
   agent any
   tools {
@@ -23,7 +25,7 @@ pipeline {
     booleanParam(name: 'DRY_RUN_RELEASE_TRINO', defaultValue: false, description: 'Dry Run Maven release')
   }
   environment {
-    JETTY_PORT = getPort()
+    JETTY_PORT = utils.getPort()
     POM_VERSION = readMavenPom().getVersion()
   }
   stages {
@@ -118,7 +120,7 @@ pipeline {
           }
       }
       environment {
-          RELEASE_ARGS = createReleaseArgs(params.RELEASE_VERSION, params.DEVELOPMENT_VERSION, params.DRY_RUN_RELEASE)
+          RELEASE_ARGS = utils.createReleaseArgs(params.RELEASE_VERSION, params.DEVELOPMENT_VERSION, params.DRY_RUN_RELEASE)
       }
       steps {
           configFileProvider(
@@ -141,7 +143,7 @@ pipeline {
           }
       }
       environment {
-          RELEASE_ARGS_TRINO = createReleaseArgs(params.RELEASE_VERSION_TRINO, params.DEVELOPMENT_VERSION_TRINO, params.DRY_RUN_RELEASE_TRINO)
+          RELEASE_ARGS_TRINO = utils.createReleaseArgs(params.RELEASE_VERSION_TRINO, params.DEVELOPMENT_VERSION_TRINO, params.DRY_RUN_RELEASE_TRINO)
       }
       steps {
           configFileProvider(
@@ -160,11 +162,12 @@ pipeline {
        when {
         allOf {
           expression { params.RELEASE };
+          not { expression { params.DRY_RUN_RELEASE } }
           branch 'master';
         }
       }
       environment {
-          VERSION = getReleaseVersion(params.RELEASE_VERSION)
+          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
       }
       steps {
         sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
@@ -175,11 +178,12 @@ pipeline {
       when {
         allOf {
           expression { params.RELEASE };
+          not { expression { params.DRY_RUN_RELEASE } }
           branch 'master';
         }
       }
       environment {
-          VERSION = getReleaseVersion(params.RELEASE_VERSION)
+          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
       }
       steps {
         sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
@@ -195,34 +199,4 @@ pipeline {
         echo 'Pipeline execution failed!'
     }
   }
-}
-
-def getPort() {
-  try {
-      return new ServerSocket(0).getLocalPort()
-  } catch (IOException ex) {
-      System.err.println("no available ports");
-  }
-}
-
-def createReleaseArgs(inputVersion, inputDevVersion, inputDryrun) {
-    def args = ""
-    if (inputVersion != '') {
-        args += " -DreleaseVersion=" + inputVersion
-    }
-    if (inputDevVersion != '') {
-        args += " -DdevelopmentVersion=" + inputDevVersion
-    }
-    if (inputDryrun) {
-        args += " -DdryRun=true"
-    }
-
-    return args
-}
-
-def getReleaseVersion(inputVersion) {
-    if (inputVersion != '') {
-        return inputVersion
-    }
-    return "${POM_VERSION}".substring(0, "${POM_VERSION}".indexOf("-SNAPSHOT"))
 }
