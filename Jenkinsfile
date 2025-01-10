@@ -167,7 +167,7 @@ pipeline {
         }
       }
       environment {
-          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, ${POM_VERSION})
+          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
       }
       steps {
         sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
@@ -183,7 +183,7 @@ pipeline {
         }
       }
       environment {
-          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, ${POM_VERSION})
+          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
       }
       steps {
         sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
