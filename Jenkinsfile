@@ -162,11 +162,12 @@ pipeline {
        when {
         allOf {
           expression { params.RELEASE };
+          not { expression { params.DRY_RUN_RELEASE } }
           branch 'master';
         }
       }
       environment {
-          VERSION = getReleaseVersion(params.RELEASE_VERSION)
+          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, ${POM_VERSION})
       }
       steps {
         sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
@@ -177,11 +178,12 @@ pipeline {
       when {
         allOf {
           expression { params.RELEASE };
+          not { expression { params.DRY_RUN_RELEASE } }
           branch 'master';
         }
       }
       environment {
-          VERSION = getReleaseVersion(params.RELEASE_VERSION)
+          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, ${POM_VERSION})
       }
       steps {
         sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
@@ -197,11 +199,4 @@ pipeline {
         echo 'Pipeline execution failed!'
     }
   }
-}
-
-def getReleaseVersion(inputVersion) {
-    if (inputVersion != '') {
-        return inputVersion
-    }
-    return "${POM_VERSION}".substring(0, "${POM_VERSION}".indexOf("-SNAPSHOT"))
 }
