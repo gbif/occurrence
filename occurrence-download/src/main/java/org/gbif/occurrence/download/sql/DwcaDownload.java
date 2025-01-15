@@ -50,7 +50,7 @@ public class DwcaDownload {
       executeQuery();
 
       // Create the Archive
-      zipAndArchive();
+//      zipAndArchive();
 
     } finally {
       // Drop tables

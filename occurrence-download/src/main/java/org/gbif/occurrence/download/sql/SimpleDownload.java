@@ -64,7 +64,7 @@ public class SimpleDownload {
       executeQuery();
 
       //zip content
-      zipAndArchive();
+//      zipAndArchive();
 
       //update download info in the Registry
       updateDownload();
