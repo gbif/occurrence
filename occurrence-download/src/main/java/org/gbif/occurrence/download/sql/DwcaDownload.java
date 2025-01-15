@@ -23,6 +23,7 @@ import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -36,7 +37,7 @@ public class DwcaDownload {
 
   private static String dropTablesQuery;
 
-  private final QueryExecutor queryExecutor;
+  private final Supplier<QueryExecutor> queryExecutorSupplier;
 
   private final Download download;
 
@@ -58,11 +59,13 @@ public class DwcaDownload {
     }
   }
 
+  @SneakyThrows
   private void executeQuery() {
-
-    SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
-    if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
-      runExtensionsQuery();
+    try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
+      SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
+      if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
+        runExtensionsQuery(queryExecutor);
+      }
     }
   }
 
@@ -98,8 +101,11 @@ public class DwcaDownload {
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
 
+  @SneakyThrows
   private void dropTables() {
-    SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
+      SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    }
   }
 
   private Map<String, String> getQueryParameters() {
@@ -112,7 +118,8 @@ public class DwcaDownload {
     return parameters;
   }
 
-  private void runExtensionsQuery() {
+  @SneakyThrows
+  private void runExtensionsQuery(QueryExecutor queryExecutor) {
     SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), queryExecutor);
   }
 

@@ -26,6 +26,7 @@ public class SparkQueryExecutor implements QueryExecutor {
   @Override
   public void close() {
     sparkSession.close();
+    sparkSession.stop();
   }
 
   @Override
