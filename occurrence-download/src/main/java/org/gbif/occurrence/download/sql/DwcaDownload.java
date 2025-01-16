@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import org.apache.spark.SparkEnv;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -51,12 +52,20 @@ public class DwcaDownload {
       executeQuery();
 
       // Create the Archive
-      zipAndArchive();
+      if (isDriverNode()) {
+        zipAndArchive();
+      }
 
     } finally {
       // Drop tables
-      dropTables();
+      if (isDriverNode()) {
+        dropTables();
+      }
     }
+  }
+
+  private boolean isDriverNode() {
+    return SparkEnv.get().executorId().equals("driver");
   }
 
   @SneakyThrows
