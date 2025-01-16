@@ -46,7 +46,8 @@ public class SparkDownloads {
       .config(sparkConf)
       .enableHiveSupport()
       .config("spark.sql.catalog.iceberg.type", "hive")
-      .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog");
+      .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+      .config("io.compression.codecs","org.gbif.hadoop.compress.d2.D2Codec");
     SparkSession session = sparkBuilder.getOrCreate();
 
     UDFS.registerUdfs(session);
