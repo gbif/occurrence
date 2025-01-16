@@ -21,9 +21,6 @@ SET hive.merge.mapredfiles=false;
 
 --
 -- Creates the extension tables
--- These will be small tables, so provide reducer hint to MR, to stop is spawning huge numbers
---
-SET mapred.reduce.tasks=5;
 
 -- pre-create extension tables so they can be used in the multi-insert
 
