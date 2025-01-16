@@ -60,6 +60,7 @@ public class SqlDownloadRunner {
     }
   }
 
+  // TODO: use the one in SqlQueryUtils
   @SneakyThrows
   private DownloadQueryParameters downloadQueryParameters(DownloadJobConfiguration jobConfiguration, WorkflowConfiguration workflowConfiguration) {
     DownloadQueryParameters.DownloadQueryParametersBuilder builder = DownloadQueryParameters.builder()

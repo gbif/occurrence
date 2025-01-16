@@ -25,50 +25,50 @@ import org.apache.commons.lang3.StringUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
+
 @Slf4j
 public class SqlQueryUtils {
 
-  /**
-   * Reads a file into a string.
-   */
+  /** Reads a file into a string. */
   @SneakyThrows
   private static String readFile(String fileName) {
     return new String(Files.readAllBytes(Paths.get(fileName)));
   }
 
-  /**
-   * Replaces variables in the text. Variables come in a map of names and values.
-   */
-  private static String replaceVariables(String text, Map<String,String> params) {
-    return StringUtils.replaceEach(text,
-                                   params.keySet().stream().map(k -> "${" + k  + "}").toArray(String[]::new),
-                                   params.values().toArray(new String[0]));
+  /** Replaces variables in the text. Variables come in a map of names and values. */
+  private static String replaceVariables(String text, Map<String, String> params) {
+    return StringUtils.replaceEach(
+        text,
+        params.keySet().stream().map(k -> "${" + k + "}").toArray(String[]::new),
+        params.values().toArray(new String[0]));
   }
 
-  /**
-   * Executes, statement-by-statement a file containing SQL queries.
-   */
-  public static void runSQLFile(String fileName, Map<String,String> params, Consumer<String> queryExecutor) {
+  /** Executes, statement-by-statement a file containing SQL queries. */
+  public static void runSQLFile(
+      String fileName, Map<String, String> params, Consumer<String> queryExecutor) {
     runMultiSQL(readFile(fileName), params, queryExecutor);
   }
 
-
-  /**
-   * Executes, statement-by-statement a String that contains multiple SQL queries.
-   */
-  public static void runMultiSQL(String multiQuery, Map<String,String> params, Consumer<String> queryExecutor) {
-    //Load parameters
+  /** Executes, statement-by-statement a String that contains multiple SQL queries. */
+  public static void runMultiSQL(
+      String multiQuery, Map<String, String> params, Consumer<String> queryExecutor) {
+    // Load parameters
     String filteredFileContent = replaceVariables(multiQuery, params);
     runMultiSQL(filteredFileContent, queryExecutor);
   }
 
-  /**
-   * Executes, statement-by-statement a String that contains multiple SQL queries.
-   */
+  /** Executes, statement-by-statement a String that contains multiple SQL queries. */
   public static void runMultiSQL(String multiQuery, Consumer<String> queryExecutor) {
     for (String query : multiQuery.split(";\n")) {
       query = query.trim();
-      if(!query.isEmpty()) {
+      if (!query.isEmpty()) {
         log.info("Executing query: \n {}", query);
         queryExecutor.accept(query);
       }
@@ -86,5 +86,32 @@ public class SqlQueryUtils {
       templateBuilder.accept(stringWriter);
       return stringWriter.toString();
     }
+  }
+
+  @SneakyThrows
+  public static DownloadQueryParameters downloadQueryParameters(
+      DownloadJobConfiguration jobConfiguration,
+      WorkflowConfiguration workflowConfiguration,
+      Download download) {
+    DownloadQueryParameters.DownloadQueryParametersBuilder builder =
+        DownloadQueryParameters.builder()
+            .downloadTableName(jobConfiguration.getDownloadTableName())
+            .whereClause(jobConfiguration.getFilter())
+            .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
+            .database(workflowConfiguration.getHiveDb())
+            .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
+    if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
+      SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
+
+      String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
+      HiveSqlQuery sqlQuery =
+          sv.validateAndParse(
+              userSql); // Declares QueryBuildingException but it's already been validated.
+      builder
+          .userSql(sqlQuery.getSql())
+          .userSqlHeader(String.join("\t", sqlQuery.getSqlSelectColumnNames()))
+          .whereClause(sqlQuery.getSqlWhere());
+    }
+    return builder.build();
   }
 }

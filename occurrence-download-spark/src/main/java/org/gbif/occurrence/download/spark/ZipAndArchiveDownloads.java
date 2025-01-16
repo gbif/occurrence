@@ -27,6 +27,11 @@ public class ZipAndArchiveDownloads {
         new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
     DwcTerm coreTerm = DwcTerm.valueOf(args[1]);
 
-    new ZipAndArchiveWorkflow(workflowConfiguration, coreTerm, downloadKey).run();
+    ZipAndArchiveWorkflow.builder()
+        .workflowConfiguration(workflowConfiguration)
+        .coreDwcTerm(coreTerm)
+        .downloadKey(downloadKey)
+        .build()
+        .run();
   }
 }
