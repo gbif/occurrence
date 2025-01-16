@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.sql;
 
-import org.apache.spark.SparkEnv;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -24,7 +23,6 @@ import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 import java.io.StringWriter;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -38,7 +36,7 @@ public class DwcaDownload {
 
   private static String dropTablesQuery;
 
-  private final Supplier<QueryExecutor> queryExecutorSupplier;
+  private final QueryExecutor queryExecutor;
 
   private final Download download;
 
@@ -52,29 +50,19 @@ public class DwcaDownload {
       executeQuery();
 
       // Create the Archive
-      if (isDriverNode()) {
-        zipAndArchive();
-      }
+      zipAndArchive();
 
     } finally {
       // Drop tables
-      if (isDriverNode()) {
-        dropTables();
-      }
+      dropTables();
     }
   }
 
-  private boolean isDriverNode() {
-    return SparkEnv.get().executorId().equals("driver");
-  }
-
-  @SneakyThrows
   private void executeQuery() {
-    try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
-      SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
-      if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
-        runExtensionsQuery(queryExecutor);
-      }
+
+    SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
+    if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
+      runExtensionsQuery();
     }
   }
 
@@ -110,11 +98,8 @@ public class DwcaDownload {
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
 
-  @SneakyThrows
   private void dropTables() {
-    try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
-      SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
-    }
+    SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   private Map<String, String> getQueryParameters() {
@@ -127,8 +112,7 @@ public class DwcaDownload {
     return parameters;
   }
 
-  @SneakyThrows
-  private void runExtensionsQuery(QueryExecutor queryExecutor) {
+  private void runExtensionsQuery() {
     SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), queryExecutor);
   }
 

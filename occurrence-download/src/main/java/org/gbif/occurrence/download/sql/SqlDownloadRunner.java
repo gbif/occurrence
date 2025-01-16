@@ -39,12 +39,13 @@ public class SqlDownloadRunner {
 
   @SneakyThrows
     public void run() {
+    try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
       if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
         DwcaDownload.builder()
           .download(download)
           .workflowConfiguration(workflowConfiguration)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .queryExecutorSupplier(queryExecutorSupplier)
+          .queryExecutor(queryExecutor)
           .build()
           .run();
       } else {
@@ -52,10 +53,11 @@ public class SqlDownloadRunner {
           .download(download)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
           .workflowConfiguration(workflowConfiguration)
-          .queryExecutorSupplier(queryExecutorSupplier)
+          .queryExecutor(queryExecutor)
           .build()
           .run();
       }
+    }
   }
 
   @SneakyThrows

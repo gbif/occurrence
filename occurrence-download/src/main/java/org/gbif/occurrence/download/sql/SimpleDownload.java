@@ -31,7 +31,6 @@ import org.gbif.occurrence.download.util.RegistryClientUtil;
 
 import java.util.EnumSet;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.fs.FileSystem;
@@ -47,10 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 public class SimpleDownload {
 
   public static final EnumSet<DownloadFormat> MULTI_ARCHIVE_DIRECTORY_FORMATS = EnumSet.of(DownloadFormat.SIMPLE_PARQUET, DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO, DownloadFormat.BIONOMIA);
-
   private static String downloadQuery;
 
-  private final Supplier<QueryExecutor> queryExecutorSupplier;
+  private final QueryExecutor queryExecutor;
 
   private final Download download;
 
@@ -76,15 +74,13 @@ public class SimpleDownload {
     }
   }
 
-  @SneakyThrows
+
   private void executeQuery() {
     if(onStart != null) {
       onStart.run();
     }
-    try (QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
-      String downloadQuery = downloadQuery();
-      SqlQueryUtils.runMultiSQL(downloadQuery, queryParameters.toMap(), queryExecutor);
-    }
+    String downloadQuery = downloadQuery();
+    SqlQueryUtils.runMultiSQL(downloadQuery, queryParameters.toMap(), queryExecutor);
   }
 
   @SneakyThrows
@@ -215,23 +211,21 @@ public class SimpleDownload {
     return new RegistryClientUtil(workflowConfiguration.getRegistryUser(), workflowConfiguration.getRegistryPassword(), workflowConfiguration.getRegistryWsUrl());
   }
 
-  @SneakyThrows
   private void dropTables() {
-    try (QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
-      queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
-      queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_citation");
-      if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_tmp");
-        queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_count");
-      } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_count");
-      } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_citation");
-        queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_agents");
-        queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_families");
-        queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + "_identifiers");
-      }
+    queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
+    queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+    if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+    } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+    } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");
+      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers");
     }
+
   }
 
 }
