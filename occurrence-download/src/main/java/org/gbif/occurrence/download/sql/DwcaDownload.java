@@ -52,13 +52,13 @@ public class DwcaDownload {
 
       // Create the Archive
       if (isDriverNode()) {
-      zipAndArchive();
+//      zipAndArchive();
       }
 
 
     } finally {
       // Drop tables
-      dropTables();
+//      dropTables();
     }
   }
 
