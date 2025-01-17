@@ -12,12 +12,12 @@ SET hive.auto.convert.join=false;
 
 -- setup for our custom, combinable deflated compression
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
-SET spark.hadoop.hive.exec.compress.output=true;
+SET hive.exec.compress.output=true;
 SET io.seqfile.compression.type=BLOCK;
 SET mapred.output.compression.codec=org.gbif.hadoop.compress.d2.D2Codec;
 SET io.compression.codecs=org.gbif.hadoop.compress.d2.D2Codec;
-SET spark.hadoop.hive.merge.mapfiles=false;
-SET spark.hadoop.hive.merge.mapredfiles=false;
+SET hive.merge.mapfiles=false;
+SET hive.merge.mapredfiles=false;
 
 --
 -- Creates the extension tables
