@@ -62,9 +62,6 @@ SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;
 
 --
 -- Creates the multimedia table
--- These will be small tables, so provide reducer hint to MR, to stop it spawning huge numbers
---
-SET mapred.reduce.tasks=5;
 -- Disabling hive auto join https://issues.apache.org/jira/browse/HIVE-2601.
 SET hive.auto.convert.join=false;
 
