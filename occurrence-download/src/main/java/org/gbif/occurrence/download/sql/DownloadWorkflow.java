@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.spark.sql.SparkSession;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -57,7 +58,8 @@ public class DownloadWorkflow {
       WorkflowConfiguration workflowConfiguration,
       DwcTerm coreDwcTerm,
       String downloadKey,
-      Supplier<QueryExecutor> queryExecutorSupplier) {
+      Supplier<QueryExecutor> queryExecutorSupplier,
+      SparkSession sparkSession) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
     downloadService =
@@ -69,6 +71,7 @@ public class DownloadWorkflow {
         SqlDownloadRunner.builder()
             .workflowConfiguration(workflowConfiguration)
             .download(download)
+          .sparkSession(sparkSession)
             .jobConfiguration(
                 DownloadJobConfiguration.forSqlDownload(
                     download, workflowConfiguration.getHiveDBPath()))

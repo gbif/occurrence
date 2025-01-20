@@ -214,6 +214,7 @@ public class DownloadArchiveBuilder {
       ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
       ze.setCompressedSize(in.getCompressedLength());
       ze.setCrc(in.getCrc32());
+      log.info("Deflated content merged, size compressed {},  size uncompressed {}", in.getCompressedLength(), in.getUncompressedLength());
     } finally {
       out.closeEntry();
     }

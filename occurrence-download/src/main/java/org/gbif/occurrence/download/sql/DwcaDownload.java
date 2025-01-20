@@ -18,6 +18,9 @@ import java.util.Map;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
@@ -42,6 +45,8 @@ public class DwcaDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
+  private final SparkSession sparkSession;
+
   public void run() {
     try {
       // Execute queries
@@ -59,7 +64,16 @@ public class DwcaDownload {
 
   private void executeQuery() {
 
-    SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
+    Map<String,String> queryParams = getQueryParameters();
+    SqlQueryUtils.runMultiSQL(downloadQuery(), queryParams, queryExecutor);
+
+    //Citation table
+    sparkSession.sql("SET mapred.output.compress=false");
+    sparkSession.sql("SET hive.exec.compress.output=false");
+    Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
+      ":interpretedTable WHERE datasetkey IS NOT NULL GROUP BY datasetkey", queryParams);
+    result.coalesce(1).write().option("delimiter", "\t").csv(queryParams.get("citationTable"));
+
     if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       runExtensionsQuery();
     }

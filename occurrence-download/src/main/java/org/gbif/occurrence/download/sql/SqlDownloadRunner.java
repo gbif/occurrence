@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import org.apache.spark.sql.SparkSession;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
@@ -36,6 +37,8 @@ public class SqlDownloadRunner {
 
     private final Supplier<QueryExecutor> queryExecutorSupplier;
 
+    private final SparkSession sparkSession;
+
 
   @SneakyThrows
     public void run() {
@@ -46,6 +49,7 @@ public class SqlDownloadRunner {
           .workflowConfiguration(workflowConfiguration)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
           .queryExecutor(queryExecutor)
+          .sparkSession(sparkSession)
           .build()
           .run();
       } else {

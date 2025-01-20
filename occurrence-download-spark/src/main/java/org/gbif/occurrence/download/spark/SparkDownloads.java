@@ -29,11 +29,13 @@ public class SparkDownloads {
   public static void main(String[] args) throws IOException {
     String downloadKey = args[0];
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
+    SparkSession sparkSession = createSparkSession(args[0], workflowConfiguration);
     DownloadWorkflow.builder()
       .downloadKey(downloadKey)
       .coreDwcTerm(DwcTerm.valueOf(args[1]))
       .workflowConfiguration(workflowConfiguration)
-      .queryExecutorSupplier(() -> new SparkQueryExecutor(createSparkSession(args[0], workflowConfiguration)))
+      .queryExecutorSupplier(() -> new SparkQueryExecutor(sparkSession))
+      .sparkSession(sparkSession)
       .build()
       .run();
   }
