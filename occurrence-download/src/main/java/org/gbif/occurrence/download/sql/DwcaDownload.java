@@ -68,17 +68,28 @@ public class DwcaDownload {
     SqlQueryUtils.runMultiSQL(downloadQuery(), queryParams, queryExecutor);
 
     //Citation table
-    sparkSession.sql("SET hive.auto.convert.join=true");
-    sparkSession.sql("SET mapred.output.compress=false");
-    sparkSession.sql("SET hive.exec.compress.output=false");
-    Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
-        queryParams.get("interpretedTable") +
-      " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
-    result.coalesce(1).write().option("delimiter", "\t").csv(queryParams.get("citationTable"));
+    createCitationTable(queryParams.get("interpretedTable"), queryParams.get("citationTable"));
 
     if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       runExtensionsQuery();
     }
+  }
+
+  /**
+   * Creates the citation table.
+   * @param interpretedTable
+   * @param citationTable
+   */
+  private void createCitationTable(String interpretedTable, String citationTable) {
+    sparkSession.sparkContext().setJobGroup("CT", "Creating citation table", true);
+    sparkSession.sql("SET hive.auto.convert.join=true");
+    sparkSession.sql("SET mapred.output.compress=false");
+    sparkSession.sql("SET hive.exec.compress.output=false");
+    Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
+        interpretedTable +
+      " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
+    result.coalesce(1).write().option("delimiter", "\t").csv(citationTable);
+    sparkSession.sparkContext().clearJobGroup();
   }
 
   @SneakyThrows
