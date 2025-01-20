@@ -68,6 +68,7 @@ public class DwcaDownload {
     SqlQueryUtils.runMultiSQL(downloadQuery(), queryParams, queryExecutor);
 
     //Citation table
+    sparkSession.sql("SET hive.auto.convert.join=true");
     sparkSession.sql("SET mapred.output.compress=false");
     sparkSession.sql("SET hive.exec.compress.output=false");
     Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
