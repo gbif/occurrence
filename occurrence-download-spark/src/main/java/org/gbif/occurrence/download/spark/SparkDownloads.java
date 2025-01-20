@@ -13,16 +13,14 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import java.io.IOException;
+import org.apache.spark.SparkConf;
+import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.occurrence.spark.udf.UDFS;
 import org.gbif.utils.file.properties.PropertiesUtil;
-
-import java.io.IOException;
-
-import org.apache.spark.SparkConf;
-import org.apache.spark.sql.SparkSession;
 
 public class SparkDownloads {
 
@@ -40,21 +38,25 @@ public class SparkDownloads {
       .run();
   }
 
-  public static SparkSession createSparkSession(String downloadKey, WorkflowConfiguration workflowConfiguration) {
-    SparkConf sparkConf = new SparkConf()
-      .set("hive.metastore.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
-    SparkSession.Builder sparkBuilder = SparkSession.builder()
-      .appName("Download job " + downloadKey)
-      .config(sparkConf)
-      .enableHiveSupport()
-      .config("spark.sql.catalog.iceberg.type", "hive")
-      .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
-      .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec");
+  public static SparkSession createSparkSession(
+      String downloadKey, WorkflowConfiguration workflowConfiguration) {
+    SparkConf sparkConf =
+        new SparkConf()
+            .set("hive.metastore.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
+    SparkSession.Builder sparkBuilder =
+        SparkSession.builder()
+            .appName("Download job " + downloadKey)
+            .config(sparkConf)
+            .enableHiveSupport()
+            .config("spark.sql.catalog.iceberg.type", "hive")
+            .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+            .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec")
+            .config("spark.executorEnv.D2_BUFFER_SIZE", "65535")
+            .config("spark.driverEnv.D2_BUFFER_SIZE", "65535");
     SparkSession session = sparkBuilder.getOrCreate();
 
     UDFS.registerUdfs(session);
 
     return session;
   }
-
 }

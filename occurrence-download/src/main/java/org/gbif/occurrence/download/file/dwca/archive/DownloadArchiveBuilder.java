@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -209,7 +211,7 @@ public class DownloadArchiveBuilder {
     ZipEntry ze = new ZipEntry(filename);
     out.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
     try (D2CombineInputStream in = new D2CombineInputStream(parts)) {
-      ByteStreams.copy(in, out);
+      IOUtils.copy(in, out, 16384);
       in.close(); // important so counts are accurate
       ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
       ze.setCompressedSize(in.getCompressedLength());
