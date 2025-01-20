@@ -29,7 +29,8 @@ public class SparkQueryExecutor implements QueryExecutor {
   }
 
   @Override
-  public void accept(String sql) {
+  public void accept(String description, String sql) {
+    sparkSession.sparkContext().setJobDescription(description);
     sparkSession.sql(sql);
   }
 }

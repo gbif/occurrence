@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTab
 --
 FROM ${interpretedTable}
 <#list verbatim_extensions as verbatim_extension>
-  LEFT OUTER JOIN /*+ BROADCAST(iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}) */ iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON ${interpretedTable}.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
+  LEFT OUTER JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON ${interpretedTable}.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
 </#list>
 <#list verbatim_extensions as verbatim_extension>
 INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}

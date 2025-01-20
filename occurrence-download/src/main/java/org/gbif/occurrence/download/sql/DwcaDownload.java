@@ -65,7 +65,7 @@ public class DwcaDownload {
   private void executeQuery() {
 
     Map<String,String> queryParams = getQueryParameters();
-    SqlQueryUtils.runMultiSQL(downloadQuery(), queryParams, queryExecutor);
+    SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
 
     //Citation table
     createCitationTable(queryParams.get("interpretedTable"), queryParams.get("citationTable"));
@@ -125,7 +125,7 @@ public class DwcaDownload {
   }
 
   private void dropTables() {
-    SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download", dropTablesQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   private Map<String, String> getQueryParameters() {
@@ -139,7 +139,7 @@ public class DwcaDownload {
   }
 
   private void runExtensionsQuery() {
-    SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), queryExecutor);
+    SqlQueryUtils.runMultiSQL("Extensions DWCA Download query", extensionQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   @SneakyThrows
