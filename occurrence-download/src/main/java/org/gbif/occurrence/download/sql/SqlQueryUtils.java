@@ -18,7 +18,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,29 +48,29 @@ public class SqlQueryUtils {
   /**
    * Executes, statement-by-statement a file containing SQL queries.
    */
-  public static void runSQLFile(String fileName, Map<String,String> params, Consumer<String> queryExecutor) {
-    runMultiSQL(readFile(fileName), params, queryExecutor);
+  public static void runSQLFile(String fileName, Map<String,String> params, BiConsumer<String, String> queryExecutor) {
+    runMultiSQL(fileName, readFile(fileName), params, queryExecutor);
   }
 
 
   /**
    * Executes, statement-by-statement a String that contains multiple SQL queries.
    */
-  public static void runMultiSQL(String multiQuery, Map<String,String> params, Consumer<String> queryExecutor) {
+  public static void runMultiSQL(String queryDescription, String multiQuery, Map<String,String> params, BiConsumer<String, String> queryExecutor) {
     //Load parameters
     String filteredFileContent = replaceVariables(multiQuery, params);
-    runMultiSQL(filteredFileContent, queryExecutor);
+    runMultiSQL(queryDescription, filteredFileContent, queryExecutor);
   }
 
   /**
    * Executes, statement-by-statement a String that contains multiple SQL queries.
    */
-  public static void runMultiSQL(String multiQuery, Consumer<String> queryExecutor) {
+  public static void runMultiSQL(String queryDescription, String multiQuery, BiConsumer<String, String> queryExecutor) {
     for (String query : multiQuery.split(";\n")) {
       query = query.trim();
-      if(!query.isEmpty()) {
+      if (!query.isEmpty()) {
         log.info("Executing query: \n {}", query);
-        queryExecutor.accept(query);
+        queryExecutor.accept(queryDescription, query);
       }
     }
   }

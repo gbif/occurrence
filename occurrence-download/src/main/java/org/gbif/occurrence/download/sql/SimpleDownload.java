@@ -80,7 +80,7 @@ public class SimpleDownload {
       onStart.run();
     }
     String downloadQuery = downloadQuery();
-    SqlQueryUtils.runMultiSQL(downloadQuery, queryParameters.toMap(), queryExecutor);
+    SqlQueryUtils.runMultiSQL("Simple download", downloadQuery, queryParameters.toMap(), queryExecutor);
   }
 
   @SneakyThrows
@@ -212,18 +212,18 @@ public class SimpleDownload {
   }
 
   private void dropTables() {
-    queryExecutor.accept("DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
-    queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+    queryExecutor.accept("DROP" + queryParameters.getDownloadTableName(), "DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
+    queryExecutor.accept("DROP " +queryParameters.getDownloadTableName() + "_citation",  "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
     if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
-      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
-      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_tmp", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
+      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
     } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
-      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
     } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
-      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
-      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");
-      queryExecutor.accept("DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers");
+      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_citation", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_agents", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
+      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_families", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");
+      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_identifiers","DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers");
     }
 
   }

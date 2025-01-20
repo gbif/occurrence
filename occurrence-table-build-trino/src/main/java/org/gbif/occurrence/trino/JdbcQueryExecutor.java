@@ -37,8 +37,8 @@ public class JdbcQueryExecutor implements QueryExecutor {
 
   @Override
   @SneakyThrows
-  public void accept(String sql) {
-    try(Statement statement = connection.createStatement()) {
+  public void accept(String description, String sql) {
+    try (Statement statement = connection.createStatement()) {
       statement.execute(sql);
     }
   }
