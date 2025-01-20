@@ -70,9 +70,16 @@ public class SqlQueryUtils {
       query = query.trim();
       if (!query.isEmpty()) {
         log.info("Executing query: \n {}", query);
-        queryExecutor.accept(queryDescription, query);
+        queryExecutor.accept(queryDescription + " " + trimToLength(query, 30), query);
       }
     }
+  }
+
+  public static String trimToLength(String input, int maxLength) {
+    if (input.length() > maxLength) {
+      return input.substring(0, maxLength);
+    }
+    return input;
   }
 
   @FunctionalInterface
