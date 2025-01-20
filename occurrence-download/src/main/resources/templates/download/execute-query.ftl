@@ -76,9 +76,9 @@ SET hive.auto.convert.join=true;
 -- Creates the citation table
 -- At most this produces #datasets, so single reducer
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
--- SET mapred.output.compress=false;
--- SET hive.exec.compress.output=false;
+<#-- SET mapred.output.compress=false; -->
+<#-- SET hive.exec.compress.output=false; -->
 
--- CREATE TABLE ${r"${citationTable}"}
--- ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
--- AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey;
+<#-- CREATE TABLE ${r"${citationTable}"} -->
+<#-- ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' -->
+<#-- AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey; -->
