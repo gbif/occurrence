@@ -69,16 +69,3 @@ CREATE TABLE ${r"${multimediaTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY 
 AS SELECT m.gbifid, m.type, m.format, m.identifier, m.references, m.title, m.description, m.source, m.audience, m.created, m.creator, m.contributor, m.publisher, m.license, m.rightsHolder
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
-
-SET hive.auto.convert.join=true;
-
---
--- Creates the citation table
--- At most this produces #datasets, so single reducer
--- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
-<#-- SET mapred.output.compress=false; -->
-<#-- SET hive.exec.compress.output=false; -->
-
-<#-- CREATE TABLE ${r"${citationTable}"} -->
-<#-- ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' -->
-<#-- AS SELECT datasetkey, count(*) as num_occurrences FROM ${r"${interpretedTable}"} WHERE datasetkey IS NOT NULL GROUP BY datasetkey; -->
