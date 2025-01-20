@@ -72,7 +72,8 @@ public class DwcaDownload {
     sparkSession.sql("SET mapred.output.compress=false");
     sparkSession.sql("SET hive.exec.compress.output=false");
     Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
-      ":interpretedTable WHERE datasetkey IS NOT NULL GROUP BY datasetkey", queryParams);
+        queryParams.get("interpretedTable") +
+      " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
     result.coalesce(1).write().option("delimiter", "\t").csv(queryParams.get("citationTable"));
 
     if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
