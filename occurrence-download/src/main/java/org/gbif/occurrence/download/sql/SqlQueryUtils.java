@@ -70,12 +70,25 @@ public class SqlQueryUtils {
       query = query.trim();
       if (!query.isEmpty()) {
         log.info("Executing query: \n {}", query);
-        queryExecutor.accept(queryDescription + " " + trimToLength(query, 30), query);
+        queryExecutor.accept(trimToLength(queryDescription + " " + cleanupQueryForDisplay(query), 200), query);
       }
     }
   }
 
-  public static String trimToLength(String input, int maxLength) {
+  public static String cleanupQueryForDisplay(String input) {
+    StringBuilder result = new StringBuilder();
+    String[] lines = input.split("\n"); // Split the input into lines
+
+    for (String line : lines) {
+      // Check if the line starts with "--" or "<#--"
+      if (!line.trim().startsWith("--") && !line.trim().startsWith("<#--")) {
+        result.append(line).append("\n");
+      }
+    }
+    return result.toString();
+  }
+
+  private static String trimToLength(String input, int maxLength) {
     if (input.length() > maxLength) {
       return input.substring(0, maxLength);
     }
