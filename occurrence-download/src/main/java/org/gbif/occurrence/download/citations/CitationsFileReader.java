@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.citations;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
@@ -42,6 +43,7 @@ import com.google.common.base.Strings;
 /**
  * Reads a dataset's citations file for consumption.
  */
+@Slf4j
 public abstract class CitationsFileReader {
 
   private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
@@ -80,8 +82,10 @@ public abstract class CitationsFileReader {
     Map<UUID,Long> datasetsCitation = new HashMap<>();
     Map<UUID, License> datasetLicenseCollector = new HashMap<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
+    log.info("Reading citations from {}", citationPath);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
+        log.info("Reading citation file {}", fs.getPath());
         try (BufferedReader citationReader =
                new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), StandardCharsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {
