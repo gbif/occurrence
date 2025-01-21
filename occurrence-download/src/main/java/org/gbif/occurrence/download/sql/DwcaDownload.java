@@ -68,7 +68,7 @@ public class DwcaDownload {
     SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
 
     //Citation table
-    createCitationTable(queryParams.get("interpretedTable"), queryParams.get("citationTable"));
+    createCitationTable(queryParams.get("hiveDB"), queryParams.get("interpretedTable"), queryParams.get("citationTable"));
 
     if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       runExtensionsQuery();
@@ -77,18 +77,15 @@ public class DwcaDownload {
 
   /**
    * Creates the citation table.
-   * @param interpretedTable
-   * @param citationTable
    */
-  private void createCitationTable(String interpretedTable, String citationTable) {
+  private void createCitationTable(String database, String interpretedTable, String citationTable) {
     sparkSession.sparkContext().setJobGroup("CT", "Creating citation table", true);
     sparkSession.sql("SET hive.auto.convert.join=true");
     sparkSession.sql("SET mapred.output.compress=false");
     sparkSession.sql("SET hive.exec.compress.output=false");
     Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
-        interpretedTable +
-      " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
-    result.coalesce(1).write().option("delimiter", "\t").csv(citationTable);
+      database + '.' + interpretedTable + " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
+    result.coalesce(1).write().option("delimiter", "\t").format("hive").saveAsTable(database + '.' + citationTable);
     sparkSession.sparkContext().clearJobGroup();
   }
 
