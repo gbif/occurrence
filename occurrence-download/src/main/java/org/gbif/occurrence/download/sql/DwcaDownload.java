@@ -85,7 +85,7 @@ public class DwcaDownload {
     sparkSession.sql("SET hive.exec.compress.output=false");
     Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
       database + '.' + interpretedTable + " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
-    result.coalesce(1).write().option("delimiter", "\t").format("hive").saveAsTable(database + '.' + citationTable);
+    result.write().option("delimiter", "\t").format("hive").saveAsTable(database + '.' + citationTable);
     sparkSession.sparkContext().clearJobGroup();
   }
 
