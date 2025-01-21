@@ -18,7 +18,6 @@ import java.util.function.Supplier;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.spark.sql.SparkSession;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -32,6 +31,7 @@ import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.elastic.DownloadEsClient;
 import org.gbif.occurrence.download.predicate.EsPredicateUtil;
+import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.search.es.VocabularyFieldTranslator;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -43,6 +43,7 @@ public class DownloadWorkflow {
   private static final int ERROR_COUNT = -1;
 
   private final OccurrenceDownloadService downloadService;
+
   private final ConceptClient conceptClient;
 
   private final DwcTerm coreDwcTerm;
@@ -58,8 +59,7 @@ public class DownloadWorkflow {
       WorkflowConfiguration workflowConfiguration,
       DwcTerm coreDwcTerm,
       String downloadKey,
-      Supplier<QueryExecutor> queryExecutorSupplier,
-      SparkSession sparkSession) {
+      Supplier<SparkQueryExecutor> queryExecutorSupplier) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
     downloadService =
@@ -71,7 +71,6 @@ public class DownloadWorkflow {
         SqlDownloadRunner.builder()
             .workflowConfiguration(workflowConfiguration)
             .download(download)
-          .sparkSession(sparkSession)
             .jobConfiguration(
                 DownloadJobConfiguration.forSqlDownload(
                     download, workflowConfiguration.getHiveDBPath()))

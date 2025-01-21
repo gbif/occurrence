@@ -26,6 +26,9 @@
     <akka-actor.version>2.6.19</akka-actor.version>
     <es.httpclient.version>4.5.10</es.httpclient.version>
 
+    <scala-java8-compat.version>1.0.2</scala-java8-compat.version>
+    <slf4j.version>2.0.7</slf4j.version>
+
     <!-- The timestamp is used to set the start date for the coordinator job -->
     <!-- We want the coordinator to run at 05:00 UTC -->
     <timestamp>${maven.build.timestamp}</timestamp>
@@ -51,10 +54,28 @@
       </testResource>
     </testResources>
     <plugins>
+      <!-- Shade the project into an uber jar to send to Spark -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>${maven-shade-plugin.version}</version>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+          <keepDependenciesWithProvidedScope>false</keepDependenciesWithProvidedScope>
+          <shadedArtifactAttached>true</shadedArtifactAttached>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+                <exclude>org/codehaus/jackson/**</exclude>
+                <exclude>javax/ws/**</exclude>
+              </excludes>
+            </filter>
+          </filters>
+        </configuration>
         <executions>
           <execution>
             <phase>package</phase>
@@ -69,25 +90,28 @@
                   <exclude>org.gbif.occurrence:occurrence-persistence</exclude>
                 </excludes>
               </artifactSet>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                    <exclude>**/config-default.xml</exclude>
-                    <exclude>hbase-site.xml</exclude>
-                    <exclude>registry.properties</exclude>
-                    <exclude>logback*.xml</exclude>
-                  </excludes>
-                </filter>
-              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Main-Class>org.gbif.occurrence.download.spark.GbifOccurrenceDownloads</Main-Class>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.curator</pattern>
+                  <shadedPattern>relocated.org.apache.curator</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.guava</pattern>
+                  <shadedPattern>relocated.com.google.guava</shadedPattern>
+                </relocation>
+              </relocations>
             </configuration>
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -223,6 +247,16 @@
         <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-spark-udf</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-avro_${scala.tools.version}</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -464,10 +498,10 @@
       </exclusions>
     </dependency>
 
+    <!-- Spark -->
     <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <scope>provided</scope>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-catalyst_${scala.tools.version}</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.spark</groupId>
@@ -477,12 +511,48 @@
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-sql_${scala.tools.version}</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-yarn_${scala.tools.version}</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-hive_${scala.tools.version}</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.iceberg</groupId>
+      <artifactId>iceberg-spark-runtime-3.5_${scala.tools.version}</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang.modules</groupId>
+      <artifactId>scala-java8-compat_${scala.tools.version}</artifactId>
+      <version>${scala-java8-compat.version}</version>
+    </dependency>
 
+    <!-- Avro -->
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-mapred</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro-ipc</artifactId>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <scope>compile</scope>
+      <version>${avro.version}</version>
+      <scope>provided</scope>
     </dependency>
+
 
     <!-- Test -->
     <dependency>
