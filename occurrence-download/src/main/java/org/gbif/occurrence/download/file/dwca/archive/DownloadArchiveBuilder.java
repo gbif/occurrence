@@ -211,7 +211,7 @@ public class DownloadArchiveBuilder {
     ZipEntry ze = new ZipEntry(filename);
     out.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
     try (D2CombineInputStream in = new D2CombineInputStream(parts)) {
-      IOUtils.copy(in, out, 16384);
+      IOUtils.copy(in, out, 32768);
       in.close(); // important so counts are accurate
       ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
       ze.setCompressedSize(in.getCompressedLength());

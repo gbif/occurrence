@@ -51,8 +51,8 @@ public class SparkDownloads {
             .config("spark.sql.catalog.iceberg.type", "hive")
             .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
             .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec")
-            .config("spark.executorEnv.D2_BUFFER_SIZE", "65535")
-            .config("spark.driverEnv.D2_BUFFER_SIZE", "65535");
+            .config("spark.executorEnv.D2_BUFFER_SIZE", "262144")
+            .config("spark.driverEnv.D2_BUFFER_SIZE", "262144");
     SparkSession session = sparkBuilder.getOrCreate();
 
     UDFS.registerUdfs(session);
