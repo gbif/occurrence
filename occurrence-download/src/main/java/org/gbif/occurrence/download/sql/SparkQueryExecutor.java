@@ -11,25 +11,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.spark;
-
-import org.gbif.occurrence.download.sql.QueryExecutor;
+package org.gbif.occurrence.download.sql;
 
 import org.apache.spark.sql.SparkSession;
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 public class SparkQueryExecutor implements QueryExecutor {
-  private SparkSession sparkSession;
+
+  private SparkSessionSupplier sparkSessionSupplier;
+  private SparkSession sparkSession = null;
+
+  public SparkQueryExecutor(SparkSessionSupplier sparkSessionSupplier) {
+    this.sparkSessionSupplier = sparkSessionSupplier;
+  }
 
   @Override
   public void close() {
-    sparkSession.close();
+    if (sparkSession != null) {
+      sparkSession.stop();
+      sparkSession.close();
+    }
   }
 
   @Override
   public void accept(String description, String sql) {
+    if (sparkSession == null) {
+      sparkSession = sparkSessionSupplier.create();
+    }
     sparkSession.sparkContext().setJobDescription(description);
     sparkSession.sql(sql);
   }

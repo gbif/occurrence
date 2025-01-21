@@ -59,7 +59,7 @@ public class DownloadWorkflow {
       DwcTerm coreDwcTerm,
       String downloadKey,
       Supplier<QueryExecutor> queryExecutorSupplier,
-      SparkSession sparkSession) {
+      SparkSessionSupplier sparkSessionSupplier) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
     downloadService =
@@ -71,7 +71,7 @@ public class DownloadWorkflow {
         SqlDownloadRunner.builder()
             .workflowConfiguration(workflowConfiguration)
             .download(download)
-          .sparkSession(sparkSession)
+          .sparkSessionSupplier(sparkSessionSupplier)
             .jobConfiguration(
                 DownloadJobConfiguration.forSqlDownload(
                     download, workflowConfiguration.getHiveDBPath()))

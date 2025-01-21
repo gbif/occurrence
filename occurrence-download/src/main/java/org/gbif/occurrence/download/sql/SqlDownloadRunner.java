@@ -29,19 +29,19 @@ import lombok.SneakyThrows;
 
 @Builder
 public class SqlDownloadRunner {
-    private final Download download;
 
-    private final WorkflowConfiguration workflowConfiguration;
+  private final Download download;
 
-    private final DownloadJobConfiguration jobConfiguration;
+  private final WorkflowConfiguration workflowConfiguration;
 
-    private final Supplier<QueryExecutor> queryExecutorSupplier;
+  private final DownloadJobConfiguration jobConfiguration;
 
-    private final SparkSession sparkSession;
+  private final Supplier<QueryExecutor> queryExecutorSupplier;
 
+  private final SparkSessionSupplier sparkSessionSupplier;
 
   @SneakyThrows
-    public void run() {
+  public void run() {
     try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
       if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
         DwcaDownload.builder()
@@ -49,7 +49,7 @@ public class SqlDownloadRunner {
           .workflowConfiguration(workflowConfiguration)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
           .queryExecutor(queryExecutor)
-          .sparkSession(sparkSession)
+          .sparkSessionSupplier(sparkSessionSupplier)
           .build()
           .run();
       } else {

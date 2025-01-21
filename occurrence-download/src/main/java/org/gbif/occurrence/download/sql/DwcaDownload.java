@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 import lombok.Builder;
@@ -45,14 +46,12 @@ public class DwcaDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
-  private final SparkSession sparkSession;
+  private final SparkSessionSupplier sparkSessionSupplier;
 
-  public void run() {
+  public void run() throws IOException {
     try {
       // Execute queries
       executeQuery();
-
-      // Create the Archive
 
       zipAndArchive();
 
@@ -62,7 +61,7 @@ public class DwcaDownload {
     }
   }
 
-  private void executeQuery() {
+  private void executeQuery() throws IOException {
 
     Map<String,String> queryParams = getQueryParameters();
     SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
@@ -73,12 +72,15 @@ public class DwcaDownload {
     if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       runExtensionsQuery();
     }
+
+    queryExecutor.close();
   }
 
   /**
    * Creates the citation table.
    */
   private void createCitationTable(String database, String interpretedTable, String citationTable) {
+    SparkSession sparkSession = sparkSessionSupplier.create();
     sparkSession.sparkContext().setJobGroup("CT", "Creating citation table", true);
     sparkSession.sql("SET hive.auto.convert.join=true");
     sparkSession.sql("SET mapred.output.compress=false");
@@ -87,6 +89,7 @@ public class DwcaDownload {
       database + '.' + interpretedTable + " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
     result.coalesce(1).write().option("delimiter", "\t").format("hive").saveAsTable(database + '.' + citationTable);
     sparkSession.sparkContext().clearJobGroup();
+    sparkSession.close();
   }
 
   @SneakyThrows
@@ -122,7 +125,8 @@ public class DwcaDownload {
   }
 
   private void dropTables() {
-    SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download", dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download",
+      dropTablesQuery(), queryParameters.toMap(), queryExecutor);
   }
 
   private Map<String, String> getQueryParameters() {

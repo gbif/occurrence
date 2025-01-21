@@ -19,6 +19,8 @@ import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.DownloadWorkflow;
+import org.gbif.occurrence.download.sql.SparkQueryExecutor;
+import org.gbif.occurrence.download.sql.SparkSessionSupplier;
 import org.gbif.occurrence.spark.udf.UDFS;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
@@ -27,13 +29,21 @@ public class SparkDownloads {
   public static void main(String[] args) throws IOException {
     String downloadKey = args[0];
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
-    SparkSession sparkSession = createSparkSession(args[0], workflowConfiguration);
+
+    SparkSessionSupplier sparkSessionSupplier
+      = new SparkSessionSupplier() {
+      @Override
+      public SparkSession create() {
+        return createSparkSession(args[0], workflowConfiguration);
+      }
+    };
+
     DownloadWorkflow.builder()
       .downloadKey(downloadKey)
       .coreDwcTerm(DwcTerm.valueOf(args[1]))
       .workflowConfiguration(workflowConfiguration)
-      .queryExecutorSupplier(() -> new SparkQueryExecutor(sparkSession))
-      .sparkSession(sparkSession)
+      .queryExecutorSupplier(() -> new SparkQueryExecutor(sparkSessionSupplier))
+      .sparkSessionSupplier(sparkSessionSupplier)
       .build()
       .run();
   }
