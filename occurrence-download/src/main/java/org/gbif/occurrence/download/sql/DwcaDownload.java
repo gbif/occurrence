@@ -15,6 +15,8 @@ package org.gbif.occurrence.download.sql;
 
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.function.Supplier;
+
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.GenerateHQL;
+import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 @Builder
@@ -37,15 +40,13 @@ public class DwcaDownload {
 
   private static String dropTablesQuery;
 
-  private final QueryExecutor queryExecutor;
+  private final Supplier<SparkQueryExecutor> queryExecutorSupplier;
 
   private final Download download;
 
   private final DownloadQueryParameters queryParameters;
 
   private final WorkflowConfiguration workflowConfiguration;
-
-  private final SparkSession sparkSession;
 
   public void run() {
     try {
@@ -64,21 +65,24 @@ public class DwcaDownload {
 
   private void executeQuery() {
 
-    Map<String,String> queryParams = getQueryParameters();
-    SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
+    try (SparkQueryExecutor queryExecutor = queryExecutorSupplier.get()) {
 
-    //Citation table
-    createCitationTable(queryParams.get("hiveDB"), queryParams.get("interpretedTable"), queryParams.get("citationTable"));
+      Map<String, String> queryParams = getQueryParameters();
+      SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
 
-    if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
-      runExtensionsQuery();
+      //Citation table
+      createCitationTable(queryExecutor.getSparkSession(), queryParams.get("hiveDB"), queryParams.get("interpretedTable"), queryParams.get("citationTable"));
+
+      if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
+        runExtensionsQuery(queryExecutor);
+      }
     }
   }
 
   /**
    * Creates the citation table.
    */
-  private void createCitationTable(String database, String interpretedTable, String citationTable) {
+  private void createCitationTable(SparkSession sparkSession, String database, String interpretedTable, String citationTable) {
     sparkSession.sparkContext().setJobGroup("CT", "Creating citation table", true);
     sparkSession.sql("SET hive.auto.convert.join=true");
     sparkSession.sql("SET mapred.output.compress=false");
@@ -122,7 +126,9 @@ public class DwcaDownload {
   }
 
   private void dropTables() {
-    SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download", dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    try (SparkQueryExecutor queryExecutor = queryExecutorSupplier.get()) {
+      SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download", dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    }
   }
 
   private Map<String, String> getQueryParameters() {
@@ -135,8 +141,8 @@ public class DwcaDownload {
     return parameters;
   }
 
-  private void runExtensionsQuery() {
-    SqlQueryUtils.runMultiSQL("Extensions DWCA Download query", extensionQuery(), queryParameters.toMap(), queryExecutor);
+  private void runExtensionsQuery(SparkQueryExecutor sparkQueryExecutor) {
+    SqlQueryUtils.runMultiSQL("Extensions DWCA Download query", extensionQuery(), queryParameters.toMap(), sparkQueryExecutor);
   }
 
   @SneakyThrows

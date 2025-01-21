@@ -11,35 +11,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.trino;
+package org.gbif.occurrence.download.spark;
 
+import lombok.Getter;
 import org.gbif.occurrence.download.sql.QueryExecutor;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.Statement;
+import org.apache.spark.sql.SparkSession;
 
-import lombok.SneakyThrows;
+import lombok.AllArgsConstructor;
 
-public class JdbcQueryExecutor implements QueryExecutor {
+@AllArgsConstructor
+@Getter
+public class SparkQueryExecutor implements QueryExecutor {
+  private SparkSession sparkSession;
 
-  private final Connection connection;
-
-  public JdbcQueryExecutor(ConnectionConfiguration configuration) {
-    connection = QueryUtils.getConnection(configuration);
+  @Override
+  public void close() {
+    sparkSession.close();
   }
 
   @Override
-  @SneakyThrows
-  public void close() throws IOException {
-    connection.close();
-  }
-
-  @Override
-  @SneakyThrows
   public void accept(String description, String sql) {
-    try (Statement statement = connection.createStatement()) {
-      statement.execute(sql);
-    }
+    sparkSession.sparkContext().setJobDescription(description);
+    sparkSession.sql(sql);
   }
 }

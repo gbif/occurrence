@@ -19,6 +19,7 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
@@ -35,21 +36,19 @@ public class SqlDownloadRunner {
 
     private final DownloadJobConfiguration jobConfiguration;
 
-    private final Supplier<QueryExecutor> queryExecutorSupplier;
+    private final Supplier<SparkQueryExecutor> queryExecutorSupplier;
 
     private final SparkSession sparkSession;
 
 
   @SneakyThrows
     public void run() {
-    try(QueryExecutor queryExecutor = queryExecutorSupplier.get()) {
       if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
         DwcaDownload.builder()
           .download(download)
           .workflowConfiguration(workflowConfiguration)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .queryExecutor(queryExecutor)
-          .sparkSession(sparkSession)
+          .queryExecutorSupplier(queryExecutorSupplier)
           .build()
           .run();
       } else {
@@ -57,11 +56,10 @@ public class SqlDownloadRunner {
           .download(download)
           .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
           .workflowConfiguration(workflowConfiguration)
-          .queryExecutor(queryExecutor)
+          .sparkQueryExecutorSupplier(queryExecutorSupplier)
           .build()
           .run();
       }
-    }
   }
 
   @SneakyThrows
