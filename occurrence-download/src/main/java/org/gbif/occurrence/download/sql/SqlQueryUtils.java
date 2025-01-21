@@ -15,8 +15,6 @@ package org.gbif.occurrence.download.sql;
 
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -29,14 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 public class SqlQueryUtils {
 
   /**
-   * Reads a file into a string.
-   */
-  @SneakyThrows
-  private static String readFile(String fileName) {
-    return new String(Files.readAllBytes(Paths.get(fileName)));
-  }
-
-  /**
    * Replaces variables in the text. Variables come in a map of names and values.
    */
   private static String replaceVariables(String text, Map<String,String> params) {
@@ -44,14 +34,6 @@ public class SqlQueryUtils {
                                    params.keySet().stream().map(k -> "${" + k  + "}").toArray(String[]::new),
                                    params.values().toArray(new String[0]));
   }
-
-  /**
-   * Executes, statement-by-statement a file containing SQL queries.
-   */
-  public static void runSQLFile(String fileName, Map<String,String> params, BiConsumer<String, String> queryExecutor) {
-    runMultiSQL(fileName, readFile(fileName), params, queryExecutor);
-  }
-
 
   /**
    * Executes, statement-by-statement a String that contains multiple SQL queries.
@@ -70,16 +52,9 @@ public class SqlQueryUtils {
       query = query.trim();
       if (!query.isEmpty()) {
         log.info("Executing query: \n {}", query);
-        queryExecutor.accept(trimToLength(queryDescription + " " + query, 200), query);
+        queryExecutor.accept(queryDescription + " " + query, query);
       }
     }
-  }
-
-  private static String trimToLength(String input, int maxLength) {
-    if (input.length() > maxLength) {
-      return input.substring(0, maxLength);
-    }
-    return input;
   }
 
   @FunctionalInterface
