@@ -13,8 +13,10 @@
  */
 package org.gbif.occurrence.download.sql;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.sql.SparkSession;
 
+@Slf4j
 public class SparkQueryExecutor implements QueryExecutor {
 
   private SparkSessionSupplier sparkSessionSupplier;
@@ -27,8 +29,10 @@ public class SparkQueryExecutor implements QueryExecutor {
   @Override
   public void close() {
     if (sparkSession != null) {
+      log.info("Closing Spark session....");
       sparkSession.stop();
       sparkSession.close();
+      log.info("Spark session closed.");
     }
   }
 

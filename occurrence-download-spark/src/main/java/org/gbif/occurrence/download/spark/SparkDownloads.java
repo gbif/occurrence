@@ -14,6 +14,8 @@
 package org.gbif.occurrence.download.spark;
 
 import java.io.IOException;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
@@ -24,6 +26,7 @@ import org.gbif.occurrence.download.sql.SparkSessionSupplier;
 import org.gbif.occurrence.spark.udf.UDFS;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
+@Slf4j
 public class SparkDownloads {
 
   public static void main(String[] args) throws IOException {
@@ -34,6 +37,7 @@ public class SparkDownloads {
       = new SparkSessionSupplier() {
       @Override
       public SparkSession create() {
+        log.info("Creating Spark session...");
         return createSparkSession(args[0], workflowConfiguration);
       }
     };

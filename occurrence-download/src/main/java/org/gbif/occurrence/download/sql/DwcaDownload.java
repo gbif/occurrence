@@ -51,12 +51,15 @@ public class DwcaDownload {
   public void run() throws IOException {
     try {
       // Execute queries
+      log.info("Running DWCA download for download key {}", download.getKey());
       executeQuery();
 
+      log.info("Zipping and archiving DWCA download for download key {}", download.getKey());
       zipAndArchive();
 
     } finally {
       // Drop tables
+      log.info("Dropping tables for download key {}", download.getKey());
       dropTables();
     }
   }
