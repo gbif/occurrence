@@ -22,7 +22,7 @@ import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.occurrence.spark.udf.UDFS;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
-public class SparkDownloads {
+public class GbifOccurrenceDownloads {
 
   public static void main(String[] args) throws IOException {
     String downloadKey = args[0];
