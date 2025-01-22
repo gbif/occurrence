@@ -54,16 +54,19 @@ public class DownloadWorkflow {
 
   private final SqlDownloadRunner sqlDownloadRunner;
 
+  private final DownloadStage downloadStage;
+
   @Builder
   public DownloadWorkflow(
       WorkflowConfiguration workflowConfiguration,
       DwcTerm coreDwcTerm,
       String downloadKey,
-      Supplier<SparkQueryExecutor> queryExecutorSupplier) {
+      Supplier<SparkQueryExecutor> queryExecutorSupplier,
+      DownloadStage downloadStage
+  ) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
-    downloadService =
-        DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
+    downloadService = DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
     download = downloadService.get(downloadKey);
     conceptClient = DownloadWorkflowModule.conceptClient(workflowConfiguration);
     translateVocabs(download);
@@ -73,9 +76,12 @@ public class DownloadWorkflow {
             .download(download)
             .jobConfiguration(
                 DownloadJobConfiguration.forSqlDownload(
-                    download, workflowConfiguration.getHiveDBPath()))
+                    download, workflowConfiguration.getHiveDBPath())
+            )
             .queryExecutorSupplier(queryExecutorSupplier)
+            .downloadStage(downloadStage)
             .build();
+    this.downloadStage = downloadStage;
   }
 
   public void run() {

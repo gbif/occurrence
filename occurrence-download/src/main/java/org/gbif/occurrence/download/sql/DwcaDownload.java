@@ -48,18 +48,28 @@ public class DwcaDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
+  private final DownloadStage downloadStage;
+
   public void run() {
-    try {
-      // Execute queries
-      executeQuery();
+    switch (downloadStage) {
+      case QUERY:
+        executeQuery();
+        break;
+      case ARCHIVE:
+        zipAndArchive();
+        break;
+      case CLEANUP:
+        dropTables();
+        break;
+      case ALL:
+        try {
+          executeQuery();
+          zipAndArchive();
+        } finally {
+          dropTables();
+        }
+        break;
 
-      // Create the Archive
-
-      zipAndArchive();
-
-    } finally {
-      // Drop tables
-      dropTables();
     }
   }
 
@@ -68,10 +78,12 @@ public class DwcaDownload {
     try (SparkQueryExecutor queryExecutor = queryExecutorSupplier.get()) {
 
       Map<String, String> queryParams = getQueryParameters();
-      SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
+      SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(),
+        queryParams, queryExecutor);
 
       //Citation table
-      createCitationTable(queryExecutor.getSparkSession(), queryParams.get("hiveDB"), queryParams.get("interpretedTable"), queryParams.get("citationTable"));
+      createCitationTable(queryExecutor.getSparkSession(), queryParams.get("hiveDB"),
+        queryParams.get("interpretedTable"), queryParams.get("citationTable"));
 
       if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
         runExtensionsQuery(queryExecutor);
