@@ -18,8 +18,6 @@ import java.util.Map;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
@@ -67,26 +65,9 @@ public class DwcaDownload {
     Map<String,String> queryParams = getQueryParameters();
     SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
 
-    //Citation table
-    createCitationTable(queryParams.get("hiveDB"), queryParams.get("interpretedTable"), queryParams.get("citationTable"));
-
     if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
       runExtensionsQuery();
     }
-  }
-
-  /**
-   * Creates the citation table.
-   */
-  private void createCitationTable(String database, String interpretedTable, String citationTable) {
-    sparkSession.sparkContext().setJobGroup("CT", "Creating citation table", true);
-    sparkSession.sql("SET hive.auto.convert.join=true");
-    sparkSession.sql("SET mapred.output.compress=false");
-    sparkSession.sql("SET hive.exec.compress.output=false");
-    Dataset<Row> result = sparkSession.sql("SELECT datasetkey, count(*) as num_occurrences FROM " +
-      database + '.' + interpretedTable + " WHERE datasetkey IS NOT NULL GROUP BY datasetkey");
-    result.write().option("delimiter", "\t").format("hive").saveAsTable(database + '.' + citationTable);
-    sparkSession.sparkContext().clearJobGroup();
   }
 
   @SneakyThrows
