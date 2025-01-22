@@ -28,7 +28,7 @@ public class GbifOccurrenceDownloads {
   public static void main(String[] args) throws IOException {
     String downloadKey = args[0];
     DwcTerm dwcTerm = DwcTerm.valueOf(args[1]);  // OCCURRENCE or EVENT
-    DownloadStage downloadStage = DownloadStage.valueOf(args[3]);  // QUERY, ARCHIVE or CLEANUP
+    DownloadStage downloadStage = DownloadStage.ALL;  // QUERY, ARCHIVE or CLEANUP
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
     DownloadWorkflow.builder()
