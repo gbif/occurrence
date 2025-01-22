@@ -9,7 +9,7 @@ pom.xml.releaseBackup
 
 **/application.properties
 **/conf
-**/src/main/lombok/
+
 # Package Files #
 *.jar
 *.war
