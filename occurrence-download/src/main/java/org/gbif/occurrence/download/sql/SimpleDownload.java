@@ -27,10 +27,12 @@ import org.gbif.occurrence.download.file.simpleavro.SimpleAvroArchiveBuilder;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.GenerateHQL;
+import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.fs.FileSystem;
@@ -48,7 +50,7 @@ public class SimpleDownload {
   public static final EnumSet<DownloadFormat> MULTI_ARCHIVE_DIRECTORY_FORMATS = EnumSet.of(DownloadFormat.SIMPLE_PARQUET, DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO, DownloadFormat.BIONOMIA);
   private static String downloadQuery;
 
-  private final QueryExecutor queryExecutor;
+  private final Supplier<SparkQueryExecutor> sparkQueryExecutorSupplier;
 
   private final Download download;
 
@@ -79,8 +81,10 @@ public class SimpleDownload {
     if(onStart != null) {
       onStart.run();
     }
-    String downloadQuery = downloadQuery();
-    SqlQueryUtils.runMultiSQL("Simple download", downloadQuery, queryParameters.toMap(), queryExecutor);
+    try (SparkQueryExecutor queryExecutor = sparkQueryExecutorSupplier.get()) {
+      String downloadQuery = downloadQuery();
+      SqlQueryUtils.runMultiSQL("Simple download", downloadQuery, queryParameters.toMap(), queryExecutor);
+    }
   }
 
   @SneakyThrows
@@ -212,20 +216,21 @@ public class SimpleDownload {
   }
 
   private void dropTables() {
-    queryExecutor.accept("DROP" + queryParameters.getDownloadTableName(), "DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
-    queryExecutor.accept("DROP " +queryParameters.getDownloadTableName() + "_citation",  "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
-    if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
-      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_tmp", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
-      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
-    } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
-      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
-    } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_citation", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
-      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_agents", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
-      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_families", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");
-      queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_identifiers","DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers");
+    try(SparkQueryExecutor queryExecutor = sparkQueryExecutorSupplier.get()) {
+      queryExecutor.accept("DROP" + queryParameters.getDownloadTableName(), "DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
+      queryExecutor.accept("DROP " +queryParameters.getDownloadTableName() + "_citation",  "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+      if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_tmp", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+      } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+      } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_citation", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_agents", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_families", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_identifiers","DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers");
+      }
     }
-
   }
 
 }

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import lombok.Getter;
 import org.gbif.occurrence.download.sql.QueryExecutor;
 
 import org.apache.spark.sql.SparkSession;
@@ -20,6 +21,7 @@ import org.apache.spark.sql.SparkSession;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
+@Getter
 public class SparkQueryExecutor implements QueryExecutor {
   private SparkSession sparkSession;
 
