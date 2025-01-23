@@ -14,6 +14,9 @@
 package org.gbif.occurrence.download.spark;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
@@ -38,19 +41,25 @@ public class GbifOccurrenceDownloads {
 
   public static SparkSession createSparkSession(
       String downloadKey, WorkflowConfiguration workflowConfiguration) {
+    return createSparkSession("Download job " + downloadKey, workflowConfiguration, Collections.emptyMap());
+  }
+
+  public static SparkSession createSparkSession(
+    String appName, WorkflowConfiguration workflowConfiguration, Map<String,String> additionalSparkConfigs) {
     SparkConf sparkConf =
-        new SparkConf()
-            .set("hive.metastore.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
+      new SparkConf()
+        .set("hive.metastore.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
     SparkSession.Builder sparkBuilder =
-        SparkSession.builder()
-            .appName("Download job " + downloadKey)
-            .config(sparkConf)
-            .enableHiveSupport()
-            .config("spark.sql.catalog.iceberg.type", "hive")
-            .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
-            .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec")
-            .config("spark.executorEnv.D2_BUFFER_SIZE", "262144")
-            .config("spark.driverEnv.D2_BUFFER_SIZE", "262144");
+      SparkSession.builder()
+        .appName(appName)
+        .config(sparkConf)
+        .enableHiveSupport()
+        .config("spark.sql.catalog.iceberg.type", "hive")
+        .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+        .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec")
+        .config("spark.executorEnv.D2_BUFFER_SIZE", "262144")
+        .config("spark.driverEnv.D2_BUFFER_SIZE", "262144"); //spark.executor.instances
+    additionalSparkConfigs.forEach(sparkBuilder::config);
     SparkSession session = sparkBuilder.getOrCreate();
 
     UDFS.registerUdfs(session);

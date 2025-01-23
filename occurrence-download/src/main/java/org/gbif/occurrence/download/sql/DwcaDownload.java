@@ -26,6 +26,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.GenerateHQL;
+import org.gbif.occurrence.download.spark.GbifOccurrenceDownloads;
 import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
@@ -106,9 +107,16 @@ public class DwcaDownload {
   }
 
   private void dropTables() {
-    try (SparkQueryExecutor queryExecutor = queryExecutorSupplier.get()) {
+    try (SparkQueryExecutor queryExecutor = getSingleQueryExecutor()) {
       SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download", dropTablesQuery(), queryParameters.toMap(), queryExecutor);
     }
+  }
+
+  /**
+   * Create a single query executor for dropping tables.
+   */
+  private SparkQueryExecutor getSingleQueryExecutor() {
+    return SparkQueryExecutor.createSingleQueryExecutor("Clean-up Download job " + download.getKey(), workflowConfiguration);
   }
 
   private Map<String, String> getQueryParameters() {

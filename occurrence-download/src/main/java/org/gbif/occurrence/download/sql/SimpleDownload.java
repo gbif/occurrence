@@ -215,8 +215,15 @@ public class SimpleDownload {
     return new RegistryClientUtil(workflowConfiguration.getRegistryUser(), workflowConfiguration.getRegistryPassword(), workflowConfiguration.getRegistryWsUrl());
   }
 
+  /**
+    * Create a single query executor for dropping tables.
+    */
+  private SparkQueryExecutor getSingleQueryExecutor() {
+    return SparkQueryExecutor.createSingleQueryExecutor("Clean-up Download job " + download.getKey(), workflowConfiguration);
+  }
+
   private void dropTables() {
-    try(SparkQueryExecutor queryExecutor = sparkQueryExecutorSupplier.get()) {
+    try (SparkQueryExecutor queryExecutor = getSingleQueryExecutor()) {
       queryExecutor.accept("DROP" + queryParameters.getDownloadTableName(), "DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
       queryExecutor.accept("DROP " +queryParameters.getDownloadTableName() + "_citation",  "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
       if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
