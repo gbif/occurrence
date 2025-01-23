@@ -78,10 +78,14 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     return sparkStaticConfiguration.getSmallDownloadCutOff() >= download.getTotalRecords();
   }
 
-  private int executorInstances(Download download) {
-     return isSmallDownload(download)
-       ? sparkStaticConfiguration.getMinInstances()
-       : Math.min(sparkStaticConfiguration.getMaxInstances(), Math.max((int)download.getTotalRecords() / sparkStaticConfiguration.getRecordsPerInstance(), 1));
+  private int calculateExecutorInstances(Download download) {
+    return isSmallDownload(download)
+        ? sparkStaticConfiguration.getMinInstances()
+        : Math.min(
+            sparkStaticConfiguration.getMaxInstances(),
+            Math.max(
+                (int) download.getTotalRecords() / sparkStaticConfiguration.getRecordsPerInstance(),
+                sparkStaticConfiguration.getMinInstances()));
   }
 
   private AirflowBody getAirflowBody(Download download) {
@@ -119,9 +123,9 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
         .executorLimitMemory(sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() + "Gi")
         // dynamicAllocation
-        .initialExecutors(executorInstances(download))
+        .initialExecutors(sparkStaticConfiguration.getMinInstances())
         .minExecutors(sparkStaticConfiguration.getMinInstances())
-        .maxExecutors(sparkStaticConfiguration.getMaxInstances())
+        .maxExecutors(calculateExecutorInstances(download))
         // Extra
         .callbackUrl(airflowConfiguration.getAirflowCallback())
         .build())
