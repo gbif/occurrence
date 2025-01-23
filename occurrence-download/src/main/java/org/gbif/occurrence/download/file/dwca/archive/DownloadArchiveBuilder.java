@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.apache.commons.compress.utils.IOUtils;
-
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -32,6 +30,7 @@ import java.io.*;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;

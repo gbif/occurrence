@@ -13,15 +13,15 @@
  */
 package org.gbif.occurrence.download.spark;
 
-import lombok.Getter;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.QueryExecutor;
+
+import java.util.Map;
 
 import org.apache.spark.sql.SparkSession;
 
 import lombok.AllArgsConstructor;
-
-import java.util.Map;
+import lombok.Getter;
 
 @AllArgsConstructor
 @Getter

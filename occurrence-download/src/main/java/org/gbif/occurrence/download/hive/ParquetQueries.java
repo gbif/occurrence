@@ -13,9 +13,10 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import java.util.Locale;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+
+import java.util.Locale;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating Parquet
