@@ -53,6 +53,8 @@ public class GbifOccurrenceDownloads {
             new Thread(
                 () -> {
                   if (session != null) {
+                    session.sparkContext().cancelAllJobs();
+                    session.sparkContext().stop();
                     session.close();
                   }
                 }));
