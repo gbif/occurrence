@@ -52,8 +52,7 @@ public class GbifOccurrenceDownloads {
         .addShutdownHook(
             new Thread(
                 () -> {
-                  if (session != null && !SparkSession.getActiveSession().isEmpty()) {
-                    SparkSession.getActiveSession().get().sparkContext().cancelAllJobs();
+                  if (session != null) {
                     session.close();
                   }
                 }));
