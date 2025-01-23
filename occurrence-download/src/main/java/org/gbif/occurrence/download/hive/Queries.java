@@ -13,16 +13,19 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import com.google.common.collect.ImmutableMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Utilities related to the actual queries executed at runtime.

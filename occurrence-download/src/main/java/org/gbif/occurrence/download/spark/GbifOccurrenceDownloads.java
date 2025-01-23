@@ -13,17 +13,18 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.sql.DownloadWorkflow;
+import org.gbif.occurrence.spark.udf.UDFS;
+import org.gbif.utils.file.properties.PropertiesUtil;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.sql.DownloadWorkflow;
-import org.gbif.occurrence.spark.udf.UDFS;
-import org.gbif.utils.file.properties.PropertiesUtil;
 
 public class GbifOccurrenceDownloads {
 

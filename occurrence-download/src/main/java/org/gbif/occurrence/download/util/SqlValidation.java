@@ -13,6 +13,14 @@
  */
 package org.gbif.occurrence.download.util;
 
+import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.occurrence.download.hive.HiveDataTypes;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
+import org.gbif.occurrence.query.sql.HiveSqlValidator;
+
+import java.util.*;
+
 import calcite_gbif_shaded.com.google.common.collect.ImmutableMap;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataType;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -28,13 +36,6 @@ import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
-import org.gbif.api.exception.QueryBuildingException;
-import org.gbif.occurrence.download.hive.HiveDataTypes;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
-import org.gbif.occurrence.query.sql.HiveSqlQuery;
-import org.gbif.occurrence.query.sql.HiveSqlValidator;
-
-import java.util.*;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 

@@ -13,17 +13,10 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import java.util.Map;
 
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.gbif.occurrence.download.sql.SqlQueryUtils;
+
 import org.junit.Test;
-
-import com.google.common.collect.ImmutableMap;
-
-import freemarker.cache.ClassTemplateLoader;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
 
 import static org.junit.Assert.assertTrue;
 

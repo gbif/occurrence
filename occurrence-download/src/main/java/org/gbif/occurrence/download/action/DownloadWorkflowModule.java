@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.action;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -61,6 +59,8 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
+
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;

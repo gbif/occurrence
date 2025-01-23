@@ -13,23 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher;
 
-import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
-import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
-import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
@@ -38,9 +21,30 @@ import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 
 @Slf4j
 @Service

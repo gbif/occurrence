@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.citations;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
@@ -39,6 +38,8 @@ import org.apache.hadoop.fs.Path;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Reads a dataset's citations file for consumption.

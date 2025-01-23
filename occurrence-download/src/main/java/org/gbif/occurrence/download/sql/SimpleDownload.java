@@ -58,8 +58,6 @@ public class SimpleDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
-  private Runnable onStart;
-
   public void run() {
     try {
       //run Queries
@@ -78,9 +76,6 @@ public class SimpleDownload {
 
 
   private void executeQuery() {
-    if(onStart != null) {
-      onStart.run();
-    }
     try (SparkQueryExecutor queryExecutor = sparkQueryExecutorSupplier.get()) {
       String downloadQuery = downloadQuery();
       SqlQueryUtils.runMultiSQL("Simple download", downloadQuery, queryParameters.toMap(), queryExecutor);

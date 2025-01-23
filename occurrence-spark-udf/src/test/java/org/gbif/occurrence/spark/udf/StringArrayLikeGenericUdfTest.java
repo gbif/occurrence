@@ -14,12 +14,8 @@
 package org.gbif.occurrence.spark.udf;
 
 import org.junit.jupiter.api.Test;
-import scala.collection.mutable.WrappedArray;
-import scala.collection.mutable.WrappedArrayBuilder;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
+import scala.collection.mutable.WrappedArray;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.sql;
 
-import org.apache.spark.sql.SparkSession;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
@@ -24,6 +23,8 @@ import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 import java.util.function.Supplier;
+
+import org.apache.spark.sql.SparkSession;
 
 import lombok.Builder;
 import lombok.SneakyThrows;

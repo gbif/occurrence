@@ -14,13 +14,13 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.vocabulary.UserRole;
 
 import java.security.AccessControlException;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Optional;
 
-import org.gbif.api.vocabulary.UserRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
