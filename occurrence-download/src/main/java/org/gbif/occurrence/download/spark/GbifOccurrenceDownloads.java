@@ -30,34 +30,44 @@ public class GbifOccurrenceDownloads {
 
   public static void main(String[] args) throws IOException {
     String downloadKey = args[0];
-    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
+    WorkflowConfiguration workflowConfiguration =
+        new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
     DownloadWorkflow.builder()
-      .downloadKey(downloadKey)
-      .coreDwcTerm(DwcTerm.valueOf(args[1]))
-      .workflowConfiguration(workflowConfiguration)
-      .queryExecutorSupplier(() -> new SparkQueryExecutor(createSparkSession(args[0], workflowConfiguration)))
-      .build()
-      .run();
+        .downloadKey(downloadKey)
+        .coreDwcTerm(DwcTerm.valueOf(args[1]))
+        .workflowConfiguration(workflowConfiguration)
+        .queryExecutorSupplier(
+            () -> new SparkQueryExecutor(createSparkSession(args[0], workflowConfiguration)))
+        .build()
+        .run();
   }
 
   public static SparkSession createSparkSession(
       String downloadKey, WorkflowConfiguration workflowConfiguration) {
-    return createSparkSession("Download job " + downloadKey, workflowConfiguration, Collections.emptyMap());
+    SparkSession session =
+        createSparkSession(
+            "Download job " + downloadKey, workflowConfiguration, Collections.emptyMap());
+
+    Runtime.getRuntime().addShutdownHook(new Thread(session::close));
+
+    return session;
   }
 
   public static SparkSession createSparkSession(
-    String appName, WorkflowConfiguration workflowConfiguration, Map<String,String> additionalSparkConfigs) {
+      String appName,
+      WorkflowConfiguration workflowConfiguration,
+      Map<String, String> additionalSparkConfigs) {
     SparkConf sparkConf =
-      new SparkConf()
-        .set("hive.metastore.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
+        new SparkConf()
+            .set("hive.metastore.warehouse.dir", workflowConfiguration.getHiveWarehouseDir());
     SparkSession.Builder sparkBuilder =
-      SparkSession.builder()
-        .appName(appName)
-        .config(sparkConf)
-        .enableHiveSupport()
-        .config("spark.sql.catalog.iceberg.type", "hive")
-        .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
-        .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec");
+        SparkSession.builder()
+            .appName(appName)
+            .config(sparkConf)
+            .enableHiveSupport()
+            .config("spark.sql.catalog.iceberg.type", "hive")
+            .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
+            .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec");
     additionalSparkConfigs.forEach(sparkBuilder::config);
     SparkSession session = sparkBuilder.getOrCreate();
 
