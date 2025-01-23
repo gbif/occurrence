@@ -48,7 +48,15 @@ public class GbifOccurrenceDownloads {
         createSparkSession(
             "Download job " + downloadKey, workflowConfiguration, Collections.emptyMap());
 
-    Runtime.getRuntime().addShutdownHook(new Thread(session::close));
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  if (session != null && !SparkSession.getActiveSession().isEmpty()) {
+                    SparkSession.getActiveSession().get().sparkContext().cancelAllJobs();
+                    session.close();
+                  }
+                }));
 
     return session;
   }
