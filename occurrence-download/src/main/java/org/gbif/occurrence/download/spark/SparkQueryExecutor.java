@@ -44,6 +44,10 @@ public class SparkQueryExecutor implements QueryExecutor {
    */
   public static  SparkQueryExecutor createSingleQueryExecutor(String appName, WorkflowConfiguration workflowConfiguration) {
     return new SparkQueryExecutor(GbifOccurrenceDownloads.createSparkSession(appName, workflowConfiguration,
-      Map.of("spark.executor.instances", "1", "spark.executor.cores", "1", "spark.executor.memory", "1g")));
+      Map.of("spark.executor.instances", "1",
+        "spark.dynamicAllocation.minExecutors", "1",
+        "spark.dynamicAllocation.maxExecutors", "1",
+        "spark.executor.cores", "1",
+        "spark.executor.memory", "1g")));
   }
 }

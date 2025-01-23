@@ -26,7 +26,6 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.GenerateHQL;
-import org.gbif.occurrence.download.spark.GbifOccurrenceDownloads;
 import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
