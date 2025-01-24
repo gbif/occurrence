@@ -31,36 +31,39 @@ import lombok.SneakyThrows;
 
 @Builder
 public class SqlDownloadRunner {
-    private final Download download;
 
-    private final WorkflowConfiguration workflowConfiguration;
+  private final Download download;
 
-    private final DownloadJobConfiguration jobConfiguration;
+  private final WorkflowConfiguration workflowConfiguration;
 
-    private final Supplier<SparkQueryExecutor> queryExecutorSupplier;
+  private final DownloadJobConfiguration jobConfiguration;
 
-    private final SparkSession sparkSession;
+  private final Supplier<SparkQueryExecutor> queryExecutorSupplier;
 
+  private final SparkSession sparkSession;
+
+  private final DownloadStage downloadStage;
 
   @SneakyThrows
-    public void run() {
-      if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
-        DwcaDownload.builder()
-          .download(download)
-          .workflowConfiguration(workflowConfiguration)
-          .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .queryExecutorSupplier(queryExecutorSupplier)
-          .build()
-          .run();
-      } else {
-        SimpleDownload.builder()
-          .download(download)
-          .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .workflowConfiguration(workflowConfiguration)
-          .sparkQueryExecutorSupplier(queryExecutorSupplier)
-          .build()
-          .run();
-      }
+  public void run() {
+    if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
+      DwcaDownload.builder()
+        .download(download)
+      .downloadStage(downloadStage)
+        .workflowConfiguration(workflowConfiguration)
+        .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
+        .queryExecutorSupplier(queryExecutorSupplier)
+        .build()
+        .run();
+    } else {
+      SimpleDownload.builder()
+        .download(download)
+        .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
+        .workflowConfiguration(workflowConfiguration)
+        .sparkQueryExecutorSupplier(queryExecutorSupplier)
+        .build()
+        .run();
+    }
   }
 
   @SneakyThrows

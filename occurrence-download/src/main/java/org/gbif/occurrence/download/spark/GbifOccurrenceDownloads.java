@@ -20,6 +20,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.sql.DownloadStage;
 import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.occurrence.spark.udf.UDFS;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -28,14 +29,20 @@ public class GbifOccurrenceDownloads {
 
   public static void main(String[] args) throws IOException {
     String downloadKey = args[0];
-    WorkflowConfiguration workflowConfiguration =
-        new WorkflowConfiguration(PropertiesUtil.readFromFile(args[2]));
+    DwcTerm dwcTerm = DwcTerm.valueOf(args[1]);  // OCCURRENCE or EVENT
+    String propertiesFile = args[2];
+    DownloadStage downloadStage = DownloadStage.ALL;
+    if (args.length > 3) {
+      downloadStage = DownloadStage.valueOf(args[3]);
+    }
+
+    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
     DownloadWorkflow.builder()
         .downloadKey(downloadKey)
-        .coreDwcTerm(DwcTerm.valueOf(args[1]))
+      .coreDwcTerm(dwcTerm)
+      .downloadStage(downloadStage)
         .workflowConfiguration(workflowConfiguration)
-        .queryExecutorSupplier(
-            () -> new SparkQueryExecutor(createSparkSession(args[0], workflowConfiguration)))
+      .queryExecutorSupplier(() -> new SparkQueryExecutor(createSparkSession(downloadKey, workflowConfiguration)))
         .build()
         .run();
   }

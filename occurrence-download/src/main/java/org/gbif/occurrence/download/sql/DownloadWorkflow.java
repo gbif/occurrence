@@ -56,12 +56,16 @@ public class DownloadWorkflow {
 
   private final SqlDownloadRunner sqlDownloadRunner;
 
+  private final DownloadStage downloadStage;
+
   @Builder
   public DownloadWorkflow(
       WorkflowConfiguration workflowConfiguration,
       DwcTerm coreDwcTerm,
       String downloadKey,
-      Supplier<SparkQueryExecutor> queryExecutorSupplier) {
+      Supplier<SparkQueryExecutor> queryExecutorSupplier,
+      DownloadStage downloadStage
+  ) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
     downloadService =
@@ -77,7 +81,9 @@ public class DownloadWorkflow {
                 DownloadJobConfiguration.forSqlDownload(
                     download, workflowConfiguration.getHiveDBPath()))
             .queryExecutorSupplier(queryExecutorSupplier)
+            .downloadStage(downloadStage)
             .build();
+    this.downloadStage = downloadStage;
   }
 
   public void run() {
