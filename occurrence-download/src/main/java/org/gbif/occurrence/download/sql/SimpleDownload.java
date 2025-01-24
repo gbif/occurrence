@@ -58,22 +58,30 @@ public class SimpleDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
+  private final DownloadStage downloadStage;
+
   public void run() {
-    try {
-      //run Queries
-      executeQuery();
-
-      //zip content
-      zipAndArchive();
-
-      //update download info in the Registry
-      updateDownload();
-    } finally {
-      //delete tables
-     dropTables();
+    switch (downloadStage) {
+      case QUERY:
+        executeQuery();
+        break;
+      case ARCHIVE:
+        zipAndArchive();
+        updateDownload();
+        break;
+      case CLEANUP:
+        dropTables();
+        break;
+      case ALL:
+        try {
+          executeQuery();
+          zipAndArchive();
+        } finally {
+          dropTables();
+        }
+        break;
     }
   }
-
 
   private void executeQuery() {
     try (SparkQueryExecutor queryExecutor = sparkQueryExecutorSupplier.get()) {

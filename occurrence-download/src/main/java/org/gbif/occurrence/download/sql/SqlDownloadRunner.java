@@ -49,7 +49,7 @@ public class SqlDownloadRunner {
     if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
       DwcaDownload.builder()
         .download(download)
-      .downloadStage(downloadStage)
+        .downloadStage(downloadStage)
         .workflowConfiguration(workflowConfiguration)
         .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
         .queryExecutorSupplier(queryExecutorSupplier)
@@ -58,6 +58,7 @@ public class SqlDownloadRunner {
     } else {
       SimpleDownload.builder()
         .download(download)
+        .downloadStage(downloadStage)
         .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
         .workflowConfiguration(workflowConfiguration)
         .sparkQueryExecutorSupplier(queryExecutorSupplier)
