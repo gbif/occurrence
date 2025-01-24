@@ -46,18 +46,28 @@ public class DwcaDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
+  private final DownloadStage downloadStage;
+
   public void run() {
+    switch (downloadStage) {
+      case QUERY:
+        executeQuery();
+        break;
+      case ARCHIVE:
+        zipAndArchive();
+        break;
+      case CLEANUP:
+        dropTables();
+        break;
+      case ALL:
     try {
-      // Execute queries
       executeQuery();
-
-      // Create the Archive
-
       zipAndArchive();
-
     } finally {
-      // Drop tables
       dropTables();
+        }
+        break;
+
     }
   }
 
