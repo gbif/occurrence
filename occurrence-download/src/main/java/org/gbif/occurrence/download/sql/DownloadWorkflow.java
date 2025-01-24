@@ -89,7 +89,8 @@ public class DownloadWorkflow {
   public void run() {
     if (download.getRequest().getFormat() != DownloadFormat.SPECIES_LIST) {
       long recordCount = recordCount(download);
-      if (isSmallDownloadCount(recordCount)) {
+      if (isSmallDownloadCount(recordCount)
+          && (downloadStage == DownloadStage.QUERY || downloadStage == DownloadStage.ALL)) {
         runFromElastic();
         updateTotalRecordsCount(download, recordCount);
       } else {
