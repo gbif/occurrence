@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -48,6 +50,7 @@ import com.google.common.io.ByteStreams;
 
 import lombok.extern.slf4j.Slf4j;
 
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
 import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStream;
 
@@ -125,7 +128,7 @@ public class SimpleCsvArchiveBuilder {
       Arrays.sort(files);
       for (File fileInZip : files) {
         FileInputStream fileInZipInputStream = new FileInputStream(fileInZip);
-        ByteStreams.copy(fileInZipInputStream, zos);
+        IOUtils.copy(fileInZipInputStream, zos, getFileCopyBufferSize());
         zos.flush();
         fileInZipInputStream.close();
       }
@@ -194,7 +197,7 @@ public class SimpleCsvArchiveBuilder {
     String downloadFormat = Preconditions.checkNotNull(args[4]).trim();
 
     FileSystem sourceFileSystem =
-      DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
+      getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
 
     SimpleCsvArchiveBuilder builder;
     switch (DownloadFormat.valueOf(downloadFormat)) {

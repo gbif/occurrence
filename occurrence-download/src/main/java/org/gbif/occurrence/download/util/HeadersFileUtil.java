@@ -14,8 +14,11 @@
 package org.gbif.occurrence.download.util;
 
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.ByteArrayInputStream;
@@ -30,6 +33,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.hive.DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID;
 
 /**
@@ -108,7 +112,7 @@ public class HeadersFileUtil {
    */
   public static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {
     try (InputStream headerInputStream = new ByteArrayInputStream(headers.getBytes())) {
-      ByteStreams.copy(headerInputStream, fileWriter);
+      IOUtils.copy(headerInputStream, fileWriter, getFileCopyBufferSize());
     }
   }
 

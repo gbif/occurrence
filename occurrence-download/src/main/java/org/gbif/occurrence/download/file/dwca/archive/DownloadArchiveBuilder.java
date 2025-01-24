@@ -22,6 +22,7 @@ import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
@@ -41,6 +42,7 @@ import com.google.common.io.ByteStreams;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.*;
 import static org.gbif.occurrence.download.util.ArchiveFileUtils.cleanupFS;
 
@@ -130,7 +132,7 @@ public class DownloadArchiveBuilder {
               StringUtils.removeStart(
                   f.getAbsolutePath(), archiveDir.getAbsolutePath() + File.separator);
           zos.putNextEntry(new ZipEntry(zipPath), ModalZipOutputStream.MODE.DEFAULT);
-          ByteStreams.copy(fileInZipInputStream, zos);
+          IOUtils.copy(fileInZipInputStream, zos, getFileCopyBufferSize());
         }
       }
       zos.closeEntry();
@@ -210,7 +212,7 @@ public class DownloadArchiveBuilder {
     ZipEntry ze = new ZipEntry(filename);
     out.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
     try (D2CombineInputStream in = new D2CombineInputStream(parts)) {
-      IOUtils.copy(in, out, 32768);
+      IOUtils.copy(in, out, getFileCopyBufferSize());
       in.close(); // important so counts are accurate
       ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
       ze.setCompressedSize(in.getCompressedLength());

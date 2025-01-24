@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.file.archive;
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -41,6 +43,8 @@ import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
+
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 
 /**
  * Utility class that creates a Zip file from one or more directories containing data of one
@@ -135,7 +139,7 @@ public class MultiDirectoryArchiveBuilder {
     for (InputStream fileInZipInputStream : is) {
       java.util.zip.ZipEntry ze = new java.util.zip.ZipEntry(String.format("%s/%06d", source.name, nextEntryNumber));
       zos.putNextEntry(ze);
-      ByteStreams.copy(fileInZipInputStream, zos);
+      IOUtils.copy(fileInZipInputStream, zos, getFileCopyBufferSize());
       fileInZipInputStream.close();
       zos.closeEntry();
       nextEntryNumber++;
@@ -170,7 +174,7 @@ public class MultiDirectoryArchiveBuilder {
 
       D2CombineInputStream in = new D2CombineInputStream(ImmutableList.of(fileInZipInputStream));
 
-      ByteStreams.copy(in, zos);
+      IOUtils.copy(in, zos, getFileCopyBufferSize());
       in.close(); // required to get the sizes
       ze.setSize(in.getUncompressedLength()); // important to set the sizes and CRC
       ze.setCompressedSize(in.getCompressedLength());
@@ -212,7 +216,7 @@ public class MultiDirectoryArchiveBuilder {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
 
     FileSystem sourceFileSystem =
-      DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
+      getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
 
     MultiDirectoryArchiveBuilder.withEntries(Arrays.copyOfRange(args, 3, args.length))
       .mergeAllToZip(sourceFileSystem, sourceFileSystem, args[0], args[1],

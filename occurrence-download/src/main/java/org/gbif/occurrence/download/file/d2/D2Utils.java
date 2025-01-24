@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.file.d2;
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
@@ -30,6 +32,10 @@ import com.google.common.io.ByteStreams;
 
 import lombok.experimental.UtilityClass;
 
+import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
+
 @UtilityClass
 public class D2Utils {
 
@@ -45,7 +51,7 @@ public class D2Utils {
   public static D2CombineInputStream copyToCombinedStream(Path inputPath, FileSystem sourceFS, ModalZipOutputStream zos) throws
     IOException {
     try (D2CombineInputStream in = new D2CombineInputStream(getDataInputStreams(inputPath, sourceFS))) {
-      ByteStreams.copy(in, zos);
+      IOUtils.copy(in, zos, getFileCopyBufferSize());
       return in;
     }
   }
