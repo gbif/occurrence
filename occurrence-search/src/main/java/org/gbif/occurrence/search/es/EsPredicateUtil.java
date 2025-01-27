@@ -11,39 +11,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.predicate;
-
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.occurrence.download.query.QueryVisitorsFactory;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-
-import java.util.Optional;
-
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+package org.gbif.occurrence.search.es;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import java.util.Optional;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
+import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
+
 
 @UtilityClass
 public class EsPredicateUtil {
 
   private static final ObjectMapper OBJECT_MAPPER =
-    new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
-    OBJECT_MAPPER.addMixIn(SearchParameter.class, QueryVisitorsFactory.OccurrenceSearchParameterMixin.class);
+    OBJECT_MAPPER.addMixIn(
+        SearchParameter.class, OccurrenceSearchParameterMixin.class);
   }
 
   @SneakyThrows
-  public static QueryBuilder searchQuery(Predicate predicate, OccurrenceBaseEsFieldMapper esFieldMapper) {
-    Optional<QueryBuilder> queryBuilder = QueryVisitorsFactory.createEsQueryVisitor(esFieldMapper)
-      .getQueryBuilder(predicate);
+  public static QueryBuilder searchQuery(
+      Predicate predicate, OccurrenceBaseEsFieldMapper esFieldMapper) {
+    Optional<QueryBuilder> queryBuilder =
+        EsQueryVisitorFactory.createEsQueryVisitor(esFieldMapper).getQueryBuilder(predicate);
     if (queryBuilder.isPresent()) {
       BoolQueryBuilder query = (BoolQueryBuilder) queryBuilder.get();
       esFieldMapper.getDefaultFilter().ifPresent(df -> query.filter().add(df));

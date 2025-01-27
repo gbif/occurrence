@@ -13,20 +13,25 @@
  */
 package org.gbif.event.ws.config;
 
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-import org.gbif.ws.server.processor.ParamNameProcessor;
-import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
-import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
-import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
-
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+import org.gbif.ws.server.processor.ParamNameProcessor;
+import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
+import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
+import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
@@ -45,14 +50,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
-import com.google.common.collect.Lists;
-
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
@@ -66,7 +63,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Override
   public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
     StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
-    stringHttpMessageConverter.setSupportedMediaTypes(Lists.newArrayList(MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN));
+    stringHttpMessageConverter.setSupportedMediaTypes(
+        Lists.newArrayList(MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN));
     converters.add(stringHttpMessageConverter);
   }
 
@@ -114,8 +112,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Bean
   public ObjectMapper registryObjectMapper() {
     return JacksonJsonObjectMapperProvider.getObjectMapper()
-      .registerModule(new JavaTimeModule())
-      .addMixIn(SearchParameter.class, QueryVisitorFactory.OccurrenceSearchParameterMixin.class);
+        .registerModule(new JavaTimeModule())
+        .addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
   }
 
   @Bean
@@ -146,7 +144,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     };
   }
 
-
   private static class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
 
     @Override
@@ -154,5 +151,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
       return AnnotatedElementUtils.hasAnnotation(beanType, RestController.class);
     }
   }
-
 }

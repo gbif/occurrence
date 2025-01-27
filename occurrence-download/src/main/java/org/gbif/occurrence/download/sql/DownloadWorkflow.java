@@ -25,9 +25,9 @@ import org.gbif.occurrence.download.action.FromSearchDownloadAction;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.elastic.DownloadEsClient;
-import org.gbif.occurrence.download.predicate.EsPredicateUtil;
 import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
+import org.gbif.occurrence.search.es.EsPredicateUtil;
 import org.gbif.occurrence.search.es.VocabularyFieldTranslator;
 import org.gbif.vocabulary.client.ConceptClient;
 

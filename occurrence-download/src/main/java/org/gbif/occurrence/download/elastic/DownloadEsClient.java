@@ -13,27 +13,23 @@
  */
 package org.gbif.occurrence.download.elastic;
 
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.occurrence.download.predicate.EsPredicateUtil;
-import org.gbif.occurrence.download.query.QueryVisitorsFactory;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Objects;
-
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
+import org.gbif.occurrence.search.es.EsPredicateUtil;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 
 @Builder
 @Slf4j
@@ -43,7 +39,7 @@ public class DownloadEsClient implements Closeable {
     new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
-    OBJECT_MAPPER.addMixIn(SearchParameter.class, QueryVisitorsFactory.OccurrenceSearchParameterMixin.class);
+    OBJECT_MAPPER.addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
   }
 
   private final RestHighLevelClient esClient;

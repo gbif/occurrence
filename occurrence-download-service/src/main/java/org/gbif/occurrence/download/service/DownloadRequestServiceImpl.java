@@ -21,6 +21,7 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
@@ -93,6 +94,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private final String wsUrl;
   private final File downloadMount;
   private final OccurrenceDownloadService occurrenceDownloadService;
+  private final OccurrenceSearchService occurrenceSearchService;
   private final OccurrenceEmailManager emailManager;
   private final EmailSender emailSender;
 
@@ -105,6 +107,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
       OccurrenceDownloadService occurrenceDownloadService,
+      OccurrenceSearchService occurrenceSearchService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
@@ -114,6 +117,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
+    this.occurrenceSearchService = occurrenceSearchService;
     this.downloadLimitsService = downloadLimitsService;
     this.emailManager = emailManager;
     this.emailSender = emailSender;
@@ -384,6 +388,20 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         downloadLink(wsUrl, downloadId, request.getType(), request.getFileExtension()));
     download.setRequest(request);
     download.setSource(source);
+
+    // get number of records so the downloads launcher can use it to decide whether the download is big or small
+    if (request instanceof PredicateDownloadRequest) {
+      try {
+        download.setTotalRecords(
+            occurrenceSearchService.countRecords(
+                ((PredicateDownloadRequest) download.getRequest()).getPredicate()));
+      } catch (Exception ex) {
+        log.info(
+            "Couldn't get number of records for download {}. They are being set to zero at download creation time.",
+            downloadId);
+      }
+    }
+
     occurrenceDownloadService.create(download);
   }
 

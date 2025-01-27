@@ -13,18 +13,16 @@
  */
 package org.gbif.occurrence.search.predicate;
 
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+public class EsQueryVisitorFactory {
 
-public class QueryVisitorFactory {
-
-  @JsonDeserialize(as = OccurrenceSearchParameter.class)
-  public static class OccurrenceSearchParameterMixin {}
-
-  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(OccurrenceBaseEsFieldMapper fieldMapper) {
+  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
+      OccurrenceBaseEsFieldMapper fieldMapper) {
     return new EsQueryVisitor<>(
         new org.gbif.predicate.query.EsFieldMapper<OccurrenceSearchParameter>() {
 
@@ -51,6 +49,18 @@ public class QueryVisitorFactory {
           @Override
           public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
             return fieldMapper.isVocabulary(searchParameter);
+          }
+
+          @Override
+          public boolean includeNullInPredicate(
+              SimplePredicate<OccurrenceSearchParameter> predicate) {
+            return fieldMapper.includeNullInPredicate(predicate);
+          }
+
+          @Override
+          public boolean includeNullInRange(
+              OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+            return fieldMapper.includeNullInRange(param, rangeQueryBuilder);
           }
         });
   }
