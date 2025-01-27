@@ -47,7 +47,7 @@ public class ElasticDownloadWorkflow {
   }
 
   @SneakyThrows
-  private void runFromElastic() {
+  public void run() {
     // check if meets ES download requirements
     if (download.getRequest().getFormat() == DownloadFormat.SPECIES_LIST) {
       log.error("Species list downloads cannot be run in ES");

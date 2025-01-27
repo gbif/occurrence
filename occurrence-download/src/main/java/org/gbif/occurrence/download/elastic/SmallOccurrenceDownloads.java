@@ -16,7 +16,6 @@ package org.gbif.occurrence.download.elastic;
 import java.io.IOException;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 public class SmallOccurrenceDownloads {
@@ -28,7 +27,7 @@ public class SmallOccurrenceDownloads {
 
     WorkflowConfiguration workflowConfiguration =
         new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
-    DownloadWorkflow.builder()
+    ElasticDownloadWorkflow.builder()
         .downloadKey(downloadKey)
         .coreDwcTerm(dwcTerm)
         .workflowConfiguration(workflowConfiguration)
