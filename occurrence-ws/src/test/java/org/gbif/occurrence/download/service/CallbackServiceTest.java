@@ -22,6 +22,7 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
@@ -63,6 +64,7 @@ class CallbackServiceTest {
 
   private DownloadRequestServiceImpl service;
   private OccurrenceDownloadService occurrenceDownloadService;
+  private OccurrenceSearchService occurrenceSearchService;
   private OccurrenceEmailManager emailManager;
   private EmailSender emailSender;
   private DownloadLimitsService downloadLimitsService;
@@ -94,6 +96,7 @@ class CallbackServiceTest {
     emailManager = mock(OccurrenceEmailManager.class);
     emailSender = mock(EmailSender.class);
     occurrenceDownloadService = mock(OccurrenceDownloadService.class);
+    occurrenceSearchService = mock(OccurrenceSearchService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
     messagePublisher = mock(MessagePublisher.class);
 
@@ -109,6 +112,7 @@ class CallbackServiceTest {
             "http://localhost:8080/",
             "",
             occurrenceDownloadService,
+            occurrenceSearchService,
             downloadLimitsService,
             emailManager,
             emailSender,

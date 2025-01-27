@@ -26,6 +26,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
@@ -60,6 +61,7 @@ class DownloadServiceImplTest {
   private static final Pattern REGEX = Pattern.compile("0000000-\\d{15}");
   private static final OccurrenceSearchParameter PARAM = OccurrenceSearchParameter.CATALOG_NUMBER;
   @Mock private OccurrenceDownloadService downloadService;
+  @Mock private OccurrenceSearchService occurrenceSearchService;
   @Mock private DownloadLimitsService downloadLimitsService;
   @Mock private OccurrenceEmailManager emailManager;
   @Mock private EmailSender emailSender;
@@ -77,6 +79,7 @@ class DownloadServiceImplTest {
             "",
             "",
             downloadService,
+            occurrenceSearchService,
             downloadLimitsService,
             emailManager,
             emailSender,
