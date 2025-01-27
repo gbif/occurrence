@@ -127,7 +127,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
         .executorLimitMemory(sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() + "Gi")
         // dynamicAllocation
-        .initialExecutors(sparkStaticConfiguration.getMinInstances())
+        .initialExecutors(calculateExecutorInstances(download))
         .minExecutors(sparkStaticConfiguration.getMinInstances())
         .maxExecutors(calculateExecutorInstances(download))
         // Extra
