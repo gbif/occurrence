@@ -70,19 +70,19 @@ pipeline {
       }
     }
 
-    stage('Build and push Docker images: Downloads') {
-      when {
-        allOf {
-          not { expression { params.RELEASE } };
-          not { expression { params.RELEASE_TRINO } };
-        }
-      }
-      steps {
-         sh '''
-          build/occurrence-download-spark-docker-build.sh $POM_VERSION
-         '''
-      }
-    }
+//     stage('Build and push Docker images: Downloads') {
+//       when {
+//         allOf {
+//           not { expression { params.RELEASE } };
+//           not { expression { params.RELEASE_TRINO } };
+//         }
+//       }
+//       steps {
+//          sh '''
+//           build/occurrence-download-spark-docker-build.sh $POM_VERSION
+//          '''
+//       }
+//     }
 
     stage('Build and push Docker images: Downloads (Java)') {
       when {
@@ -93,26 +93,24 @@ pipeline {
       }
       steps {
          sh '''
-          build/occurrence-download-spark-docker-build.sh $POM_VERSION
+          build/occurrence-download-java-docker-build.sh $POM_VERSION
          '''
       }
     }
-
-
-
-    stage('Build and push Docker images: Table build') {
-      when {
-        allOf {
-          not { expression { params.RELEASE } };
-          not { expression { params.RELEASE_TRINO } };
-        }
-      }
-      steps {
-        sh '''
-          build/occurrence-table-build-spark-docker-build.sh $POM_VERSION
-        '''
-      }
-    }
+//
+//     stage('Build and push Docker images: Table build') {
+//       when {
+//         allOf {
+//           not { expression { params.RELEASE } };
+//           not { expression { params.RELEASE_TRINO } };
+//         }
+//       }
+//       steps {
+//         sh '''
+//           build/occurrence-table-build-spark-docker-build.sh $POM_VERSION
+//         '''
+//       }
+//     }
 
     stage('Trigger WS deploy dev2') {
       when {
