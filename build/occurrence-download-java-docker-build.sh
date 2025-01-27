@@ -9,7 +9,7 @@ IMAGE=docker.gbif.org/${MODULE}-java:${POM_VERSION}
 IMAGE_LATEST=docker.gbif.org/${MODULE}:latest
 
 echo "Building Docker image module:version - ${MODULE}:${POM_VERSION}"
-docker build -f ./${MODULE}/docker/Dockerfile-java ./${MODULE} --build-arg JAR_FILE=${MODULE}-${POM_VERSION}-shaded.jar -t ${IMAGE}
+docker build -f ./${MODULE}/docker/Dockerfile-java ./${MODULE}-java --build-arg JAR_FILE=${MODULE}-${POM_VERSION}-shaded.jar -t ${IMAGE}
 
 echo "Pushing Docker image to the repository"
 docker push ${IMAGE}
@@ -19,8 +19,8 @@ if [[ $IS_M2RELEASEBUILD = true ]]; then
   docker push ${IMAGE_LATEST}
 fi
 
-echo "Removing local Docker image: ${IMAGE}"
-docker rmi ${IMAGE}
+#echo "Removing local Docker image: ${IMAGE}"
+#docker rmi ${IMAGE}
 
 if [[ $IS_M2RELEASEBUILD = true ]]; then
   echo "Removing local Docker image with latest tag: ${IMAGE_LATEST}"
