@@ -1,7 +1,7 @@
 # Simple image that copy the already previous builds shaded jar into a specific location.
 # This is used for SparkApplications to have a simple way to access the artifacts during their execution
 #FROM stackable/hadoop:3.3.4-stackable23.11.0
-FROM docker.gbif.org/stackable/hive:3.1.3-stackable24.3.0
+FROM docker.gbif.org/stackable-docker/stackable/hive:3.1.3-stackable24.3.0
 ARG JAR_FILE=${JAVA_JAR_FILE}
 
 ARG DOWNLOAD_ID=""
