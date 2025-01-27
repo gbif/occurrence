@@ -10,7 +10,7 @@ IMAGE=docker.gbif.org/${JAVA_MODULE}:${POM_VERSION}
 IMAGE_LATEST=docker.gbif.org/${JAVA_MODULE}:latest
 
 echo "Building Docker image module:version - ${JAVA_MODULE}:${POM_VERSION}"
-docker build -f ./${MODULE}/docker/Dockerfile-java ./${JAVA_MODULE} --build-arg JAR_FILE=${MODULE}-${POM_VERSION}-shaded.jar -t ${IMAGE}
+docker build -f ./${MODULE}/docker/Dockerfile-java ./${MODULE} --build-arg JAR_FILE=${MODULE}-${POM_VERSION}-shaded.jar -t ${IMAGE}
 
 echo "Pushing Docker image to the repository"
 docker push ${IMAGE}
