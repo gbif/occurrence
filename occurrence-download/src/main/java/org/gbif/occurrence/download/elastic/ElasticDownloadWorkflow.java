@@ -51,12 +51,14 @@ public class ElasticDownloadWorkflow {
     // check if meets ES download requirements
     if (download.getRequest().getFormat() == DownloadFormat.SPECIES_LIST) {
       log.error("Species list downloads cannot be run in ES");
+      System.exit(-1);
       return;
     }
 
     long recordCount = recordCount(download);
     if (!isSmallDownloadCount(recordCount)) {
       log.error("Download to big for ES. Number of records: {}", recordCount);
+      System.exit(-1);
       return;
     }
 
