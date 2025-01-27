@@ -129,7 +129,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         // dynamicAllocation
         .initialExecutors(calculateExecutorInstances(download))
         .minExecutors(sparkStaticConfiguration.getMinInstances())
-        .maxExecutors(calculateExecutorInstances(download))
+        .maxExecutors(sparkStaticConfiguration.getMaxInstances())
         // Extra
         .callbackUrl(airflowConfiguration.getAirflowCallback())
         .build())
