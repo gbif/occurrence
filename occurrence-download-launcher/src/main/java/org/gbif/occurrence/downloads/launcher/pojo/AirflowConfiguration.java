@@ -13,17 +13,14 @@
  */
 package org.gbif.occurrence.downloads.launcher.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
+import lombok.Data;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import lombok.Data;
 
 @Data
 public class AirflowConfiguration {
@@ -38,7 +35,6 @@ public class AirflowConfiguration {
     public String hiveClusterName;
     public String hbaseClusterName;
     public String componentConfig;
-
   }
 
   public String airflowUser;
@@ -47,7 +43,9 @@ public class AirflowConfiguration {
 
   public String airflowAddress;
 
-  public String airflowDagName;
+  public String bigDownloadsAirflowDagName;
+
+  public String smallDownloadsAirflowDagName;
 
   private String airflowCallback;
 
@@ -62,7 +60,9 @@ public class AirflowConfiguration {
   }
 
   public Header[] getHeaders() {
-    return new Header[]{ new BasicHeader(HttpHeaders.AUTHORIZATION, "Basic " + getBasicAuthString()),
-                         new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())};
+    return new Header[] {
+      new BasicHeader(HttpHeaders.AUTHORIZATION, "Basic " + getBasicAuthString()),
+      new BasicHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+    };
   }
 }

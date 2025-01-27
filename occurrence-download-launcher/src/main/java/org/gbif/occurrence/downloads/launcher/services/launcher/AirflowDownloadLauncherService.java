@@ -13,38 +13,35 @@
  */
 package org.gbif.occurrence.downloads.launcher.services.launcher;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
-import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
-import org.gbif.occurrence.downloads.launcher.services.LockerService;
-import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
-import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowClient;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
+import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
+import org.gbif.occurrence.downloads.launcher.services.LockerService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
+import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowClient;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
-
-import io.github.resilience4j.core.IntervalFunction;
-import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryConfig;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
-import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
-import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 
 @Slf4j
 @Service
@@ -52,34 +49,39 @@ import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 public class AirflowDownloadLauncherService implements DownloadLauncher {
 
   private static final Retry AIRFLOW_RETRY =
-    Retry.of(
-      "airflowApiCall",
-      RetryConfig.custom()
-        .maxAttempts(7)
-        .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(6)))
-        .build());
+      Retry.of(
+          "airflowApiCall",
+          RetryConfig.custom()
+              .maxAttempts(7)
+              .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(6)))
+              .build());
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
-  private final AirflowClient airflowClient;
+  private final AirflowClient bigDownloadsAirflowClient;
+  private final AirflowClient smallDownloadsAirflowClient;
   private final OccurrenceDownloadClient downloadClient;
   private final AirflowConfiguration airflowConfiguration;
   private final LockerService lockerService;
 
   public AirflowDownloadLauncherService(
-    SparkStaticConfiguration sparkStaticConfiguration,
-    AirflowConfiguration airflowConfiguration,
-    OccurrenceDownloadClient downloadClient,
-    LockerService lockerService) {
+      SparkStaticConfiguration sparkStaticConfiguration,
+      AirflowConfiguration airflowConfiguration,
+      OccurrenceDownloadClient downloadClient,
+      LockerService lockerService) {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
     this.downloadClient = downloadClient;
     this.airflowConfiguration = airflowConfiguration;
-    this.airflowClient = AirflowClient.builder().airflowConfiguration(airflowConfiguration).build();
+    this.bigDownloadsAirflowClient =
+        buildAirflowClient(airflowConfiguration.bigDownloadsAirflowDagName);
+    this.smallDownloadsAirflowClient =
+        buildAirflowClient(airflowConfiguration.smallDownloadsAirflowDagName);
     this.lockerService = lockerService;
   }
 
-
+  // NOTE: this has to match with the ElasticDownloadWorkflow#isSmallDownload method
   private boolean isSmallDownload(Download download) {
-    return sparkStaticConfiguration.getSmallDownloadCutOff() >= download.getTotalRecords();
+    return download.getRequest().getFormat() != DownloadFormat.SPECIES_LIST
+        && sparkStaticConfiguration.getSmallDownloadCutOff() >= download.getTotalRecords();
   }
 
   private int calculateExecutorInstances(Download download) {
@@ -94,47 +96,63 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
 
   private AirflowBody getAirflowBody(Download download) {
 
-    int driverMemory = sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() * 1024;
-    int driverCpu =Integer.parseInt(sparkStaticConfiguration.getDriverResources().getCpu().getMin().replace("m", ""));
-    int executorMemory = sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() * 1024;
-    int executorCpu = Integer.parseInt(sparkStaticConfiguration.getExecutorResources().getCpu().getMin().replace("m", ""));
+    int driverMemory =
+        sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() * 1024;
+    int driverCpu =
+        Integer.parseInt(
+            sparkStaticConfiguration.getDriverResources().getCpu().getMin().replace("m", ""));
+    int executorMemory =
+        sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() * 1024;
+    int executorCpu =
+        Integer.parseInt(
+            sparkStaticConfiguration.getExecutorResources().getCpu().getMin().replace("m", ""));
     int memoryOverhead = sparkStaticConfiguration.getMemoryOverheadMb();
-    //Given as megabytes (Mi)
+    // Given as megabytes (Mi)
     int vectorMemory = sparkStaticConfiguration.getVectorMemory();
     // Given as whole CPUs
     int vectorCpu = sparkStaticConfiguration.getVectorCpu();
     // Calculate values for Yunikorn annotation
     // Driver
-    int driverMinResourceMemory =  Double.valueOf(Math.ceil((driverMemory + vectorMemory) / 1024d)).intValue();
-    int driverMinResourceCpu =  driverCpu + vectorCpu;
+    int driverMinResourceMemory =
+        Double.valueOf(Math.ceil((driverMemory + vectorMemory) / 1024d)).intValue();
+    int driverMinResourceCpu = driverCpu + vectorCpu;
     // Executor
-    int executorMinResourceMemory =  Double.valueOf(Math.ceil((executorMemory + memoryOverhead + vectorMemory) / 1024d)).intValue();
+    int executorMinResourceMemory =
+        Double.valueOf(Math.ceil((executorMemory + memoryOverhead + vectorMemory) / 1024d))
+            .intValue();
     int executorMinResourceCpu = executorCpu + vectorCpu;
     return AirflowBody.builder()
-      .conf(AirflowBody.Conf.builder()
-        .args(Lists.newArrayList(download.getKey(), download.getRequest().getType().getCoreTerm().name(), "/stackable/spark/jobs/download.properties"))
-        // Driver
-        .driverMinCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMin())
-        .driverMaxCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMax())
-        .driverLimitMemory(sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
-        .driverMinResourceMemory(driverMinResourceMemory + "Gi")
-        .driverMinResourceCpu(driverMinResourceCpu + "m")
-        // Executor
-        .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
-        .executorMinResourceMemory(executorMinResourceMemory + "Gi")
-        .executorMinResourceCpu(executorMinResourceCpu + "m")
-        .executorMinCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMin())
-        .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
-        .executorLimitMemory(sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() + "Gi")
-        // dynamicAllocation
-        .initialExecutors(calculateExecutorInstances(download))
-        .minExecutors(sparkStaticConfiguration.getMinInstances())
-        .maxExecutors(calculateExecutorInstances(download))
-        // Extra
-        .callbackUrl(airflowConfiguration.getAirflowCallback())
-        .build())
-      .dagRunId(downloadDagId(download.getKey()))
-      .build();
+        .conf(
+            AirflowBody.Conf.builder()
+                .args(
+                    Lists.newArrayList(
+                        download.getKey(),
+                        download.getRequest().getType().getCoreTerm().name(),
+                        "/stackable/spark/jobs/download.properties"))
+                // Driver
+                .driverMinCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMin())
+                .driverMaxCpu(sparkStaticConfiguration.getDriverResources().getCpu().getMax())
+                .driverLimitMemory(
+                    sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
+                .driverMinResourceMemory(driverMinResourceMemory + "Gi")
+                .driverMinResourceCpu(driverMinResourceCpu + "m")
+                // Executor
+                .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
+                .executorMinResourceMemory(executorMinResourceMemory + "Gi")
+                .executorMinResourceCpu(executorMinResourceCpu + "m")
+                .executorMinCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMin())
+                .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
+                .executorLimitMemory(
+                    sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() + "Gi")
+                // dynamicAllocation
+                .initialExecutors(calculateExecutorInstances(download))
+                .minExecutors(sparkStaticConfiguration.getMinInstances())
+                .maxExecutors(calculateExecutorInstances(download))
+                // Extra
+                .callbackUrl(airflowConfiguration.getAirflowCallback())
+                .build())
+        .dagRunId(downloadDagId(download.getKey()))
+        .build();
   }
 
   public String downloadDagId(String downloadKey) {
@@ -146,25 +164,28 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     try {
       Download download = downloadClient.get(downloadKey);
 
-      Optional<Status> status = getStatusByName(download.getKey());
+      Optional<Status> status = getStatusByName(download);
 
       // Send task to Airflow is no statuses found
       if (status.isEmpty()) {
         JsonNode response =
-            Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::createRun)
+            Retry.<AirflowBody, JsonNode>decorateFunction(
+                    AIRFLOW_RETRY, body -> getAirflowClient(download).createRun(body))
                 .apply(getAirflowBody(download));
         log.info("Create a run for: {}", response);
       } else if (status.get() == SUCCEEDED) {
         log.info("downloadKey {} is already has finished statuses", downloadKey);
         return JobStatus.FINISHED;
       } else if (FINISH_STATUSES.contains(status.get())) {
-        log.info("downloadKey {} is already in one of failed statuses: {}", downloadKey, status.get());
+        log.info(
+            "downloadKey {} is already in one of failed statuses: {}", downloadKey, status.get());
         return JobStatus.FAILED;
-      } else if (EXECUTING_STATUSES.contains(status.get())){
-        log.info("downloadKey {} is already in one of running statuses: {}", downloadKey, status.get());
+      } else if (EXECUTING_STATUSES.contains(status.get())) {
+        log.info(
+            "downloadKey {} is already in one of running statuses: {}", downloadKey, status.get());
       }
 
-      asyncStatusCheck(download.getKey());
+      asyncStatusCheck(download);
       return JobStatus.RUNNING;
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
@@ -175,8 +196,12 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus cancelRun(String downloadKey) {
     try {
+      Download download = downloadClient.get(downloadKey);
       String dagId = downloadDagId(downloadKey);
-      JsonNode jsonNode = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::deleteRun).apply(dagId);
+      JsonNode jsonNode =
+          Retry.<String, JsonNode>decorateFunction(
+                  AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).deleteRun(dagRunId))
+              .apply(dagId);
 
       log.info("Airflow DAG {} has been stopped: {}", dagId, jsonNode);
       return JobStatus.CANCELLED;
@@ -189,8 +214,16 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @SneakyThrows
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
-    String dagId = downloadDagId(downloadKey);
-    JsonNode jsonStatus = Retry.decorateFunction(AIRFLOW_RETRY, airflowClient::getRun).apply(dagId);
+    Download download = downloadClient.get(downloadKey);
+    return getStatusByName(download);
+  }
+
+  private Optional<Status> getStatusByName(Download download) {
+    String dagId = downloadDagId(download.getKey());
+    JsonNode jsonStatus =
+        Retry.<String, JsonNode>decorateFunction(
+                AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).getRun(dagRunId))
+            .apply(dagId);
     JsonNode state = jsonStatus.get("state");
 
     if (state == null) {
@@ -223,7 +256,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   public List<Download> renewRunningDownloadsStatuses(List<Download> downloads) {
     List<Download> result = new ArrayList<>(downloads.size());
     for (Download download : downloads) {
-      Optional<Status> status = getStatusByName(download.getKey());
+      Optional<Status> status = getStatusByName(download);
       if (status.isPresent() && download.getStatus() != status.get()) {
         log.info(
             "Update download {} status from {} to {}",
@@ -241,23 +274,41 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     return result;
   }
 
-  private void asyncStatusCheck(String downloadKey) {
+  private void asyncStatusCheck(Download download) {
     CompletableFuture.runAsync(
         () -> {
           try {
 
-            Optional<Status> status = getStatusByName(downloadKey);
-            while (status.isPresent() && SUCCEEDED != status.get() && Status.FAILED != status.get()) {
+            Optional<Status> status = getStatusByName(download);
+            while (status.isPresent()
+                && SUCCEEDED != status.get()
+                && Status.FAILED != status.get()) {
               TimeUnit.SECONDS.sleep(airflowConfiguration.apiCheckDelaySec);
-              status = getStatusByName(downloadKey);
+              status = getStatusByName(download);
             }
 
-            log.info("Spark Application {} is finished with status {}", downloadKey, status.orElse(null));
+            log.info(
+                "Spark Application {} is finished with status {}",
+                download.getKey(),
+                status.orElse(null));
           } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
           } finally {
-            lockerService.unlock(downloadKey);
+            lockerService.unlock(download.getKey());
           }
         });
+  }
+
+  private AirflowClient getAirflowClient(Download download) {
+    return isSmallDownload(download) ? smallDownloadsAirflowClient : bigDownloadsAirflowClient;
+  }
+
+  private AirflowClient buildAirflowClient(String dagName) {
+    return AirflowClient.builder()
+        .airflowAddress(airflowConfiguration.airflowAddress)
+        .airflowUser(airflowConfiguration.airflowUser)
+        .airflowPass(airflowConfiguration.airflowPass)
+        .airflowDagName(dagName)
+        .build();
   }
 }
