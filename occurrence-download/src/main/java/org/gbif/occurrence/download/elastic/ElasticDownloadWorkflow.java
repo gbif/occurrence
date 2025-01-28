@@ -25,6 +25,7 @@ public class ElasticDownloadWorkflow {
 
   // arbitrary record count that represents and error counting the records of the input query
   private static final int ERROR_COUNT = -1;
+  private static final int ES_COUNT_MARGIN_ERROR = 3000;
 
   private final OccurrenceDownloadService downloadService;
 
@@ -95,7 +96,8 @@ public class ElasticDownloadWorkflow {
     return recordCount != ERROR_COUNT
         && recordCount
             <= workflowConfiguration.getIntSetting(
-                DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY);
+                    DownloadWorkflowModule.DefaultSettings.MAX_RECORDS_KEY)
+                + ES_COUNT_MARGIN_ERROR;
   }
 
   private long recordCount(Download download) {
