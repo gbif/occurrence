@@ -50,6 +50,7 @@ public class ElasticDownloadWorkflow {
   public void run() {
     // check if meets ES download requirements
     if (download.getRequest().getFormat() == DownloadFormat.SPECIES_LIST) {
+      // TODO: no para el spark job
       throw new IllegalArgumentException("Species list downloads cannot be run in ES");
     }
 
@@ -103,6 +104,7 @@ public class ElasticDownloadWorkflow {
       return downloadEsClient.getRecordCount(
           ((PredicateDownloadRequest) download.getRequest()).getPredicate());
     } catch (Exception ex) {
+      log.error("Error when getting download record count from ES", ex);
       return ERROR_COUNT;
     }
   }
