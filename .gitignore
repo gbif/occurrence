@@ -18,3 +18,4 @@ pom.xml.releaseBackup
 *.project
 *.settings/
 *dependency-reduced-pom.xml
+**/lombok/
