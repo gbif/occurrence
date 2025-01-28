@@ -51,9 +51,9 @@ public class AirflowBody {
     private final String executorMinResourceMemory;
     // Sum of executor + vector containers request cpu
     private final String executorMinResourceCpu;
-    private final int minExecutors;
-    private final int maxExecutors;
-    private final int initialExecutors;
+    private final long minExecutors;
+    private final long maxExecutors;
+    private final long initialExecutors;
 
     private final String callbackUrl;
   }
