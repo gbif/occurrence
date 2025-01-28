@@ -16,6 +16,8 @@ package org.gbif.occurrence.download.spark;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
@@ -25,9 +27,14 @@ import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.occurrence.spark.udf.UDFS;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
+@Slf4j
 public class GbifOccurrenceDownloads {
 
   public static void main(String[] args) throws IOException {
+    if (args.length < 3) {
+      log.error("Usage: GbifOccurrenceDownloads <downloadKey> <coreDwcTerm> <propertiesFile> [<downloadStage>]");
+      System.exit(1);
+    }
     String downloadKey = args[0];
     DwcTerm dwcTerm = DwcTerm.valueOf(args[1]);  // OCCURRENCE or EVENT
     String propertiesFile = args[2];
@@ -36,6 +43,8 @@ public class GbifOccurrenceDownloads {
       downloadStage = DownloadStage.valueOf(args[3]);
     }
 
+    log.info("Starting download job for downloadKey: {}, coreDwcTerm: {}, propertiesFile: {}, downloadStage: {}",
+        downloadKey, dwcTerm, propertiesFile, downloadStage);
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
     DownloadWorkflow.builder()
         .downloadKey(downloadKey)
