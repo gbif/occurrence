@@ -12,7 +12,6 @@ ENV DOWNLOAD_STAGE=""
 USER root
 RUN mkdir /jobs
 COPY --chown=1000:1000 "./target/${JAR_FILE}" "/jobs/occurrence-download.jar"
-CMD ["-cp", "/app/your-app.jar:/app/libs/*", "com.example.MainClass"]
 CMD java $JVM_OPTIONS \
     -cp /jobs/occurrence-download.jar:/stackable/spark/jars/* \
     org.gbif.occurrence.download.spark.GbifOccurrenceDownloads \
