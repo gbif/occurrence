@@ -85,13 +85,15 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   private int calculateExecutorInstances(Download download) {
-    return isSmallDownload(download)
+    int numExecutors = isSmallDownload(download)
         ? sparkStaticConfiguration.getMinInstances()
         : Math.min(
             sparkStaticConfiguration.getMaxInstances(),
             Math.max(
                 (int) download.getTotalRecords() / sparkStaticConfiguration.getRecordsPerInstance(),
                 sparkStaticConfiguration.getMinInstances()));
+    log.info("Num executors: {}", numExecutors);
+    return numExecutors;
   }
 
   private AirflowBody getAirflowBody(Download download) {
