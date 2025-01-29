@@ -283,7 +283,9 @@ public class OccurrenceResource {
       @Parameter(
         name = "gbifId",
         description = "Integer gbifId for the occurrence.",
-        examples = {@ExampleObject("1258202889"), @ExampleObject("142316233")},
+        example = "1258202889",
+        // This doesn't work, unfortunately. The second example is an XML fragment.
+        // examples = {@ExampleObject(value="1258202889"), @ExampleObject(value="142316233")},
         schema = @Schema(implementation = Long.class, minimum = "1"),
         in = ParameterIn.PATH),
     }
