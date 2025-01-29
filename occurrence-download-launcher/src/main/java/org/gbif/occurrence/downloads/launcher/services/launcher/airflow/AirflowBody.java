@@ -53,7 +53,6 @@ public class AirflowBody {
     private final String executorMinResourceCpu;
     private final long minExecutors;
     private final long maxExecutors;
-    private final long initialExecutors;
 
     private final String callbackUrl;
   }
