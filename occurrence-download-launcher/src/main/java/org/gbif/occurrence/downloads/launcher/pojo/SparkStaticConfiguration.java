@@ -63,6 +63,7 @@ public class SparkStaticConfiguration {
   private int minInstances;
   private int maxInstances;
   private int memoryOverheadMb;
+  private int memoryPerCoreGb;
 
   private int smallDownloadCutOff;
 

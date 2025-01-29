@@ -94,6 +94,32 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                 sparkStaticConfiguration.getMinInstances()));
   }
 
+  /**
+   * Calculate the executor memory limit based on the number of executor instances.
+   */
+  private long calculateExecutorMemoryLimit(long executorInstances) {
+    // Get the memory per core in GB
+    int memoryPerCoreGb = sparkStaticConfiguration.getMemoryPerCoreGb();
+
+    // If memory per core is greater than 0, calculate the total memory limit
+    if (memoryPerCoreGb > 0) {
+      // Calculate the total memory overhead in MB
+      int totalMemoryOverheadMb = sparkStaticConfiguration.getMemoryOverheadMb() + sparkStaticConfiguration.getVectorMemory();
+
+      // Convert the total memory overhead to GB
+      long totalMemoryOverheadGb = totalMemoryOverheadMb / 1024L;
+
+      // Calculate the total memory limit
+      long totalMemoryLimitGb = (memoryPerCoreGb * executorInstances) + totalMemoryOverheadGb;
+
+      // If the total memory limit is less than the executor memory limit, return the total memory limit
+      return Math.min(totalMemoryLimitGb, sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb());
+    }
+
+    // If memory per core is 0 or less, return the executor memory limit
+    return sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb();
+  }
+
   private AirflowBody getAirflowBody(Download download) {
 
     int driverMemory =
@@ -121,6 +147,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         Double.valueOf(Math.ceil((executorMemory + memoryOverhead + vectorMemory) / 1024d))
             .intValue();
     int executorMinResourceCpu = executorCpu + vectorCpu;
+
+    long executorInstances = calculateExecutorInstances(download);
     return AirflowBody.builder()
         .conf(
             AirflowBody.Conf.builder()
@@ -142,12 +170,11 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                 .executorMinResourceCpu(executorMinResourceCpu + "m")
                 .executorMinCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMin())
                 .executorMaxCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMax())
-                .executorLimitMemory(
-                    sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb() + "Gi")
+                .executorLimitMemory(calculateExecutorMemoryLimit(executorInstances) + "Gi")
                 // dynamicAllocation
                 .initialExecutors(calculateExecutorInstances(download))
                 .minExecutors(sparkStaticConfiguration.getMinInstances())
-                .maxExecutors(calculateExecutorInstances(download))
+                .maxExecutors(executorInstances)
                 // Extra
                 .callbackUrl(airflowConfiguration.getAirflowCallback())
                 .build())
