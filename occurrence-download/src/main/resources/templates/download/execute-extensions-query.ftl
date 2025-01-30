@@ -48,5 +48,5 @@ INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
     iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.${field}<#if field_has_next>,</#if>
   </#list>
   WHERE iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid IS NOT NULL
-  <#if !verbatim_extension_has_next>WHERE ${r"${whereClause}"};</#if>
+  <#if !verbatim_extension_has_next>AND ${r"${whereClause}"};</#if>
 </#list>
