@@ -237,7 +237,7 @@ public class TableBackfill {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
       Dataset<Row> input =
-          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select);
+          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select).sort("gbifid");
 
       if (configuration.getTablePartitions() != null
           && input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
