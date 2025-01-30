@@ -42,7 +42,7 @@ WITH ${r"${tableName}"}_filtered AS (
 )
 FROM ${r"${tableName}"}_filtered
 <#list verbatim_extensions as verbatim_extension>
-  LEFT OUTER JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
+  LEFT OUTER JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON ${r"${tableName}"}_filtered.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
 </#list>
 <#list verbatim_extensions as verbatim_extension>
 INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
