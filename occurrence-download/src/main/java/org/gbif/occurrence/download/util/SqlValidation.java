@@ -60,6 +60,7 @@ public class SqlValidation {
   public SqlValidation() {
     this(null);
   }
+
   public SqlValidation(String database) {
     this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
@@ -167,9 +168,13 @@ public class SqlValidation {
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);
   }
 
-  public HiveSqlQuery validateAndParse(String sql) throws QueryBuildingException {
-    String databaseFq = database == null? CATALOG : CATALOG + "." + database;
-    return new HiveSqlQuery(hiveSqlValidator, sql, databaseFq);
+  public HiveSqlQuery validateAndParse(String sql, boolean addCatalog) throws QueryBuildingException {
+    if (addCatalog) {
+      String databaseFq = database == null ? CATALOG : CATALOG + "." + database;
+      return new HiveSqlQuery(hiveSqlValidator, sql, databaseFq);
+    } else {
+      return new HiveSqlQuery(hiveSqlValidator, sql);
+    }
   }
 
   /**

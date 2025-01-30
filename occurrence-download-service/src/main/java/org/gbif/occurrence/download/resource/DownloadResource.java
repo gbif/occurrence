@@ -408,7 +408,7 @@ public class DownloadResource {
       try {
         String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
         LOG.info("Received SQL download request «{}»", userSql);
-        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql, true);
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
@@ -465,11 +465,11 @@ public class DownloadResource {
       try {
         String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
         LOG.info("Received SQL download request for validation «{}»", userSql);
-        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
-        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql, false);
+        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getUserSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
-        ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getSql());
+        ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getUserSql());
         return ResponseEntity.ok(downloadRequest);
       } catch (QueryBuildingException qbe) {
         LOG.info("SQL is invalid: {}", qbe.getMessage());

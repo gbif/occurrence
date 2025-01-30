@@ -155,7 +155,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     } else if (request instanceof SqlDownloadRequest) {
       try {
         SqlValidation sqlValidation = new SqlValidation();
-        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql(), true);
         log.debug("HiveSqlQuery {}", sqlQuery.getSql());
       } catch (QueryBuildingException qbe) {
         // Shouldn't happen, as the query has already been validated by this point.

@@ -180,7 +180,7 @@ public class DownloadPrepareAction implements Closeable {
         SqlValidation sv = new SqlValidation();
 
         String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
-        HiveSqlQuery sqlQuery = sv.validateAndParse(userSql);
+        HiveSqlQuery sqlQuery = sv.validateAndParse(userSql, true);
         props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(sqlQuery.getSql()));
         props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10(sqlQuery.getSqlWhere()));
         props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10(String.join("\t", sqlQuery.getSqlSelectColumnNames())));
