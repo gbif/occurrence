@@ -237,7 +237,7 @@ public class TableBackfill {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
       Dataset<Row> input =
-          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select).sort("gbifid");
+          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select);
 
       if (configuration.getTablePartitions() != null
           && input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
@@ -309,7 +309,7 @@ public class TableBackfill {
                 .map(f -> f.name() + " STRING")
                 .collect(Collectors.joining(",\n"))
             + ')'
-            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
+            + " CLUSTERED BY (gbifid) INTO 600 BUCKETS STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
         getPrefix() + extensionTableName(extensionTable));
   }
 
@@ -352,7 +352,7 @@ public class TableBackfill {
             + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
             + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
             + "publisher STRING, license STRING, rightsHolder STRING) \n"
-            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
+            + "CLUSTERED BY (gbifid) INTO 600 BUCKETS  STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
         getPrefix() + multimediaTableName());
   }
 
@@ -424,7 +424,7 @@ public class TableBackfill {
             + OccurrenceHDFSTableDefinition.definition().stream()
                 .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                 .collect(Collectors.joining(", \n"))
-            + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
+            + ") CLUSTERED BY (gbifid) INTO 600 BUCKETS STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
         configuration.getTableNameWithPrefix());
   }
 

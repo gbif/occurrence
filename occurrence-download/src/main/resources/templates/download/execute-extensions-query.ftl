@@ -37,9 +37,12 @@ CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTab
 --
 -- Use a multi-table insert format to reduce to a single scan of the source table.
 --
-FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
+WITH ${r"${tableName}"}_filtered AS (
+    SELECT * FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"} WHERE ${r"${whereClause}"}
+)
+FROM ${r"${tableName}"}_filtered
 <#list verbatim_extensions as verbatim_extension>
-  LEFT OUTER JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
+  LEFT OUTER JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON ${r"${tableName}"}_filtered.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
 </#list>
 <#list verbatim_extensions as verbatim_extension>
 INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
@@ -48,5 +51,5 @@ INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
     iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.${field}<#if field_has_next>,</#if>
   </#list>
   WHERE iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid IS NOT NULL
-  <#if !verbatim_extension_has_next>AND ${r"${whereClause}"};</#if>
+  <#if !verbatim_extension_has_next>;</#if>
 </#list>
