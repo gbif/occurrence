@@ -13,6 +13,8 @@
  */
 package org.gbif.event.ws;
 
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -57,6 +59,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
       "org.gbif.ws.server.mapper",
       "org.gbif.ws.remoteauth",
       "org.gbif.ws.security",
+      "org.gbif.occurrence.search",
       "org.gbif.event.search",
       "org.gbif.event.ws",
       "org.gbif.occurrence.download.service",
@@ -101,6 +104,11 @@ public class EventWsApplication {
           .registerModule(new JavaTimeModule()))
       .withUrl(apiUrl)
       .build(ConceptClient.class);
+  }
+
+  @Bean
+  public OccurrenceBaseEsFieldMapper esFieldMapper() {
+    return OccurrenceEsField.buildFieldMapper();
   }
 
   @Configuration
