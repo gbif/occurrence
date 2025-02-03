@@ -61,6 +61,10 @@
       <url>https://repository.gbif.org/repository/thirdparty/</url>
     </repository>
     <repository>
+      <id>gbif-thirdparty-snapshot</id>
+      <url>https://repository.gbif.org/repository/thirdparty-snapshot/</url>
+    </repository>
+    <repository>
       <id>typesafe</id>
       <name>Typesafe Repository</name>
       <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
@@ -148,6 +152,7 @@
     <commons-io.version>2.4</commons-io.version>
     <commmons-lang.version>3.12.0</commmons-lang.version>
     <curator.version>5.5.0</curator.version>
+    <curator-framework.version>5.5.0-disable-connectstr-updates</curator-framework.version>
     <curator-test.version>5.5.0</curator-test.version>
     <dbunit.version>2.4.9</dbunit.version>
     <geotools.version>20.5</geotools.version>
@@ -1119,7 +1124,7 @@
       <dependency>
         <groupId>org.apache.curator</groupId>
         <artifactId>curator-framework</artifactId>
-        <version>${curator.version}</version>
+        <version>${curator-framework.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.curator</groupId>

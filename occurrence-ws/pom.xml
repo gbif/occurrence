@@ -327,6 +327,10 @@
       <artifactId>spring-cloud-starter-zookeeper-discovery</artifactId>
       <exclusions>
         <exclusion>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-client</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>org.apache.zookeeper</groupId>
           <artifactId>zookeeper</artifactId>
         </exclusion>
