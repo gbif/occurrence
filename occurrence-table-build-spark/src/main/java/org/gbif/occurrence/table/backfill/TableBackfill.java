@@ -309,7 +309,7 @@ public class TableBackfill {
                 .map(f -> f.name() + " STRING")
                 .collect(Collectors.joining(",\n"))
             + ')'
-            + " STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
+            + " STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"ZSTD\")\n",
         getPrefix() + extensionTableName(extensionTable));
   }
 
@@ -324,7 +324,7 @@ public class TableBackfill {
             + ')'
             + "PARTITIONED BY(datasetkey STRING) "
             + "LOCATION '%s'"
-            + " STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
+            + " STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"ZSTD\")\n",
         getPrefix() + extensionTableName(extensionTable),
         Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
@@ -352,7 +352,7 @@ public class TableBackfill {
             + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
             + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
             + "publisher STRING, license STRING, rightsHolder STRING) \n"
-            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
+            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"ZSTD\")",
         getPrefix() + multimediaTableName());
   }
 
@@ -444,7 +444,7 @@ public class TableBackfill {
             + "PARTITIONED BY(datasetkey STRING) "
             + "STORED AS PARQUET "
             + "LOCATION '%s'"
-            + "TBLPROPERTIES (\"parquet.compression\"=\"GZIP\", \"auto.purge\"=\"true\")",
+            + "TBLPROPERTIES (\"parquet.compression\"=\"ZSTD\", \"auto.purge\"=\"true\")",
         configuration.getTableNameWithPrefix(),
         Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
   }
