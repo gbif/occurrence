@@ -309,7 +309,7 @@ public class TableBackfill {
                 .map(f -> f.name() + " STRING")
                 .collect(Collectors.joining(",\n"))
             + ')'
-            + " CLUSTERED BY (gbifid) INTO 600 BUCKETS STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
+            + " STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
         getPrefix() + extensionTableName(extensionTable));
   }
 
@@ -324,7 +324,7 @@ public class TableBackfill {
             + ')'
             + "PARTITIONED BY(datasetkey STRING) "
             + "LOCATION '%s'"
-            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
+            + " STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")\n",
         getPrefix() + extensionTableName(extensionTable),
         Paths.get(configuration.getTargetDirectory(), extensionTable.getHiveTableName()));
   }
@@ -352,7 +352,7 @@ public class TableBackfill {
             + "(gbifid STRING, type STRING, format STRING, identifier STRING, references STRING, title STRING, description STRING,\n"
             + "source STRING, audience STRING, created STRING, creator STRING, contributor STRING,\n"
             + "publisher STRING, license STRING, rightsHolder STRING) \n"
-            + "CLUSTERED BY (gbifid) INTO 600 BUCKETS  STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
+            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"GZIP\")",
         getPrefix() + multimediaTableName());
   }
 
@@ -424,7 +424,7 @@ public class TableBackfill {
             + OccurrenceHDFSTableDefinition.definition().stream()
                 .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                 .collect(Collectors.joining(", \n"))
-            + ") CLUSTERED BY (gbifid) INTO 600 BUCKETS STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
+            + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
         configuration.getTableNameWithPrefix());
   }
 
