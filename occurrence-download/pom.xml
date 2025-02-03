@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>1.0.10-SNAPSHOT</version>
+    <version>1.0.11-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -19,7 +19,7 @@
   </distributionManagement>
 
   <properties>
-    <hadoop-compress.version>2.0.1-SNAPSHOT</hadoop-compress.version>
+    <hadoop-compress.version>2.0.1</hadoop-compress.version>
     <metrics-core.version>2.2.0</metrics-core.version>
     <log4j.version>1.2.17</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
