@@ -114,7 +114,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
-      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.Isea3hCellCodeUDF
@@ -155,6 +155,22 @@ public class SqlValidation {
       ReturnTypes.CHAR,
       null,
       family(SqlTypeFamily.ANY),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.spark.udf.StringArrayContainsGenericUdf
+    additionalOperators.add(new SqlFunction("gbif_stringArrayContains",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.BOOLEAN,
+      null,
+      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER, SqlTypeFamily.BOOLEAN),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.spark.udf.StringArrayLikeGenericUdf
+    additionalOperators.add(new SqlFunction("gbif_stringArrayLike",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.BOOLEAN,
+      null,
+      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER, SqlTypeFamily.BOOLEAN),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // brickhouse.udf.collect.JoinArrayUDF

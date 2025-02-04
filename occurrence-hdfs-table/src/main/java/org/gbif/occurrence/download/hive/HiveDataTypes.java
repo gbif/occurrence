@@ -94,6 +94,8 @@ public final class HiveDataTypes {
     DwcTerm.year,
     DwcTerm.month,
     DwcTerm.day,
+    DwcTerm.startDayOfYear,
+    DwcTerm.endDayOfYear,
     GbifTerm.taxonKey,
     GbifTerm.kingdomKey,
     GbifTerm.phylumKey,
