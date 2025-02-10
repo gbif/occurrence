@@ -19,6 +19,8 @@ import org.gbif.dwc.terms.Term;
 
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.google.common.collect.ImmutableSet;
 
 import lombok.experimental.UtilityClass;
@@ -35,6 +37,9 @@ public final class HiveColumns {
   private static final String VERBATIM_COL_PREFIX = "v_";
   // reserved hive words
   private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group");
+  // reserved ISO SQL words, see https://en.wikipedia.org/wiki/List_of_SQL_reserved_words for more.
+  private static final ImmutableSet<String> ISO_RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group", "year", "month", "day", "language", "references", "member");
+  private static final Pattern START_WITH_DIGIT = Pattern.compile("(\\d.*)");
   private static final Pattern START_WITH_DIGIT_OR_UNDERSCORE = Pattern.compile("(\\d.*)|(_.*)");
 
   public static String getVerbatimColPrefix() {
@@ -54,6 +59,16 @@ public final class HiveColumns {
   public static String escapeColumnName(String columnName) {
     if (RESERVED_WORDS.contains(columnName) || START_WITH_DIGIT_OR_UNDERSCORE.matcher(columnName).matches()) {
       return '`' + columnName + '`';
+    }
+    return columnName;
+  }
+
+  /**
+   * Escapes the name if required.
+   */
+  public static String isoEscapeColumnName(String columnName) {
+    if (ISO_RESERVED_WORDS.contains(columnName) || START_WITH_DIGIT_OR_UNDERSCORE.matcher(columnName).matches()) {
+      return '"' + columnName + '"';
     }
     return columnName;
   }
@@ -80,6 +95,15 @@ public final class HiveColumns {
       hiveColumnName = columnName.substring(0,2) + columnName.substring(3);
     }
     return escapeColumnName(hiveColumnName);
+  }
+
+  public static String isoSqlColumnName(Pair<DownloadTerms.Group, Term> termPair) {
+    Term term = termPair.getRight();
+    if (termPair.getLeft().equals(DownloadTerms.Group.VERBATIM)) {
+      return VERBATIM_COL_PREFIX + Character.toUpperCase(term.simpleName().charAt(0)) + term.simpleName().substring(1);
+    } else {
+      return isoEscapeColumnName(term.simpleName());
+    }
   }
 
   /**

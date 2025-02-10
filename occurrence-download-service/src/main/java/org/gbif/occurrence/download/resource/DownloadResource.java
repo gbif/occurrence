@@ -22,6 +22,11 @@ import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.hive.HiveColumns;
+import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.occurrence.download.util.SqlValidation;
@@ -408,7 +413,7 @@ public class DownloadResource {
       try {
         String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
         LOG.info("Received SQL download request «{}»", userSql);
-        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql, true);
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
@@ -447,6 +452,20 @@ public class DownloadResource {
     @Extension(
       name = "Order",
       properties = @ExtensionProperty(name = "Order", value = "0040")))
+  @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    content = @Content(
+      schema = @Schema(
+        oneOf = {SqlDownloadRequest.class},
+        example = "{\n" +
+          "  \"creator\": \"gbif_username\",\n" +
+          "  \"sendNotification\": true,\n" +
+          "  \"notification_address\": [\"gbif@example.org\"],\n" +
+          "  \"format\": \"SQL_TSV_ZIP\",\n" +
+          "  \"sql\": \"SELECT datasetKey, countryCode, COUNT(*) FROM occurrence WHERE continent = 'EUROPE' GROUP BY datasetKey, countryCode\"" +
+          "}"
+      )
+    )
+  )
   @ApiResponses(
     value = {
       @ApiResponse(
@@ -465,11 +484,11 @@ public class DownloadResource {
       try {
         String userSql = ((SqlDownloadRequest) downloadRequest).getSql();
         LOG.info("Received SQL download request for validation «{}»", userSql);
-        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql);
-        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getSql());
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(userSql, false);
+        LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getUserSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
-        ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getSql());
+        ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getUserSql());
         return ResponseEntity.ok(downloadRequest);
       } catch (QueryBuildingException qbe) {
         LOG.info("SQL is invalid: {}", qbe.getMessage());
@@ -571,6 +590,156 @@ public class DownloadResource {
         downloadFormat,
         downloadType,
         requestExtensions);
+  }
+
+  /**
+   * Convert a predicate download request into an SQL download request
+   */
+  @Operation(
+    operationId = "searchToSql",
+    summary = "Converts a predicate download request into an SQL download request.",
+    description =
+      "Takes a predicate download request used by the occurrence download API and returns an SQL predicate request " +
+        "suitable for the SQL download API.\n\n" +
+        "The list of columns in the SELECT clause is that used for a SIMPLE_CSV or DWCA download, according to the " +
+        "format used in the request.\n\n" +
+        "**Experimental** This method may be changed in the future.",
+    extensions =
+    @Extension(
+      name = "Order",
+      properties = @ExtensionProperty(name = "Order", value = "0060")))
+  @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    content = @Content(
+      schema = @Schema(
+        oneOf = {PredicateDownloadRequest.class},
+        example = "{\n" +
+          "  \"creator\": \"gbif_username\",\n" +
+          "  \"sendNotification\": true,\n" +
+          "  \"notification_address\": [\"gbif@example.org\"],\n" +
+          "  \"format\": \"SIMPLE_CSV\",\n" +
+          "  \"predicate\": {\n" +
+          "    \"type\": \"and\",\n" +
+          "    \"predicates\": [\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"COUNTRY\",\n" +
+          "        \"value\": \"FR\"\n" +
+          "      },\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"YEAR\",\n" +
+          "        \"value\": \"2017\"\n" +
+          "      }\n" +
+          "    ]\n" +
+          "  }\n" +
+          "}"
+      )
+    )
+  )
+  @PostMapping(
+    path = "sql",
+    produces = {MediaType.APPLICATION_JSON_VALUE},
+    consumes = {MediaType.APPLICATION_JSON_VALUE})
+  public ResponseEntity<Object> downloadSqlPost(@NotNull @Valid @RequestBody PredicateDownloadRequest downloadRequest) {
+    try {
+      // SELECT column list is the same as a SIMPLE_CSV download by default, or a DWCA download if specified.
+      StringBuilder generatedSql = new StringBuilder("SELECT ");
+      if (downloadRequest.getFormat().equals(DownloadFormat.DWCA)) {
+        generatedSql.append(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID.stream()
+          .map(t -> GbifTerm.verbatimScientificName == t ? "v_" + DwcTerm.scientificName.simpleName() :
+            HiveColumns.isoEscapeColumnName(t.simpleName()))
+          .collect(Collectors.joining(", ")));
+
+        generatedSql.append(", ");
+
+        generatedSql.append(DownloadTerms.DOWNLOAD_VERBATIM_TERMS.stream()
+          .map(t -> "v_" + t.simpleName())
+          .collect(Collectors.joining(", ")));
+      } else {
+        generatedSql.append(DownloadTerms.SIMPLE_DOWNLOAD_TERMS.stream()
+          .map(HiveColumns::isoSqlColumnName)
+          .collect(Collectors.joining(", ")));
+      }
+
+      generatedSql.append(" FROM occurrence");
+
+      if (downloadRequest.getPredicate() != null) {
+        String generatedWhereClause = QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(downloadRequest.getPredicate());
+        // This is not pretty.
+        generatedWhereClause = generatedWhereClause
+          .replaceAll("\\byear\\b", "\"year\"")
+          .replaceAll("\\bmonth\\b", "\"month\"")
+          .replaceAll("\\bday\\b", "\"day\"")
+          .replaceAll("\\border\\b", "\"order\"")
+          .replaceAll("\\bstringArrayContains\\b", "gbif_stringArrayContains")
+          .replaceAll("\\bstringArrayLike\\b", "gbif_stringArrayLike")
+          .replaceAll("\\bcontains\\b", "gbif_within")
+          .replaceAll("\\bgeoDistance\\b", "gbif_geoDistance");
+
+        generatedSql.append(" WHERE ").append(generatedWhereClause);
+      }
+
+      LOG.info("Validating generated SQL «{}»", generatedSql);
+      HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(generatedSql.toString(), false);
+      LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getUserSql());
+      LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
+      LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
+      SqlDownloadRequest request = new SqlDownloadRequest(
+        sqlQuery.getUserSql(),
+        downloadRequest.getCreator(),
+        downloadRequest.getNotificationAddresses(),
+        downloadRequest.getSendNotification(),
+        downloadType,
+        DownloadFormat.SQL_TSV_ZIP);
+      LOG.info("Returning request {}", request);
+      return ResponseEntity.ok(request);
+    } catch (Exception e) {
+      LOG.error("SQL generated from predicates is invalid: "+e.getMessage(), e);
+      Map<String, Object> body = new HashMap<>();
+      body.put("status", "INVALID");
+      body.put("reason", e.getMessage());
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      e.printStackTrace(pw);
+      body.put("trace", sw.toString());
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+  }
+
+  /**
+   * SQL where clause from a search string.
+   */
+  @Operation(
+    operationId = "searchToSql",
+    summary = "Converts a plain search query into an SQL download predicate.",
+    description =
+      "Takes a search query used by the occurrence search API and returns an SQL Download query suitable for the SQL download " +
+        "API.  In many cases, a query from the website can be converted using this method.\n\n" +
+        "**Experimental** This method may be changed in the future.",
+    extensions =
+    @Extension(
+      name = "Order",
+      properties = @ExtensionProperty(name = "Order", value = "0062")))
+  @GetMapping("sql")
+  public ResponseEntity<Object> downloadSqlGet(@Autowired HttpServletRequest httpRequest,
+                                               @RequestParam(name = "notification_address", required = false) String emails,
+                                               @Autowired Principal principal) {
+    String creator = principal != null ? principal.getName() : null;
+    Set<String> notificationAddress = asSet(emails);
+
+    Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
+    LOG.info("Predicate build for passing to download [{}]", predicate);
+
+    PredicateDownloadRequest request = new PredicateDownloadRequest(
+      predicate,
+      creator,
+      notificationAddress,
+      notificationAddress != null,
+      DownloadFormat.SIMPLE_CSV,
+      downloadType,
+      null);
+
+    return downloadSqlPost(request);
   }
 
   /**

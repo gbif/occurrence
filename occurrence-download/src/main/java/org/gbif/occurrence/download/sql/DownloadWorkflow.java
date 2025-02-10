@@ -102,7 +102,7 @@ public class DownloadWorkflow {
       String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
       HiveSqlQuery sqlQuery =
           sv.validateAndParse(
-              userSql); // Declares QueryBuildingException but it's already been validated.
+              userSql, true); // Declares QueryBuildingException but it's already been validated.
       builder
           .userSql(sqlQuery.getSql())
           .userSqlHeader(String.join("\t", sqlQuery.getSqlSelectColumnNames()))
