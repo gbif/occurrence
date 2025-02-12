@@ -312,6 +312,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
     if (Download.Status.SUCCEEDED.equals(download.getStatus())
         || Download.Status.FAILED.equals(download.getStatus())
+        || Download.Status.CANCELLED.equals(download.getStatus())
         || Download.Status.KILLED.equals(download.getStatus())) {
       // Download has already completed, so perhaps callbacks in rapid succession have been
       // processed out-of-order
