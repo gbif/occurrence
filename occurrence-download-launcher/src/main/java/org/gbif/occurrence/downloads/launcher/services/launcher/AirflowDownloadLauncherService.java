@@ -80,8 +80,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
 
   // NOTE: this has to match with the ElasticDownloadWorkflow#isSmallDownload method
   private boolean isSmallDownload(Download download) {
-    return download.getRequest().getFormat() != DownloadFormat.SPECIES_LIST
-        && download.getRequest().getFormat() != DownloadFormat.SQL_TSV_ZIP
+    return (download.getRequest().getFormat() == DownloadFormat.DWCA
+            || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV)
         && sparkStaticConfiguration.getSmallDownloadCutOff() >= download.getTotalRecords();
   }
 
