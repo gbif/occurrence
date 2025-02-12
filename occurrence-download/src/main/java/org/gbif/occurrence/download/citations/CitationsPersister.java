@@ -90,7 +90,7 @@ public final class CitationsPersister extends CitationsFileReader {
       }
 
       try {
-        datasetLicenses.values().forEach(licenseSelector::collectLicense);
+        datasetLicenses.values().stream().distinct().forEach(licenseSelector::collectLicense);
         Long totalRecords = sumCitations(datasetsCitation);
         Download download = downloadService.get(downloadKey);
         download.setLicense(licenseSelector.getSelectedLicense());
