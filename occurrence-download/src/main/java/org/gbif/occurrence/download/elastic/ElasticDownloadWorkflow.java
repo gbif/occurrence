@@ -50,9 +50,9 @@ public class ElasticDownloadWorkflow {
   @SneakyThrows
   public void run() {
     // check if meets ES download requirements
-    if (download.getRequest().getFormat() == DownloadFormat.SPECIES_LIST) {
-      // TODO: no para el spark job
-      throw new IllegalArgumentException("Species list downloads cannot be run in ES");
+    if (download.getRequest().getFormat() == DownloadFormat.SPECIES_LIST
+        || download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP) {
+      throw new IllegalArgumentException("Species list and SQL downloads cannot be run in ES");
     }
 
     long recordCount = recordCount(download);
