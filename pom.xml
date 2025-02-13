@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>1.0.14-SNAPSHOT</version>
+  <version>1.0.15-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -230,7 +230,7 @@
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>2.0.0</gbif.kvs.version>
     <gbif-cli.version>2.0.0</gbif-cli.version>
-    <gbif-predicates.version>2.0.1</gbif-predicates.version>
+    <gbif-predicates.version>2.0.2</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>0.3.1</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 
