@@ -227,6 +227,7 @@ public class SimpleDownload {
 
   private void dropTables() {
     try (SparkQueryExecutor queryExecutor = getSingleQueryExecutor()) {
+      log.info("Dropping tables with prefix {}", queryParameters.getDownloadTableName());
       queryExecutor.accept("DROP" + queryParameters.getDownloadTableName(), "DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + " PURGE;");
       queryExecutor.accept("DROP " +queryParameters.getDownloadTableName() + "_citation",  "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation PURGE");
       if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
