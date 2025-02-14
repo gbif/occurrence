@@ -227,18 +227,18 @@ public class SimpleDownload {
 
   private void dropTables() {
     try (SparkQueryExecutor queryExecutor = getSingleQueryExecutor()) {
-      queryExecutor.accept("DROP" + queryParameters.getDownloadTableName(), "DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName());
-      queryExecutor.accept("DROP " +queryParameters.getDownloadTableName() + "_citation",  "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
+      queryExecutor.accept("DROP" + queryParameters.getDownloadTableName(), "DROP TABLE IF EXISTS " + queryParameters.getDownloadTableName() + " PURGE;");
+      queryExecutor.accept("DROP " +queryParameters.getDownloadTableName() + "_citation",  "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation PURGE");
       if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_tmp", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp");
-        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_tmp", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_tmp PURGE");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count PURGE");
       } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_count", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_count PURGE");
       } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_citation", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation");
-        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_agents", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents");
-        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_families", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families");
-        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_identifiers","DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_citation", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_citation PURGE");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_agents", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_agents PURGE");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_families", "DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_families PURGE");
+        queryExecutor.accept("DROP " + queryParameters.getDownloadTableName() + "_identifiers","DROP TABLE IF EXISTS " +  queryParameters.getDownloadTableName() + "_identifiers PURGE");
       }
     }
   }
