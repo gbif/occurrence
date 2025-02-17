@@ -179,8 +179,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                 .minExecutors(sparkStaticConfiguration.getMinInstances())
                 .maxExecutors(executorInstances)
                 // Extra
-                .callbackUrl(airflowConfiguration.getAirflowCallback())
-                .registryApiUrl(airflowConfiguration.getRegistryApiUrl())
+                .gbifApiUrl(airflowConfiguration.getGbifApiUrl())
                 .build())
         .dagRunId(downloadDagId(download.getKey()))
         .build();
