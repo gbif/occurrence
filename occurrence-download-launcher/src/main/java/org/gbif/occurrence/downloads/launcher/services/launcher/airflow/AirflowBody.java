@@ -55,5 +55,6 @@ public class AirflowBody {
     private final long maxExecutors;
 
     private final String callbackUrl;
+    private final String registryApiUrl;
   }
 }

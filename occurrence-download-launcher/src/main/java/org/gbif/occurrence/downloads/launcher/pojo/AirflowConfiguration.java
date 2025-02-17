@@ -48,6 +48,7 @@ public class AirflowConfiguration {
   public String smallDownloadsAirflowDagName;
 
   private String airflowCallback;
+  private String registryApiUrl;
 
   public long apiCheckDelaySec = 3L;
 

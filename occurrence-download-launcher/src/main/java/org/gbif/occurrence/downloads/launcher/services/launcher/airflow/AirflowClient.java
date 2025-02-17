@@ -108,6 +108,16 @@ public class AirflowClient {
   }
 
   @SneakyThrows
+  public JsonNode setCancelledNote(String dagRunId) {
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpPatch patch = new HttpPatch(getUri(dagRunId) + "/setNote");
+      patch.setEntity(new StringEntity("{\"note\": \"CANCELLED\"}"));
+      patch.setHeaders(getHeaders());
+      return MAPPER.readTree(client.execute(patch).getEntity().getContent());
+    }
+  }
+
+  @SneakyThrows
   public JsonNode getRun(String dagRunId) {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpGet get = new HttpGet(getUri(dagRunId));

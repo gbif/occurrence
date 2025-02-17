@@ -95,9 +95,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                 sparkStaticConfiguration.getMinInstances()));
   }
 
-  /**
-   * Calculate the executor memory limit based on the number of executor instances.
-   */
+  /** Calculate the executor memory limit based on the number of executor instances. */
   private long calculateExecutorMemoryLimit(long executorInstances) {
     // Get the memory per core in GB
     int memoryPerCoreGb = sparkStaticConfiguration.getMemoryPerCoreGb();
@@ -105,7 +103,9 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     // If memory per core is greater than 0, calculate the total memory limit
     if (memoryPerCoreGb > 0) {
       // Calculate the total memory overhead in MB
-      int totalMemoryOverheadMb = sparkStaticConfiguration.getMemoryOverheadMb() + sparkStaticConfiguration.getVectorMemory();
+      int totalMemoryOverheadMb =
+          sparkStaticConfiguration.getMemoryOverheadMb()
+              + sparkStaticConfiguration.getVectorMemory();
 
       // Convert the total memory overhead to GB
       long totalMemoryOverheadGb = totalMemoryOverheadMb / 1024L;
@@ -113,8 +113,11 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
       // Calculate the total memory limit
       long totalMemoryLimitGb = (memoryPerCoreGb * executorInstances) + totalMemoryOverheadGb;
 
-      // If the total memory limit is less than the executor memory limit, return the total memory limit
-      return Math.min(totalMemoryLimitGb, sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb());
+      // If the total memory limit is less than the executor memory limit, return the total memory
+      // limit
+      return Math.min(
+          totalMemoryLimitGb,
+          sparkStaticConfiguration.getExecutorResources().getMemory().getLimitGb());
     }
 
     // If memory per core is 0 or less, return the executor memory limit
@@ -177,6 +180,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                 .maxExecutors(executorInstances)
                 // Extra
                 .callbackUrl(airflowConfiguration.getAirflowCallback())
+                .registryApiUrl(airflowConfiguration.getRegistryApiUrl())
                 .build())
         .dagRunId(downloadDagId(download.getKey()))
         .build();
@@ -225,12 +229,17 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     try {
       Download download = downloadClient.get(downloadKey);
       String dagId = downloadDagId(downloadKey);
-      JsonNode jsonNode =
-          Retry.<String, JsonNode>decorateFunction(
-                  AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).deleteRun(dagRunId))
-              .apply(dagId);
 
-      log.info("Airflow DAG {} has been stopped: {}", dagId, jsonNode);
+      JsonNode cancelledJsonNode = Retry.<String, JsonNode>decorateFunction(
+          AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).setCancelledNote(dagRunId))
+        .apply(dagId);
+      log.info("Airflow DAG {} has been noted as cancelled: {}", dagId, cancelledJsonNode);
+
+      JsonNode failedJsonNode = Retry.<String, JsonNode>decorateFunction(
+              AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).failRun(dagRunId))
+          .apply(dagId);
+      log.info("Airflow DAG {} has been marked as failed: {}", dagId, failedJsonNode);
+
       return JobStatus.CANCELLED;
     } catch (Exception ex) {
       log.error("Cancelling the download {}", downloadKey, ex);
