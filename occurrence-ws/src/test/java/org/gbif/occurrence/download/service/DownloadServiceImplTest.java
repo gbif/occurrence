@@ -97,6 +97,8 @@ class DownloadServiceImplTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
+          "testDescription",
+          null,
             Collections.singleton(Extension.AUDUBON));
     String id = requestService.create(dl, null);
 
@@ -113,6 +115,8 @@ class DownloadServiceImplTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
+          "testDescription",
+          null,
             Collections.singleton(Extension.AUDUBON));
 
     when(downloadLimitsService.exceedsDownloadComplexity(any())).thenReturn("test");
@@ -196,6 +200,8 @@ class DownloadServiceImplTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
+          "testDescription",
+          null,
             Collections.singleton(Extension.AUDUBON));
     Download download = new Download();
     download.setRequest(downloadRequest);

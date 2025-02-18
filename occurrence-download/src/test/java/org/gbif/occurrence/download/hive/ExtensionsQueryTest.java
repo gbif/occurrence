@@ -42,6 +42,8 @@ public class ExtensionsQueryTest {
       false,
       DownloadFormat.DWCA,
       DownloadType.OCCURRENCE,
+      null,
+      null,
       Extension.availableExtensions());
 
     Download download = new Download();
