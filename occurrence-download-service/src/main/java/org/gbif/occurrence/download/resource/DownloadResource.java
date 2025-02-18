@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.download.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.common.paging.PagingRequest;
@@ -293,6 +296,8 @@ public class DownloadResource {
           "  \"sendNotification\": true,\n" +
           "  \"notification_address\": [\"gbif@example.org\"],\n" +
           "  \"format\": \"DWCA\",\n" +
+          "  \"description\": \"A user-friendly description of the download request.\",\n" +
+          "  \"machineDescription\": {\"key\": \"value\"},\n" +
           "  \"predicate\": {\n" +
           "    \"type\": \"and\",\n" +
           "    \"predicates\": [\n" +
@@ -524,6 +529,8 @@ public class DownloadResource {
       @RequestParam("format") String format,
       @RequestParam(name = "extensions", required = false) String extensions,
       @RequestParam(name = "source", required = false) String source,
+      @RequestParam(name = "description", required = false) String description,
+      @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
@@ -532,7 +539,7 @@ public class DownloadResource {
     try {
       return ResponseEntity.ok(
           createDownload(
-              downloadPredicate(httpRequest, emails, format, extensions, principal),
+              downloadPredicate(httpRequest, emails, format, extensions, description, machineDescriptionJson, principal),
               authentication,
               principal,
               parseSource(source, userAgent)));
@@ -567,6 +574,8 @@ public class DownloadResource {
       @RequestParam(name = "notification_address", required = false) String emails,
       @RequestParam("format") String format,
       @RequestParam(name = "verbatimExtensions", required = false) String verbatimExtensions,
+      @RequestParam(name = "description", required = false) String description,
+      @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
       @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
@@ -582,6 +591,17 @@ public class DownloadResource {
             .orElse(Collections.emptySet());
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
+
+    JsonNode machineDescription = null;
+    if (machineDescriptionJson != null) {
+      try {
+        ObjectMapper objectMapper = new ObjectMapper();
+        machineDescription = objectMapper.readTree(machineDescriptionJson);  // Parse the JSON string
+      } catch (JsonProcessingException e) {
+        LOG.error("Could not parse the machineDescription {}", machineDescriptionJson, e);
+      }
+    }
+
     return new PredicateDownloadRequest(
         predicate,
         creator,
@@ -589,6 +609,8 @@ public class DownloadResource {
         notificationAddress != null,
         downloadFormat,
         downloadType,
+        description,
+        machineDescription,
         requestExtensions);
   }
 
@@ -617,6 +639,8 @@ public class DownloadResource {
           "  \"sendNotification\": true,\n" +
           "  \"notification_address\": [\"gbif@example.org\"],\n" +
           "  \"format\": \"SIMPLE_CSV\",\n" +
+          "  \"description\": \"A user-friendly description of the download request.\",\n" +
+          "  \"machineDescription\": {\"key\": \"value\"},\n" +
           "  \"predicate\": {\n" +
           "    \"type\": \"and\",\n" +
           "    \"predicates\": [\n" +
@@ -689,8 +713,10 @@ public class DownloadResource {
         downloadRequest.getCreator(),
         downloadRequest.getNotificationAddresses(),
         downloadRequest.getSendNotification(),
+        DownloadFormat.SQL_TSV_ZIP,
         downloadType,
-        DownloadFormat.SQL_TSV_ZIP);
+        downloadRequest.getDescription(),
+        downloadRequest.getMachineDescription());
       LOG.info("Returning request {}", request);
       return ResponseEntity.ok(request);
     } catch (Exception e) {
@@ -723,12 +749,24 @@ public class DownloadResource {
   @GetMapping("sql")
   public ResponseEntity<Object> downloadSqlGet(@Autowired HttpServletRequest httpRequest,
                                                @RequestParam(name = "notification_address", required = false) String emails,
+    @RequestParam(name = "description", required = false) String description,
+    @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
                                                @Autowired Principal principal) {
     String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
 
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
+
+    JsonNode machineDescription = null;
+    if (machineDescriptionJson != null) {
+      try {
+        ObjectMapper objectMapper = new ObjectMapper();
+        machineDescription = objectMapper.readTree(machineDescriptionJson);
+      } catch (JsonProcessingException e) {
+        LOG.error("Could not parse the machineDescription {}", machineDescriptionJson, e);
+      }
+    }
 
     PredicateDownloadRequest request = new PredicateDownloadRequest(
       predicate,
@@ -737,6 +775,8 @@ public class DownloadResource {
       notificationAddress != null,
       DownloadFormat.SIMPLE_CSV,
       downloadType,
+      description,
+      machineDescription,
       null);
 
     return downloadSqlPost(request);

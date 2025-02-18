@@ -80,6 +80,8 @@ class CallbackServiceTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
+          "testDescription",
+          null,
             Collections.singleton(Extension.AUDUBON));
     Download download = new Download();
     download.setRequest(downloadRequest);
