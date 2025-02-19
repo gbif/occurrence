@@ -20,6 +20,8 @@ import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
@@ -42,6 +44,7 @@ public class WorkflowConfiguration {
 
   private final Properties settings;
   private final Configuration hadoopConf;
+  private final Map<String, String> executionProperties = new HashMap<>();
 
   /**
    *
@@ -83,6 +86,15 @@ public class WorkflowConfiguration {
   public String getHiveDb() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_KEY);
+  }
+
+  /**
+   *
+   * @return hive database name
+   */
+  public Integer getHiveBuckets() {
+    Preconditions.checkNotNull(settings);
+    return Integer.parseInt(settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_BUCKET_KEY, "1"));
   }
 
   /**

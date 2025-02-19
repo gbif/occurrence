@@ -36,7 +36,9 @@ public class GbifOccurrenceDownloads {
       downloadStage = DownloadStage.valueOf(args[3]);
     }
 
-    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
+    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(
+      PropertiesUtil.readFromFile(propertiesFile)
+    );
     DownloadWorkflow.builder()
         .downloadKey(downloadKey)
         .coreDwcTerm(dwcTerm)

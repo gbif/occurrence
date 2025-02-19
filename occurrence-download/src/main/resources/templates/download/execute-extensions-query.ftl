@@ -20,36 +20,35 @@ SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
 --
--- Creates the extension tables
+-- Create the download gbifId join table
 
--- pre-create extension tables so they can be used in the multi-insert
+CREATE TABLE IF NOT EXISTS ${downloadTableName}_occurrence_gbifId
+STORED AS parquet CLUSTERED BY (gbifid) INTO ${r"${hiveBuckets}"} BUCKETS
+AS SELECT gbifid FROM ${downloadTableName}_occurrence;
+
+--
+-- Creates the extension tables
 
 <#list verbatim_extensions as verbatim_extension>
 -- ${verbatim_extension.extension} extension
+
 CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName} (
+  ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY '\t'
+  TBLPROPERTIES ("serialization.null.format"="")
+  AS
+  SELECT /*+ REBALANCE */
+    ext.gbifid,
   <#list verbatim_extension.interpretedFields as field>
-    ${field} string<#if field_has_next>,</#if>
+    ext.${field} string<#if field_has_next>,</#if>
   </#list>
-) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
-
+  FROM ${downloadTableName}_occurrence_gbifId f
+  JOIN occurrence_ext_${verbatim_extension.hiveTableName} ext
+  ON f.gbifid = ext.gbifid
+  WHERE ext.gbifid IS NOT NULL;
 </#list>
 
 --
--- Use a multi-table insert format to reduce to a single scan of the source table.
---
-WITH ${r"${tableName}"}_filtered AS (
-    SELECT * FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"} WHERE ${r"${whereClause}"}
-)
-FROM ${r"${tableName}"}_filtered
-<#list verbatim_extensions as verbatim_extension>
-  LEFT OUTER JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON ${r"${tableName}"}_filtered.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
-</#list>
-<#list verbatim_extensions as verbatim_extension>
-INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
-  SELECT
-  <#list verbatim_extension.verbatimFields as field>
-    iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.${field}<#if field_has_next>,</#if>
-  </#list>
-  WHERE iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid IS NOT NULL
-  <#if !verbatim_extension_has_next>;</#if>
-</#list>
+-- Drop the download gbifId join table
+
+DROP TABLE IF NOT EXISTS ${downloadTableName}_occurrence_gbifId;
