@@ -1440,7 +1440,8 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "geologicalTime",
             description =
-                "The geological time of an occurrence that is present in the chronostratigraphy terms",
+                "The geological time of an occurrence that is present in the chronostratigraphy terms. "
+                    + API_PARAMETER_RANGE_OR_REPEAT,
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
             example = "Mesozoic"),
