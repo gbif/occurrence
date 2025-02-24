@@ -23,7 +23,7 @@ SET hive.merge.mapredfiles=false;
 -- Create the download gbifId join table
 
 CACHE TABLE ${downloadTableName}_occurrence_gbifId
-SELECT gbifid FROM ${downloadTableName}_interpreted;
+SELECT gbifid FROM ${interpretedTable};
 
 --
 -- Creates the extension tables
