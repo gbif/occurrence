@@ -86,7 +86,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import static java.lang.annotation.ElementType.*;
 import static org.gbif.api.model.occurrence.Download.Status.*;
-import static org.gbif.api.vocabulary.UserRole.INVITED_TESTER;
 import static org.gbif.api.vocabulary.UserRole.REGISTRY_ADMIN;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.*;
 
@@ -273,8 +272,7 @@ public class DownloadResource {
       description =
           "Starts the process of creating a download file. See the predicates "
               + "section to consult the requests accepted by this service and the limits section to refer "
-              + "for information of how this service is limited per user.\n\n"
-              + "**Experimental** SQL downloads are also created with this call, currently for invited testers only.",
+              + "for information of how this service is limited per user.",
       extensions =
           @Extension(
               name = "Order",
@@ -423,11 +421,6 @@ public class DownloadResource {
       } catch (Exception e) {
         LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
-      }
-
-      // Restrict SQL downloads to admin users and invited testers
-      if (!checkUserInRole(authentication, REGISTRY_ADMIN, INVITED_TESTER)) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Currently limited to invited test users");
       }
     }
 
