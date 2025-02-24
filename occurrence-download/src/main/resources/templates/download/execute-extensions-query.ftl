@@ -31,15 +31,14 @@ SELECT gbifid FROM ${interpretedTable};
 <#list verbatim_extensions as verbatim_extension>
 -- ${verbatim_extension.extension} extension
 
-CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
+  CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
   ROW FORMAT DELIMITED
   FIELDS TERMINATED BY '\t'
   TBLPROPERTIES ("serialization.null.format"="")
   AS
   SELECT /*+ REBALANCE */
-    ext.gbifid,
   <#list verbatim_extension.interpretedFields as field>
-    ext.${field} string<#if field_has_next>,</#if>
+    ext.${field}<#if field_has_next>,</#if>
   </#list>
   FROM ${downloadTableName}_occurrence_gbifId f
   JOIN occurrence_ext_${verbatim_extension.hiveTableName} ext
