@@ -99,8 +99,6 @@ public class DownloadPrepareAction implements Closeable {
 
   private static final String HIVE_QUERY = "hive_query";
 
-  private static final String HIVE_BUCKETS = "hive_buckets";
-
   private static final String USER_SQL = "user_sql"; // SQL downloads
 
   private static final String USER_SQL_WHERE = "user_sql_where"; // SQL downloads
@@ -177,7 +175,6 @@ public class DownloadPrepareAction implements Closeable {
       // '-' is replaced by '_' because it's not allowed in hive table names
       props.setProperty(DOWNLOAD_TABLE_NAME, DownloadUtils.downloadTableName(downloadKey));
       props.setProperty(HIVE_DB, workflowConfiguration.getHiveDb());
-      props.setProperty(HIVE_BUCKETS, Integer.toString(workflowConfiguration.getHiveBuckets()));
 
       if (download.getRequest() instanceof SqlDownloadRequest) {
         SqlValidation sv = new SqlValidation();

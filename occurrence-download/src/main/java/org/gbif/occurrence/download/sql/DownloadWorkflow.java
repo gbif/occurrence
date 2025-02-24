@@ -95,7 +95,6 @@ public class DownloadWorkflow {
             .whereClause(jobConfiguration.getFilter())
             .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
             .database(workflowConfiguration.getHiveDb())
-            .buckets(workflowConfiguration.getHiveBuckets())
             .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
     if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
       SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());

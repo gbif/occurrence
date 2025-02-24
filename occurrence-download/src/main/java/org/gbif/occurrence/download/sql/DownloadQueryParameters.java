@@ -25,8 +25,6 @@ public class DownloadQueryParameters {
 
   private final String database;
 
-  private final Integer buckets;
-
   private final String tableName;
 
   private final String downloadTableName;
@@ -43,7 +41,6 @@ public class DownloadQueryParameters {
   public Map<String,String> toMap() {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("hiveDB", database);
-    parameters.put("hiveBuckets", buckets.toString());
     parameters.put("tableName", tableName);
     parameters.put("downloadTableName", downloadTableName);
     parameters.put("whereClause", whereClause);
