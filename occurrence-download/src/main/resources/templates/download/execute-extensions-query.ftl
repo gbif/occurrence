@@ -22,9 +22,8 @@ SET hive.merge.mapredfiles=false;
 --
 -- Create the download gbifId join table
 
-CREATE TABLE IF NOT EXISTS ${downloadTableName}_occurrence_gbifId
-STORED AS parquet CLUSTERED BY (gbifid) INTO ${r"${hiveBuckets}"} BUCKETS
-AS SELECT gbifid FROM ${downloadTableName}_occurrence;
+CACHE TABLE ${downloadTableName}_occurrence_gbifId
+SELECT gbifid FROM ${downloadTableName}_occurrence;
 
 --
 -- Creates the extension tables
@@ -47,8 +46,3 @@ CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTab
   ON f.gbifid = ext.gbifid
   WHERE ext.gbifid IS NOT NULL;
 </#list>
-
---
--- Drop the download gbifId join table
-
-DROP TABLE IF NOT EXISTS ${downloadTableName}_occurrence_gbifId;
