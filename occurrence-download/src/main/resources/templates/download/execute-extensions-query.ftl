@@ -30,23 +30,17 @@ SELECT gbifid FROM ${interpretedTable};
 
 <#list verbatim_extensions as verbatim_extension>
 -- ${verbatim_extension.extension} extension
-
--- create table for ${verbatim_extension.extension} extension
-CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName} (
-<#list verbatim_extension.interpretedFields as field>
-  ${field} string<#if field_has_next>,</#if>
-</#list>
-) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
-
--- insert into table for ${verbatim_extension.extension} extension
-INSERT OVERWRITE TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
-SELECT
-<#list verbatim_extension.interpretedFields as field>
-  ext.${field}<#if field_has_next>,</#if>
-</#list>
-FROM ${downloadTableName}_occurrence_gbifId f
-JOIN occurrence_ext_${verbatim_extension.hiveTableName} ext
-ON f.gbifid = ext.gbifid
-WHERE ext.gbifid IS NOT NULL;
-
+  CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
+  ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY '\t'
+  TBLPROPERTIES ("serialization.null.format"="")
+  AS
+  SELECT /*+ REBALANCE */
+  <#list verbatim_extension.interpretedFields as field>
+    ext.${field}<#if field_has_next>,</#if>
+  </#list>
+  FROM ${downloadTableName}_occurrence_gbifId f
+  JOIN iceberg.${r"${hiveDB}"}.occurrence_ext_${verbatim_extension.hiveTableName} ext
+  ON f.gbifid = ext.gbifid
+  WHERE ext.gbifid IS NOT NULL;
 </#list>
