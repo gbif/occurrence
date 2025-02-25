@@ -39,7 +39,7 @@ SELECT gbifid FROM ${interpretedTable};
   FIELDS TERMINATED BY '\t'
   TBLPROPERTIES ("serialization.null.format"="");
 
-  INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName} SELECT /*+ REBALANCE */
+  INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName} SELECT
   <#list verbatim_extension.verbatimFields as field>
     iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.${field}<#if field_has_next>,</#if>
   </#list>
