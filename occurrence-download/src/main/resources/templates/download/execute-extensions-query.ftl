@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTab
 
 -- insert into table for ${verbatim_extension.extension} extension
 INSERT OVERWRITE TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
-SELECT /*+ REBALANCE */
+SELECT
 <#list verbatim_extension.interpretedFields as field>
   ext.${field}<#if field_has_next>,</#if>
 </#list>
