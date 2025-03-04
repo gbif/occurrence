@@ -152,7 +152,13 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
     // Calculate values for Yunikorn annotation
     // Driver
     int driverMinResourceMemory =
-        Double.valueOf(Math.ceil((driverMemory + vectorMemory) / 1024d)).intValue();
+        Double.valueOf(
+                Math.ceil(
+                    (driverMemory
+                            + vectorMemory
+                            + sparkStaticConfiguration.getDriverMemoryOverheadMb())
+                        / 1024d))
+            .intValue();
     int driverMinResourceCpu = driverCpu + vectorCpu;
     // Executor
     int executorMinResourceMemory =
@@ -176,6 +182,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                     sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
                 .driverMinResourceMemory(driverMinResourceMemory + "Gi")
                 .driverMinResourceCpu(driverMinResourceCpu + "m")
+                .driverMemoryOverhead(String.valueOf(sparkStaticConfiguration.getDriverMemoryOverheadMb()))
                 // Executor
                 .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
                 .executorMinResourceMemory(executorMinResourceMemory + "Gi")
