@@ -13,10 +13,11 @@
  */
 package org.gbif.occurrence.downloads.launcher.config;
 
+import java.util.Map;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
-
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
@@ -26,8 +27,11 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.amqp.RabbitRetryTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.policy.SimpleRetryPolicy;
 
 /** Configuration for the RabbitMQ connection and queues. */
 @Configuration
@@ -49,9 +53,15 @@ public class RabbitConfiguration {
   }
 
   @Bean
+  Queue launcherCancellationQueue(DownloadServiceConfiguration configuration) {
+    return QueueBuilder.durable(configuration.getDeadCancellationQueueName()).build();
+  }
+
+  @Bean
   Queue cancellationQueue(DownloadServiceConfiguration configuration) {
     return QueueBuilder.durable(configuration.getCancellationQueueName())
         .deadLetterExchange("")
+        .deadLetterRoutingKey(configuration.getDeadCancellationQueueName())
         .build();
   }
 
@@ -80,5 +90,14 @@ public class RabbitConfiguration {
     RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
     rabbitTemplate.setMessageConverter(converter);
     return rabbitTemplate;
+  }
+
+  @Bean
+  public RabbitRetryTemplateCustomizer rabbitRetryTemplateCustomizer(
+      @Value("${spring.rabbitmq.listener.simple.retry.max-attempts}") int maxAttempts) {
+    Map<Class<? extends Throwable>, Boolean> exceptionMap =
+        Map.of(AmqpRejectAndDontRequeueException.class, true);
+    SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy(maxAttempts, exceptionMap, true, false);
+    return (target, retryTemplate) -> retryTemplate.setRetryPolicy(retryPolicy);
   }
 }
