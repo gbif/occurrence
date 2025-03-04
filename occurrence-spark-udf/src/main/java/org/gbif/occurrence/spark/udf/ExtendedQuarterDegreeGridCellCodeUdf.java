@@ -16,17 +16,18 @@ package org.gbif.occurrence.spark.udf;
 import org.gbif.occurrence.cube.functions.ExtendedQuarterDegreeGridCellCode;
 
 import org.apache.spark.sql.api.java.UDF4;
+import static org.gbif.occurrence.spark.udf.ConvertionUtils.toDouble;
 
 /**
  * Randomize a point according to its coordinateUncertainty (or some other distance), and determine the
  * Extended Quarter Degree Grid Cell in which the randomized point lies.
  */
-public class ExtendedQuarterDegreeGridCellCodeUdf implements UDF4<Integer,Double,Double,Double,String> {
+public class ExtendedQuarterDegreeGridCellCodeUdf implements UDF4<Integer,Double,Double,Number,String> {
 
   private final ExtendedQuarterDegreeGridCellCode extendedQuarterDegreeGridCellCode = new ExtendedQuarterDegreeGridCellCode();
 
   @Override
-  public String call(Integer level, Double lat, Double lon, Double coordinateUncertaintyInMeters) throws Exception {
-     return extendedQuarterDegreeGridCellCode.fromCoordinate(level, lat, lon, coordinateUncertaintyInMeters);
+  public String call(Integer level, Double lat, Double lon, Number coordinateUncertaintyInMeters) throws Exception {
+     return extendedQuarterDegreeGridCellCode.fromCoordinate(level, lat, lon, toDouble(coordinateUncertaintyInMeters));
   }
 }
