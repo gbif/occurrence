@@ -349,6 +349,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         updateDownloadStatus(download, newStatus, getDownloadSize(download));
         // notify about download
         if (download.getRequest().getSendNotification()) {
+          // we get the download again to get the created doi
+          download = occurrenceDownloadService.get(downloadId);
           emailModel = emailManager.generateSuccessfulDownloadEmailModel(download, portalUrl);
           emailSender.send(emailModel);
         }
