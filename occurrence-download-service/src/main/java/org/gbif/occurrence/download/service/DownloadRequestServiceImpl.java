@@ -338,7 +338,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             "Got callback for failed query. downloadId [{}], Status [{}]",
             downloadId,
             status);
-        updateDownloadStatus(download, newStatus);
+        download = updateDownloadStatus(download, newStatus);
         emailModel = emailManager.generateFailedDownloadEmailModel(download, portalUrl);
         emailSender.send(emailModel);
         FAILED_DOWNLOADS.inc();
@@ -346,11 +346,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
       case SUCCEEDED:
         SUCCESSFUL_DOWNLOADS.inc();
-        updateDownloadStatus(download, newStatus, getDownloadSize(download));
+        download = updateDownloadStatus(download, newStatus, getDownloadSize(download));
         // notify about download
-        if (download.getRequest().getSendNotification()) {
-          // we get the download again to get the created doi
-          download = occurrenceDownloadService.get(downloadId);
+        if (Boolean.TRUE.equals(download.getRequest().getSendNotification())) {
           emailModel = emailManager.generateSuccessfulDownloadEmailModel(download, portalUrl);
           emailSender.send(emailModel);
         }
@@ -409,17 +407,18 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   }
 
   /** Updates the download status and file size. */
-  private void updateDownloadStatus(Download download, Download.Status newStatus) {
+  private Download updateDownloadStatus(Download download, Download.Status newStatus) {
     if (download.getStatus() != newStatus) {
       download.setStatus(newStatus);
-      occurrenceDownloadService.update(download);
+      return occurrenceDownloadService.update(download);
     }
+    return download;
   }
 
-  private void updateDownloadStatus(Download download, Download.Status newStatus, long size) {
+  private Download updateDownloadStatus(Download download, Download.Status newStatus, long size) {
     download.setStatus(newStatus);
     download.setSize(size);
-    occurrenceDownloadService.update(download);
+    return occurrenceDownloadService.update(download);
   }
 
   /** The download filename with extension. */
