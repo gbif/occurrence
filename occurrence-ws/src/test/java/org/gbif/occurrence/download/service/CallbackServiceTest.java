@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.service;
 
+import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -138,7 +139,10 @@ class CallbackServiceTest {
 
   @Test
   void testNotificationSent() {
-
+    // set DOI for successful download
+    Download download = mockDownload();
+    download.setDoi(new DOI("10.15468/uvzgpk"));
+    when(occurrenceDownloadService.update(any())).thenReturn(download);
     service.processCallback(JOB_ID, SUCCEEDED);
 
     verify(emailSender).send(any());
