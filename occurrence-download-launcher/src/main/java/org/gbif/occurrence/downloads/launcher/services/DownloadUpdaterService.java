@@ -13,22 +13,23 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
-import org.gbif.api.model.common.paging.PagingRequest;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-
-import java.util.List;
-import java.util.Set;
-
-import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
-
 import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
 import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
 import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
 import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
+
+import io.github.resilience4j.core.IntervalFunction;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
+import java.time.Duration;
+import java.util.List;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
+import org.gbif.api.model.common.paging.PagingRequest;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.springframework.stereotype.Service;
 
 /**
  * Service is to be called to update the status of a download or to work with the
@@ -38,6 +39,14 @@ import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
 @Service
 public class DownloadUpdaterService {
 
+  private static final Retry RETRY =
+      Retry.of(
+          "occurrenceDownloadApiCall",
+          RetryConfig.custom()
+              .maxAttempts(7)
+              .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(6)))
+              .build());
+
   private final OccurrenceDownloadClient occurrenceDownloadClient;
 
   public DownloadUpdaterService(OccurrenceDownloadClient occurrenceDownloadClient) {
@@ -45,18 +54,22 @@ public class DownloadUpdaterService {
   }
 
   public boolean isStatusFinished(String downloadKey) {
-    Download download = occurrenceDownloadClient.get(downloadKey);
+    Download download = getDownloadWithRetry(downloadKey);
     return FINISH_STATUSES.contains(download.getStatus());
   }
 
   public List<Download> getExecutingDownloads() {
-    return occurrenceDownloadClient
-        .list(new PagingRequest(0, 48), Set.of(RUNNING, SUSPENDED), null)
-        .getResults();
+    return Retry.decorateSupplier(
+            RETRY,
+            () ->
+                occurrenceDownloadClient
+                    .list(new PagingRequest(0, 48), Set.of(RUNNING, SUSPENDED), null)
+                    .getResults())
+        .get();
   }
 
   public void updateStatus(String downloadKey, Status status) {
-    Download download = occurrenceDownloadClient.get(downloadKey);
+    Download download = getDownloadWithRetry(downloadKey);
     if (download != null) {
       if (!status.equals(download.getStatus())) {
         log.info(
@@ -75,13 +88,17 @@ public class DownloadUpdaterService {
   }
 
   public void updateDownload(Download download) {
-    occurrenceDownloadClient.update(download);
+    Retry.decorateRunnable(RETRY, () -> occurrenceDownloadClient.update(download)).run();
   }
 
   public void markAsCancelled(String downloadKey) {
-    Download download = occurrenceDownloadClient.get(downloadKey);
+    Download download = getDownloadWithRetry(downloadKey);
     if (download != null && EXECUTING_STATUSES.contains(download.getStatus())) {
       updateStatus(downloadKey, Status.CANCELLED);
     }
+  }
+
+  private Download getDownloadWithRetry(String downloadKey) {
+    return Retry.decorateSupplier(RETRY, () -> occurrenceDownloadClient.get(downloadKey)).get();
   }
 }
