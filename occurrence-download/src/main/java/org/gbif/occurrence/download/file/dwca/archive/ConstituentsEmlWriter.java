@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.DatasetCitation;
 import org.gbif.api.service.registry.DatasetService;
 
 import java.io.Closeable;
@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ConstituentsEmlWriter implements Closeable, Consumer<Dataset> {
+public class ConstituentsEmlWriter implements Closeable, Consumer<DatasetCitation> {
 
   public static final String OUTPUT_DIRECTORY = "dataset";
 
@@ -44,6 +44,7 @@ public class ConstituentsEmlWriter implements Closeable, Consumer<Dataset> {
   }
 
   private void createEmlFile(UUID constituentId) {
+    log.info("Retrieving EML doc for {} from web service", constituentId);
     try (InputStream in = datasetService.getMetadataDocument(constituentId)) {
       // store dataset EML as constituent metadata
       if (in != null) {
@@ -51,13 +52,13 @@ public class ConstituentsEmlWriter implements Closeable, Consumer<Dataset> {
       } else {
         log.error("EML Not Found for datasetId {}", constituentId);
       }
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       log.error("Error creating eml file", ex);
     }
   }
 
   @Override
-  public void accept(Dataset dataset) {
+  public void accept(DatasetCitation dataset) {
     createEmlFile(dataset.getKey());
   }
 

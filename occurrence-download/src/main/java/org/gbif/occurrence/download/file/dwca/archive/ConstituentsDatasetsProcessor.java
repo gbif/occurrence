@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.DatasetCitation;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.download.license.LicenseSelector;
@@ -53,7 +53,7 @@ public class ConstituentsDatasetsProcessor implements Closeable, Consumer<Consti
          log.info("Processing constituent dataset: {}", constituent.getKey());
         // catch errors for each uuid to make sure one broken dataset does not bring down the entire process
         try {
-          Dataset dataset = constituent.getDataset();
+          DatasetCitation dataset = constituent.getDatasetCitation();
 
           licenseSelector.collectLicense(dataset.getLicense());
           // citation
@@ -63,9 +63,6 @@ public class ConstituentsDatasetsProcessor implements Closeable, Consumer<Consti
           // eml file
           emlWriter.accept(dataset);
 
-          // add original author as content provider to main dataset description
-          DwcaContactsUtil.getContentProviderContact(constituent.getDataset())
-            .ifPresent(provider -> dataset.getContacts().add(provider));
         } catch (Exception e) {
           log.error("Error creating download file", e);
         }

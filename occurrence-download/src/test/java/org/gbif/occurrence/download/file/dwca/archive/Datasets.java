@@ -14,7 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.registry.Citation;
-import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.DatasetCitation;
 import org.gbif.api.vocabulary.License;
 
 import java.util.HashMap;
@@ -40,23 +40,23 @@ public class Datasets {
    * Creates a test dataset, the idx is concatenated to the title and citation text.
    * The license is randomly generated between CC0_1_0, CC_BY_4_0 and CC_BY_NC_4_0.
    */
-  private static Dataset newDataset(int idx) {
+  private static DatasetCitation newDataset(int idx) {
     Citation citation = new Citation();
     citation.setText("Citation " + idx);
-    Dataset dataset = new Dataset();
+    DatasetCitation dataset = new DatasetCitation();
     dataset.setKey(UUID.randomUUID());
     dataset.setTitle("Dataset " + idx);
     dataset.setLicense(License.values()[RANDOM_LICENSE.nextInt(2)]);
-    dataset.setCitation(citation);
+    dataset.setCitation(citation.getText());
     return dataset;
   }
 
   /**
    * Creates a number of random test datasets with title and license.
    */
-  public static List<Dataset> testDatasets(int size) {
+  public static List<DatasetCitation> testDatasets(int size) {
 
-    return  IntStream.range(0, size)
+    return IntStream.range(0, size)
       .boxed()
       .map(Datasets::newDataset)
       .collect(Collectors.toList());
@@ -66,10 +66,10 @@ public class Datasets {
    * Creates a test constituent dataset, use the a test dataset.
    */
   private ConstituentDataset newConstituentDataset(int idx) {
-    Dataset dataset = newDataset(idx);
+    DatasetCitation datasetCitation = newDataset(idx);
     return ConstituentDataset.builder()
-      .dataset(dataset)
-      .key(dataset.getKey())
+      .datasetCitation(datasetCitation)
+      .key(datasetCitation.getKey())
       .records(idx + 1)
       .build();
   }

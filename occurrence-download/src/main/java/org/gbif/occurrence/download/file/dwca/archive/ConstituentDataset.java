@@ -13,13 +13,12 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.gbif.api.model.registry.Dataset;
-
 import java.util.Comparator;
 import java.util.UUID;
 
 import lombok.Builder;
 import lombok.Data;
+import org.gbif.api.model.registry.DatasetCitation;
 
 /**
  * Simple, local representation for a constituent dataset of download.
@@ -28,13 +27,13 @@ import lombok.Data;
 @Builder
 public class ConstituentDataset implements Comparable<ConstituentDataset> {
 
-  //Comparator based on number of records and then key
+  // Comparator based on number of records and then key
   private static final Comparator<ConstituentDataset> CONSTITUENT_COMPARATOR =
     Comparator.comparingLong(ConstituentDataset::getRecords).thenComparing(ConstituentDataset::getKey);
 
   private final UUID key;
   private final long records;
-  private final Dataset dataset;
+  private final DatasetCitation datasetCitation;
 
   @Override
   public int compareTo(ConstituentDataset other) {

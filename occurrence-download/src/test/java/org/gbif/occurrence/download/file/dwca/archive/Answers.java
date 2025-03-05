@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.gbif.api.model.registry.DatasetCitation;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -64,15 +65,17 @@ public class Answers {
    */
   static class GetDatasetTileAnswer implements Answer<String> {
 
-    private final Map<UUID,Dataset> datasetMap;
+    private final Map<UUID, DatasetCitation> datasetMap;
 
     GetDatasetTileAnswer(List<ConstituentDataset> constituentDatasets) {
-      datasetMap = constituentDatasets.stream().collect(Collectors.toMap(ConstituentDataset::getKey, ConstituentDataset::getDataset));
+      datasetMap = constituentDatasets.stream()
+        .collect(Collectors.toMap(ConstituentDataset::getKey, ConstituentDataset::getDatasetCitation));
     }
 
     @Override
     public String answer(InvocationOnMock invocation) {
-      return datasetMap.get(invocation.getArgument(0)).getTitle();
+      return datasetMap.get(invocation.getArgument(0))
+        .getTitle();
     }
   }
 }

@@ -127,7 +127,7 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
   public void accept(ConstituentDataset constituentDataset) {
     description.append(constituentDataset.getRecords())
       .append(" records from ")
-      .append(constituentDataset.getDataset().getTitle())
+      .append(constituentDataset.getDatasetCitation().getTitle())
       .append('\n');
   }
 

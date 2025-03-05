@@ -21,6 +21,8 @@ import lombok.Data;
 
 @Builder
 @Data
+@lombok.AllArgsConstructor
+@lombok.NoArgsConstructor(force = true)
 public class DownloadQueryParameters {
 
   private final String database;

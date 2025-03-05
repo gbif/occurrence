@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.DatasetCitation;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.Closeable;
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.RIGHTS_FILENAME;
 
 @Slf4j
-public class ConstituentsRightsWriter implements Closeable, Consumer<Dataset> {
+public class ConstituentsRightsWriter implements Closeable, Consumer<DatasetCitation> {
 
   private final Writer writer;
 
@@ -42,10 +42,9 @@ public class ConstituentsRightsWriter implements Closeable, Consumer<Dataset> {
     writer = FileUtils.startNewUtf8File(new File(archiveDir, RIGHTS_FILENAME));
   }
 
-  public static String datasetRights(Dataset dataset) {
-    return String.format(RIGHTS_LINE_TEMPLATE, dataset.getTitle(),
-                         dataset.getLicense() != null && dataset.getLicense().isConcrete()?
-                           dataset.getLicense().getLicenseUrl() : "Not supplied");
+  public static String datasetRights(DatasetCitation datasetCitation) {
+    return String.format(RIGHTS_LINE_TEMPLATE, datasetCitation.getTitle(),
+      datasetCitation.getLicense() != null ?  datasetCitation.getLicense().getLicenseUrl() : "Not supplied");
   }
 
   @Override
@@ -55,7 +54,7 @@ public class ConstituentsRightsWriter implements Closeable, Consumer<Dataset> {
 
   @Override
   @SneakyThrows
-  public void accept(Dataset dataset) {
+  public void accept(DatasetCitation dataset) {
     if (count > 0) {
       writer.append('\n');
     }

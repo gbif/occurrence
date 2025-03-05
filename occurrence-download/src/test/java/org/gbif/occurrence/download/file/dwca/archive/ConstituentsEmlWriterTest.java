@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.DatasetCitation;
 import org.gbif.api.service.registry.DatasetService;
 
 import java.io.File;
@@ -61,8 +61,8 @@ public class ConstituentsEmlWriterTest {
    * Gets the EML documents for each dataset and writes them to the dataset directory.
    */
   @SneakyThrows
-  private void createEmlFiles(List<Dataset> testDatasets) {
-    try(ConstituentsEmlWriter emlWriter = new ConstituentsEmlWriter(mockDatasetService(), tempDir.toFile())) {
+  private void createEmlFiles(List<DatasetCitation> testDatasets) {
+    try (ConstituentsEmlWriter emlWriter = new ConstituentsEmlWriter(mockDatasetService(), tempDir.toFile())) {
       testDatasets.forEach(emlWriter);
     }
   }
@@ -74,7 +74,7 @@ public class ConstituentsEmlWriterTest {
   @Test
   public void emlWriteTest() {
     //2 test datasets
-    List<Dataset> testDatasets = testDatasets(2);
+    List<DatasetCitation> testDatasets = testDatasets(2);
 
     //create EML files
     createEmlFiles(testDatasets);

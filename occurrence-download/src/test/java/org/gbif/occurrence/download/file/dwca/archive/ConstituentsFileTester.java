@@ -28,6 +28,7 @@ import java.util.stream.IntStream;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
+import org.gbif.api.model.registry.DatasetCitation;
 
 import static org.gbif.occurrence.download.file.dwca.archive.Datasets.testDatasets;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Utility class to test constituent datasets based download files.
  */
-public class ConstituentsFileTester<T extends Closeable & Consumer<Dataset>> {
+public class ConstituentsFileTester<T extends Closeable & Consumer<DatasetCitation>> {
 
   private final int numberOfTestDatasets;
 
@@ -60,7 +61,7 @@ public class ConstituentsFileTester<T extends Closeable & Consumer<Dataset>> {
     int numberOfTestDatasets,
     Path tempDir,
     String testFile,
-    Function<Dataset, String> textProvider,
+    Function<DatasetCitation, String> textProvider,
     Supplier<T> writerSupplier,
     int linesPerDataset,
     int linesInHeader
@@ -70,7 +71,7 @@ public class ConstituentsFileTester<T extends Closeable & Consumer<Dataset>> {
     this.testFile = testFile;
     this.writerSupplier = writerSupplier;
 
-    assertionBuilder =  ConstituentFileAssertion.builder()
+    assertionBuilder = ConstituentFileAssertion.builder()
       .textProvider(textProvider)
       .linesInHeader(linesInHeader)
       .linesPerDataset(linesPerDataset);
@@ -86,17 +87,17 @@ public class ConstituentsFileTester<T extends Closeable & Consumer<Dataset>> {
 
   @SneakyThrows
   public void testFileContent() {
-    List<Dataset> datasets = testDatasets(numberOfTestDatasets);
+    List<DatasetCitation> datasetCitations = testDatasets(numberOfTestDatasets);
 
     //Creates a test file
     try (T writer = writerSupplier.get()) {
-      datasets.forEach(writer);
+      datasetCitations.forEach(writer);
     }
 
     List<String> fileLines = readTestFile();
 
     assertionBuilder
-      .datasets(datasets)
+      .datasetCitations(datasetCitations)
       .fileLines(fileLines)
       .build()
       .testFileContent();
@@ -105,11 +106,11 @@ public class ConstituentsFileTester<T extends Closeable & Consumer<Dataset>> {
   @Builder
   public static class ConstituentFileAssertion {
 
-    private final List<Dataset> datasets;
+    private final List<DatasetCitation> datasetCitations;
     private final List<String> fileLines;
     private final int linesPerDataset;
     private final int linesInHeader;
-    private final Function<Dataset, String> textProvider;
+    private final Function<DatasetCitation, String> textProvider;
 
     /**
      * Gets the content from rightsStartIdx to startIdx + linesPerDataset from fileLines.
@@ -124,22 +125,22 @@ public class ConstituentsFileTester<T extends Closeable & Consumer<Dataset>> {
     /**
      * Is the file content expected to the dataset rights text for each dataset.
      */
-    private void assertFileContent(List<Dataset> datasets, List<String> fileLines) {
-      IntStream.range(0, datasets.size())
+    private void assertFileContent(List<DatasetCitation> datasetCitations, List<String> fileLines) {
+      IntStream.range(0, datasetCitations.size())
         .forEach(idx -> {
           int startIdx = linesInHeader + idx * linesPerDataset;
           String generatedRights = getContent(startIdx, linesPerDataset, fileLines);
-          assertEquals(textProvider.apply(datasets.get(idx)), generatedRights);
+          assertEquals(datasetCitations.get(idx), generatedRights);
         });
     }
 
     @SneakyThrows
     public void testFileContent() {
 
-      assertFileContent(datasets, fileLines);
+      assertFileContent(datasetCitations, fileLines);
 
       //times linesInPattern() because of new lines in generated text
-      assertEquals(datasets.size() * linesPerDataset, (fileLines.size() - linesInHeader));
+      assertEquals(datasetCitations.size() * linesPerDataset, (fileLines.size() - linesInHeader));
     }
   }
 

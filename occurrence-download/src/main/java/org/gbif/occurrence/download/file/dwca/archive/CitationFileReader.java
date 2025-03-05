@@ -13,15 +13,14 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
+import org.gbif.api.model.registry.DatasetCitation;
 import org.gbif.api.service.registry.DatasetService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 import org.apache.hadoop.fs.FileStatus;
@@ -44,26 +43,13 @@ public class CitationFileReader {
   private final Consumer<Map<UUID,Long>> onFinish;
   private final Map<UUID,Long> datasetUsages = new HashMap<>();
 
-
-  private ConstituentDataset  parseConstituent(String line) {
-    String[] constituentLine = line.split("\t");
-    // play safe and make sure we got an uuid - even though our api doesn't require it
-    UUID key = UUID.fromString(constituentLine[0]);
-    return ConstituentDataset.builder()
-            .key(key)
-            .records(Long.parseLong(constituentLine[1]))
-            .dataset(datasetService.get(key))
-            .build();
-  }
-
-
   /**
    * Creates Map with dataset UUIDs and its record counts.
    */
   public void read() throws IOException {
     Path citationSrc = new Path(citationFileName);
     // the hive query result is a directory with one or more files - read them all into an uuid set
-    if (sourceFs.exists(citationSrc)) { //Empty results can lead to empty citation files
+    if (sourceFs.exists(citationSrc)) { // Empty results can lead to empty citation files
       FileStatus[] citFiles = sourceFs.listStatus(citationSrc);
       int invalidUuids = 0;
       for (FileStatus fs : citFiles) {
@@ -72,13 +58,18 @@ public class CitationFileReader {
           try (BufferedReader citationReader = new BufferedReader(new InputStreamReader(sourceFs.open(fs.getPath()),
                                                                                         StandardCharsets.UTF_8))) {
             String line = citationReader.readLine();
+            Map<UUID, Long> uuids = new HashMap<>();
+            List<ConstituentDataset> constituents = new ArrayList<>();
+
             while (line != null) {
               if (!Strings.isNullOrEmpty(line)) {
                 // we also catch errors for every dataset to don't break the loop
                 try {
-                  ConstituentDataset constituent = parseConstituent(line);
-                  datasetUsages.put(constituent.getKey(), constituent.getRecords());
-                  onRead.accept(constituent);
+                  String[] constituentLine = line.split("\t");
+                  uuids.put(
+                    UUID.fromString(constituentLine[0]),
+                    Long.parseLong(constituentLine[1])
+                  );
                 } catch (Exception e) {
                   // ignore invalid UUIDs
                   log.info("Found invalid UUID as datasetId {}", line, e);
@@ -86,6 +77,24 @@ public class CitationFileReader {
                 }
               }
               line = citationReader.readLine();
+            }
+
+            // lookups for all datasets in one go
+            List<DatasetCitation> datasetCitations = datasetService.listCitations(
+              new ArrayList<>(uuids.keySet()));
+
+            datasetCitations.forEach(datasetCitation -> {
+              ConstituentDataset constituent = ConstituentDataset.builder()
+                .key(datasetCitation.getKey())
+                .records(uuids.get(datasetCitation.getKey()))
+                .datasetCitation(datasetCitation)
+                .build();
+              constituents.add(constituent);
+            });
+
+            for (ConstituentDataset constituent : constituents) {
+              datasetUsages.put(constituent.getKey(), constituent.getRecords());
+              onRead.accept(constituent);
             }
           }
         }

@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.gbif.api.model.registry.Dataset;
+import org.gbif.api.model.registry.DatasetCitation;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.Closeable;
@@ -33,7 +33,7 @@ import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstan
 
 @Data
 @Slf4j
-public class ConstituentsCitationWriter implements Closeable, Consumer<Dataset> {
+public class ConstituentsCitationWriter implements Closeable, Consumer<DatasetCitation> {
 
   private static final String CITATION_HEADER =
     "When using this dataset please use the following citation and pay attention to the rights documented in rights.txt:\n";
@@ -50,23 +50,23 @@ public class ConstituentsCitationWriter implements Closeable, Consumer<Dataset> 
   }
 
 
-  public static String citation(Dataset dataset) {
-    if (dataset.getCitation() != null && !Strings.isNullOrEmpty(dataset.getCitation().getText())) {
-      return dataset.getCitation().getText();
+  public static String citation(DatasetCitation datasetCitation) {
+    if (!Strings.isNullOrEmpty(datasetCitation.getCitation())) {
+      return datasetCitation.getCitation();
     } else {
-      log.error("Constituent dataset misses mandatory citation for id: {}", dataset.getKey());
+      log.error("Constituent dataset misses mandatory citation for id: {}", datasetCitation.getKey());
     }
     return null;
   }
 
   @Override
   @SneakyThrows
-  public void accept(Dataset dataset) {
+  public void accept(DatasetCitation dataset) {
     if (count > 0) {
       writer.append('\n');
     }
     Optional<String> citation = Optional.ofNullable(citation(dataset));
-    if(citation.isPresent()) {
+    if (citation.isPresent()) {
       writer.append(citation.get());
     }
     count++;
