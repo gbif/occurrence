@@ -21,7 +21,7 @@ import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-/** Listen MQ to receive and run a download */
+/** Listen MQ for dead letter queue of download launcher */
 @Slf4j
 @Component
 public class DeadLetterDownloadLauncherListener
