@@ -76,7 +76,8 @@ public final class HiveDataTypes {
       DwcTerm.georeferencedBy,
       DwcTerm.associatedSequences,
       GbifTerm.lithostratigraphy,
-      GbifTerm.biostratigraphy
+      GbifTerm.biostratigraphy,
+      GbifTerm.dnaSequenceID
     );
 
   // dates are all stored as BigInt
