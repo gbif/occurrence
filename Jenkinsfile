@@ -41,20 +41,6 @@ pipeline {
       }
     }
 
-    stage('Maven build: Trino module (Java 17)') {
-      tools {
-        jdk 'OpenJDK17'
-      }
-      steps {
-        configFileProvider([
-            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
-          ]) {
-          // occurrence-table-build-trino needs jdk17 because the trino library uses jdk17
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Pgbif-dev -U -B -pl occurrence-table-build-trino'
-        }
-      }
-    }
-
     stage('Build and push Docker images: Downloads') {
       steps {
         sh 'build/occurrence-download-spark-docker-build.sh'
