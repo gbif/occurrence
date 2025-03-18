@@ -253,6 +253,9 @@ public enum OccurrenceEsField implements EsField {
   MEDIA_TYPE(new BaseEsField("mediaTypes", GbifTerm.mediaType)),
   MEDIA_ITEMS(new BaseEsField("multimediaItems", EsField.MEDIA_ITEMS)),
 
+  // DNA
+   DNA_SEQUENCE_ID(new BaseEsField("dnaSequenceID", GbifTerm.dnaSequenceID)),
+
   //Issues
   ISSUE(new BaseEsField("issues", GbifTerm.issue)),
 
@@ -405,6 +408,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.BIOSTRATIGRAPHY, BIOSTRATIGRAPHY)
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
+      .put(OccurrenceSearchParameter.DNA_SEQUENCE_ID, DNA_SEQUENCE_ID)
       .build();
 
   public static final ImmutableMap<OccurrenceSearchParameter, EsField> FACET_TO_ES_MAPPING =

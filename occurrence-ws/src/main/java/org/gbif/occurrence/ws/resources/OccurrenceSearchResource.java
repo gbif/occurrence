@@ -1462,6 +1462,13 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "Rhynchonella cuvieri Zone"),
         @Parameter(
+          name = "dnaSequenceID",
+          description =
+            "The DNA sequence ID of a record",
+          explode = Explode.FALSE,
+          in = ParameterIn.QUERY,
+          example = "273f6ecc41f1c809d3fa26a720e5ca21"),
+        @Parameter(
             name = "hl",
             description =
                 "Set `hl=true` to highlight terms matching the query when in full-text search fields. The highlight will "
