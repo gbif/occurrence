@@ -1462,7 +1462,7 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "Rhynchonella cuvieri Zone"),
         @Parameter(
-          name = "dnaSequenceID",
+          name = "dnaSequenceId",
           description =
             "The DNA sequence ID of a record",
           explode = Explode.FALSE,
