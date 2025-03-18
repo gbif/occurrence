@@ -22,13 +22,12 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.occurrence.search.predicate.QueryVisitorFactory;
+import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.rest.client.species.Metadata;
-import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -328,7 +327,7 @@ public class EsSearchRequestBuilder {
     }
 
     EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
-        QueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
+        EsQueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
@@ -337,7 +336,6 @@ public class EsSearchRequestBuilder {
   @VisibleForTesting
   static GroupedParams groupParameters(OccurrenceSearchRequest searchRequest) {
     GroupedParams groupedParams = new GroupedParams();
-
     if (!searchRequest.isMultiSelectFacets()
         || searchRequest.getFacets() == null
         || searchRequest.getFacets().isEmpty()) {
@@ -540,7 +538,6 @@ public class EsSearchRequestBuilder {
           || isTaxonDepthParam(p))
         .map(
             facetParam -> {
-
               EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
               if (esField != null && esField.isChildField()) {
                 if (groupedParams.get() == null) {

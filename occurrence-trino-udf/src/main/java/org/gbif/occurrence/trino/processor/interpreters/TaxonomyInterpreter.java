@@ -33,6 +33,7 @@ import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.kvs.KeyValueStore;
+import org.gbif.kvs.cache.CaffeineCache;
 import org.gbif.kvs.species.IdMappingConfiguration;
 import org.gbif.kvs.species.Identification;
 import org.gbif.kvs.species.NameUsageMatchKVStoreFactory;
@@ -84,25 +85,26 @@ public class TaxonomyInterpreter implements Serializable {
             idMappingConfiguration);
 
     speciesWs =
-        new KeyValueStore<>() {
-          private SpeciesWsClient speciesWsClient =
-              new ClientBuilder()
-                  .withUrl(apiUrl)
-                  .withObjectMapper(
-                      JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-                  .withFormEncoder()
-                  .build(SpeciesWsClient.class);
+        CaffeineCache.cache(
+            new KeyValueStore<>() {
+              private SpeciesWsClient speciesWsClient =
+                  new ClientBuilder()
+                      .withUrl(apiUrl)
+                      .withObjectMapper(
+                          JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+                      .withFormEncoder()
+                      .build(SpeciesWsClient.class);
 
-          @Override
-          public NameUsage get(String nubKey) {
-            return speciesWsClient.get(nubKey);
-          }
+              @Override
+              public NameUsage get(String nubKey) {
+                return speciesWsClient.get(nubKey);
+              }
 
-          @Override
-          public void close() throws IOException {
-            // do nothing
-          }
-        };
+              @Override
+              public void close() throws IOException {
+                // do nothing
+              }
+            });
   }
 
   public TaxonomyInterpreter(ApiClientConfiguration cfg) {

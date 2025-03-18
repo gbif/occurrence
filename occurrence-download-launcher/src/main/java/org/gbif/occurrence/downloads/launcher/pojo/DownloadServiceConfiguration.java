@@ -14,7 +14,6 @@
 package org.gbif.occurrence.downloads.launcher.pojo;
 
 import javax.validation.constraints.NotNull;
-
 import lombok.Data;
 
 /** Configuration class for the download service. */
@@ -26,6 +25,8 @@ public class DownloadServiceConfiguration {
   @NotNull private String deadLauncherQueueName;
 
   @NotNull private String cancellationQueueName;
+
+  @NotNull private String deadCancellationQueueName;
 
   // DownloadsStatusUpdaterScheduledTask cron expression
   @NotNull private String taskCron;

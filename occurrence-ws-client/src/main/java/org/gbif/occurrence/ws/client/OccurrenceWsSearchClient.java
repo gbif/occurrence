@@ -13,10 +13,13 @@
  */
 package org.gbif.occurrence.ws.client;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 
 import java.util.List;
@@ -297,6 +300,11 @@ public interface OccurrenceWsSearchClient extends  OccurrenceSearchService {
                                                                @RequestParam(value = "bed", required = false) Set<String> bed,
                                                                @RequestParam(value = "associatedSequences", required = false) Set<String> associatedSequences,
                                                                @RequestParam(value = "facet", required = false) Set<OccurrenceSearchParameter> facets);
+
+  @Override
+  default long countRecords(Predicate predicate) {
+    throw new NotImplementedException("Not implemented");
+  }
 
 
   @RequestMapping(

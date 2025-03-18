@@ -764,22 +764,22 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeologicalTimeFilter("cenozoic");
 
     QueryBuilder query =
-      esSearchRequestBuilder
-        .buildQueryNode(searchRequest)
-        .orElseThrow(IllegalArgumentException::new);
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
-      66.0,
-      jsonQuery
-        .path(BOOL)
-        .path(FILTER)
-        .findValue(GEOLOGICAL_TIME.getSearchFieldName())
-        .get(VALUE)
-        .asDouble());
+        66.0,
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValue(GEOLOGICAL_TIME.getSearchFieldName())
+            .get(VALUE)
+            .asDouble());
   }
 
   @Test
@@ -788,20 +788,20 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeologicalTimeFilter("miocene,pliocene");
 
     QueryBuilder query =
-      esSearchRequestBuilder
-        .buildQueryNode(searchRequest)
-        .orElseThrow(IllegalArgumentException::new);
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
     JsonNode rangeNode =
-      jsonQuery
-        .path(BOOL)
-        .path(FILTER)
-        .findValue(RANGE)
-        .path(GEOLOGICAL_TIME.getSearchFieldName());
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValue(RANGE)
+            .path(GEOLOGICAL_TIME.getSearchFieldName());
     assertEquals(2.58, rangeNode.get(FROM).asDouble());
     assertEquals(23.03, rangeNode.get(TO).asDouble());
     assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
@@ -810,23 +810,41 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addGeologicalTimeFilter("*,pliocene");
 
     query =
-      esSearchRequestBuilder
-        .buildQueryNode(searchRequest)
-        .orElseThrow(IllegalArgumentException::new);
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
     jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
     rangeNode =
-      jsonQuery
-        .path(BOOL)
-        .path(FILTER)
-        .findValue(RANGE)
-        .path(GEOLOGICAL_TIME.getSearchFieldName());
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValue(RANGE)
+            .path(GEOLOGICAL_TIME.getSearchFieldName());
     assertEquals(2.58, rangeNode.get(FROM).asDouble());
     assertFalse(rangeNode.hasNonNull(TO));
     assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
+  }
+
+  @Test
+  public void multipleRangesTest() throws JsonProcessingException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1900,1950");
+    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1990,1999");
+
+    QueryBuilder query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+
+    JsonNode shouldNode = jsonQuery.path(BOOL).path(FILTER).get(0).path(BOOL).path(SHOULD);
+    assertEquals(2, shouldNode.size());
+    assertEquals(2, shouldNode.findValues(RANGE).size());
   }
 
   @Test
@@ -851,19 +869,4 @@ public class OccurrenceEsSearchRequestBuilderTest {
     LOG.debug("Query: {}", jsonQuery);
   }
 
-  @Test
-  public void multipleRangesTest() throws JsonProcessingException {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1900,1950");
-    searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1990,1999");
-    QueryBuilder query =
-      esSearchRequestBuilder
-        .buildQueryNode(searchRequest)
-        .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
-    LOG.debug("Query: {}", jsonQuery);
-    JsonNode shouldNode = jsonQuery.path(BOOL).path(FILTER).get(0).path(BOOL).path(SHOULD);
-    assertEquals(2, shouldNode.size());
-    assertEquals(2, shouldNode.findValues(RANGE).size());
-  }
 }

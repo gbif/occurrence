@@ -27,6 +27,7 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveColumns;
 
@@ -35,12 +36,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,6 +44,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
+import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.encoder.DefaultCsvEncoder;
@@ -240,7 +237,15 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence> extends AbstractAct
 
             if (record != null) {
               datasetUsagesCollector.incrementDatasetUsage(record.getDatasetKey().toString());
-              intCsvWriter.write(interpretedMapper.apply(record), INT_COLUMNS);
+
+              log.debug("Excluding columns from DwCA download: {}", DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD);
+              List<String> interpretedColumns = new ArrayList<>(List.of(INT_COLUMNS));
+              interpretedColumns.removeAll(DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD
+                .stream().map(Term::simpleName).collect(Collectors.toList()));
+
+              String[] interpretedFieldWithExclusions = interpretedColumns.toArray(new String[0]);
+
+              intCsvWriter.write(interpretedMapper.apply(record), interpretedFieldWithExclusions);
               verbCsvWriter.write(verbatimMapper.apply(record), VERB_COLUMNS);
               writeMediaObjects(multimediaCsvWriter, record);
               writeExtensions(work, record);

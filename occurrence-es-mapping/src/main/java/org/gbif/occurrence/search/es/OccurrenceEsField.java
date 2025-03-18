@@ -13,13 +13,6 @@
  */
 package org.gbif.occurrence.search.es;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import java.util.Optional;
-import java.util.Set;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -28,6 +21,16 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
+
+import java.util.Optional;
+import java.util.Set;
+
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEsField implements EsField {
@@ -227,9 +230,9 @@ public enum OccurrenceEsField implements EsField {
   FORMATION(new BaseEsField("geologicalContext.formation", DwcTerm.formation)),
   MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
   BED(new BaseEsField("geologicalContext.bed", DwcTerm.bed)),
-  GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", GbifTerm.geologicalTime)),
-  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", GbifTerm.lithostratigraphy, true)),
-  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", GbifTerm.biostratigraphy, true)),
+  GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", null)),
+  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", null, true)),
+  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", null, true)),
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),

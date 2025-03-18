@@ -13,6 +13,14 @@
  */
 package org.gbif.occurrence.download.util;
 
+import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.occurrence.download.hive.HiveDataTypes;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
+import org.gbif.occurrence.query.sql.HiveSqlValidator;
+
+import java.util.*;
+
 import calcite_gbif_shaded.com.google.common.collect.ImmutableMap;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataType;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeFactory;
@@ -28,18 +36,9 @@ import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
-import lombok.extern.slf4j.Slf4j;
-import org.gbif.api.exception.QueryBuildingException;
-import org.gbif.occurrence.download.hive.HiveDataTypes;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
-import org.gbif.occurrence.query.sql.HiveSqlQuery;
-import org.gbif.occurrence.query.sql.HiveSqlValidator;
-
-import java.util.*;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 
-@Slf4j
 public class SqlValidation {
 
   //Spark/Hive Catalog
@@ -61,6 +60,7 @@ public class SqlValidation {
   public SqlValidation() {
     this(null);
   }
+
   public SqlValidation(String database) {
     this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
@@ -114,7 +114,7 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
-      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.CHARACTER, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.Isea3hCellCodeUDF
@@ -157,6 +157,22 @@ public class SqlValidation {
       family(SqlTypeFamily.ANY),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.spark.udf.StringArrayContainsGenericUdf
+    additionalOperators.add(new SqlFunction("gbif_stringArrayContains",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.BOOLEAN,
+      null,
+      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER, SqlTypeFamily.BOOLEAN),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // org.gbif.occurrence.spark.udf.StringArrayLikeGenericUdf
+    additionalOperators.add(new SqlFunction("gbif_stringArrayLike",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.BOOLEAN,
+      null,
+      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER, SqlTypeFamily.BOOLEAN),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // brickhouse.udf.collect.JoinArrayUDF
     additionalOperators.add(new SqlFunction("gbif_joinArray",
       SqlKind.OTHER_FUNCTION,
@@ -168,9 +184,13 @@ public class SqlValidation {
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);
   }
 
-  public HiveSqlQuery validateAndParse(String sql) throws QueryBuildingException {
-    String databaseFq = database == null? CATALOG : CATALOG + "." + database;
-    return new HiveSqlQuery(hiveSqlValidator, sql, databaseFq);
+  public HiveSqlQuery validateAndParse(String sql, boolean addCatalog) throws QueryBuildingException {
+    if (addCatalog) {
+      String databaseFq = database == null ? CATALOG : CATALOG + "." + database;
+      return new HiveSqlQuery(hiveSqlValidator, sql, databaseFq);
+    } else {
+      return new HiveSqlQuery(hiveSqlValidator, sql);
+    }
   }
 
   /**
@@ -194,9 +214,6 @@ public class SqlValidation {
 
       // String array definition
       RelDataType varCharArray = tdf.createArrayType(varChar, -1);
-
-      // String array definition
-      RelDataType structMap = tdf.createMapType(varChar, varCharArray);
 
       // Vocabulary definition: "STRUCT<concept: STRING,lineage: ARRAY<STRING>>"
       RelDataType vocabulary = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
@@ -246,17 +263,8 @@ public class SqlValidation {
               builder.add(field.getColumnName(), parentEventGbifId);
               break;
 
-            case HiveDataTypes.TYPE_MAP_STRUCT:
-              // typeStatus.
-              builder.add(field.getColumnName(), structMap);
-              break;
-
             default:
-              SqlTypeName sqlTypeName = HIVE_TYPE_MAPPING.get(field.getHiveDataType());
-              if (sqlTypeName == null){
-                log.error("Unknown Hive data type for column: {} {}", field.getColumnName(), field.getHiveDataType());
-              }
-              builder.add(field.getColumnName(), sqlTypeName);
+              builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
           }
         }
       );

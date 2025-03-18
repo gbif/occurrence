@@ -13,13 +13,15 @@
  */
 package org.gbif.occurrence.search.predicate;
 
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-public class QueryVisitorFactory {
+public class EsQueryVisitorFactory {
 
   @JsonDeserialize(as = OccurrenceSearchParameter.class)
   public static class OccurrenceSearchParameterMixin {}
@@ -56,6 +58,18 @@ public class QueryVisitorFactory {
           @Override
           public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
             return fieldMapper.getChecklistField(checklistKey, searchParameter);
+          }
+
+          @Override
+          public boolean includeNullInPredicate(
+            SimplePredicate<OccurrenceSearchParameter> predicate) {
+            return fieldMapper.includeNullInPredicate(predicate);
+          }
+
+          @Override
+          public boolean includeNullInRange(
+            OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+            return fieldMapper.includeNullInRange(param, rangeQueryBuilder);
           }
         });
   }

@@ -43,5 +43,7 @@ public class UDFS {
     sparkSession.udf().register("gbif_toISO8601", new SecondsToISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_toLocalISO8601", new SecondsToLocalISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_within", new ContainsUdf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("gbif_stringArrayLike", new StringArrayLikeGenericUdf(), DataTypes.BooleanType);
   }
 }

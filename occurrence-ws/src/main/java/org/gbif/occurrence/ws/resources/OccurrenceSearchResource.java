@@ -1525,11 +1525,36 @@ public class OccurrenceSearchResource {
   @Operation(
     operationId = "predicateSearchOccurrence",
     summary = "Occurrence search using predicates",
-    description = "Full search across all occurrences specified using predicates (as used for the download API).",
+    description = "Full search across all occurrences specified using predicates (as used for the download API).\n\n" +
+      "Note facet and limit parameters are part of the POSTed object – see the schema for the request body.",
     extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100")))
   @Parameter(name = "request", hidden = true)
-  @CommonOffsetLimitParameters
-  @CommonFacetParameters
+  @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    required = true,
+    content = @Content(
+      schema = @Schema(
+        oneOf = OccurrencePredicateSearchRequest.class,
+        example = "{\n" +
+          "  \"predicate\": {\n" +
+          "    \"type\": \"and\",\n" +
+          "    \"predicates\": [\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"COUNTRY\",\n" +
+          "        \"value\": \"FR\"\n" +
+          "      },\n" +
+          "      {\n" +
+          "        \"type\": \"equals\",\n" +
+          "        \"key\": \"YEAR\",\n" +
+          "        \"value\": \"2017\"\n" +
+          "      }\n" +
+          "    ]\n" +
+          "  },\n" +
+          "  \"limit\": 2\n" +
+          "}"
+      )
+    )
+  )
   @ApiResponses(
     value = {
       @ApiResponse(

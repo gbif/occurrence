@@ -14,7 +14,7 @@
 package org.gbif.occurrence.download.sql;
 
 import java.io.Closeable;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-public interface QueryExecutor extends Closeable, Consumer<String> {
+public interface QueryExecutor extends Closeable, BiConsumer<String, String> {
 }

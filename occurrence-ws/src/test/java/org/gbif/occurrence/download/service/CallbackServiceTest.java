@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.service;
 
+import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -22,6 +23,7 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
@@ -63,6 +65,7 @@ class CallbackServiceTest {
 
   private DownloadRequestServiceImpl service;
   private OccurrenceDownloadService occurrenceDownloadService;
+  private OccurrenceSearchService occurrenceSearchService;
   private OccurrenceEmailManager emailManager;
   private EmailSender emailSender;
   private DownloadLimitsService downloadLimitsService;
@@ -78,6 +81,8 @@ class CallbackServiceTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
+          "testDescription",
+          null,
             Collections.singleton(Extension.AUDUBON));
     Download download = new Download();
     download.setRequest(downloadRequest);
@@ -94,6 +99,7 @@ class CallbackServiceTest {
     emailManager = mock(OccurrenceEmailManager.class);
     emailSender = mock(EmailSender.class);
     occurrenceDownloadService = mock(OccurrenceDownloadService.class);
+    occurrenceSearchService = mock(OccurrenceSearchService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
     messagePublisher = mock(MessagePublisher.class);
 
@@ -109,6 +115,7 @@ class CallbackServiceTest {
             "http://localhost:8080/",
             "",
             occurrenceDownloadService,
+            occurrenceSearchService,
             downloadLimitsService,
             emailManager,
             emailSender,
@@ -132,7 +139,10 @@ class CallbackServiceTest {
 
   @Test
   void testNotificationSent() {
-
+    // set DOI for successful download
+    Download download = mockDownload();
+    download.setDoi(new DOI("10.21373/uvzgpk"));
+    when(occurrenceDownloadService.update(any())).thenReturn(download);
     service.processCallback(JOB_ID, SUCCEEDED);
 
     verify(emailSender).send(any());

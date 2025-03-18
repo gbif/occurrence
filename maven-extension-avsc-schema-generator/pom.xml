@@ -5,9 +5,8 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.196.0-H3-multi-taxonomy-SNAPSHOT</version>
+    <version>1.0.23-multitaxonomy-SNAPSHOT</version>
   </parent>
-
 
   <artifactId>maven-extension-avsc-schema-generator</artifactId>
   <packaging>maven-plugin</packaging>
@@ -20,6 +19,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
+        <version>${maven-plugin-plugin.version}</version>
         <executions>
           <execution>
             <id>avroschemageneration</id>

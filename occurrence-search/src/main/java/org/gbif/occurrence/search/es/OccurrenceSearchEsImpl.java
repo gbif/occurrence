@@ -13,12 +13,17 @@
  */
 package org.gbif.occurrence.search.es;
 
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.core.CountRequest;
+import org.elasticsearch.client.core.CountResponse;
+
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
@@ -317,6 +322,18 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       throw new SearchException(e);
     }
 
+  }
+
+  @SneakyThrows
+  @Override
+  public long countRecords(Predicate predicate) {
+    CountResponse response =
+        esClient.count(
+            new CountRequest()
+                .indices(esIndex)
+                .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
+            RequestOptions.DEFAULT);
+    return response.getCount();
   }
 
   /**

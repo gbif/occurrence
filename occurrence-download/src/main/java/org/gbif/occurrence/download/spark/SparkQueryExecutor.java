@@ -13,15 +13,18 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.QueryExecutor;
+
+import java.util.Map;
 
 import org.apache.spark.sql.SparkSession;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 
 @AllArgsConstructor
-@Slf4j
+@Getter
 public class SparkQueryExecutor implements QueryExecutor {
   private SparkSession sparkSession;
 
@@ -31,8 +34,20 @@ public class SparkQueryExecutor implements QueryExecutor {
   }
 
   @Override
-  public void accept(String sql) {
-    log.info("Download SQL: {}", sql);
+  public void accept(String description, String sql) {
+    sparkSession.sparkContext().setJobDescription(description);
     sparkSession.sql(sql);
+  }
+
+  /**
+   * Create a single query executor for dropping tables.
+   */
+  public static  SparkQueryExecutor createSingleQueryExecutor(String appName, WorkflowConfiguration workflowConfiguration) {
+    return new SparkQueryExecutor(GbifOccurrenceDownloads.createSparkSession(appName, workflowConfiguration,
+      Map.of("spark.dynamicAllocation.initialExecutors", "1",
+        "spark.dynamicAllocation.minExecutors", "1",
+        "spark.dynamicAllocation.maxExecutors", "1",
+        "spark.executor.cores", "1",
+        "spark.executor.memory", "1g")));
   }
 }

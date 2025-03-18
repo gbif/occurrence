@@ -1,0 +1,30 @@
+{
+  "creator":"ddddd",
+  "notificationAddresses": ["ddddd@gbif.org"],
+  "sendNotification":"true",
+  "format": "DWCA",
+  "predicate": {
+    "type": "and",
+    "predicates": [
+      {
+        "type": "equals",
+        "key": "CONTINENT",
+        "value": "ASIA",
+        "matchCase": false
+      },
+      {
+        "type": "in",
+        "key": "DWCA_EXTENSION",
+        "values": [
+          "http://rs.gbif.org/terms/1.0/DNADerivedData",
+          "http://rs.tdwg.org/dwc/terms/MeasurementOrFact"
+        ],
+        "matchCase": false
+      }
+    ]
+  },
+  "verbatimExtensions": [
+    "http://rs.gbif.org/terms/1.0/DNADerivedData",
+    "http://rs.tdwg.org/dwc/terms/MeasurementOrFact"
+  ]
+}

@@ -38,10 +38,11 @@ public class AirflowBody {
     private final String driverMinCpu;
     private final String driverMaxCpu;
     private final String driverLimitMemory;
-    // Sum of driver + vector containers request memory
+    // Sum of driver + overhead + vector containers request memory
     private final String driverMinResourceMemory;
     // Sum of driver + vector containers request cpu
     private final String driverMinResourceCpu;
+    private final String driverMemoryOverhead;
 
     private final String memoryOverhead;
     private final String executorMinCpu;
@@ -51,10 +52,9 @@ public class AirflowBody {
     private final String executorMinResourceMemory;
     // Sum of executor + vector containers request cpu
     private final String executorMinResourceCpu;
-    private final int minExecutors;
-    private final int maxExecutors;
-    private final int initialExecutors;
+    private final long minExecutors;
+    private final long maxExecutors;
 
-    private final String callbackUrl;
+    private final String gbifApiUrl;
   }
 }

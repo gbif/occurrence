@@ -31,7 +31,6 @@ WHERE ${r"${whereClause}"};
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
 SET mapred.output.compress=false;
 SET hive.exec.compress.output=false;
-SET spark.sql.shuffle.partitions=1;
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
 SET hive.input.format=org.apache.hadoop.hive.ql.io.HiveInputFormat;

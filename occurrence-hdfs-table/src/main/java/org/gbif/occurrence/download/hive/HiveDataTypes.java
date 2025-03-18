@@ -18,6 +18,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -28,8 +29,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
-
-import org.gbif.occurrence.common.TermUtils;
 
 import static org.gbif.occurrence.common.TermUtils.isVocabulary;
 
@@ -97,6 +96,8 @@ public final class HiveDataTypes {
     DwcTerm.year,
     DwcTerm.month,
     DwcTerm.day,
+    DwcTerm.startDayOfYear,
+    DwcTerm.endDayOfYear,
     GbifInternalTerm.crawlId,
     GbifInternalTerm.identifierCount,
     DwcTerm.individualCount);

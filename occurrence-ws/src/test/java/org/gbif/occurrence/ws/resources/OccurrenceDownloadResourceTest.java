@@ -127,6 +127,8 @@ public class OccurrenceDownloadResourceTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
+          "testDescription",
+          null,
             Collections.singleton(Extension.AUDUBON));
     sqlDl =
         new SqlDownloadRequest(
@@ -134,16 +136,20 @@ public class OccurrenceDownloadResourceTest {
            USER,
            null,
            true,
+          DownloadFormat.SQL_TSV_ZIP,
           DownloadType.OCCURRENCE,
-          DownloadFormat.SQL_TSV_ZIP);
+          "testDescription",
+          null);
     badSqlDl =
         new SqlDownloadRequest(
            "SELECT * FROM occurrence",
            USER,
            null,
            true,
+          DownloadFormat.SQL_TSV_ZIP,
           DownloadType.OCCURRENCE,
-          DownloadFormat.SQL_TSV_ZIP);
+          "testDescription",
+          null);
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.emptyList());

@@ -14,6 +14,7 @@
 package org.gbif.occurrence.spark.udf;
 
 import org.gbif.occurrence.cube.functions.DmsGridCellCode;
+import static org.gbif.occurrence.spark.udf.ConvertionUtils.toDouble;
 
 import org.apache.spark.sql.api.java.UDF4;
 
@@ -21,12 +22,12 @@ import org.apache.spark.sql.api.java.UDF4;
  * Randomize a point according to its coordinateUncertainty (or some other distance), and given the
  * grid cell size determine the grid cell (with an invented identifier scheme) in which the point falls.
  */
-public class DegreeMinuteSecondGridCellCodeUdf implements UDF4<Integer,Double,Double,Double,String> {
+public class DegreeMinuteSecondGridCellCodeUdf implements UDF4<Integer,Double,Double,Number,String> {
 
   private final DmsGridCellCode dmsGridCellCode = new DmsGridCellCode();
 
   @Override
-  public String call(Integer level, Double lat, Double lon, Double coordinateUncertaintyInMeters) throws Exception {
-     return dmsGridCellCode.fromCoordinate(level, lat, lon, coordinateUncertaintyInMeters);
+  public String call(Integer level, Double lat, Double lon, Number coordinateUncertaintyInMeters) throws Exception {
+     return dmsGridCellCode.fromCoordinate(level, lat, lon, toDouble(coordinateUncertaintyInMeters));
   }
 }

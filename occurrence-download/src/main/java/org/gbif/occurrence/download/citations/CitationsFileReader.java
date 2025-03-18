@@ -89,8 +89,10 @@ public abstract class CitationsFileReader {
     Map<UUID,Long> datasetsCitation = new HashMap<>();
     Map<UUID, License> datasetLicenseCollector = new HashMap<>();
     FileSystem hdfs = DownloadFileUtils.getHdfs(nameNode);
+    log.info("Reading citations from {}", citationPath);
     for (FileStatus fs : hdfs.listStatus(new Path(citationPath))) {
       if (!fs.isDirectory()) {
+        log.info("Reading citation file {}", fs.getPath());
         try (BufferedReader citationReader =
                new BufferedReader(new InputStreamReader(hdfs.open(fs.getPath()), StandardCharsets.UTF_8))) {
           for (String tsvLine = citationReader.readLine(); tsvLine != null; tsvLine = citationReader.readLine()) {

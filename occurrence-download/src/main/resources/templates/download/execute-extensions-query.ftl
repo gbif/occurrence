@@ -20,12 +20,13 @@ SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 
 --
--- Creates the extension tables
--- These will be small tables, so provide reducer hint to MR, to stop is spawning huge numbers
---
-SET mapred.reduce.tasks=5;
+-- Create the download gbifId join table
 
--- pre-create extension tables so they can be used in the multi-insert
+CACHE TABLE ${downloadTableName}_occurrence_gbifId
+SELECT gbifid FROM ${interpretedTable};
+
+--
+-- Creates the extension tables
 
 <#list verbatim_extensions as verbatim_extension>
 -- ${verbatim_extension.extension} extension
@@ -33,23 +34,19 @@ CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTab
   <#list verbatim_extension.interpretedFields as field>
     ${field} string<#if field_has_next>,</#if>
   </#list>
-) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+  )
+  ROW FORMAT DELIMITED
+  FIELDS TERMINATED BY '\t'
+  TBLPROPERTIES ("serialization.null.format"="");
 
-</#list>
-
---
--- Use a multi-table insert format to reduce to a single scan of the source table.
---
-FROM ${interpretedTable}
-<#list verbatim_extensions as verbatim_extension>
-  LEFT OUTER JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ON ${interpretedTable}.gbifid = iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid
-</#list>
-<#list verbatim_extensions as verbatim_extension>
+-- load ${verbatim_extension.extension} extension
 INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
   SELECT
   <#list verbatim_extension.verbatimFields as field>
-    iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.${field}<#if field_has_next>,</#if>
+      ext.${field}<#if field_has_next>,</#if>
   </#list>
-  WHERE iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName}.gbifid IS NOT NULL
-  <#if !verbatim_extension_has_next>;</#if>
+    FROM ${downloadTableName}_occurrence_gbifId f
+    JOIN iceberg.${r"${hiveDB}"}.occurrence_ext_${verbatim_extension.hiveTableName} ext
+    ON f.gbifid = ext.gbifid
+    WHERE ext.gbifid IS NOT NULL;
 </#list>

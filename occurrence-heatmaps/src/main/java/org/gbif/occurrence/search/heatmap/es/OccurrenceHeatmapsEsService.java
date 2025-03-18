@@ -13,29 +13,33 @@
  */
 package org.gbif.occurrence.search.heatmap.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
+import org.gbif.occurrence.search.SearchException;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
+import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
+import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.vocabulary.client.ConceptClient;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import javax.annotation.Nullable;
+
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.aggregations.bucket.geogrid.ParsedGeoHashGrid;
 import org.elasticsearch.search.aggregations.metrics.ParsedGeoBounds;
 import org.elasticsearch.search.aggregations.metrics.ParsedGeoCentroid;
-import org.gbif.occurrence.search.SearchException;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
-import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
-import org.gbif.vocabulary.client.ConceptClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
+import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
 
 /** Elasticsearch heatmap service. */
 @Component
@@ -53,10 +57,10 @@ public class OccurrenceHeatmapsEsService
       RestHighLevelClient esClient,
       String esIndex,
       OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
-      ConceptClient conceptClient) {
+      ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService) {
     this.esIndex = esIndex;
     this.esClient = esClient;
-    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient);
+    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient, nameUsageMatchingService);
   }
 
   @Override

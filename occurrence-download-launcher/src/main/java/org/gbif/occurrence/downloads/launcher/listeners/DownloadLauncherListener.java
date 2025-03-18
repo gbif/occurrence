@@ -56,7 +56,7 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
         JobStatus jobStatus = jobManager.createRun(downloadKey);
 
         if (jobStatus == JobStatus.RUNNING) {
-          // Keep staus as PREPARING, Airflow will mark it as RUNNING when workflow is executed
+          // Keep status as PREPARING, Airflow will mark it as RUNNING when workflow is executed
           log.info("Locking the thread until downloads job is finished");
           lockerService.lock(downloadKey, Thread.currentThread());
           // Status of the download must be updated only in DownloadResource.airflowCallback

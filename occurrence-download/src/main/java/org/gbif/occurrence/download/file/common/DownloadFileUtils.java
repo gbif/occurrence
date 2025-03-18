@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FileStatus;
@@ -41,6 +42,21 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public final class DownloadFileUtils {
+
+  /**
+   * Name of the environment variable that specifies the file copy buffer size. This variable is
+   * used to customize the buffer size for file I/O operations during file handling processes such
+   * as appending or copying data.
+   */
+  private static final String FILE_COPY_BUFFER_SIZE_ENV_VAR = "FILE_COPY_BUFFER_SIZE";
+
+  /**
+   * Default size of the buffer used for copying files, represented in bytes. This constant defines
+   * the maximum size of the data chunks that are read and written during file copying operations. A
+   * larger buffer size can improve efficiency by reducing the number of I/O operations, whereas a
+   * smaller size can conserve memory at the cost of potentially higher I/O overhead.
+   */
+  private static final int DEFAULT_FILE_COPY_BUFFER_SIZE = 32768;
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadFileUtils.class);
 
@@ -62,7 +78,7 @@ public final class DownloadFileUtils {
     if (inputFile.exists()) {
       try (FileInputStream fileReader = new FileInputStream(inputFile)) {
         LOG.info("Appending file {}", inputFileName);
-        ByteStreams.copy(fileReader, outputFileStreamWriter);
+        IOUtils.copy(fileReader, outputFileStreamWriter, DownloadFileUtils.DEFAULT_FILE_COPY_BUFFER_SIZE);
       } catch (FileNotFoundException e) {
         LOG.info("Error appending file {}", inputFileName, e);
         throw Throwables.propagate(e);
@@ -93,5 +109,19 @@ public final class DownloadFileUtils {
             throw Throwables.propagate(e);
           }
         }).orElse(0L);
+  }
+
+  public static int getFileCopyBufferSize() {
+    String bufferSizeEnv = System.getenv(FILE_COPY_BUFFER_SIZE_ENV_VAR);
+    if (bufferSizeEnv != null && !bufferSizeEnv.isEmpty()) {
+      try {
+        return Integer.parseInt(bufferSizeEnv);
+      } catch (NumberFormatException e) {
+        System.err.println(
+            "Invalid file copy buffer size provided in environment variable. Using default of "
+                + DEFAULT_FILE_COPY_BUFFER_SIZE);
+      }
+    }
+    return DEFAULT_FILE_COPY_BUFFER_SIZE;
   }
 }

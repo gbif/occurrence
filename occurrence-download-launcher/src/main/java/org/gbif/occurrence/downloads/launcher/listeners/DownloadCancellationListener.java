@@ -20,6 +20,7 @@ import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
 
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +59,7 @@ public class DownloadCancellationListener extends AbstractMessageCallback<Downlo
 
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
+      throw new AmqpRejectAndDontRequeueException(ex.getMessage());
     }
   }
 }

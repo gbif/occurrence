@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.trino.udf;
 
+import static io.trino.spi.type.DoubleType.DOUBLE;
+import static io.trino.spi.type.VarcharType.VARCHAR;
+
 import io.airlift.slice.Slice;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.RowBlockBuilder;
@@ -23,6 +26,9 @@ import io.trino.spi.function.SqlNullable;
 import io.trino.spi.function.SqlType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.StandardTypes;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -32,13 +38,6 @@ import org.gbif.geocode.ws.service.impl.ShapefileGeocoder;
 import org.gbif.occurrence.trino.processor.interpreters.CoordinateInterpreter;
 import org.gbif.occurrence.trino.processor.interpreters.LocationInterpreter;
 import org.gbif.occurrence.trino.processor.result.CoordinateResult;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-
-import static io.trino.spi.type.DoubleType.DOUBLE;
-import static io.trino.spi.type.VarcharType.VARCHAR;
 
 /**
  * A UDF that uses the GBIF geocoder shapefiles to verify coordinates look sensible. If coordinates
@@ -155,12 +154,12 @@ public class CoordinateCountryParseUDF {
     if (parsedLatitude != null) {
       DOUBLE.writeDouble(builder, parsedLatitude);
     } else {
-      builder.appendNull();
+      blockBuilder.appendNull();
     }
     if (parsedLongitude != null) {
       DOUBLE.writeDouble(builder, parsedLongitude);
     } else {
-      builder.appendNull();
+      blockBuilder.appendNull();
     }
     if (parsedCountry != null) {
       VARCHAR.writeString(builder, parsedCountry);

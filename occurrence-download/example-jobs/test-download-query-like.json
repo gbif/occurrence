@@ -4,8 +4,18 @@
   "notification_address": ["mblissett@gbif.org"],
   "format": "SIMPLE_CSV",
   "predicate": {
-    "type": "like",
-    "key": "RECORDED_BY",
-    "value": "TOM*N"
+    "type": "or",
+    "predicates": [
+      {
+        "type": "like",
+        "key": "RECORDED_BY",
+        "value": "T%O_M*N?"
+      },
+      {
+        "type": "like",
+        "key": "BED",
+        "value": "T%O_M*N?"
+      }
+    ]
   }
 }

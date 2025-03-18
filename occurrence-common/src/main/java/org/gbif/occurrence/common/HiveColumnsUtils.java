@@ -73,7 +73,6 @@ public class HiveColumnsUtils {
     return EXTENSION_PRE + extension.name().toLowerCase();
   }
 
-
   /**
    * Returns the Hive data type of term parameter.
    */

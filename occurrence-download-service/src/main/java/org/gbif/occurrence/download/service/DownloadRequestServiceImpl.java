@@ -13,14 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
@@ -29,6 +21,7 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
@@ -38,14 +31,7 @@ import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
-//import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +39,25 @@ import java.nio.file.Files;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+
+import javax.annotation.Nullable;
+
+//import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
@@ -89,6 +94,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private final String wsUrl;
   private final File downloadMount;
   private final OccurrenceDownloadService occurrenceDownloadService;
+  private final OccurrenceSearchService occurrenceSearchService;
   private final OccurrenceEmailManager emailManager;
   private final EmailSender emailSender;
 
@@ -101,6 +107,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
       OccurrenceDownloadService occurrenceDownloadService,
+      OccurrenceSearchService occurrenceSearchService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
@@ -110,6 +117,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
+    this.occurrenceSearchService = occurrenceSearchService;
     this.downloadLimitsService = downloadLimitsService;
     this.emailManager = emailManager;
     this.emailSender = emailSender;
@@ -147,7 +155,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     } else if (request instanceof SqlDownloadRequest) {
       try {
         SqlValidation sqlValidation = new SqlValidation();
-        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql());
+        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql(), true);
         log.debug("HiveSqlQuery {}", sqlQuery.getSql());
       } catch (QueryBuildingException qbe) {
         // Shouldn't happen, as the query has already been validated by this point.
@@ -329,7 +337,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             "Got callback for failed query. downloadId [{}], Status [{}]",
             downloadId,
             status);
-        updateDownloadStatus(download, newStatus);
+        download = updateDownloadStatus(download, newStatus);
         emailModel = emailManager.generateFailedDownloadEmailModel(download, portalUrl);
         emailSender.send(emailModel);
         FAILED_DOWNLOADS.inc();
@@ -337,9 +345,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
       case SUCCEEDED:
         SUCCESSFUL_DOWNLOADS.inc();
-        updateDownloadStatus(download, newStatus, getDownloadSize(download));
+        download = updateDownloadStatus(download, newStatus, getDownloadSize(download));
         // notify about download
-        if (download.getRequest().getSendNotification()) {
+        if (Boolean.TRUE.equals(download.getRequest().getSendNotification())) {
           emailModel = emailManager.generateSuccessfulDownloadEmailModel(download, portalUrl);
           emailSender.send(emailModel);
         }
@@ -380,21 +388,36 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         downloadLink(wsUrl, downloadId, request.getType(), request.getFileExtension()));
     download.setRequest(request);
     download.setSource(source);
+
+    // get number of records so the downloads launcher can use it to decide whether the download is big or small
+    if (request instanceof PredicateDownloadRequest) {
+      try {
+        download.setTotalRecords(
+            occurrenceSearchService.countRecords(
+                ((PredicateDownloadRequest) download.getRequest()).getPredicate()));
+      } catch (Exception ex) {
+        log.info(
+            "Couldn't get number of records for download {}. They are being set to zero at download creation time.",
+            downloadId);
+      }
+    }
+
     occurrenceDownloadService.create(download);
   }
 
   /** Updates the download status and file size. */
-  private void updateDownloadStatus(Download download, Download.Status newStatus) {
+  private Download updateDownloadStatus(Download download, Download.Status newStatus) {
     if (download.getStatus() != newStatus) {
       download.setStatus(newStatus);
-      occurrenceDownloadService.update(download);
+      return occurrenceDownloadService.update(download);
     }
+    return download;
   }
 
-  private void updateDownloadStatus(Download download, Download.Status newStatus, long size) {
+  private Download updateDownloadStatus(Download download, Download.Status newStatus, long size) {
     download.setStatus(newStatus);
     download.setSize(size);
-    occurrenceDownloadService.update(download);
+    return occurrenceDownloadService.update(download);
   }
 
   /** The download filename with extension. */

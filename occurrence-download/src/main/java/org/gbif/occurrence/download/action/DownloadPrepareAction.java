@@ -13,10 +13,17 @@
  */
 package org.gbif.occurrence.download.action;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import java.io.*;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -42,6 +49,7 @@ import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
@@ -51,14 +59,6 @@ import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * This class sets the following parameters required by the download workflow: - is_small_download:
@@ -84,7 +84,7 @@ public class DownloadPrepareAction implements Closeable {
 
   static {
     OBJECT_MAPPER.addMixIn(
-        SearchParameter.class, QueryVisitorsFactory.OccurrenceSearchParameterMixin.class);
+        SearchParameter.class, OccurrenceSearchParameterMixin.class);
   }
 
   private static final String OOZIE_ACTION_OUTPUT_PROPERTIES = "oozie.action.output.properties";
@@ -180,7 +180,7 @@ public class DownloadPrepareAction implements Closeable {
         SqlValidation sv = new SqlValidation();
 
         String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
-        HiveSqlQuery sqlQuery = sv.validateAndParse(userSql);
+        HiveSqlQuery sqlQuery = sv.validateAndParse(userSql, true);
         props.setProperty(USER_SQL, StringEscapeUtils.escapeXml10(sqlQuery.getSql()));
         props.setProperty(USER_SQL_WHERE, StringEscapeUtils.escapeXml10(sqlQuery.getSqlWhere()));
         props.setProperty(USER_SQL_HEADER, StringEscapeUtils.escapeXml10(String.join("\t", sqlQuery.getSqlSelectColumnNames())));

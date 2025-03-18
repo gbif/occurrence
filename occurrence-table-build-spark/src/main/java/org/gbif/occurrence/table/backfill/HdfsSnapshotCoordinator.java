@@ -121,8 +121,6 @@ public class HdfsSnapshotCoordinator {
 
   /**
    * Performs the START/SET or END/REMOVE on a barrier based on the action.
-   * @param action action to be performed
-   * @param directory to snapshot
    * @param snapshotName workflow Id, it is used as the snapshot name
    */
   public void deleteHdfsSnapshot(String snapshotName) {

@@ -19,10 +19,12 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.hive.ExtensionsQuery;
 import org.gbif.occurrence.download.hive.GenerateHQL;
+import org.gbif.occurrence.download.spark.SparkQueryExecutor;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 import java.io.StringWriter;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -36,7 +38,7 @@ public class DwcaDownload {
 
   private static String dropTablesQuery;
 
-  private final QueryExecutor queryExecutor;
+  private final Supplier<SparkQueryExecutor> queryExecutorSupplier;
 
   private final Download download;
 
@@ -44,25 +46,41 @@ public class DwcaDownload {
 
   private final WorkflowConfiguration workflowConfiguration;
 
+  private final DownloadStage downloadStage;
+
   public void run() {
+    switch (downloadStage) {
+      case QUERY:
+        executeQuery();
+        break;
+      case ARCHIVE:
+        zipAndArchive();
+        break;
+      case CLEANUP:
+        dropTables();
+        break;
+      case ALL:
     try {
-      // Execute queries
       executeQuery();
-
-      // Create the Archive
       zipAndArchive();
-
     } finally {
-      // Drop tables
       dropTables();
+        }
+        break;
+
     }
   }
 
   private void executeQuery() {
 
-    SqlQueryUtils.runMultiSQL(downloadQuery(), getQueryParameters(), queryExecutor);
-    if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
-      runExtensionsQuery();
+    try (SparkQueryExecutor queryExecutor = queryExecutorSupplier.get()) {
+
+      Map<String, String> queryParams = getQueryParameters();
+      SqlQueryUtils.runMultiSQL("Initial DWCA Download query", downloadQuery(), queryParams, queryExecutor);
+
+      if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
+        runExtensionsQuery(queryExecutor);
+      }
     }
   }
 
@@ -99,7 +117,16 @@ public class DwcaDownload {
   }
 
   private void dropTables() {
-    SqlQueryUtils.runMultiSQL(dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    try (SparkQueryExecutor queryExecutor = getSingleQueryExecutor()) {
+      SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download", dropTablesQuery(), queryParameters.toMap(), queryExecutor);
+    }
+  }
+
+  /**
+   * Create a single query executor for dropping tables.
+   */
+  private SparkQueryExecutor getSingleQueryExecutor() {
+    return SparkQueryExecutor.createSingleQueryExecutor("Clean-up Download job " + download.getKey(), workflowConfiguration);
   }
 
   private Map<String, String> getQueryParameters() {
@@ -112,8 +139,8 @@ public class DwcaDownload {
     return parameters;
   }
 
-  private void runExtensionsQuery() {
-    SqlQueryUtils.runMultiSQL(extensionQuery(), queryParameters.toMap(), queryExecutor);
+  private void runExtensionsQuery(SparkQueryExecutor sparkQueryExecutor) {
+    SqlQueryUtils.runMultiSQL("Extensions DWCA Download query", extensionQuery(), queryParameters.toMap(), sparkQueryExecutor);
   }
 
   @SneakyThrows

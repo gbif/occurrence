@@ -14,7 +14,6 @@
 package org.gbif.occurrence.trino.udf;
 
 import io.trino.spi.Plugin;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +27,6 @@ public class GbifUdfs implements Plugin {
             DataCleanUdfs.class,
             DateTimeUdfs.class,
             ContainsUdf.class,
-            GeoDistanceUdf.class,
             BasisOfRecordParseUDF.class,
             DateParseUDF.class,
             CoordinateCountryParseUDF.class,

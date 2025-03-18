@@ -13,7 +13,10 @@
  */
 package org.gbif.occurrence.download.conf;
 
+import lombok.SneakyThrows;
+
 import org.gbif.api.model.occurrence.*;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.event.search.es.EventEsField;
@@ -21,7 +24,7 @@ import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.ExtensionTable;
-import org.gbif.occurrence.download.predicate.PredicateUtil;
+import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
@@ -111,8 +114,9 @@ public class DownloadJobConfiguration {
    * Returns the string representation of a download base on the download format: Json Predicate or Sql clause.
    */
   private static String getDownloadFilter(Download download) {
-    return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP? ((SqlDownloadRequest) download.getRequest()).getSql() :
-      PredicateUtil.toSqlQuery(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+    return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
+        ? ((SqlDownloadRequest) download.getRequest()).getSql()
+        : toSqlQuery(((PredicateDownloadRequest) download.getRequest()).getPredicate());
   }
 
   public static OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
@@ -200,5 +204,10 @@ public class DownloadJobConfiguration {
    */
   public String getDownloadTempDir() {
     return getDownloadTempDir("");
+  }
+
+  @SneakyThrows
+  private static String toSqlQuery(Predicate predicate) {
+    return QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate);
   }
 }

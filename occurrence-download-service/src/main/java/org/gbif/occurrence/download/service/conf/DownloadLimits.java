@@ -132,7 +132,7 @@ public class DownloadLimits {
     // Count the total number of query values.
     HiveSqlQuery sqlQuery;
     try {
-      sqlQuery = sqlValidation.validateAndParse(userSql);
+      sqlQuery = sqlValidation.validateAndParse(userSql, false);
     } catch (QueryBuildingException qbe) {
       // Shouldn't happen as the query has already been validated.
       throw new RuntimeException(qbe);

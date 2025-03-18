@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.trino.udf;
 
+import static io.trino.spi.type.IntegerType.INTEGER;
+import static io.trino.spi.type.VarcharType.VARCHAR;
+
 import io.airlift.slice.Slice;
 import io.trino.spi.block.Block;
 import io.trino.spi.block.RowBlockBuilder;
@@ -23,6 +26,8 @@ import io.trino.spi.function.SqlNullable;
 import io.trino.spi.function.SqlType;
 import io.trino.spi.type.RowType;
 import io.trino.spi.type.StandardTypes;
+import java.util.Optional;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.Rank;
@@ -31,12 +36,6 @@ import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
 import org.gbif.occurrence.trino.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.trino.processor.interpreters.TaxonomyInterpreter;
-
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import static io.trino.spi.type.IntegerType.INTEGER;
-import static io.trino.spi.type.VarcharType.VARCHAR;
 
 /**
  * A UDF to run a backbone species match against the GBIF API. The UDF is lazily initialized with
@@ -203,7 +202,7 @@ public class SpeciesMatchUDF {
           stringWriter.accept(lookup.getSpecies());
         } else {
           if (response.getError() != null) {
-            log.error("Error finding species match", response.getError());
+            log.error("Error finding species match", response.getError().getMessage());
           }
           // set all fields to null
           for (int i = 0; i < 20; i++) {

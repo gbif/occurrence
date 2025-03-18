@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>0.196.0-H3-multi-taxonomy-SNAPSHOT</version>
+    <version>1.0.23-multitaxonomy-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-cli</artifactId>
@@ -43,6 +43,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
+        <version>${maven-shade-plugin.version}</version>
         <configuration>
           <finalName>${project.artifactId}</finalName>
           <createDependencyReducedPom>false</createDependencyReducedPom>
@@ -305,6 +306,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>wagon-maven-plugin</artifactId>
+            <version>${wagon-maven-plugin.version}</version>
             <configuration>
               <fromFile>${project.build.directory}/${project.artifactId}.jar</fromFile>
               <url>scp://crap@cli1.gbif-dev.org/home/crap/lib</url>

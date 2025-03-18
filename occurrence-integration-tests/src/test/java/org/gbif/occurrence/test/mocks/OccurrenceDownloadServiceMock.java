@@ -122,8 +122,8 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
   }
 
   @Override
-  public void update(@NotNull @Valid Download download) {
-    downloads.replace(download.getKey(), download);
+  public Download update(@NotNull @Valid Download download) {
+    return downloads.replace(download.getKey(), download);
   }
 
   @Override

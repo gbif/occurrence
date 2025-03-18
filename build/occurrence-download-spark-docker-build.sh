@@ -2,9 +2,9 @@
 #Simple script for pushing a image containing the named modules build artifact
 set -e
 
-MODULE="occurrence-download-spark"
+MODULE="occurrence-download"
 
-POM_VERSION=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.version}' --non-recursive exec:exec)
+POM_VERSION=$1
 IMAGE=docker.gbif.org/${MODULE}:${POM_VERSION}
 IMAGE_LATEST=docker.gbif.org/${MODULE}:latest
 

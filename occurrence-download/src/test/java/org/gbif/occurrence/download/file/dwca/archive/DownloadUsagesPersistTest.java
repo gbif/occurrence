@@ -15,12 +15,10 @@ package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.api.vocabulary.License;
 
 import org.junit.jupiter.api.Test;
 
 import static org.gbif.occurrence.download.file.dwca.archive.Datasets.testUsages;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;

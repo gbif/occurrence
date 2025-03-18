@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.file.archive;
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -42,6 +44,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
 import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStream;
 
@@ -137,7 +140,7 @@ public class MultiFileArchiveBuilder {
     java.util.zip.ZipEntry ze = new java.util.zip.ZipEntry(source.name);
     zos.putNextEntry(ze);
     for (InputStream fileInZipInputStream : is) {
-      ByteStreams.copy(fileInZipInputStream, zos);
+      IOUtils.copy(fileInZipInputStream, zos, getFileCopyBufferSize());
       zos.flush();
       fileInZipInputStream.close();
     }
@@ -197,7 +200,7 @@ public class MultiFileArchiveBuilder {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
 
     FileSystem sourceFileSystem =
-      DownloadFileUtils.getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
+      getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
 
     MultiFileArchiveBuilder.withEntries(Arrays.copyOfRange(args, 3, args.length))
       .mergeAllToZip(sourceFileSystem, sourceFileSystem, args[0], args[1],
