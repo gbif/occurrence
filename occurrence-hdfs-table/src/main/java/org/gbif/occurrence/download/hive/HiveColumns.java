@@ -134,18 +134,10 @@ public final class HiveColumns {
     return "cleanDelimitersArray(" + escapeColumnName(column) + ") AS " + hiveColumnName(column);
   }
 
-  public static String cleanDelimitersArrayInitializer(String column, String asColumn) {
-    return "cleanDelimitersArray(" + escapeColumnName(column) + ") AS " + hiveColumnName(asColumn);
-  }
-
   /**
    * Creates a column expression using the UDF cleanDelimitersArray(columnFor(term)).
    */
   public static String cleanDelimitersArrayInitializer(Term term) {
     return cleanDelimitersArrayInitializer(columnFor(term));
-  }
-
-  public static String cleanDelimitersArrayInitializer(Term term, boolean escape) {
-    return cleanDelimitersArrayInitializer(columnFor(term, escape), columnFor(term, true));
   }
 }
