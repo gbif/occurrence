@@ -25,7 +25,7 @@ public class ElasticDownloadWorkflow {
 
   // arbitrary record count that represents and error counting the records of the input query
   private static final int ERROR_COUNT = -1;
-  private static final int ES_COUNT_MARGIN_ERROR = 3000;
+  private static final int ES_COUNT_MARGIN_ERROR = 5000;
 
   private final OccurrenceDownloadService downloadService;
 

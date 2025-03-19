@@ -1449,7 +1449,8 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "geologicalTime",
             description =
-                "The geological time of an occurrence that is present in the chronostratigraphy terms",
+                "The geological time of an occurrence that is present in the chronostratigraphy terms. "
+                    + API_PARAMETER_RANGE_OR_REPEAT,
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
             example = "Mesozoic"),
@@ -1571,16 +1572,6 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing query, predicate {}, limit {}, offset {}", request.getPredicate(), request.getLimit(),
       request.getOffset());
     return searchService.search(request);
-  }
-
-  /**
-   * Convert a predicate query to the query used by ElasticSearch, intended for use by internal systems like the portal.
-   */
-  @Hidden
-  @PostMapping("predicate/toesquery")
-  @SneakyThrows
-  public String toEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
-    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   /**

@@ -229,7 +229,7 @@ public class OccurrenceResource {
   )
   @OccurrenceErrorResponses
   @NullToNotFound
-  @GetMapping({"{gbifId}", "{gbifId}/"})
+  @GetMapping("{gbifId}")
   public Occurrence get(@PathVariable("gbifId") Long gbifId) {
     LOG.debug("Request Occurrence [{}]:", gbifId);
     return occurrenceGetByKey.get(gbifId);

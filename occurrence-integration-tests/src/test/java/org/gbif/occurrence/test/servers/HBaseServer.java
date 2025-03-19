@@ -43,16 +43,6 @@ public class HBaseServer implements DisposableBean, InitializingBean {
   }
 
   public void start() throws Exception {
-
-    TEST_UTIL.getConfiguration().set("hadoop.home.dir",
-      "/tmp/hadoop-" + System.getProperty("user.name")
-    );
-    TEST_UTIL.getConfiguration().set("fs.hdfs.impl",
-      org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
-    );
-    TEST_UTIL.getConfiguration().set("fs.file.impl",
-      org.apache.hadoop.fs.LocalFileSystem.class.getName()
-    );
     TEST_UTIL.getConfiguration().setInt("hbase.master.port", HBaseTestingUtility.randomFreePort());
     TEST_UTIL
       .getConfiguration()

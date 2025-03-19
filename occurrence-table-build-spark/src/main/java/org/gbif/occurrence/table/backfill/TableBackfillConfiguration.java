@@ -58,9 +58,7 @@ public class TableBackfillConfiguration {
 
   @Nullable private Integer tablePartitions;
 
-  private final String mergedTableDirectory;
-
-  private final String ingestDirectory;
+  private final String sourceDirectory;
 
   private final boolean usePartitionedTable;
 
@@ -74,29 +72,8 @@ public class TableBackfillConfiguration {
 
   private String prefixTable;
 
-  @Nullable private String datasetKey;
-
-  private String crawlAttempt;
-
   public String getTableNameWithPrefix() {
     return Strings.isNullOrEmpty(prefixTable) ? tableName : prefixTable + "_" + tableName;
-  }
-
-  public String prefixTableWithUnderscore() {
-    return !Strings.isNullOrEmpty(prefixTable)
-      ? prefixTable + "_"
-      : "";
-  }
-
-
-  public String getDatasetTableNameWithPrefix() {
-    String datasetKeyPostFix = Strings.isNullOrEmpty(datasetKey)? "" : '_' + datasetKey.replace("-", "_");
-    String tableNameWithPrefix = getTableNameWithPrefix();
-    return tableNameWithPrefix + datasetKeyPostFix;
-  }
-
-  public String getAvroTableName() {
-    return getDatasetTableNameWithPrefix() + "_avro";
   }
 
   @Nullable private final String warehouseLocation;

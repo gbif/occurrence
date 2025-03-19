@@ -36,8 +36,10 @@ public final class HiveColumns {
   // prefix for extension columns
   private static final String VERBATIM_COL_PREFIX = "v_";
   // reserved hive words
-  private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group", "v_order", "v_format");
+  private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group");
+  // reserved ISO SQL words, see https://en.wikipedia.org/wiki/List_of_SQL_reserved_words for more.
   private static final ImmutableSet<String> ISO_RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group", "year", "month", "day", "language", "references", "member");
+  private static final Pattern START_WITH_DIGIT = Pattern.compile("(\\d.*)");
   private static final Pattern START_WITH_DIGIT_OR_UNDERSCORE = Pattern.compile("(\\d.*)|(_.*)");
 
   public static String getVerbatimColPrefix() {
@@ -49,25 +51,6 @@ public final class HiveColumns {
    */
   public static String columnFor(Term term) {
     return escapeColumnName(term.simpleName().toLowerCase());
-  }
-
-  public static boolean isReservedWord(String name) {
-    return RESERVED_WORDS.contains(name);
-  }
-
-  public static String columnFor(Term term, boolean escape) {
-    String columnName = term.simpleName().toLowerCase();
-    if (!escape && RESERVED_WORDS.contains(columnName)) {
-      return columnName + "_";
-    }
-    return escapeColumnName(term.simpleName().toLowerCase());
-  }
-
-  public static String columnFor(String columnName, boolean escape) {
-    if (!escape && RESERVED_WORDS.contains(columnName)) {
-      return columnName + "_";
-    }
-    return escapeColumnName(columnName);
   }
 
   /**
@@ -128,10 +111,6 @@ public final class HiveColumns {
    */
   public static String cleanDelimitersInitializer(Term term) {
     return cleanDelimitersInitializer(columnFor(term));
-  }
-
-  public static String cleanDelimitersInitializer(Term term, boolean escape) {
-    return cleanDelimitersInitializer(columnFor(term, escape), columnFor(term, true));
   }
 
   /**

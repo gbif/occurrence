@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -88,7 +87,7 @@ public class OccurrenceHDFSTableDefinition {
 
     // the following terms are manipulated when transposing from Avro to hive by using UDFs and custom HQL
     Map<Term, String> initializers = ImmutableMap.<Term, String>builder()
-//                                      .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
+                                      .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
                                       .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
@@ -99,7 +98,7 @@ public class OccurrenceHDFSTableDefinition {
     for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {
       // if there is custom handling registered for the term, use it
       if (initializers.containsKey(t)) {
-        builder.add(interpretedField(t, initializers.get(t), initializers.get(t)));
+        builder.add(interpretedField(t, initializers.get(t)));
       } else {
         builder.add(interpretedField(t)); // will just use the term name as usual
       }
@@ -132,7 +131,7 @@ public class OccurrenceHDFSTableDefinition {
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
       if (!DownloadTerms.EXCLUSIONS_HDFS.contains(t)) {
         if (initializers.containsKey(t)) {
-          builder.add(interpretedField(t, initializers.get(t), initializers.get(t)));
+          builder.add(interpretedField(t, initializers.get(t)));
         } else {
           builder.add(interpretedField(t));
         }
@@ -194,8 +193,7 @@ public class OccurrenceHDFSTableDefinition {
     return new InitializableField(term, column,
                                   // no escape needed, due to prefix
                                   HiveDataTypes.typeForTerm(term, true), // verbatim context
-                                  cleanDelimitersInitializer(column), //remove delimiters '\n', '\t', etc.
-                                  cleanDelimitersInitializer(column)
+                                  cleanDelimitersInitializer(column) //remove delimiters '\n', '\t', etc.
     );
   }
 
@@ -205,38 +203,27 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static InitializableField interpretedField(Term term) {
     if (HiveDataTypes.TYPE_STRING.equals(HiveDataTypes.typeForTerm(term, false))) {
-      return interpretedField(term, cleanDelimitersInitializer(term, true), cleanDelimitersInitializer(term, false));
+      return interpretedField(term, cleanDelimitersInitializer(term)); // no initializer
     }
     if (HiveDataTypes.TYPE_ARRAY_STRING.equals(HiveDataTypes.typeForTerm(term, false))
         && ARRAYS_FROM_VERBATIM_VALUES.contains(term)) {
-      return interpretedField(term, cleanDelimitersArrayInitializer(term, true), cleanDelimitersArrayInitializer(term, false));
+      return interpretedField(term, cleanDelimitersArrayInitializer(term)); // no initializer
     }
 
-    return interpretedField(term, null, null); // no initializer
+    return interpretedField(term, null); // no initializer
   }
 
   /**
    * Constructs a Field for the given term, when used in the interpreted context, and setting it up with the
    * given initializer.
    */
-  private static InitializableField interpretedField(Term term, String initializer, String avroInitializer) {
+  private static InitializableField interpretedField(Term term, String initializer) {
     return new InitializableField(term,
                                   term.simpleName().toLowerCase(Locale.ENGLISH),
                                   // note that Columns takes care of whether this is mounted
                                   // on a verbatim or an interpreted column for us
                                   HiveDataTypes.typeForTerm(term, false),
                                   // not verbatim context
-                                  initializer,
-                                  avroInitializer);
-  }
-
-
-  public static void main(String[] args) {
-    String test = OccurrenceHDFSTableDefinition.definition().stream()
-        // Excluding partitioned columns
-        .map(InitializableField::getAvroInitializer)
-        .collect(Collectors.joining("\n, "));
-
-    System.out.println(test);
+                                  initializer);
   }
 }
