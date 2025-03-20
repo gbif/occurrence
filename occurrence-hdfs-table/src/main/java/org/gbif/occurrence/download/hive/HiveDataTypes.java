@@ -78,6 +78,7 @@ public final class HiveDataTypes {
       DwcTerm.associatedSequences,
       GbifTerm.lithostratigraphy,
       GbifTerm.biostratigraphy,
+      GbifTerm.dnaSequenceID,
       GbifTerm.checklistKey
     );
 

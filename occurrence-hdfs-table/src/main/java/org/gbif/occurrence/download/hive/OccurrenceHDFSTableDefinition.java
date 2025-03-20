@@ -128,7 +128,6 @@ public class OccurrenceHDFSTableDefinition {
                                                       .put(GbifInternalTerm.dwcaExtension, columnFor(GbifInternalTerm.dwcaExtension))
                                                       .put(GbifInternalTerm.eventDateGte, columnFor(GbifInternalTerm.eventDateGte))
                                                       .put(GbifInternalTerm.eventDateLte, columnFor(GbifInternalTerm.eventDateLte))
-
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (GbifInternalTerm t : GbifInternalTerm.values()) {
@@ -212,7 +211,6 @@ public class OccurrenceHDFSTableDefinition {
         && ARRAYS_FROM_VERBATIM_VALUES.contains(term)) {
       return interpretedField(term, cleanDelimitersArrayInitializer(term)); // no initializer
     }
-
     if (HiveDataTypes.TYPE_MAP_STRUCT.equals(HiveDataTypes.typeForTerm(term, false))) {
       return interpretedField(term, cleanDelimitersArrayInitializer(term)); // no initializer
     }
