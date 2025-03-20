@@ -105,6 +105,7 @@ public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor 
                                                        recordMap.get(DcTerm.license.simpleName()));
             //write results
             csvMapWriter.write(recordMap, COLUMNS);
+            csvMapWriter.flush();
 
           } catch (Exception e) {
             getSender().tell(e, getSelf()); // inform our master
