@@ -1462,10 +1462,11 @@ public class OccurrenceSearchResource {
             example = "Rhynchonella cuvieri Zone"),
         @Parameter(
             name = "dnaSequenceId",
-            description = "The DNA sequence ID of a record that is derived from the dnaSequence",
+            description = "MD5 hash of the uppercased DNA sequence, cleaned from non-IUPAC chars",
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
-            example = "273f6ecc41f1c809d3fa26a720e5ca21"),
+            example = "273f6ecc41f1c809d3fa26a720e5ca21",
+            hidden = true),
         @Parameter(
             name = "dnaSequence",
             description =
@@ -1473,7 +1474,8 @@ public class OccurrenceSearchResource {
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
             example =
-                "TATTCTTTATTTTATTTTTGGAATATGAATACAACCTTTTTTGATCCATCAGGAGGAGGAGATCCTATTCTTTAT"),
+                "TATTCTTTATTTTATTTTTGGAATATGAATACAACCTTTTTTGATCCATCAGGAGGAGGAGATCCTATTCTTTAT",
+            hidden = true),
         @Parameter(
             name = "matchCase",
             description =
