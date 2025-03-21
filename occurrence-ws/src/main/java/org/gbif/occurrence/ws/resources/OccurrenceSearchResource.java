@@ -1286,7 +1286,8 @@ public class OccurrenceSearchResource {
             description =
                 "The sex of the biological individual(s) represented in the occurrence.\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
-            array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "MALE"),
@@ -1400,9 +1401,7 @@ public class OccurrenceSearchResource {
                 "Nomenclatural type (type status, typified scientific name, publication) applied to the subject.\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = String.class)),
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "HOLOTYPE"),
@@ -1462,12 +1461,33 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "Rhynchonella cuvieri Zone"),
         @Parameter(
-          name = "dnaSequenceId",
+            name = "dnaSequenceId",
+            description = "The DNA sequence ID of a record that is derived from the dnaSequence",
+            explode = Explode.FALSE,
+            in = ParameterIn.QUERY,
+            example = "273f6ecc41f1c809d3fa26a720e5ca21"),
+        @Parameter(
+            name = "dnaSequence",
+            description =
+                "The DNA sequence of a record as it comes in the DNA derived data extension",
+            explode = Explode.FALSE,
+            in = ParameterIn.QUERY,
+            example =
+                "TATTCTTTATTTTATTTTTGGAATATGAATACAACCTTTTTTGATCCATCAGGAGGAGGAGATCCTATTCTTTAT"),
+        @Parameter(
+            name = "matchCase",
+            description =
+                "*Experimental.* Indicates if the search has to be case sensitive",
+            schema = @Schema(implementation = Boolean.class),
+            in = ParameterIn.QUERY,
+            example = "true"),
+        @Parameter(
+          name = "shuffle",
           description =
-            "The DNA sequence ID of a record",
+            "*Experimental.* Seed to sort the results randomly.",
           explode = Explode.FALSE,
           in = ParameterIn.QUERY,
-          example = "273f6ecc41f1c809d3fa26a720e5ca21"),
+          example = "abcdefgh"),
         @Parameter(
             name = "hl",
             description =
