@@ -369,6 +369,18 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
         @Parameter(
+          name = "day",
+          description =
+            "The day of the month, a number between 1 and 31.\n\n"
+              + API_PARAMETER_RANGE_OR_REPEAT,
+          array =
+          @ArraySchema(
+            uniqueItems = true,
+            schema = @Schema(implementation = Short.class, minimum = "1", maximum = "31")),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          example = "15"),
+        @Parameter(
             name = "decimalLatitude",
             description =
                 "Latitude in decimal degrees between -90° and 90° based on WGS 84.\n\n"

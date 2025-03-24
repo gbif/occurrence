@@ -217,6 +217,7 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, LONGITUDE)
       .put(OccurrenceSearchParameter.YEAR, YEAR)
       .put(OccurrenceSearchParameter.MONTH, MONTH)
+      .put(OccurrenceSearchParameter.DAY, DAY)
       .put(OccurrenceSearchParameter.CATALOG_NUMBER, CATALOG_NUMBER)
       .put(OccurrenceSearchParameter.RECORDED_BY, RECORDED_BY)
       .put(OccurrenceSearchParameter.IDENTIFIED_BY, IDENTIFIED_BY)
