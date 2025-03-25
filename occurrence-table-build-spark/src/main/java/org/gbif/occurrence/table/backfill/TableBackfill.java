@@ -220,7 +220,7 @@ public class TableBackfill {
       ExtensionTable.tableExtensions().forEach(table -> createExtensionTable(spark, table));
     } catch (Exception ex) {
       log.error("Error creating extension tables");
-      throw  ex;
+      throw ex;
     }
   }
 
@@ -239,7 +239,12 @@ public class TableBackfill {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
       Dataset<Row> input =
-          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select);
+          spark
+              .read()
+              .format("avro")
+              .option("mergeSchema", "true")
+              .load(fromSourceDir + "/*.avro")
+              .select(select);
 
       if (configuration.getTablePartitions() != null
           && input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
