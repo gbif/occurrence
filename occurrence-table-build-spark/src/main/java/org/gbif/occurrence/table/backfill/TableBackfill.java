@@ -195,6 +195,7 @@ public class TableBackfill {
 
   public void run(Command command) {
     try (SparkSession spark = createSparkSession()) {
+      spark.conf().set("spark.sql.debug.maxToStringFields", 10000);
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
