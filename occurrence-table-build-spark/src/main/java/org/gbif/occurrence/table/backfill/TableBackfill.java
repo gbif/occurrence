@@ -483,7 +483,7 @@ public class TableBackfill {
                 .alias(columnName);
             } else {
               // If column is missing, return a NULL column with the correct name
-              return lit(null).alias(columnName);
+              return lit(null).cast("string").alias(columnName);
             }
           })
         .collect(Collectors.toList());
