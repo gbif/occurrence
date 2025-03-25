@@ -44,9 +44,11 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import static org.apache.spark.sql.functions.callUDF;
+import static org.apache.spark.sql.functions.coalesce;
 import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.from_json;
+import static org.apache.spark.sql.functions.lit;
 
 @AllArgsConstructor
 @Slf4j
@@ -460,15 +462,24 @@ public class TableBackfill {
                             .equalsIgnoreCase(
                                 "datasetkey")) // Partitioned columns must be at the end
             .map(
-                field ->
-                    field.getInitializer().equals(field.getColumnName())
-                        ? col(field.getColumnName())
-                        : callUDF(
-                                field
-                                    .getInitializer()
-                                    .substring(0, field.getInitializer().indexOf("(")),
-                                col(field.getColumnName()))
-                            .alias(field.getColumnName()))
+                field -> {
+                  String columnName = field.getColumnName();
+
+                  // Use coalesce to avoid errors if column is missing
+                  Column columnExpr = coalesce(col(columnName), lit(null));
+
+                  // Apply transformation if needed
+                  return field.getInitializer().equals(columnName)
+                      ? columnExpr // No transformation needed
+                      : coalesce(
+                              callUDF(
+                                  field
+                                      .getInitializer()
+                                      .substring(0, field.getInitializer().indexOf("(")),
+                                  columnExpr),
+                              lit(null))
+                          .alias(columnName);
+                })
             .collect(Collectors.toList());
 
     // Partitioned columns must be at the end
