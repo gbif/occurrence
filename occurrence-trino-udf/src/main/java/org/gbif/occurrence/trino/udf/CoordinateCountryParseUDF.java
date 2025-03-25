@@ -154,12 +154,12 @@ public class CoordinateCountryParseUDF {
     if (parsedLatitude != null) {
       DOUBLE.writeDouble(builder, parsedLatitude);
     } else {
-      blockBuilder.appendNull();
+      builder.appendNull();
     }
     if (parsedLongitude != null) {
       DOUBLE.writeDouble(builder, parsedLongitude);
     } else {
-      blockBuilder.appendNull();
+      builder.appendNull();
     }
     if (parsedCountry != null) {
       VARCHAR.writeString(builder, parsedCountry);
