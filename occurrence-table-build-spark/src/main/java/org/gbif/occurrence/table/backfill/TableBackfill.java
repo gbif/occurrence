@@ -418,12 +418,14 @@ public class TableBackfill {
   }
 
   private String createTableIfNotExists() {
-    return configuration.isUsePartitionedTable()
+    String statement = configuration.isUsePartitionedTable()
       ? createPartitionedTableIfNotExists()
       : createParquetTableIfNotExists();
+    log.info("CREATE: {}", statement);
+    return statement;
   }
 
-  private String createParquetTableIfNotExists() {
+  public String createParquetTableIfNotExists() {
     return String.format(
       "CREATE TABLE IF NOT EXISTS %s (\n"
         + OccurrenceHDFSTableDefinition.definition().stream()
