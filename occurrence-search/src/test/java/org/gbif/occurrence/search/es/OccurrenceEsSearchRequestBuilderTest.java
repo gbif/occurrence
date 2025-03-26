@@ -489,7 +489,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacets(OccurrenceSearchParameter.BASIS_OF_RECORD);
     searchRequest.addFacetPage(OccurrenceSearchParameter.BASIS_OF_RECORD, 0, 5);
     searchRequest.addBasisOfRecordFilter(BasisOfRecord.PRESERVED_SPECIMEN);
-    searchRequest.setMultiSelectFacets(true);
+    searchRequest.setFacetMultiSelect(true);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
@@ -524,7 +524,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 0, 6);
     searchRequest.addMonthFilter(1);
     searchRequest.addYearFilter(1999);
-    searchRequest.setMultiSelectFacets(true);
+    searchRequest.setFacetMultiSelect(true);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
@@ -640,7 +640,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertNull(groupedParams.postFilterParams);
 
     // multiselect
-    searchRequest.setMultiSelectFacets(true);
+    searchRequest.setFacetMultiSelect(true);
     groupedParams = esSearchRequestBuilder.groupParameters(searchRequest);
     assertEquals(1, groupedParams.queryParams.size());
     assertEquals(1, groupedParams.postFilterParams.size());

@@ -292,6 +292,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.DECIMAL_LONGITUDE, LONGITUDE)
       .put(OccurrenceSearchParameter.YEAR, YEAR)
       .put(OccurrenceSearchParameter.MONTH, MONTH)
+      .put(OccurrenceSearchParameter.DAY, DAY)
       .put(OccurrenceSearchParameter.START_DAY_OF_YEAR, START_DAY_OF_YEAR)
       .put(OccurrenceSearchParameter.END_DAY_OF_YEAR, END_DAY_OF_YEAR)
       .put(OccurrenceSearchParameter.CATALOG_NUMBER, CATALOG_NUMBER)
