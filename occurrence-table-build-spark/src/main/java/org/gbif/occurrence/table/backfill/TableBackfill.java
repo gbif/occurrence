@@ -195,7 +195,6 @@ public class TableBackfill {
 
   public void run(Command command) {
     try (SparkSession spark = createSparkSession()) {
-      spark.conf().set("spark.sql.debug.maxToStringFields", 10000);
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
@@ -257,7 +256,7 @@ public class TableBackfill {
             .drop("_salted_key");
       }
 
-      input.writeTo(saveToTable).createOrReplace();
+      input.writeTo(saveToTable).create();
     }
   }
 
@@ -419,14 +418,12 @@ public class TableBackfill {
   }
 
   private String createTableIfNotExists() {
-    String statement = configuration.isUsePartitionedTable()
-      ? createPartitionedTableIfNotExists()
-      : createParquetTableIfNotExists();
-    log.info("CREATE: {}", statement);
-    return statement;
+    return configuration.isUsePartitionedTable()
+        ? createPartitionedTableIfNotExists()
+        : createParquetTableIfNotExists();
   }
 
-  public String createParquetTableIfNotExists() {
+  private String createParquetTableIfNotExists() {
     return String.format(
       "CREATE TABLE IF NOT EXISTS %s (\n"
         + OccurrenceHDFSTableDefinition.definition().stream()
