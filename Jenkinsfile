@@ -50,7 +50,7 @@ pipeline {
           VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
       }
       steps {
-        sh 'build/occurrence-download-spark-docker-build.sh 1.0.23-multitaxonomy-SNAPSHOT'
+        sh 'build/occurrence-download-spark-docker-build.sh 1.0.28-multitaxonomy-SNAPSHOT'
       }
     }
 
@@ -59,7 +59,7 @@ pipeline {
           VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
       }
       steps {
-        sh 'build/occurrence-table-build-spark-docker-build.sh 1.0.23-multitaxonomy-SNAPSHOT'
+        sh 'build/occurrence-table-build-spark-docker-build.sh 1.0.28-multitaxonomy-SNAPSHOT'
       }
     }
   }
