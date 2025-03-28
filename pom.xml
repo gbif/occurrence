@@ -232,7 +232,7 @@
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>2.0-multitaxonomy-SNAPSHOT</gbif.kvs.version>
     <gbif-cli.version>2.0.0</gbif-cli.version>
-    <gbif-predicates.version>2.0.4-multitaxonomy-SNAPSHOT</gbif-predicates.version>
+    <gbif-predicates.version>2.0.5-multitaxonomy-SNAPSHOT</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>0.3.2-SNAPSHOT</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 
