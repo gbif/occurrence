@@ -13,17 +13,25 @@
  */
 package org.gbif.occurrence.table.backfill;
 
-import org.gbif.occurrence.download.hive.ExtensionTable;
-import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
-import org.gbif.occurrence.spark.udf.UDFS;
+import static org.apache.spark.sql.functions.callUDF;
+import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.explode;
+import static org.apache.spark.sql.functions.from_json;
+import static org.apache.spark.sql.functions.lit;
 
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
@@ -34,19 +42,9 @@ import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
-
-import com.google.common.base.Strings;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.apache.spark.sql.functions.callUDF;
-import static org.apache.spark.sql.functions.col;
-import static org.apache.spark.sql.functions.explode;
-import static org.apache.spark.sql.functions.from_json;
+import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
+import org.gbif.occurrence.spark.udf.UDFS;
 
 @AllArgsConstructor
 @Slf4j
@@ -64,8 +62,7 @@ public class TableBackfill {
 
   public enum Action {
     CREATE,
-    DELETE,
-    SCHEMA_MIGRATION;
+    DELETE;
   }
 
   @Data
@@ -126,7 +123,7 @@ public class TableBackfill {
     fromAvroToTable(
         spark,
         getSnapshotPath(configuration.getCoreName()), // FROM
-        selectFromAvro(), // SELECT
+        this::selectFromAvro, // SELECT
         configuration.getTableNameWithPrefix() // INSERT OVERWRITE INTO
         );
   }
@@ -196,8 +193,6 @@ public class TableBackfill {
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
-        executeCreateAction(command, spark);
-      } else if (Action.SCHEMA_MIGRATION == command.getAction()) {
         // first we remove the old tables
         executeDeleteAction(command, spark, "old_");
         if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
@@ -218,7 +213,7 @@ public class TableBackfill {
       ExtensionTable.tableExtensions().forEach(table -> createExtensionTable(spark, table));
     } catch (Exception ex) {
       log.error("Error creating extension tables");
-      throw  ex;
+      throw ex;
     }
   }
 
@@ -230,14 +225,18 @@ public class TableBackfill {
         == 0;
   }
 
+  @SneakyThrows
   private void fromAvroToTable(
-      SparkSession spark, String fromSourceDir, Column[] select, String saveToTable) {
+      SparkSession spark,
+      String fromSourceDir,
+      Function<Dataset<Row>, Column[]> select,
+      String saveToTable) {
     if (!isDirectoryEmpty(fromSourceDir, spark)) {
       if (configuration.isUsePartitionedTable()) {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
-      Dataset<Row> input =
-          spark.read().format("avro").load(fromSourceDir + "/*.avro").select(select);
+      Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
+      input = input.select(select.apply(input));
 
       if (configuration.getTablePartitions() != null
           && input.rdd().getNumPartitions() > configuration.getTablePartitions()) {
@@ -251,12 +250,12 @@ public class TableBackfill {
                 .drop("_salted_key");
       }
 
-      input.writeTo(saveToTable).createOrReplace();
+      input.writeTo(saveToTable).append();
     }
   }
 
   private void createExtensionTable(SparkSession spark, ExtensionTable extensionTable) {
-    log.info("Create extansion table: {}", extensionTable.getHiveTableName());
+    log.info("Create extension table: {}", extensionTable.getHiveTableName());
     spark.sparkContext().setJobDescription("Create " + extensionTable.getHiveTableName());
 
     spark.sql(
@@ -286,7 +285,7 @@ public class TableBackfill {
     fromAvroToTable(
         spark,
         getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
-        columns.toArray(Column[]::new), // SELECT
+        input -> columns.toArray(Column[]::new), // SELECT
         extensionTableName(extensionTable)); // INSERT OVERWRITE INTO
   }
 
@@ -361,7 +360,6 @@ public class TableBackfill {
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
-
     spark
         .table(configuration.getTableName())
         .select(
@@ -449,7 +447,10 @@ public class TableBackfill {
         Paths.get(configuration.getTargetDirectory(), configuration.getCoreName().toLowerCase()));
   }
 
-  private Column[] selectFromAvro() {
+  private Column[] selectFromAvro(Dataset<Row> avroDF) {
+    // Get available columns from the Avro schema
+    List<String> availableColumns = Arrays.asList(avroDF.columns());
+
     List<Column> columns =
         OccurrenceHDFSTableDefinition.definition().stream()
             .filter(
@@ -460,22 +461,32 @@ public class TableBackfill {
                             .equalsIgnoreCase(
                                 "datasetkey")) // Partitioned columns must be at the end
             .map(
-                field ->
-                    field.getInitializer().equals(field.getColumnName())
-                        ? col(field.getColumnName())
+                field -> {
+                  String columnName = field.getColumnName();
+
+                  // Check if column exists in the Avro file
+                  if (availableColumns.contains(columnName)) {
+                    return field.getInitializer().equals(columnName)
+                        ? col(columnName)
                         : callUDF(
                                 field
                                     .getInitializer()
                                     .substring(0, field.getInitializer().indexOf("(")),
-                                col(field.getColumnName()))
-                            .alias(field.getColumnName()))
+                                col(columnName))
+                            .alias(columnName);
+                  } else {
+                    // If column is missing, return a NULL column with the correct name
+                    return lit(null).cast("string").alias(columnName);
+                  }
+                })
             .collect(Collectors.toList());
 
     // Partitioned columns must be at the end
     if (configuration.isUsePartitionedTable()) {
       columns.add(col("datasetkey"));
     }
-    Column[] selectColumns = columns.toArray(new Column[] {});
+
+    Column[] selectColumns = columns.toArray(new Column[0]);
     log.info(
         "Selecting columns from Avro {}",
         columns.stream().map(Column::toString).collect(Collectors.joining(", ")));
