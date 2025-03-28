@@ -377,6 +377,18 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
         @Parameter(
+          name = "day",
+          description =
+            "The day of the month, a number between 1 and 31.\n\n"
+              + API_PARAMETER_RANGE_OR_REPEAT,
+          array =
+          @ArraySchema(
+            uniqueItems = true,
+            schema = @Schema(implementation = Short.class, minimum = "1", maximum = "31")),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          example = "15"),
+        @Parameter(
             name = "decimalLatitude",
             description =
                 "Latitude in decimal degrees between -90° and 90° based on WGS 84.\n\n"
@@ -1294,7 +1306,8 @@ public class OccurrenceSearchResource {
             description =
                 "The sex of the biological individual(s) represented in the occurrence.\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
-            array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "MALE"),
@@ -1409,9 +1422,7 @@ public class OccurrenceSearchResource {
                 "Nomenclatural type (type status, typified scientific name, publication) applied to the subject.\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = String.class)),
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "HOLOTYPE"),
@@ -1470,6 +1481,36 @@ public class OccurrenceSearchResource {
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
             example = "Rhynchonella cuvieri Zone"),
+        @Parameter(
+            name = "dnaSequenceId",
+            description = "MD5 hash of the uppercased DNA sequence, cleaned from non-IUPAC chars",
+            explode = Explode.FALSE,
+            in = ParameterIn.QUERY,
+            example = "273f6ecc41f1c809d3fa26a720e5ca21",
+            hidden = true),
+        @Parameter(
+            name = "dnaSequence",
+            description =
+                "The DNA sequence of a record as it comes in the DNA derived data extension",
+            explode = Explode.FALSE,
+            in = ParameterIn.QUERY,
+            example =
+                "TATTCTTTATTTTATTTTTGGAATATGAATACAACCTTTTTTGATCCATCAGGAGGAGGAGATCCTATTCTTTAT",
+            hidden = true),
+        @Parameter(
+            name = "matchCase",
+            description =
+                "*Experimental.* Indicates if the search has to be case sensitive",
+            schema = @Schema(implementation = Boolean.class),
+            in = ParameterIn.QUERY,
+            example = "true"),
+        @Parameter(
+          name = "shuffle",
+          description =
+            "*Experimental.* Seed to sort the results randomly.",
+          explode = Explode.FALSE,
+          in = ParameterIn.QUERY,
+          example = "abcdefgh"),
         @Parameter(
             name = "hl",
             description =
