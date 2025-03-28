@@ -66,9 +66,11 @@ public class TaxonomyInterpreter implements Serializable {
       matchingWs;
   private final KeyValueStore<String, NameUsage> speciesWs;
 
-  public TaxonomyInterpreter(String apiUrl) {
+  public TaxonomyInterpreter(String apiNubUrl, String apiClbUrl) {
+    ClientConfiguration nubClientConfiguration =
+      ClientConfiguration.builder().withBaseApiUrl(apiNubUrl).build();
     ClientConfiguration clbClientConfiguration =
-        ClientConfiguration.builder().withBaseApiUrl(apiUrl).build();
+        ClientConfiguration.builder().withBaseApiUrl(apiClbUrl).build();
 
     // See https://github.com/gbif/analytics/issues/24
     IdMappingConfiguration idMappingConfiguration =
@@ -80,7 +82,7 @@ public class TaxonomyInterpreter implements Serializable {
         NameUsageMatchKVStoreFactory.nameUsageMatchKVStoreCaffeine(
             ChecklistbankClientsConfiguration.builder()
                 .checklistbankClientConfiguration(clbClientConfiguration)
-                .nameUsageClientConfiguration(clbClientConfiguration)
+                .nameUsageClientConfiguration(nubClientConfiguration)
                 .build(),
             idMappingConfiguration);
 
@@ -89,7 +91,7 @@ public class TaxonomyInterpreter implements Serializable {
             new KeyValueStore<>() {
               private SpeciesWsClient speciesWsClient =
                   new ClientBuilder()
-                      .withUrl(apiUrl)
+                      .withUrl(apiClbUrl)
                       .withObjectMapper(
                           JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
                       .withFormEncoder()
@@ -107,8 +109,8 @@ public class TaxonomyInterpreter implements Serializable {
             });
   }
 
-  public TaxonomyInterpreter(ApiClientConfiguration cfg) {
-    this(cfg.url);
+  public TaxonomyInterpreter(ApiClientConfiguration nubCfg, ApiClientConfiguration clbCfg) {
+    this(nubCfg.url, clbCfg.url);
   }
 
   /**
