@@ -51,7 +51,7 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     Map<String, String[]> params = webRequest.getParameterMap();
     String facetMultiSelectValue = getFirstIgnoringCase("facetMultiselect", params);
     if (facetMultiSelectValue != null) {
-      searchRequest.setMultiSelectFacets(Boolean.parseBoolean(facetMultiSelectValue));
+      searchRequest.setFacetMultiSelect(Boolean.parseBoolean(facetMultiSelectValue));
     }
 
     String facetMinCountValue = getFirstIgnoringCase("facetMincount", params);

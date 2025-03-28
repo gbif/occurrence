@@ -336,7 +336,7 @@ public class EsSearchRequestBuilder {
   @VisibleForTesting
   static GroupedParams groupParameters(OccurrenceSearchRequest searchRequest) {
     GroupedParams groupedParams = new GroupedParams();
-    if (!searchRequest.isMultiSelectFacets()
+    if (!searchRequest.isFacetMultiSelect()
         || searchRequest.getFacets() == null
         || searchRequest.getFacets().isEmpty()) {
       groupedParams.queryParams = searchRequest.getParameters();
@@ -357,7 +357,7 @@ public class EsSearchRequestBuilder {
               }
             });
 
-    return groupParameters(searchRequest, searchRequest.isMultiSelectFacets());
+    return groupParameters(searchRequest, searchRequest.isFacetMultiSelect());
   }
 
   static GroupedParams groupParameters(
@@ -416,7 +416,7 @@ public class EsSearchRequestBuilder {
       return Optional.empty();
     }
 
-    if (searchRequest.isMultiSelectFacets()
+    if (searchRequest.isFacetMultiSelect()
         && postFilterParams != null
         && !postFilterParams.isEmpty()) {
       return Optional.of(buildFacetsMultiselect(searchRequest, postFilterParams));
