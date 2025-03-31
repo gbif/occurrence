@@ -235,6 +235,7 @@ public class TableBackfill {
       if (configuration.isUsePartitionedTable()) {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
+      log.info("Creating Avro table {} from source directory {}", configuration.getTableName(), fromSourceDir);
       Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
