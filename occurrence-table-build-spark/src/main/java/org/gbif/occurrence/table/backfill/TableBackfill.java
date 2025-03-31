@@ -212,8 +212,8 @@ public class TableBackfill {
     try {
       ExtensionTable.tableExtensions().forEach(table -> createExtensionTable(spark, table));
     } catch (Exception ex) {
-      log.error("Error creating extension tables");
-      throw  ex;
+      log.error("Error creating extension tables", ex);
+      throw ex;
     }
   }
 
@@ -251,6 +251,7 @@ public class TableBackfill {
                 .drop("_salted_key");
       }
 
+      log.info("Saving to table {}", saveToTable);
       input.writeTo(saveToTable).append();
     }
   }
@@ -259,10 +260,12 @@ public class TableBackfill {
     log.info("Create extension table: {}", extensionTable.getHiveTableName());
     spark.sparkContext().setJobDescription("Create " + extensionTable.getHiveTableName());
 
-    spark.sql(
-        configuration.isUsePartitionedTable()
-            ? createExtensionExternalTable(extensionTable)
-            : createExtensionTable(extensionTable));
+    String extensionTableSql = configuration.isUsePartitionedTable()
+      ? createExtensionExternalTable(extensionTable)
+      : createExtensionTable(extensionTable);
+
+    log.info("Creating extension table SQL {}", extensionTableSql);
+    spark.sql(extensionTableSql);
 
     List<Column> columns =
         extensionTable.getFieldNames().stream()
