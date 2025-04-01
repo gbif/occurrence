@@ -235,6 +235,7 @@ public class TableBackfill {
       if (configuration.isUsePartitionedTable()) {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
+      log.info("Creating Avro table {} from source directory {}", configuration.getTableName(), fromSourceDir);
       Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
@@ -258,10 +259,12 @@ public class TableBackfill {
     log.info("Create extension table: {}", extensionTable.getHiveTableName());
     spark.sparkContext().setJobDescription("Create " + extensionTable.getHiveTableName());
 
-    spark.sql(
-        configuration.isUsePartitionedTable()
-            ? createExtensionExternalTable(extensionTable)
-            : createExtensionTable(extensionTable));
+    String extensionTableSql = configuration.isUsePartitionedTable()
+      ? createExtensionExternalTable(extensionTable)
+      : createExtensionTable(extensionTable);
+
+    log.info("Creating extension table SQL {}", extensionTableSql);
+    spark.sql(extensionTableSql);
 
     List<Column> columns =
         extensionTable.getFieldNames().stream()
@@ -286,7 +289,7 @@ public class TableBackfill {
         spark,
         getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
         input -> columns.toArray(Column[]::new), // SELECT
-        extensionTableName(extensionTable)); // INSERT OVERWRITE INTO
+        getPrefix() + extensionTableName(extensionTable)); // INSERT OVERWRITE INTO
   }
 
   private String extensionTableName(ExtensionTable extensionTable) {
@@ -361,7 +364,7 @@ public class TableBackfill {
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
     spark
-        .table(configuration.getTableName())
+        .table(configuration.getTableNameWithPrefix())
         .select(
             col("gbifid"),
             from_json(
@@ -407,7 +410,7 @@ public class TableBackfill {
         String.format(
             "INSERT OVERWRITE TABLE %1$s_multimedia \n"
                 + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
-            configuration.getTableName()));
+            configuration.getTableNameWithPrefix()));
   }
 
   private String createTableIfNotExists() {
@@ -496,7 +499,13 @@ public class TableBackfill {
   private void swapTables(Command command, SparkSession spark) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Swapping table: " + configuration.getTableName());
-      spark.sql(renameTable(configuration.getTableName(), "old_" + configuration.getTableName()));
+      if (spark.catalog().tableExists(configuration.getTableName())) {
+        spark.sql(renameTable(configuration.getTableName(), "old_" + configuration.getTableName()));
+      } else {
+        log.info(
+            "Table {} does not exist - perhaps this is the first run ?, skipping rename",
+            configuration.getTableName());
+      }
       spark.sql(renameTable(configuration.getTableNameWithPrefix(), configuration.getTableName()));
     }
 
@@ -506,10 +515,16 @@ public class TableBackfill {
       ExtensionTable.tableExtensions()
           .forEach(
               extensionTable -> {
-                spark.sql(
+                log.info("Swapping Extension Table {}", extensionTableName(extensionTable));
+                if (spark.catalog().tableExists(extensionTableName(extensionTable))) {
+                  spark.sql(
                     renameTable(
-                        extensionTableName(extensionTable),
-                        "old_" + extensionTableName(extensionTable)));
+                      extensionTableName(extensionTable),
+                      "old_" + extensionTableName(extensionTable)));
+                } else {
+                  log.info("Extension table {} does not exist - perhaps this is the first run ?, skipping rename",
+                    extensionTableName(extensionTable));
+                }
                 spark.sql(
                     renameTable(
                         getPrefix() + extensionTableName(extensionTable),
@@ -520,7 +535,9 @@ public class TableBackfill {
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Swapping Multimedia Table");
-      spark.sql(renameTable(multimediaTableName(), "old_" + multimediaTableName()));
+      if (spark.catalog().tableExists(multimediaTableName())) {
+        spark.sql(renameTable(multimediaTableName(), "old_" + multimediaTableName()));
+      }
       spark.sql(renameTable(getPrefix() + multimediaTableName(), multimediaTableName()));
     }
   }
