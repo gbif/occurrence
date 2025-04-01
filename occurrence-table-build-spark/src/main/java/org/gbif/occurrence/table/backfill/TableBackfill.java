@@ -507,7 +507,11 @@ public class TableBackfill {
   private void swapTables(Command command, SparkSession spark) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Swapping table: " + configuration.getTableName());
-      spark.sql(renameTable(configuration.getTableName(), "old_" + configuration.getTableName()));
+      if (spark.catalog().tableExists( "old_" + configuration.getTableName())) {
+        spark.sql(renameTable(configuration.getTableName(), "old_" + configuration.getTableName()));
+      } else {
+        log.info("Table {} does not exist, skipping rename", "old_" + configuration.getTableName());
+      }
       spark.sql(renameTable(configuration.getTableNameWithPrefix(), configuration.getTableName()));
     }
 
