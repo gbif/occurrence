@@ -38,6 +38,7 @@ import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.catalog.Table;
 import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.DataTypes;
@@ -364,6 +365,12 @@ public class TableBackfill {
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
+
+    log.info("Current catalog:{}, current database {}",  spark.catalog().currentCatalog(), spark.catalog().currentDatabase());
+    Dataset<Table> tables = spark.catalog().listTables();
+    log.info("Tables in catalog:");
+    tables.collectAsList().forEach(t -> log.info("Table: {}", t.name()));
+
     spark
         .table(configuration.getTableName())
         .select(
