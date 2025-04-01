@@ -213,7 +213,7 @@ public class TableBackfill {
     try {
       ExtensionTable.tableExtensions().forEach(table -> createExtensionTable(spark, table));
     } catch (Exception ex) {
-      log.error("Error creating extension tables", ex);
+      log.error("Error creating extension tables");
       throw ex;
     }
   }
@@ -252,7 +252,6 @@ public class TableBackfill {
                 .drop("_salted_key");
       }
 
-      log.info("Saving to table {}", saveToTable);
       input.writeTo(saveToTable).append();
     }
   }
@@ -366,10 +365,12 @@ public class TableBackfill {
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
 
-    log.info("Current catalog:{}, current database {}",  spark.catalog().currentCatalog(), spark.catalog().currentDatabase());
-    Dataset<Table> tables = spark.catalog().listTables();
-    log.info("Tables in catalog:");
-    tables.collectAsList().forEach(t -> log.info("Table: {}", t.name()));
+    if(log.isDebugEnabled()) {
+      log.debug("Current catalog:{}, current database {}", spark.catalog().currentCatalog(), spark.catalog().currentDatabase());
+      Dataset<Table> tables = spark.catalog().listTables();
+      log.debug("Tables in catalog:");
+      tables.collectAsList().forEach(t -> log.debug("Table: {}", t.name()));
+    }
 
     spark
         .table(configuration.getTableNameWithPrefix())
