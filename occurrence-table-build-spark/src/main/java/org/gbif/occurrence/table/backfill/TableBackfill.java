@@ -507,10 +507,10 @@ public class TableBackfill {
   private void swapTables(Command command, SparkSession spark) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Swapping table: " + configuration.getTableName());
-      if (spark.catalog().tableExists( "old_" + configuration.getTableName())) {
+      if (spark.catalog().tableExists(configuration.getTableName())) {
         spark.sql(renameTable(configuration.getTableName(), "old_" + configuration.getTableName()));
       } else {
-        log.info("Table {} does not exist, skipping rename", "old_" + configuration.getTableName());
+        log.info("Table {} does not exist - perhaps this is the first run ?, skipping rename",  configuration.getTableName());
       }
       spark.sql(renameTable(configuration.getTableNameWithPrefix(), configuration.getTableName()));
     }
@@ -521,10 +521,12 @@ public class TableBackfill {
       ExtensionTable.tableExtensions()
           .forEach(
               extensionTable -> {
-                spark.sql(
+                if (spark.catalog().tableExists(configuration.getTableName())) {
+                  spark.sql(
                     renameTable(
-                        extensionTableName(extensionTable),
-                        "old_" + extensionTableName(extensionTable)));
+                      extensionTableName(extensionTable),
+                      "old_" + extensionTableName(extensionTable)));
+                }
                 spark.sql(
                     renameTable(
                         getPrefix() + extensionTableName(extensionTable),
@@ -535,7 +537,9 @@ public class TableBackfill {
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Swapping Multimedia Table");
-      spark.sql(renameTable(multimediaTableName(), "old_" + multimediaTableName()));
+      if (spark.catalog().tableExists(multimediaTableName())) {
+        spark.sql(renameTable(multimediaTableName(), "old_" + multimediaTableName()));
+      }
       spark.sql(renameTable(getPrefix() + multimediaTableName(), multimediaTableName()));
     }
   }
