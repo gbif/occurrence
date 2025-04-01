@@ -418,7 +418,7 @@ public class TableBackfill {
         String.format(
             "INSERT OVERWRITE TABLE %1$s_multimedia \n"
                 + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
-            configuration.getTableName()));
+            configuration.getTableNameWithPrefix()));
   }
 
   private String createTableIfNotExists() {
