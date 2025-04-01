@@ -372,7 +372,7 @@ public class TableBackfill {
     tables.collectAsList().forEach(t -> log.info("Table: {}", t.name()));
 
     spark
-        .table(configuration.getTableName())
+        .table(configuration.getTableNameWithPrefix())
         .select(
             col("gbifid"),
             from_json(
