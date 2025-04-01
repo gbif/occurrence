@@ -365,7 +365,7 @@ public class TableBackfill {
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
     spark
-        .table(configuration.getHiveDatabase() + "." + configuration.getTableName())
+        .table(configuration.getTableName())
         .select(
             col("gbifid"),
             from_json(
