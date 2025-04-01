@@ -397,8 +397,9 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             occurrenceSearchService.countRecords(
                 ((PredicateDownloadRequest) download.getRequest()).getPredicate()));
       } catch (Exception ex) {
+        download.setTotalRecords(-1);
         log.info(
-            "Couldn't get number of records for download {}. They are being set to zero at download creation time.",
+            "Couldn't get number of records for download {}. They are being set to -1 at download creation time.",
             downloadId);
       }
     }
