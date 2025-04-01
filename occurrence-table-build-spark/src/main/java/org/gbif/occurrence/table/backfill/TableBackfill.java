@@ -521,11 +521,15 @@ public class TableBackfill {
       ExtensionTable.tableExtensions()
           .forEach(
               extensionTable -> {
-                if (spark.catalog().tableExists(configuration.getTableName())) {
+                log.info("Swapping Extension Table {}", extensionTableName(extensionTable));
+                if (spark.catalog().tableExists(extensionTableName(extensionTable))) {
                   spark.sql(
                     renameTable(
                       extensionTableName(extensionTable),
                       "old_" + extensionTableName(extensionTable)));
+                } else {
+                  log.info("Extension table {} does not exist - perhaps this is the first run ?, skipping rename",
+                    extensionTableName(extensionTable));
                 }
                 spark.sql(
                     renameTable(
