@@ -215,7 +215,7 @@
     <hbase-utils.version>1.0.0</hbase-utils.version>
     <download-query-tools.version>2.0.1-multitaxonomy-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>2.0.1-multitaxonomy-SNAPSHOT</dwc-api.version>
-    <dwca-io.version>2.17-H3-SNAPSHOT</dwca-io.version>
+    <dwca-io.version>3.0.0</dwca-io.version>
     <gbif-api.version>2.1.0-multitaxonomy-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
@@ -260,7 +260,7 @@
     <databricks.version>3.3.0</databricks.version>
     <scala.tools.version>2.12</scala.tools.version>
     <iceberg.version>1.6.1</iceberg.version>
-    <scala.library.version>2.12.17</scala.library.version>
+    <scala.library.version>2.12.18</scala.library.version>
 
     <resilience4j.version>1.7.0</resilience4j.version>
 
