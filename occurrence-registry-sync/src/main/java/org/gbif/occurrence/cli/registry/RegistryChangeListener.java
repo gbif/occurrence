@@ -57,6 +57,8 @@ public class RegistryChangeListener extends AbstractMessageCallback<RegistryChan
 
   private static final EnumSet<EndpointType> CRAWLABLE_ENDPOINT_TYPES = EnumSet.of(
     EndpointType.BIOCASE,
+    EndpointType.BIOCASE_XML_ARCHIVE,
+    EndpointType.CAMTRAP_DP,
     EndpointType.DIGIR,
     EndpointType.DIGIR_MANIS,
     EndpointType.TAPIR,
