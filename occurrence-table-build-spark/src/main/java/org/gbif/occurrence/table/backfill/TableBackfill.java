@@ -290,7 +290,7 @@ public class TableBackfill {
         spark,
         getSnapshotPath(extensionTable.getDirectoryTableName()), // FROM sourceDir
         input -> columns.toArray(Column[]::new), // SELECT
-        extensionTableName(extensionTable)); // INSERT OVERWRITE INTO
+        getPrefix() + extensionTableName(extensionTable)); // INSERT OVERWRITE INTO
   }
 
   private String extensionTableName(ExtensionTable extensionTable) {
