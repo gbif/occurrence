@@ -42,7 +42,7 @@ import java.util.*;
 
 import javax.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
+//import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -267,7 +267,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
   }
 
-  @NotNull
+//  @NotNull
   private File getDownloadFile(String filename, String downloadKey) {
     File localFile = new File(downloadMount, filename);
     if (localFile.canRead()) {
@@ -312,7 +312,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
 
     if (Download.Status.SUCCEEDED.equals(download.getStatus())
         || Download.Status.FAILED.equals(download.getStatus())
-        || Download.Status.CANCELLED.equals(download.getStatus())
         || Download.Status.KILLED.equals(download.getStatus())) {
       // Download has already completed, so perhaps callbacks in rapid succession have been
       // processed out-of-order
@@ -397,9 +396,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
             occurrenceSearchService.countRecords(
                 ((PredicateDownloadRequest) download.getRequest()).getPredicate()));
       } catch (Exception ex) {
-        download.setTotalRecords(-1);
         log.info(
-            "Couldn't get number of records for download {}. They are being set to -1 at download creation time.",
+            "Couldn't get number of records for download {}. They are being set to zero at download creation time.",
             downloadId);
       }
     }

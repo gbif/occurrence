@@ -38,6 +38,7 @@ import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.catalog.Table;
 import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.DataTypes;
@@ -363,6 +364,14 @@ public class TableBackfill {
   }
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
+
+    if(log.isDebugEnabled()) {
+      log.debug("Current catalog:{}, current database {}", spark.catalog().currentCatalog(), spark.catalog().currentDatabase());
+      Dataset<Table> tables = spark.catalog().listTables();
+      log.debug("Tables in catalog:");
+      tables.collectAsList().forEach(t -> log.debug("Table: {}", t.name()));
+    }
+
     spark
         .table(configuration.getTableNameWithPrefix())
         .select(
@@ -502,9 +511,7 @@ public class TableBackfill {
       if (spark.catalog().tableExists(configuration.getTableName())) {
         spark.sql(renameTable(configuration.getTableName(), "old_" + configuration.getTableName()));
       } else {
-        log.info(
-            "Table {} does not exist - perhaps this is the first run ?, skipping rename",
-            configuration.getTableName());
+        log.info("Table {} does not exist - perhaps this is the first run ?, skipping rename",  configuration.getTableName());
       }
       spark.sql(renameTable(configuration.getTableNameWithPrefix(), configuration.getTableName()));
     }

@@ -44,17 +44,16 @@ public class OccurrenceSearchResourceTest {
             .collect(Collectors.toSet());
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
-      String name;
-      switch (param) {
-        case IDENTIFIED_BY_ID:
-        case RECORDED_BY_ID:
-          // Capital ID for consistency with Darwin Core
-          name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name()).replace("Id", "ID");
-          break;
-        // Note non-public search terms should still be documented, but with hidden=true.
-        default:
-          name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name());
+
+      String name = null;
+      if (param.equals(OccurrenceSearchParameter.IDENTIFIED_BY_ID)) {
+        name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name()).replace("Id", "ID");
+      } else if (param.equals(OccurrenceSearchParameter.RECORDED_BY_ID)) {
+        name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name()).replace("Id", "ID");
+      } else {
+        name = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, param.name());
       }
+
       assertTrue("Search parameter " + param + "/" + name + " is not documented", documentedParameters.contains(name));
     }
   }

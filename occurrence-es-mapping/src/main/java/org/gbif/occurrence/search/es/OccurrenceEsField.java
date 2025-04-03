@@ -121,7 +121,10 @@ public enum OccurrenceEsField implements EsField {
   HAS_COORDINATE(new BaseEsField("hasCoordinate", GbifTerm.hasCoordinate)),
   REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
-  //Taxonomic classification
+  CLASSIFICATIONS(new BaseEsField("classifications", null)),
+  CHECKLIST_KEY(new BaseEsField("checklistKey", GbifTerm.checklistKey)),
+
+  // Legacy Taxonomic classification - these mappings are not used if checklistKey is specified
   USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
   TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
   TAXON_RANK(new BaseEsField("gbifClassification.usage.rank", DwcTerm.taxonRank)),
@@ -144,6 +147,7 @@ public enum OccurrenceEsField implements EsField {
   SPECIES_KEY(new BaseEsField("gbifClassification.speciesKey", GbifTerm.speciesKey)),
   SPECIES(new BaseEsField("gbifClassification.species", GbifTerm.species)),
   SCIENTIFIC_NAME(new BaseEsField("gbifClassification.usage.name", DwcTerm.scientificName)),
+  SCIENTIFIC_NAME_AUTHORSHIP(new BaseEsField("gbifClassification.usage.authorship", DwcTerm.scientificNameAuthorship)),
   SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet)),
   INFRA_SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
   GENERIC_NAME(new BaseEsField("gbifClassification.usageParsedName.genericName", DwcTerm.genericName)),
@@ -318,6 +322,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.PUBLISHED_BY_GBIF_REGION, PUBLISHED_BY_GBIF_REGION)
       .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
+      .put(OccurrenceSearchParameter.CHECKLIST_KEY,CHECKLIST_KEY)
       .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
       .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(OccurrenceSearchParameter.KINGDOM_KEY, KINGDOM_KEY)

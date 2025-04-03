@@ -18,8 +18,8 @@ import org.gbif.occurrence.mail.util.OccurrenceMailUtils;
 import java.util.Date;
 import java.util.Set;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
