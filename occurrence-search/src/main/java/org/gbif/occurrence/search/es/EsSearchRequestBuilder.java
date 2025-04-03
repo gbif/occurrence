@@ -22,9 +22,12 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
+import org.gbif.rest.client.species.Metadata;
 import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -34,6 +37,7 @@ import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
@@ -76,11 +80,14 @@ public class EsSearchRequestBuilder {
 
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final ConceptClient conceptClient;
+  private final NameUsageMatchingService nameUsageMatchingService;
 
   public EsSearchRequestBuilder(
-      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient) {
+      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient,
+      NameUsageMatchingService nameUsageMatchingService) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
     this.conceptClient = conceptClient;
+    this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
   public SearchRequest buildSearchRequest(OccurrenceSearchRequest searchRequest, String index) {
@@ -168,7 +175,41 @@ public class EsSearchRequestBuilder {
     return request;
   }
 
-  private Optional<QueryBuilder> buildQuery(
+  // Method to build and add a nested checklist query
+  private void addChecklistKeyTaxonKeyQuery(Map<OccurrenceSearchParameter, Set<String>> params,
+                                            BoolQueryBuilder bool,
+                                            OccurrenceSearchParameter taxonParam,
+                                            String taxonField) {
+    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY) && params.containsKey(taxonParam)) {
+      // Build the query
+      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+          .must(QueryBuilders.termsQuery(taxonField, params.get(taxonParam))
+        );
+      params.remove(taxonParam);
+      bool.filter().add(checklistQuery);
+    }
+  }
+
+  // Method to build and add a nested checklist query
+  private void addChecklistKeyTaxonKeyQuery(
+      String checklistKey,
+      String rank,
+      BoolQueryBuilder bool,
+      Map<OccurrenceSearchParameter, Set<String>> params) {
+
+    OccurrenceSearchParameter taxonParam = new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class);
+    if (!StringUtils.isEmpty(checklistKey) && params.containsKey(taxonParam)) {
+      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.termsQuery("classifications."
+          + checklistKey + ".taxonKeys.keyword", params.get(taxonParam)
+        ));
+      params.remove(taxonParam);
+      bool.filter().add(checklistQuery);
+    }
+  }
+
+  @VisibleForTesting
+  Optional<QueryBuilder> buildQuery(
       Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchCase) {
     VocabularyFieldTranslator.translateVocabs(params, conceptClient);
 
@@ -181,6 +222,10 @@ public class EsSearchRequestBuilder {
     }
 
     if (params != null && !params.isEmpty()) {
+
+      // Add the queries based on different taxonomic levels
+      handleTaxonomicQueries(params, bool);
+
       // adding geometry to bool
       if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
         BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
@@ -224,6 +269,48 @@ public class EsSearchRequestBuilder {
     // bool.filter().add(QueryBuilders.termQuery("type",
     // esFieldMapper.getSearchType().getObjectName()));
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
+  }
+
+  private void handleTaxonomicQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+
+    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
+
+      String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.TAXON_KEY,
+        "classifications." + checklistKey + ".taxonKeys.keyword");
+
+      addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY,
+        "classifications." + checklistKey + ".acceptedUsage.key.keyword");
+
+      if (nameUsageMatchingService != null){
+        nameUsageMatchingService.getMetadata(checklistKey)
+          .getMainIndex().getNameUsageByRankCount().keySet().forEach(rank -> {
+          addChecklistKeyTaxonKeyQuery(
+            checklistKey,
+            rank,
+            bool,
+            params
+          );
+        });
+      }
+
+      addChecklistKeyTaxonDepthQuery(params, bool);
+    }
+  }
+
+  private void addChecklistKeyTaxonDepthQuery(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+
+    params.entrySet().stream()
+      .filter(e -> isTaxonDepthParam(e.getKey()))
+      .forEach(e -> {
+        String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+        String depth = e.getKey().name().replace("TAXON_DEPTH_", "");
+        String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth + ".keyword";
+        BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+          .must(QueryBuilders.termQuery(esFieldToUse, e.getValue().iterator().next()));
+        bool.filter().add(checklistQuery);
+      });
   }
 
   @SneakyThrows
@@ -423,24 +510,105 @@ public class EsSearchRequestBuilder {
         .collect(Collectors.toList());
   }
 
+  boolean isDynamicRankParam(OccurrenceSearchRequest searchRequest, OccurrenceSearchParameter p){
+
+    if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
+      String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+      Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
+      if (metadata != null) {
+        Set<String> ranks = metadata.getMainIndex().getNameUsageByRankCount().keySet();
+        for (String rank : ranks) {
+          if (p.equals(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class))) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  static boolean isTaxonDepthParam(OccurrenceSearchParameter p){
+    return p.name().startsWith("TAXON_DEPTH_");
+  }
+
   private List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
     final AtomicReference<GroupedParams> groupedParams = new AtomicReference<>();
     return searchRequest.getFacets().stream()
-        .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null)
+        .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null || isDynamicRankParam(searchRequest, p)
+          || isTaxonDepthParam(p))
         .map(
             facetParam -> {
               EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
-              if (esField.isChildField()) {
+              if (esField != null && esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
                 }
                 return getChildrenAggregationBuilder(
                     searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
               }
-              return buildTermsAggs(
+
+              // if checklistKey is present, we need to substitute the field name
+              if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY) && isTaxonomic(facetParam)) {
+
+                String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+                String esFieldToUse = null;
+
+                if (esField.getTerm().equals(GbifTerm.taxonKey)){
+                  esFieldToUse = "classifications." + checklistKey + ".taxonKeys.keyword";
+                } else if (rankToField.containsKey(esField.getTerm())){
+                  esFieldToUse = "classifications."
+                    + checklistKey + ".classificationKeys." + rankToField.get(esField.getTerm()).toUpperCase() + ".keyword";
+                } else {
+                  return buildTermsAggs(
+                    esField.getSearchFieldName(), esField, searchRequest, facetParam);
+                }
+
+                return buildTermsAggs(
+                    esField.getSearchFieldName(), esFieldToUse, searchRequest, facetParam);
+              } else if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
+                && isDynamicRankParam(searchRequest, facetParam)) {
+                  String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+                  String rank = facetParam.name().replace("_KEY", "");
+                  String esFieldToUse = "classifications." + checklistKey + ".classificationKeys." + rank.toUpperCase() + ".keyword";
+                  return buildTermsAggs(
+                    facetParam.name(),
+                    esFieldToUse,
+                    searchRequest,
+                    facetParam);
+              } else if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
+                && isTaxonDepthParam(facetParam)) {
+
+                String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
+                String depth = facetParam.name().replace("TAXON_DEPTH_", "");
+                String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth + ".keyword";
+                return buildTermsAggs(
+                  facetParam.name(),
+                  esFieldToUse,
+                  searchRequest,
+                  facetParam);
+
+              } else {
+                return buildTermsAggs(
                   esField.getSearchFieldName(), esField, searchRequest, facetParam);
+              }
             })
         .collect(Collectors.toList());
+  }
+
+  static Map<GbifTerm, String> rankToField = Map.of(
+    GbifTerm.speciesKey, "species",
+    GbifTerm.subgenusKey, "subgenus",
+    GbifTerm.genusKey, "genus",
+    GbifTerm.familyKey, "family",
+    GbifTerm.orderKey, "order",
+    GbifTerm.classKey, "class",
+    GbifTerm.phylumKey, "phylum",
+    GbifTerm.kingdomKey, "kingdom"
+  );
+
+  private boolean isTaxonomic(OccurrenceSearchParameter param) {
+    return param == OccurrenceSearchParameter.ACCEPTED_TAXON_KEY
+        || param == OccurrenceSearchParameter.TAXON_KEY;
   }
 
   private ChildrenAggregationBuilder getChildrenAggregationBuilder(
@@ -470,13 +638,15 @@ public class EsSearchRequestBuilder {
       EsField esField,
       OccurrenceSearchRequest searchRequest,
       OccurrenceSearchParameter facetParam) {
+    String fieldName = searchRequest.isMatchCase() ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+    return buildTermsAggs(aggName, fieldName, searchRequest, facetParam);
+  }
+
+  private static TermsAggregationBuilder buildTermsAggs(String aggName, String fieldName, OccurrenceSearchRequest searchRequest, OccurrenceSearchParameter facetParam ) {
     // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
         AggregationBuilders.terms(aggName)
-            .field(
-                searchRequest.isMatchCase()
-                    ? esField.getVerbatimFieldName()
-                    : esField.getExactMatchFieldName());
+            .field(fieldName);
 
     // min count
     Optional.ofNullable(searchRequest.getFacetMinCount()).ifPresent(termsAggsBuilder::minDocCount);

@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>1.0.30-SNAPSHOT</version>
+    <version>1.0.28-multitaxonomy-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-cli</artifactId>
@@ -191,8 +191,8 @@
       <artifactId>gbif-common-ws</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif</groupId>

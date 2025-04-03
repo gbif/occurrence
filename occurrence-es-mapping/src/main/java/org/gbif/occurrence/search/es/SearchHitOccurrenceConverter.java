@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.search.es;
 
+import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.AgentIdentifier;
@@ -23,6 +24,7 @@ import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.v2.RankedName;
 import org.gbif.api.vocabulary.AgentIdentifierType;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
@@ -48,6 +50,7 @@ import java.net.URI;
 import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -84,8 +87,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setCrawlingFields(hit, occ);
     setDatasetFields(hit, occ);
     setTaxonFields(hit, occ);
+    setClassifications(hit, occ);
     setGrscicollFields(hit, occ);
-    setDnaFields(hit, occ);
 
     // issues
     getListValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.issue).getValueFieldName())
@@ -389,6 +392,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.speciesKey)).ifPresent(occ::setSpeciesKey);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.species)).ifPresent(occ::setSpecies);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.scientificName)).ifPresent(occ::setScientificName);
+    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.scientificNameAuthorship)).ifPresent(occ::setScientificNameAuthorship);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.specificEpithet)).ifPresent(occ::setSpecificEpithet);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.infraspecificEpithet)).ifPresent(occ::setInfraspecificEpithet);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.genericName)).ifPresent(occ::setGenericName);
@@ -398,6 +402,48 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.acceptedScientificName)).ifPresent(occ::setAcceptedScientificName);
     getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.taxonomicStatus), TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(IucnTerm.iucnRedListCategory)).ifPresent(occ::setIucnRedListCategory);
+  }
+
+  private void setClassifications(SearchHit hit, Occurrence occ) {
+
+    getMapValue(hit, "classifications").flatMap(classifications -> Optional.of(classifications.entrySet().stream().map(m -> {
+
+      String datasetKey = m.getKey();
+      Map<String, Object> value = (Map<String, Object>) m.getValue();
+
+      Classification cl = new Classification();
+      cl.setChecklistKey(datasetKey);
+
+      //set the usage
+      Map<String, String> usage = (Map<String, String>) value.get("usage");
+      cl.setUsage(new RankedName(usage.get("key"), usage.get("name"), usage.get("rank"), usage.get("authorship")));
+
+      //set the accepted usage
+      Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
+      Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"), au.get("authorship"))));
+
+      //set the classification depth
+      Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
+      Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue)).values();
+
+      Map<String, String> tree = (Map<String, String>) value.get("classification");
+      Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
+        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+      cl.setIucnRedListCategory((String) value.get("iucnRedListCategory"));
+
+      cl.setClassification(
+        keysSorted.stream()
+          .map(key -> new RankedName(
+            key,
+            tree.get(keyToRank.get(key)),
+            keyToRank.get(key),
+            null)
+          )
+          .collect(Collectors.toList())
+      );
+      return cl;
+    }).collect(Collectors.toList()))).ifPresent(occ::setClassifications);
   }
 
   private void setGrscicollFields(SearchHit hit, Occurrence occ) {
@@ -426,11 +472,6 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastInterpreted)).ifPresent(occ::setLastInterpreted);
     getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastParsed)).ifPresent(occ::setLastParsed);
     getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastCrawled)).ifPresent(occ::setLastCrawled);
-  }
-
-  private void setDnaFields(SearchHit hit, Occurrence occ) {
-    getListValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.dnaSequenceID))
-        .ifPresent(occ::setDnaSequenceID);
   }
 
   private void parseMultimediaItems(SearchHit hit, Occurrence occ) {

@@ -49,11 +49,12 @@ public final class HiveDataTypes {
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
   public static final String TYPE_VOCABULARY_STRUCT = "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
   public static final String TYPE_VOCABULARY_ARRAY_STRUCT = "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
+  public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
   // An index of types for terms, if used in the interpreted context
-  private static final Map<Term, String> TYPED_TERMS;
+  public static final Map<Term, String> TYPED_TERMS;
   private static final Set<Term> ARRAY_STRING_TERMS =
     ImmutableSet.of(
       GbifTerm.mediaType,
@@ -77,7 +78,8 @@ public final class HiveDataTypes {
       DwcTerm.associatedSequences,
       GbifTerm.lithostratigraphy,
       GbifTerm.biostratigraphy,
-      GbifTerm.dnaSequenceID
+      GbifTerm.dnaSequenceID,
+      GbifTerm.checklistKey
     );
 
   // dates are all stored as BigInt
@@ -97,16 +99,6 @@ public final class HiveDataTypes {
     DwcTerm.day,
     DwcTerm.startDayOfYear,
     DwcTerm.endDayOfYear,
-    GbifTerm.taxonKey,
-    GbifTerm.kingdomKey,
-    GbifTerm.phylumKey,
-    GbifTerm.classKey,
-    GbifTerm.orderKey,
-    GbifTerm.familyKey,
-    GbifTerm.genusKey,
-    GbifTerm.subgenusKey,
-    GbifTerm.speciesKey,
-    GbifTerm.acceptedTaxonKey,
     GbifInternalTerm.crawlId,
     GbifInternalTerm.identifierCount,
     DwcTerm.individualCount);
@@ -169,6 +161,8 @@ public final class HiveDataTypes {
       } else {
         return TYPE_VOCABULARY_STRUCT;
       }
+    } else if (term.equals(GbifInternalTerm.classifications)) {
+      return TYPE_MAP_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }

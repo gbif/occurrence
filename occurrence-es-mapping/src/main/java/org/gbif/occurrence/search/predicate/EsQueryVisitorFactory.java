@@ -19,10 +19,14 @@ import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 public class EsQueryVisitorFactory {
 
-  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
-      OccurrenceBaseEsFieldMapper fieldMapper) {
+  @JsonDeserialize(as = OccurrenceSearchParameter.class)
+  public static class OccurrenceSearchParameterMixin {}
+
+  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(OccurrenceBaseEsFieldMapper fieldMapper) {
     return new EsQueryVisitor<>(
         new org.gbif.predicate.query.EsFieldMapper<OccurrenceSearchParameter>() {
 
@@ -52,14 +56,19 @@ public class EsQueryVisitorFactory {
           }
 
           @Override
+          public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
+            return fieldMapper.getChecklistField(checklistKey, searchParameter);
+          }
+
+          @Override
           public boolean includeNullInPredicate(
-              SimplePredicate<OccurrenceSearchParameter> predicate) {
+            SimplePredicate<OccurrenceSearchParameter> predicate) {
             return fieldMapper.includeNullInPredicate(predicate);
           }
 
           @Override
           public boolean includeNullInRange(
-              OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+            OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
             return fieldMapper.includeNullInRange(param, rangeQueryBuilder);
           }
         });
