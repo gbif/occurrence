@@ -77,7 +77,6 @@ public class HiveColumnsUtils {
         || GbifInternalTerm.dwcaExtension == term
         || DwcTerm.datasetID == term
         || DwcTerm.datasetName == term
-        || DwcTerm.typeStatus == term
         || DwcTerm.otherCatalogNumbers == term
         || DwcTerm.recordedBy == term
         || DwcTerm.identifiedBy == term
