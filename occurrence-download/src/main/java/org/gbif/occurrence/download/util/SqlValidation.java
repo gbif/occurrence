@@ -238,6 +238,13 @@ public class SqlValidation {
         Arrays.asList(doubleType, doubleType),
         Arrays.asList("gt", "lte"));
 
+      RelDataType stringMapArray = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
+        Arrays.asList(varCharArray, varCharArray),
+        Arrays.asList("concepts", "lineage"));
+
+      // String array definition
+      RelDataType structMap = tdf.createMapType(varChar, varCharArray);
+
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
         field -> {
           switch (field.getHiveDataType()) {
@@ -255,6 +262,11 @@ public class SqlValidation {
               builder.add(field.getColumnName(), vocabularyArray);
               break;
 
+            case HiveDataTypes.TYPE_MAP_STRUCT:
+              // typeStatus.
+              builder.add(field.getColumnName(), structMap);
+              break;
+
             case HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:
               // Currently only parentEventGbifId, which doesn't seem to be set.
               builder.add(field.getColumnName(), parentEventGbifId);
@@ -266,13 +278,6 @@ public class SqlValidation {
               break;
 
             default:
-              if (field != null) {
-                // All other fields
-                log.info("Adding column {} with type {}", field.getColumnName(), field.getHiveDataType());
-                log.info("Hive mapping to sql type name {}", HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
-              } else {
-                log.warn("Field is null");
-              }
               builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
           }
         }
