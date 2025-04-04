@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
@@ -39,6 +40,7 @@ import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 
+@Slf4j
 public class SqlValidation {
 
   //Spark/Hive Catalog
@@ -264,6 +266,13 @@ public class SqlValidation {
               break;
 
             default:
+              if (field != null) {
+                // All other fields
+                log.info("Adding column {} with type {}", field.getColumnName(), field.getHiveDataType());
+                log.info("Hive mapping to sql type name {}", HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
+              } else {
+                log.warn("Field is null");
+              }
               builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
           }
         }
