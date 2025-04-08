@@ -49,7 +49,7 @@ public class SpeciesMatchUDF {
   private TaxonomyInterpreter taxonomyInterpreter;
   private Object lock = new Object();
 
-  public TaxonomyInterpreter getInterpreter(String apiWs) {
+  public TaxonomyInterpreter getInterpreter(String apiNubWs, String apiClbWs) {
     TaxonomyInterpreter ti = taxonomyInterpreter;
     if (ti == null) {
       synchronized (
@@ -57,10 +57,12 @@ public class SpeciesMatchUDF {
         // object
         ti = taxonomyInterpreter;
         if (ti == null) {
-          log.info("Create new species match client using API at {}", apiWs);
-          ApiClientConfiguration cfg = new ApiClientConfiguration();
-          cfg.url = apiWs;
-          ti = new TaxonomyInterpreter(cfg);
+          log.info("Create new species match client using API at {}", apiNubWs);
+          ApiClientConfiguration nubCfg = new ApiClientConfiguration();
+          nubCfg.url = apiNubWs;
+          ApiClientConfiguration clbCfg = new ApiClientConfiguration();
+          clbCfg.url = apiClbWs;
+          ti = new TaxonomyInterpreter(nubCfg, clbCfg);
           taxonomyInterpreter = ti;
         }
       }
@@ -79,13 +81,14 @@ public class SpeciesMatchUDF {
   @Description(
       "A UDF to run a backbone species match against the GBIF API. The UDF is lazily initialized with"
           + " the base URL of the API to be used. Within the same JVM the UDF will only ever use the first URL used and ignores subsequently changed URLs."
-          + "The order of the parameters is the following: nubLookup(api, kingdom, phylum, class_rank, order_rank, family, genus, scientific_name, specific_epithet, infra_specific_epithet, rank)")
+          + "The order of the parameters is the following: nubLookup(apiNub, apiClb, kingdom, phylum, class_rank, order_rank, family, genus, scientific_name, specific_epithet, infra_specific_epithet, rank)")
   @SqlType(
       "row(responsestatus varchar, usagekey integer, scientificname varchar, rank varchar, status varchar, matchtype varchar, confidence integer,"
           + "kingdomkey integer, phylumkey integer, classkey integer, orderkey integer, familykey integer, genuskey integer, specieskey integer,"
           + "kingdom varchar, phylum varchar, class_ varchar, order_ varchar, family varchar, genus varchar, species varchar)")
   public Block nubLookup(
-      @SqlType(StandardTypes.VARCHAR) Slice apiArg,
+      @SqlType(StandardTypes.VARCHAR) Slice apiNubArg,
+      @SqlType(StandardTypes.VARCHAR) Slice apiClbArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice kingdomArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice phylumArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice classRankArg,
@@ -96,8 +99,11 @@ public class SpeciesMatchUDF {
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice specificEpithetArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice infraSpecificEpithetArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice rankArg) {
-    if (apiArg == null) {
-      throw new IllegalArgumentException("Api argument is required");
+    if (apiNubArg == null) {
+      throw new IllegalArgumentException("Api Nub argument is required");
+    }
+    if (apiClbArg == null) {
+      throw new IllegalArgumentException("Api CLB argument is required");
     }
 
     RowType rowType =
@@ -126,7 +132,8 @@ public class SpeciesMatchUDF {
 
     try {
 
-      String api = apiArg.toStringUtf8();
+      String apiNub = apiNubArg.toStringUtf8();
+      String apiClb = apiClbArg.toStringUtf8();
 
       String k = clean(kingdomArg);
       String p = clean(phylumArg);
@@ -141,7 +148,7 @@ public class SpeciesMatchUDF {
 
       // TODO: add authorship as a standalone parameter
       ParseResult<NameUsageMatch> response =
-          getInterpreter(api).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
+          getInterpreter(apiNub, apiClb).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
       RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
       SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
