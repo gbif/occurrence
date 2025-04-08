@@ -514,12 +514,15 @@ public class EsSearchRequestBuilder {
 
     if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
       String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
-      Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
-      if (metadata != null) {
-        Set<String> ranks = metadata.getMainIndex().getNameUsageByRankCount().keySet();
-        for (String rank : ranks) {
-          if (p.equals(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class))) {
-            return true;
+      if (nameUsageMatchingService != null) {
+        // get the metadata for the checklistKey
+        Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
+        if (metadata != null) {
+          Set<String> ranks = metadata.getMainIndex().getNameUsageByRankCount().keySet();
+          for (String rank : ranks) {
+            if (p.equals(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class))) {
+              return true;
+            }
           }
         }
       }
