@@ -213,7 +213,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
-    <download-query-tools.version>2.0.1-multitaxonomy-SNAPSHOT</download-query-tools.version>
+    <download-query-tools.version>2.0.2-multitaxonomy-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>2.0.1-multitaxonomy-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.0</dwca-io.version>
     <gbif-api.version>2.2.0-multitaxonomy-SNAPSHOT</gbif-api.version>
