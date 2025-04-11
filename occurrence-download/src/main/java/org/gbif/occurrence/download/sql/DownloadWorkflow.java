@@ -65,24 +65,26 @@ public class DownloadWorkflow {
   }
 
   public void run() {
-    if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
-      DwcaDownload.builder()
-          .download(download)
-          .downloadStage(downloadStage)
-          .workflowConfiguration(workflowConfiguration)
-          .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .queryExecutorSupplier(queryExecutorSupplier)
-          .build()
-          .run();
-    } else {
-      SimpleDownload.builder()
-          .download(download)
-          .downloadStage(downloadStage)
-          .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
-          .workflowConfiguration(workflowConfiguration)
-          .sparkQueryExecutorSupplier(queryExecutorSupplier)
-          .build()
-          .run();
+    if (DownloadStage.CLEANUP != downloadStage) {
+      if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
+        DwcaDownload.builder()
+            .download(download)
+            .downloadStage(downloadStage)
+            .workflowConfiguration(workflowConfiguration)
+            .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
+            .queryExecutorSupplier(queryExecutorSupplier)
+            .build()
+            .run();
+      } else {
+        SimpleDownload.builder()
+            .download(download)
+            .downloadStage(downloadStage)
+            .queryParameters(downloadQueryParameters(jobConfiguration, workflowConfiguration))
+            .workflowConfiguration(workflowConfiguration)
+            .sparkQueryExecutorSupplier(queryExecutorSupplier)
+            .build()
+            .run();
+      }
     }
   }
 

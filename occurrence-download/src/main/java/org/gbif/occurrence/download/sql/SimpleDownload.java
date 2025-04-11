@@ -69,15 +69,12 @@ public class SimpleDownload {
         zipAndArchive();
         updateDownload();
         break;
-      case CLEANUP:
-        dropTables();
-        break;
       case ALL:
         try {
           executeQuery();
           zipAndArchive();
         } finally {
-          dropTables();
+          DownloadCleaner.dropTables(download.getKey(), workflowConfiguration);
         }
         break;
     }
@@ -218,32 +215,5 @@ public class SimpleDownload {
     return new RegistryClientUtil(workflowConfiguration.getRegistryUser(), workflowConfiguration.getRegistryPassword(), workflowConfiguration.getRegistryWsUrl());
   }
 
-  /**
-    * Create a single query executor for dropping tables.
-    */
-  private SparkQueryExecutor getSingleQueryExecutor() {
-    return SparkQueryExecutor.createSingleQueryExecutor("Clean-up Download job " + download.getKey(), workflowConfiguration);
-  }
-
-  private void dropTables() {
-    try (SparkQueryExecutor queryExecutor = getSingleQueryExecutor()) {
-
-      String downloadTableName = queryParameters.getDatabase() + "." + queryParameters.getDownloadTableName();
-      log.info("Dropping tables with prefix {}", downloadTableName);
-      queryExecutor.accept("DROP" + downloadTableName, "DROP TABLE IF EXISTS " + downloadTableName + " PURGE;");
-      queryExecutor.accept("DROP " + downloadTableName + "_citation",  "DROP TABLE IF EXISTS " + downloadTableName + "_citation PURGE");
-      if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP " + downloadTableName + "_tmp", "DROP TABLE IF EXISTS " +  downloadTableName + "_tmp PURGE");
-        queryExecutor.accept("DROP " + downloadTableName + "_count", "DROP TABLE IF EXISTS " + downloadTableName+ "_count PURGE");
-      } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP " + downloadTableName + "_count", "DROP TABLE IF EXISTS " + downloadTableName + "_count PURGE");
-      } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-        queryExecutor.accept("DROP " + downloadTableName + "_citation", "DROP TABLE IF EXISTS " + downloadTableName + "_citation PURGE");
-        queryExecutor.accept("DROP " + downloadTableName + "_agents", "DROP TABLE IF EXISTS " + downloadTableName + "_agents PURGE");
-        queryExecutor.accept("DROP " + downloadTableName + "_families", "DROP TABLE IF EXISTS " + downloadTableName + "_families PURGE");
-        queryExecutor.accept("DROP " + downloadTableName + "_identifiers","DROP TABLE IF EXISTS " + downloadTableName + "_identifiers PURGE");
-      }
-    }
-  }
 
 }

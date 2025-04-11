@@ -56,18 +56,14 @@ public class DwcaDownload {
       case ARCHIVE:
         zipAndArchive();
         break;
-      case CLEANUP:
-        dropTables();
-        break;
       case ALL:
     try {
       executeQuery();
       zipAndArchive();
-    } finally {
-      dropTables();
+        } finally {
+          DownloadCleaner.dropTables(download.getKey(), workflowConfiguration);
         }
         break;
-
     }
   }
 
@@ -92,15 +88,6 @@ public class DwcaDownload {
     return downloadQuery;
   }
 
-  @SneakyThrows
-  private String dropTablesQuery() {
-    if (dropTablesQuery == null) {
-      dropTablesQuery =
-          SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaDropTableQueryHQL);
-    }
-    return dropTablesQuery;
-  }
-
   private void zipAndArchive() {
     DownloadJobConfiguration configuration =
         DownloadJobConfiguration.builder()
@@ -114,19 +101,6 @@ public class DwcaDownload {
             .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
             .build();
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
-  }
-
-  private void dropTables() {
-    try (SparkQueryExecutor queryExecutor = getSingleQueryExecutor()) {
-      SqlQueryUtils.runMultiSQL("Drop tables - DWCA Download", dropTablesQuery(), queryParameters.toMap(), queryExecutor);
-    }
-  }
-
-  /**
-   * Create a single query executor for dropping tables.
-   */
-  private SparkQueryExecutor getSingleQueryExecutor() {
-    return SparkQueryExecutor.createSingleQueryExecutor("Clean-up Download job " + download.getKey(), workflowConfiguration);
   }
 
   private Map<String, String> getQueryParameters() {

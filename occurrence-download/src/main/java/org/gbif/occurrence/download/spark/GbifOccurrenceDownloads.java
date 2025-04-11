@@ -20,6 +20,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.sql.DownloadCleaner;
 import org.gbif.occurrence.download.sql.DownloadStage;
 import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.occurrence.spark.udf.UDFS;
@@ -37,15 +38,19 @@ public class GbifOccurrenceDownloads {
     }
 
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
-    DownloadWorkflow.builder()
-        .downloadKey(downloadKey)
-        .coreDwcTerm(dwcTerm)
-        .downloadStage(downloadStage)
-        .workflowConfiguration(workflowConfiguration)
-        .queryExecutorSupplier(
-            () -> new SparkQueryExecutor(createSparkSession(downloadKey, workflowConfiguration)))
-        .build()
-        .run();
+    if (DownloadStage.CLEANUP == downloadStage) {
+      DownloadCleaner.dropTables(downloadKey, workflowConfiguration);
+    } else {
+      DownloadWorkflow.builder()
+          .downloadKey(downloadKey)
+          .coreDwcTerm(dwcTerm)
+          .downloadStage(downloadStage)
+          .workflowConfiguration(workflowConfiguration)
+          .queryExecutorSupplier(
+              () -> new SparkQueryExecutor(createSparkSession(downloadKey, workflowConfiguration)))
+          .build()
+          .run();
+    }
   }
 
   public static SparkSession createSparkSession(
