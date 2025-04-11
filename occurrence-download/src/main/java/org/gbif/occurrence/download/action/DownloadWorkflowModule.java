@@ -46,6 +46,7 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -123,6 +124,7 @@ public class DownloadWorkflowModule  {
             JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
                 .registerModule(new JavaTimeModule()))
         .withFormEncoder()
+        .withExponentialBackoffRetry(Duration.ofSeconds(1), 1.0, 5)
         .build(ConceptClient.class);
   }
 
@@ -136,7 +138,9 @@ public class DownloadWorkflowModule  {
             workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_USER_KEY),
             workflowConfiguration.getSetting(DefaultSettings.DOWNLOAD_PASSWORD_KEY))
         .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-        .withFormEncoder();
+        .withFormEncoder()
+        // This will give up to 40 tries, from 2 to 119 seconds apart, over at most 13 minutes (772s).
+        .withExponentialBackoffRetry(Duration.ofSeconds(2), 1.005, 40);
   }
 
   /**
