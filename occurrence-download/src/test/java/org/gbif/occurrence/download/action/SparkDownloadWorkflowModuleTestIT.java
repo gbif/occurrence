@@ -15,7 +15,6 @@ package org.gbif.occurrence.download.action;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 
@@ -35,7 +34,7 @@ import akka.actor.ActorSystem;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class DownloadWorkflowModuleTestIT {
+public class SparkDownloadWorkflowModuleTestIT {
 
    private static TestingCluster curatorTestingCluster;
    private static ElasticsearchContainer embeddedElastic;
@@ -62,7 +61,7 @@ public class DownloadWorkflowModuleTestIT {
 
   private static String getEsVersion() throws IOException {
     Properties properties = new Properties();
-    properties.load(DownloadWorkflowModuleTestIT.class.getClassLoader().getResourceAsStream("maven.properties"));
+    properties.load(SparkDownloadWorkflowModuleTestIT.class.getClassLoader().getResourceAsStream("maven.properties"));
     return properties.getProperty("elasticsearch.version");
   }
 
@@ -127,8 +126,6 @@ public class DownloadWorkflowModuleTestIT {
 
     assertNotNull(module);
 
-    DownloadPrepareAction downloadPrepareAction = module.downloadPrepareAction(DwcTerm.Occurrence, "/tmp/");
-    assertNotNull(downloadPrepareAction);
 
 
     ActorSystem system = ActorSystem.create("DownloadSystem" + downloadJobConfiguration.getDownloadKey());

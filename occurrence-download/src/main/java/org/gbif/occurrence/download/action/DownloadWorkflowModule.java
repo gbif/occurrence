@@ -93,17 +93,6 @@ public class DownloadWorkflowModule  {
    * DownloadPrepare action factory method.
    * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
    */
-  public DownloadPrepareAction downloadPrepareAction(DwcTerm dwcTerm, String wfPath) {
-    return DownloadPrepareAction.builder().esClient(esClient(workflowConfiguration))
-            .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
-            .smallDownloadLimit(workflowConfiguration.getIntSetting(DefaultSettings.MAX_RECORDS_KEY))
-            .workflowConfiguration(workflowConfiguration)
-            .occurrenceDownloadService(downloadServiceClient(dwcTerm, workflowConfiguration))
-            .esFieldMapper(esFieldMapper(workflowConfiguration.getEsIndexType()))
-            .coreTerm(dwcTerm)
-            .wfPath(wfPath)
-            .build();
-  }
 
   /**
    * Creates a DownloadService for Event or Occurrence downloads.
