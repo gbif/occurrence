@@ -17,6 +17,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 
 import lombok.experimental.UtilityClass;
+import org.gbif.api.model.occurrence.SqlDownloadFunction;
 
 @UtilityClass
 public class UDFS {
@@ -32,19 +33,19 @@ public class UDFS {
     sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
 
-    // SQL Downloads
-    sparkSession.udf().register("gbif_DMSGCode", new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_EEARGCode", new EeaCellCodeUdf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_ISEA3HCode", new Isea3hCellCodeUdf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_MGRSCode", new MilitaryGridReferenceSystemCellCodeUdf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_EQDGCode", new ExtendedQuarterDegreeGridCellCodeUdf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_temporalUncertainty", new TemporalUncertaintyUdf(), DataTypes.LongType);
-    sparkSession.udf().register("gbif_geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
-    sparkSession.udf().register("gbif_millisecondsToISO8601", new MillisecondsToISO8601Udf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_secondsToISO8601", new SecondsToISO8601Udf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_secondsToLocalISO8601", new SecondsToLocalISO8601Udf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_within", new ContainsUdf(), DataTypes.BooleanType);
-    sparkSession.udf().register("gbif_stringArrayContains", new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
-    sparkSession.udf().register("gbif_stringArrayLike", new StringArrayLikeGenericUdf(), DataTypes.BooleanType);
+    // SQL Downloads — public-visible names.
+    sparkSession.udf().register(SqlDownloadFunction.DEGREE_MINUTE_SECOND_GRID_CELL_CODE.getSqlIdentifier(), new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.EEA_CELL_CODE.getSqlIdentifier(), new EeaCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.ISEA3H_CELL_CODE.getSqlIdentifier(), new Isea3hCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.MILITARY_GRID_REFERENCE_SYSTEM_CELL_CODE.getSqlIdentifier(), new MilitaryGridReferenceSystemCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.EXTENDED_QUARTER_DEGREE_GRID_CELL_CODE.getSqlIdentifier(), new ExtendedQuarterDegreeGridCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.TEMPORAL_UNCERTAINTY.getSqlIdentifier(), new TemporalUncertaintyUdf(), DataTypes.LongType);
+    sparkSession.udf().register(SqlDownloadFunction.GEO_DISTANCE.getSqlIdentifier(), new GeoDistanceUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register(SqlDownloadFunction.MILLISECONDS_TO_ISO8601.getSqlIdentifier(), new MillisecondsToISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.SECONDS_TO_ISO8601.getSqlIdentifier(), new SecondsToISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.SECONDS_TO_LOCAL_ISO8601.getSqlIdentifier(), new SecondsToLocalISO8601Udf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.CONTAINS.getSqlIdentifier(), new ContainsUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register(SqlDownloadFunction.STRING_ARRAY_CONTAINS_GENERIC.getSqlIdentifier(), new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register(SqlDownloadFunction.STRING_ARRAY_LIKE_GENERIC.getSqlIdentifier(), new StringArrayLikeGenericUdf(), DataTypes.BooleanType);
   }
 }

@@ -42,7 +42,7 @@ WHERE occurrenceStatus = 'PRESENT'
   AND NOT GBIF_StringArrayContains(occurrence.recordedby, 'Matthew', FALSE)
   AND "month" IS NOT NULL
   AND (GBIF_GeoDistance(56.0, 12.0, '10km', decimalLatitude, decimalLongitude) = TRUE
-    OR GBIF_Within('POLYGON ((-64.8 32.3, -65.5 18.3, -80.3 25.2, -64.8 32.3))', decimalLatitude, decimalLongitude) = TRUE)
+    OR GBIF_Within('POLYGON ((10.6 57.9, 7.6 57.0, 7.4 55.0, 10.5 54.5, 11.1 56.6, 10.6 57.9))', decimalLatitude, decimalLongitude) = TRUE)
 GROUP BY
   yearMonth,
   eeaCellCode,
