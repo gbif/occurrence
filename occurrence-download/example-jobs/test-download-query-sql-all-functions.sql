@@ -19,7 +19,7 @@ SELECT
 
   -- Text output functions
   CONCAT_WS(' | ', occurrence.typestatus.concepts) AS typeStatuses,
-  occurrence.typestatus.lineage AS typeStatusLineages,
+  CONCAT_WS(' | ', occurrence.typestatus.lineage) AS typeStatusLineages,
   COALESCE(occurrence.sex.concept, 'NOT_SUPPLIED') AS sex,
 
   -- Measurements
@@ -27,7 +27,7 @@ SELECT
   MIN(COALESCE(coordinateUncertaintyInMeters, 1000)) AS minCoordinateUncertaintyInMeters,
   MIN(GBIF_TemporalUncertainty(eventDate, null)) AS minTemporalUncertaintyDateOnly,
   MIN(GBIF_TemporalUncertainty(eventDate, eventTime)) AS minTemporalUncertaintyDateTime,
-  GBIF_SecondsToLocalISO8601(MAX(eventDate)) AS latestDate,
+  GBIF_SecondsToLocalISO8601(MAX(eventDateLte)) AS latestDate,
   GBIF_MillisecondsToISO8601(MAX(modified)) AS latestModified,
   GBIF_SecondsToISO8601(MAX(dateIdentified)) AS identifiedDate
 FROM
