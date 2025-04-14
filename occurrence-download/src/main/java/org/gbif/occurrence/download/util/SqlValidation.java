@@ -141,6 +141,14 @@ public class SqlValidation {
       OperandTypes.STRING_OPTIONAL_STRING,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.hive.udf.MillisecondsToISO8601UDF
+    additionalOperators.add(new SqlFunction("gbif_millisecondsToISO8601",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      family(SqlTypeFamily.ANY),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.SecondsToISO8601UDF
     additionalOperators.add(new SqlFunction("gbif_secondsToISO8601",
       SqlKind.OTHER_FUNCTION,
@@ -171,14 +179,6 @@ public class SqlValidation {
       ReturnTypes.BOOLEAN,
       null,
       family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER, SqlTypeFamily.BOOLEAN),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
-    // brickhouse.udf.collect.JoinArrayUDF
-    additionalOperators.add(new SqlFunction("gbif_joinArray",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.CHAR,
-      null,
-      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);

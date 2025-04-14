@@ -13,17 +13,22 @@
  */
 package org.gbif.occurrence.spark.udf;
 
+import org.apache.spark.sql.api.java.UDF1;
 import org.gbif.occurrence.cube.functions.TemporalUncertainty;
 
 import org.apache.spark.sql.api.java.UDF2;
 
-public class TemporalUncertaintyUdf implements UDF2<String,String,Long> {
+public class TemporalUncertaintyUdf implements UDF1<String,Long>, UDF2<String,String,Long> {
 
   private final TemporalUncertainty temporalUncertainty = new TemporalUncertainty();
+
+  @Override
+  public Long call(String eventDate) throws Exception {
+    return temporalUncertainty.fromEventDateAndEventTime(eventDate, null);
+  }
 
   @Override
   public Long call(String eventDate, String eventTime) throws Exception {
     return temporalUncertainty.fromEventDateAndEventTime(eventDate, eventTime);
   }
-
 }
