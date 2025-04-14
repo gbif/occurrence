@@ -102,7 +102,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_EQDGCCode",
+    additionalOperators.add(new SqlFunction("gbif_EQDGCode",
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,

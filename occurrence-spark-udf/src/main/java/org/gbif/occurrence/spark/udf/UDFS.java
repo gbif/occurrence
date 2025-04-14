@@ -14,8 +14,6 @@
 package org.gbif.occurrence.spark.udf;
 
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.api.java.UDF1;
-import org.apache.spark.sql.api.java.UDF2;
 import org.apache.spark.sql.types.DataTypes;
 
 import lombok.experimental.UtilityClass;
@@ -35,13 +33,12 @@ public class UDFS {
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
 
     // SQL Downloads
-    sparkSession.udf().register("gbif_DMSGCCode", new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_DMSGCode", new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_EEARGCode", new EeaCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_ISEA3HCode", new Isea3hCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_MGRSCode", new MilitaryGridReferenceSystemCellCodeUdf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_EQDGCCode", new ExtendedQuarterDegreeGridCellCodeUdf(), DataTypes.StringType);
-    sparkSession.udf().register("gbif_temporalUncertainty", (UDF1<?, ?>) new TemporalUncertaintyUdf(), DataTypes.LongType);
-    sparkSession.udf().register("gbif_temporalUncertainty", (UDF2<?, ?, ?>) new TemporalUncertaintyUdf(), DataTypes.LongType);
+    sparkSession.udf().register("gbif_EQDGCode", new ExtendedQuarterDegreeGridCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register("gbif_temporalUncertainty", new TemporalUncertaintyUdf(), DataTypes.LongType);
     sparkSession.udf().register("gbif_geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("gbif_millisecondsToISO8601", new MillisecondsToISO8601Udf(), DataTypes.StringType);
     sparkSession.udf().register("gbif_secondsToISO8601", new SecondsToISO8601Udf(), DataTypes.StringType);
