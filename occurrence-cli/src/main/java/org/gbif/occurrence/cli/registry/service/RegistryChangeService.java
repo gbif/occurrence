@@ -29,6 +29,8 @@ import org.gbif.registry.ws.client.OrganizationClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
+import java.time.Duration;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -50,6 +52,8 @@ public class RegistryChangeService extends AbstractIdleService {
         new ClientBuilder()
             .withUrl(configuration.registryWsUrl)
             .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+            // This will give up to 40 tries, from 2 to 119 seconds apart, over at most 13 minutes (772s).
+            .withExponentialBackoffRetry(Duration.ofSeconds(2), 1.005, 40)
             .withFormEncoder();
     OrganizationService orgClient = clientFactory.build(OrganizationClient.class);
     NetworkService networkService = clientFactory.build(NetworkClient.class);

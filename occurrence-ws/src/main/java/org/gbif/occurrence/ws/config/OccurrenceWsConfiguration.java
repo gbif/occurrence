@@ -24,6 +24,8 @@ import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,6 +48,7 @@ public class OccurrenceWsConfiguration {
         .withCredentials(downloadUsername, downloadUserPassword)
         .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
         .withFormEncoder()
+        .withExponentialBackoffRetry(Duration.ofSeconds(1), 1.0, 5)
         .build(OccurrenceDownloadClient.class);
   }
 

@@ -30,5 +30,8 @@ public class DwcArchiveUtilsTest {
   @Test
   public void testCreateArchiveDescriptor(@TempDir Path testFolder) {
     DwcArchiveUtils.createOccurrenceArchiveDescriptor(testFolder.toFile(), Collections.singleton(Extension.MEASUREMENT_OR_FACT));
+
+    //InputStream is = new FileInputStream(testFolder.resolve("meta.xml").toFile());
+    //IOUtils.copy(is, System.out);
   }
 }

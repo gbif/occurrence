@@ -22,6 +22,8 @@ import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
+import java.time.Duration;
+
 /**
  * Utility class to create registry web service clients.
  */
@@ -35,6 +37,8 @@ public class RegistryClientUtil {
             .withUrl(apiUrl)
             .withCredentials(userName, password)
             .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+            // This will give up to 40 tries, from 2 to 119 seconds apart, over at most 13 minutes (772s).
+            .withExponentialBackoffRetry(Duration.ofSeconds(2), 1.005, 40)
             .withFormEncoder();
   }
 

@@ -22,6 +22,7 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
@@ -107,6 +108,7 @@ public class OccurrenceSearchConfiguration  {
         .withUrl(apiUrl)
         .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
         .withFormEncoder()
+        .withExponentialBackoffRetry(Duration.ofMillis(250), 1.0, 3)
         .build(NameUsageMatchingServiceClient.class);
   }
 }

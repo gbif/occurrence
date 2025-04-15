@@ -128,7 +128,7 @@ public class ExtensionTable {
                                .filter(fieldName -> !fieldName.startsWith("v_")
                                                     && !fieldName.equalsIgnoreCase(GBIFID_FIELD)
                                                     && !fieldName.equalsIgnoreCase(DATASET_KEY_FIELD))
-                               .collect(Collectors.toSet()));
+                               .collect(Collectors.toList()));
     return interpretedFields;
   }
 
