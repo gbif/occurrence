@@ -56,14 +56,6 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
               .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(6)))
               .build());
 
-  private static final Retry DOWNLOAD_RETRY =
-      Retry.of(
-          "downloadApiCall",
-          RetryConfig.custom()
-              .maxAttempts(7)
-              .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(6)))
-              .build());
-
   private final SparkStaticConfiguration sparkStaticConfiguration;
   private final AirflowClient bigDownloadsAirflowClient;
   private final AirflowClient smallDownloadsAirflowClient;
@@ -208,9 +200,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus createRun(String downloadKey) {
     try {
-      Download download =
-          Retry.decorateSupplier(DOWNLOAD_RETRY, () -> downloadClient.get(downloadKey)).get();
-
+      Download download = downloadClient.get(downloadKey);
       Optional<Status> status = getStatusByName(download);
 
       // Send task to Airflow is no statuses found
@@ -243,8 +233,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @Override
   public JobStatus cancelRun(String downloadKey) {
     try {
-      Download download =
-          Retry.decorateSupplier(DOWNLOAD_RETRY, () -> downloadClient.get(downloadKey)).get();
+      Download download = downloadClient.get(downloadKey);
       String dagId = downloadDagId(downloadKey);
 
       JsonNode cancelledJsonNode =
@@ -269,8 +258,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   @SneakyThrows
   @Override
   public Optional<Status> getStatusByName(String downloadKey) {
-    Download download =
-        Retry.decorateSupplier(DOWNLOAD_RETRY, () -> downloadClient.get(downloadKey)).get();
+    Download download = downloadClient.get(downloadKey);
     return getStatusByName(download);
   }
 
