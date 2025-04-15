@@ -59,7 +59,7 @@ public class DownloadUpdaterService {
         log.info(
             "Update status for jobId {}, from {} to {}", downloadKey, download.getStatus(), status);
         download.setStatus(status);
-        occurrenceDownloadClient.update(download);
+        updateDownload(download);
       } else {
         log.debug(
             "Skipping downloads status updating for download {}, status is already {}",
@@ -69,6 +69,10 @@ public class DownloadUpdaterService {
     } else {
       log.error("Can't update status for download {} to {}", downloadKey, status);
     }
+  }
+
+  public void updateDownload(Download download) {
+    occurrenceDownloadClient.update(download);
   }
 
   public void markAsCancelled(String downloadKey) {
