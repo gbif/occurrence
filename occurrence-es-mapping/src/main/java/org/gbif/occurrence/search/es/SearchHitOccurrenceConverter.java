@@ -89,6 +89,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setTaxonFields(hit, occ);
     setClassifications(hit, occ);
     setGrscicollFields(hit, occ);
+    setDnaFields(hit, occ);
 
     // issues
     getListValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.issue).getValueFieldName())
@@ -472,6 +473,11 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastInterpreted)).ifPresent(occ::setLastInterpreted);
     getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastParsed)).ifPresent(occ::setLastParsed);
     getDateValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.lastCrawled)).ifPresent(occ::setLastCrawled);
+  }
+
+  private void setDnaFields(SearchHit hit, Occurrence occ) {
+    getListValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.dnaSequenceID))
+        .ifPresent(occ::setDnaSequenceID);
   }
 
   private void parseMultimediaItems(SearchHit hit, Occurrence occ) {

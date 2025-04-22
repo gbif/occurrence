@@ -25,5 +25,4 @@ public class TemporalUncertaintyUdf implements UDF2<String,String,Long> {
   public Long call(String eventDate, String eventTime) throws Exception {
     return temporalUncertainty.fromEventDateAndEventTime(eventDate, eventTime);
   }
-
 }

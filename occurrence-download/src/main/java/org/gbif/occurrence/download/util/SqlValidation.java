@@ -79,8 +79,7 @@ public class SqlValidation {
       });
     }
 
-//    hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalSqlOperators());
-    hiveSqlValidator = null;
+    hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalSqlOperators());
   }
 
   @VisibleForTesting
@@ -88,7 +87,7 @@ public class SqlValidation {
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
     // org.gbif.occurrence.hive.udf.ContainsUDF
-    additionalOperators.add(new SqlFunction("gbif_within",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.CONTAINS.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
@@ -96,7 +95,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.DmsCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_DMSGCode",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.DEGREE_MINUTE_SECOND_GRID_CELL_CODE.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -104,7 +103,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.EeaCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_EEARGCode",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.EEA_CELL_CODE.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -112,7 +111,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_EQDGCCode",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.EXTENDED_QUARTER_DEGREE_GRID_CELL_CODE.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -120,7 +119,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.GeoDistanceUDF
-    additionalOperators.add(new SqlFunction("gbif_geoDistance",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.GEO_DISTANCE.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
@@ -128,7 +127,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.Isea3hCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_ISEA3HCode",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.ISEA3H_CELL_CODE.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -136,7 +135,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.MilitaryGridReferenceSystemCellCodeUDF
-    additionalOperators.add(new SqlFunction("gbif_MGRSCode",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.MILITARY_GRID_REFERENCE_SYSTEM_CELL_CODE.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -144,7 +143,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.TemporalUncertaintyUDF
-    additionalOperators.add(new SqlFunction("gbif_TemporalUncertainty",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.TEMPORAL_UNCERTAINTY.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.INTEGER,
       null,
@@ -160,7 +159,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.SecondsToISO8601UDF
-    additionalOperators.add(new SqlFunction("gbif_secondsToISO8601",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.SECONDS_TO_ISO8601.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -168,7 +167,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.SecondsToLocalISO8601UDF
-    additionalOperators.add(new SqlFunction("gbif_secondsToLocalISO8601",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.SECONDS_TO_LOCAL_ISO8601.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.CHAR,
       null,
@@ -176,7 +175,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.spark.udf.StringArrayContainsGenericUdf
-    additionalOperators.add(new SqlFunction("gbif_stringArrayContains",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.STRING_ARRAY_CONTAINS_GENERIC.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
@@ -184,7 +183,7 @@ public class SqlValidation {
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.spark.udf.StringArrayLikeGenericUdf
-    additionalOperators.add(new SqlFunction("gbif_stringArrayLike",
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.STRING_ARRAY_LIKE_GENERIC.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.BOOLEAN,
       null,
@@ -267,7 +266,6 @@ public class SqlValidation {
               break;
 
             case HiveDataTypes.TYPE_MAP_STRUCT:
-              // typeStatus.
               builder.add(field.getColumnName(), structMap);
               break;
 
