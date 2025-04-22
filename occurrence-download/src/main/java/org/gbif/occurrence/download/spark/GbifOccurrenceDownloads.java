@@ -28,7 +28,7 @@ public class GbifOccurrenceDownloads {
 
   public static void main(String[] args) throws IOException {
     String downloadKey = args[0];
-    DwcTerm dwcTerm = DwcTerm.valueOf(args[1]);  // OCCURRENCE or EVENT
+    DwcTerm dwcTerm = DwcTerm.valueOf(args[1]); // OCCURRENCE or EVENT
     String propertiesFile = args[2];
     DownloadStage downloadStage = DownloadStage.ALL;
     if (args.length > 3) {

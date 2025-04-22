@@ -13,11 +13,16 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.apache.avro.Schema;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import org.gbif.dwc.terms.TermFactory;
 import org.junit.jupiter.api.Test;
 
 import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
@@ -27,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test cases for generated extensions tables.
  */
 public class ExtensionTableTest {
+
+  private static final TermFactory TERM_FACTORY = TermFactory.instance();
 
   /**
    * All available extensions are correct.
@@ -93,13 +100,40 @@ public class ExtensionTableTest {
   @Test
   public void interpretedFieldsAsTermsTest() {
     for (Extension ext : Extension.availableExtensions()) {
-      System.out.println("Extension " + ext);
       ExtensionTable extensionTable = new ExtensionTable(ext);
 
       for (Term t : extensionTable.getInterpretedFieldsAsTerms()) {
-        //System.out.println(t);
         if (t instanceof UnknownError) {
           fail("Unknown term "+t);
+        }
+      }
+    }
+  }
+
+  /**
+   * Check the getInterpretedFields and getInterpretedFieldsAtTerms methods use the same order.
+   */
+  @Test
+  public void consistentFieldTermsOrderTest() {
+    for (Extension ext : Extension.availableExtensions()) {
+      ExtensionTable extensionTable = new ExtensionTable(ext);
+
+      Set<String> fields = extensionTable.getInterpretedFields();
+      List<Term> terms = extensionTable.getInterpretedFieldsAsTerms();
+      assertEquals(fields.size(), terms.size());
+
+      int i = 0;
+      for (String fieldString : fields) {
+        Term term = terms.get(i++);
+
+        if (term.equals(GbifTerm.gbifID)) {
+          assertEquals(ExtensionTable.GBIFID_FIELD, fieldString);
+        } else if (term.equals(GbifTerm.datasetKey)) {
+          assertEquals(ExtensionTable.DATASET_KEY_FIELD, fieldString);
+        } else {
+          String unescapedFieldName = fieldString.replaceAll("`", "").replaceAll("^([0-9])", "_\\1");
+          Schema.Field field = extensionTable.getSchema().getField(unescapedFieldName);
+          assertEquals(TERM_FACTORY.findPropertyTerm(field.doc()), term);
         }
       }
     }

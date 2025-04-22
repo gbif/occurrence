@@ -60,7 +60,7 @@ public class HiveColumnsUtils {
       if (TermUtils.isArray(term)) {
         return "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
       } else {
-      return "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
+        return "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
       }
     } else {
       return "STRING";
