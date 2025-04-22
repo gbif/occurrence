@@ -4,7 +4,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,9 +13,6 @@ import java.io.IOException;
 
 @Component
 public class TrailingSlashHandlerFilter extends OncePerRequestFilter {
-
-  @Value("${api.url}")
-  String apiUrl;
 
   @Override
   protected void doFilterInternal(
@@ -32,7 +28,7 @@ public class TrailingSlashHandlerFilter extends OncePerRequestFilter {
       if (queryString != null) {
         url.append("?").append(queryString);
       }
-      response.setStatus(HttpStatus.MOVED_PERMANENTLY.value());
+      response.setStatus(HttpStatus.TEMPORARY_REDIRECT.value());
       response.setHeader(HttpHeaders.LOCATION, url.toString());
       return;
     }
