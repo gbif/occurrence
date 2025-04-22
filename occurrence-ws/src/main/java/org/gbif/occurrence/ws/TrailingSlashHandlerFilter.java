@@ -21,17 +21,17 @@ public class TrailingSlashHandlerFilter extends OncePerRequestFilter {
     FilterChain filterChain
   ) throws ServletException, IOException {
 
-    if (request.getRequestURL().toString().endsWith("/")) {
-      String newUrl = request.getRequestURL().substring(0, request.getRequestURL().length() - 1);
-      StringBuilder url = new StringBuilder(newUrl);
-      String queryString = request.getQueryString();
-      if (queryString != null) {
-        url.append("?").append(queryString);
-      }
-      response.setStatus(HttpStatus.TEMPORARY_REDIRECT.value());
-      response.setHeader(HttpHeaders.LOCATION, url.toString());
-      return;
-    }
+//    if (request.getRequestURL().toString().endsWith("/")) {
+//      String newUrl = request.getRequestURL().substring(0, request.getRequestURL().length() - 1);
+//      StringBuilder url = new StringBuilder(newUrl);
+//      String queryString = request.getQueryString();
+//      if (queryString != null) {
+//        url.append("?").append(queryString);
+//      }
+//      response.setStatus(HttpStatus.PERMANENT_REDIRECT.value());
+//      response.setHeader(HttpHeaders.LOCATION, url.toString());
+//      return;
+//    }
 
     filterChain.doFilter(request, response);
   }

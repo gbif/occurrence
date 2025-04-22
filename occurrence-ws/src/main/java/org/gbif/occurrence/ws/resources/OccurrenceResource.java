@@ -33,11 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -229,11 +225,18 @@ public class OccurrenceResource {
   )
   @OccurrenceErrorResponses
   @NullToNotFound
-  @GetMapping("{gbifId}")
+  @GetMapping({"{gbifId}", "{gbifId}/"})
   public Occurrence get(@PathVariable("gbifId") Long gbifId) {
     LOG.debug("Request Occurrence [{}]:", gbifId);
     return occurrenceGetByKey.get(gbifId);
   }
+//
+//  @Hidden
+//  @GetMapping({ "{gbifId}/"})
+//  public Occurrence get2(@PathVariable("gbifId") Long gbifId) {
+//    LOG.debug("Request Occurrence [{}]:", gbifId);
+//    return occurrenceGetByKey.get(gbifId);
+//  }
 
   /**
    * This retrieves a single Occurrence detail from the occurrence store.
@@ -264,6 +267,14 @@ public class OccurrenceResource {
     LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
     return occurrenceGetByKey.get(datasetKey, occurrenceId);
   }
+//
+//  @GetMapping("/{datasetKey}/{occurrenceId}/")
+//  @ResponseBody
+//  @Hidden
+//  public Occurrence get2(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
+//    LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
+//    return occurrenceGetByKey.get(datasetKey, occurrenceId);
+//  }
 
   /**
    * This retrieves a single occurrence fragment in its raw form as a string.
