@@ -48,6 +48,7 @@ import javax.validation.constraints.NotNull;
 import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,7 +74,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.SneakyThrows;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -1499,16 +1499,14 @@ public class OccurrenceSearchResource {
             hidden = true),
         @Parameter(
             name = "matchCase",
-            description =
-                "*Experimental.* Indicates if the search has to be case sensitive",
+            description = "*Experimental.* Indicates if the search has to be case sensitive",
             schema = @Schema(implementation = Boolean.class),
             in = ParameterIn.QUERY,
             example = "true"),
         @Parameter(
           name = "shuffle",
-          description =
-            "*Experimental.* Seed to sort the results randomly.",
-          explode = Explode.FALSE,
+          description = "*Experimental.* Seed to sort the results randomly.",
+          schema = @Schema(implementation = String.class),
           in = ParameterIn.QUERY,
           example = "abcdefgh"),
         @Parameter(
@@ -1544,7 +1542,7 @@ public class OccurrenceSearchResource {
       })
   @GetMapping
   public SearchResponse<Occurrence, OccurrenceSearchParameter> search(
-      OccurrenceSearchRequest request) {
+    @ParameterObject OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
     return searchService.search(request);

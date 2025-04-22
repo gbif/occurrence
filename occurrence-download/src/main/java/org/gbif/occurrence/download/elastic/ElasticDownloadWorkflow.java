@@ -58,7 +58,7 @@ public class ElasticDownloadWorkflow {
     long recordCount = recordCount(download);
     if (!isSmallDownloadCount(recordCount)) {
       throw new IllegalArgumentException(
-          "Download to big for ES. Number of records: " + recordCount);
+          "Download too big for ES. Number of records: " + recordCount);
     }
 
     Properties settings = workflowConfiguration.getDownloadSettings();

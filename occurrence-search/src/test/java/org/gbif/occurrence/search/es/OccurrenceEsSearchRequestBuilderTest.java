@@ -51,7 +51,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
   @Test
   public void termQueryTest() throws IOException {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addKingdomKeyFilter(6);
+    searchRequest.addKingdomKeyFilter("6");
 
     QueryBuilder query =
         esSearchRequestBuilder

@@ -13,8 +13,10 @@
  */
 package org.gbif.occurrence.download.util;
 
+import calcite_gbif_shaded.com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.model.occurrence.SqlDownloadFunction;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
@@ -77,6 +79,12 @@ public class SqlValidation {
       });
     }
 
+//    hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalSqlOperators());
+    hiveSqlValidator = null;
+  }
+
+  @VisibleForTesting
+  protected static List<SqlOperator> additionalSqlOperators() {
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
     // org.gbif.occurrence.hive.udf.ContainsUDF
@@ -143,6 +151,14 @@ public class SqlValidation {
       OperandTypes.STRING_OPTIONAL_STRING,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.hive.udf.MillisecondsToISO8601UDF
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.MILLISECONDS_TO_ISO8601.getSqlIdentifier(),
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      family(SqlTypeFamily.ANY),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.SecondsToISO8601UDF
     additionalOperators.add(new SqlFunction("gbif_secondsToISO8601",
       SqlKind.OTHER_FUNCTION,
@@ -175,15 +191,7 @@ public class SqlValidation {
       family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER, SqlTypeFamily.BOOLEAN),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // brickhouse.udf.collect.JoinArrayUDF
-    additionalOperators.add(new SqlFunction("gbif_joinArray",
-      SqlKind.OTHER_FUNCTION,
-      ReturnTypes.CHAR,
-      null,
-      family(SqlTypeFamily.ARRAY, SqlTypeFamily.CHARACTER),
-      SqlFunctionCategory.USER_DEFINED_FUNCTION));
-
-    hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalOperators);
+    return additionalOperators;
   }
 
   public HiveSqlQuery validateAndParse(String sql, boolean addCatalog) throws QueryBuildingException {
@@ -238,11 +246,7 @@ public class SqlValidation {
         Arrays.asList(doubleType, doubleType),
         Arrays.asList("gt", "lte"));
 
-      RelDataType stringMapArray = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
-        Arrays.asList(varCharArray, varCharArray),
-        Arrays.asList("concepts", "lineage"));
-
-      // String array definition
+      //  Map definition
       RelDataType structMap = tdf.createMapType(varChar, varCharArray);
 
       OccurrenceHDFSTableDefinition.definition().stream().forEach(

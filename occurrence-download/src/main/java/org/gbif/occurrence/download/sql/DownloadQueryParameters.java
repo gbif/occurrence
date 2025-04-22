@@ -15,9 +15,16 @@ package org.gbif.occurrence.download.sql;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.Builder;
 import lombok.Data;
+import lombok.SneakyThrows;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 @Builder
 @Data
@@ -37,8 +44,34 @@ public class DownloadQueryParameters {
 
   private String userSqlHeader;
 
+  @SneakyThrows
+  public static DownloadQueryParameters from(
+      Download download,
+      DownloadJobConfiguration jobConfiguration,
+      WorkflowConfiguration workflowConfiguration) {
+    DownloadQueryParameters.DownloadQueryParametersBuilder builder =
+        DownloadQueryParameters.builder()
+            .downloadTableName(jobConfiguration.getDownloadTableName())
+            .whereClause(jobConfiguration.getFilter())
+            .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
+            .database(workflowConfiguration.getHiveDb())
+            .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
+    if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
+      SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
 
-  public Map<String,String> toMap() {
+      String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
+      HiveSqlQuery sqlQuery =
+          sv.validateAndParse(
+              userSql, true); // Declares QueryBuildingException but it's already been validated.
+      builder
+          .userSql(sqlQuery.getSql())
+          .userSqlHeader(String.join("\t", sqlQuery.getSqlSelectColumnNames()))
+          .whereClause(sqlQuery.getSqlWhere());
+    }
+    return builder.build();
+  }
+
+  public Map<String, String> toMap() {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("hiveDB", database);
     parameters.put("tableName", tableName);
@@ -53,6 +86,15 @@ public class DownloadQueryParameters {
       parameters.put("userSqlHeader", userSqlHeader);
     }
 
+    return parameters;
+  }
+
+  public Map<String, String> toMapDwca() {
+    Map<String, String> parameters = toMap();
+    parameters.put("verbatimTable", downloadTableName + "_verbatim");
+    parameters.put("interpretedTable", downloadTableName + "_interpreted");
+    parameters.put("citationTable", downloadTableName + "_citation");
+    parameters.put("multimediaTable", downloadTableName + "_multimedia");
     return parameters;
   }
 }

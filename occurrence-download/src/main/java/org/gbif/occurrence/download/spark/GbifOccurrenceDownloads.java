@@ -21,7 +21,6 @@ import org.apache.spark.sql.SparkSession;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.DownloadStage;
-import org.gbif.occurrence.download.sql.DownloadWorkflow;
 import org.gbif.occurrence.spark.udf.UDFS;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
@@ -36,8 +35,9 @@ public class GbifOccurrenceDownloads {
       downloadStage = DownloadStage.valueOf(args[3]);
     }
 
-    WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
-    DownloadWorkflow.builder()
+    WorkflowConfiguration workflowConfiguration =
+        new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
+    SparkDownloadWorkflow.builder()
         .downloadKey(downloadKey)
         .coreDwcTerm(dwcTerm)
         .downloadStage(downloadStage)
