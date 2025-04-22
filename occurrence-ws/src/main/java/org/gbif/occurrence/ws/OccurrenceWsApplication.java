@@ -64,6 +64,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
       @ComponentScan.Filter(
           type = FilterType.ASSIGNABLE_TYPE,
           classes = {
+            TrailingSlashHandlerFilter.class,
             AppKeySigningService.class,
             FileSystemKeyStore.class,
             IdentityFilter.class,
