@@ -110,7 +110,7 @@ public class EsHeatmapRequestBuilderTest {
   @Test
   public void heatmapRequestFilteredTest() throws IOException {
     OccurrenceHeatmapRequest request = new OccurrenceHeatmapRequest();
-    request.addTaxonKeyFilter(4);
+    request.addTaxonKeyFilter("4");
     request.setGeometry("-44, 30, -32, 54");
     request.setZoom(1);
 
