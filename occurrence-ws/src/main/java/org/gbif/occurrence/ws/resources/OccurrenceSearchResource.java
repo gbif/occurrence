@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import lombok.SneakyThrows;
+import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
@@ -1550,6 +1552,13 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing post query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
       request.getOffset());
     return searchService.search(request);
+  }
+
+  @Hidden
+  @PostMapping("predicate/toesquery")
+  @SneakyThrows
+  public String toEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   /**
