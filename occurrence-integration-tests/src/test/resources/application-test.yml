@@ -1,5 +1,6 @@
+defaultChecklistKey: d7dddbf4-2cf0-4f39-9b2a-bb099caae36c
 appkeys:
-  file: /Users/marcoslopezgonzalez/dev/gdrive/WS/appkeys.properties
+  file: @appkeys.testfile@
 occurrence:
   download:
     disabled: false
@@ -47,6 +48,11 @@ occurrence:
       limit: 300
       offset: 200000
 spring:
+  cloud:
+    zookeeper:
+      enabled: false
+      discovery:
+        enabled: false
   main:
     allow-bean-definition-overriding: true
   liquibase:

@@ -33,6 +33,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OccurrenceWsConfiguration {
 
+
+
   @Bean
   public TitleLookupService titleLookupService(@Value("${api.url}") String apiUrl) {
     return TitleLookupServiceFactory.getInstance(apiUrl);
@@ -55,9 +57,12 @@ public class OccurrenceWsConfiguration {
   @Configuration
   public static class OccurrenceSearchConfigurationWs extends OccurrenceSearchConfiguration {
 
+    @Value("${defaultChecklistKey}")
+    protected String defaultChecklistKey;
+
     @Bean
     public OccurrenceBaseEsFieldMapper esFieldMapper() {
-      return OccurrenceEsField.buildFieldMapper();
+      return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
     }
   }
 

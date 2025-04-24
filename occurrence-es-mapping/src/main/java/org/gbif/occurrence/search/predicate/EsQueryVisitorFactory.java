@@ -21,8 +21,7 @@ import org.gbif.predicate.query.EsQueryVisitor;
 
 public class EsQueryVisitorFactory {
 
-  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
-      OccurrenceBaseEsFieldMapper fieldMapper) {
+  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(OccurrenceBaseEsFieldMapper fieldMapper) {
     return new EsQueryVisitor<>(
         new org.gbif.predicate.query.EsFieldMapper<OccurrenceSearchParameter>() {
 
@@ -52,14 +51,24 @@ public class EsQueryVisitorFactory {
           }
 
           @Override
+          public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
+            return fieldMapper.getChecklistField(checklistKey, searchParameter);
+          }
+
+          @Override
+          public boolean isTaxonomic(OccurrenceSearchParameter searchParameter) {
+            return fieldMapper.isTaxonomic(searchParameter);
+          }
+
+          @Override
           public boolean includeNullInPredicate(
-              SimplePredicate<OccurrenceSearchParameter> predicate) {
+            SimplePredicate<OccurrenceSearchParameter> predicate) {
             return fieldMapper.includeNullInPredicate(predicate);
           }
 
           @Override
           public boolean includeNullInRange(
-              OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+            OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
             return fieldMapper.includeNullInRange(param, rangeQueryBuilder);
           }
         });

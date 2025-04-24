@@ -113,6 +113,30 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
 
   protected final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
 
+  protected Optional<String> getChecklistStringValue(SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
+    String fieldName = esField.getSearchFieldName(defaultChecklistKey);
+    Map<String, Object> fields = hit.getSourceAsMap();
+    fields = getNestedFieldValue(fields, fieldName);
+    fieldName = getNestedFieldName(fieldName);
+    return extractStringValue(fields, fieldName);
+  }
+
+  protected Optional<Integer> getChecklistIntValue(SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
+    String fieldName = esField.getSearchFieldName(defaultChecklistKey);
+    Map<String, Object> fields = hit.getSourceAsMap();
+    fields = getNestedFieldValue(fields, fieldName);
+    fieldName = getNestedFieldName(fieldName);
+    Optional<String> strOpt = extractStringValue(fields, fieldName);
+    if (strOpt.isPresent()) {
+      try {
+        return Optional.of(Integer.valueOf(strOpt.get()));
+      } catch (NumberFormatException e) {
+        log.error("Error parsing int value for field {} with value {}", fieldName, strOpt.get());
+      }
+    }
+    return Optional.empty();
+  }
+
   protected Optional<String> getStringValue(SearchHit hit, EsField esField) {
     return getValue(hit, esField, Function.identity());
   }

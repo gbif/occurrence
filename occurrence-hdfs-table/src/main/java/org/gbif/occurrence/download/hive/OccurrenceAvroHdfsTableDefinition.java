@@ -59,6 +59,9 @@ public class OccurrenceAvroHdfsTableDefinition {
       case HiveDataTypes.TYPE_ARRAY_STRING:
         builder.name(initializableField.getColumnName()).type().nullable().array().items().nullable().stringType().noDefault();
         break;
+      case HiveDataTypes.TYPE_MAP_STRUCT:
+        builder.name(initializableField.getColumnName()).type().nullable().map().values().array().items().stringType().noDefault();
+        break;
       case HiveDataTypes.TYPE_VOCABULARY_STRUCT:
         builder.name(initializableField.getColumnName()).type().nullable().record(getTypeRecordName(initializableField))
           .fields()

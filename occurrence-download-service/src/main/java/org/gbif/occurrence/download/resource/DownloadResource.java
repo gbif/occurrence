@@ -50,9 +50,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -339,7 +339,7 @@ public class DownloadResource {
   @Secured(USER_ROLE)
   public ResponseEntity<String> startDownload(
       @NotNull @Valid @RequestBody DownloadRequest request,
-      @RequestParam(name = "source", required = false) String source,
+      @Parameter(hidden = true) @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
     if (Boolean.TRUE.equals(downloadsDisabled)) {
@@ -353,7 +353,7 @@ public class DownloadResource {
       return ResponseEntity.ok(
           createDownload(request, authentication, principal, parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatusCode()).body(rse.getReason());
     }
   }
 
@@ -537,7 +537,7 @@ public class DownloadResource {
               principal,
               parseSource(source, userAgent)));
     } catch (ResponseStatusException rse) {
-      return ResponseEntity.status(rse.getStatus().value()).body(rse.getReason());
+      return ResponseEntity.status(rse.getStatusCode()).body(rse.getReason());
     }
   }
 

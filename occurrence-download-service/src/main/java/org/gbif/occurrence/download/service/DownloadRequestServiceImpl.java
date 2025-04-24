@@ -42,7 +42,6 @@ import java.util.*;
 
 import javax.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -267,7 +266,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
   }
 
-  @NotNull
   private File getDownloadFile(String filename, String downloadKey) {
     File localFile = new File(downloadMount, filename);
     if (localFile.canRead()) {

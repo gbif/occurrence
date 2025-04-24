@@ -121,37 +121,46 @@ public enum OccurrenceEsField implements EsField {
   HAS_COORDINATE(new BaseEsField("hasCoordinate", GbifTerm.hasCoordinate)),
   REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
-  //Taxonomic classification
-  USAGE_TAXON_KEY(new BaseEsField("gbifClassification.usage.key", GbifTerm.taxonKey)),
-  TAXON_KEY(new BaseEsField("gbifClassification.taxonKey", GbifTerm.taxonKey)),
-  TAXON_RANK(new BaseEsField("gbifClassification.usage.rank", DwcTerm.taxonRank)),
-  ACCEPTED_TAXON_KEY(new BaseEsField("gbifClassification.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
-  ACCEPTED_SCIENTIFIC_NAME(new BaseEsField("gbifClassification.acceptedUsage.name", GbifTerm.acceptedScientificName)),
-  KINGDOM_KEY(new BaseEsField("gbifClassification.kingdomKey", GbifTerm.kingdomKey)),
-  KINGDOM(new BaseEsField("gbifClassification.kingdom", DwcTerm.kingdom)),
-  PHYLUM_KEY(new BaseEsField("gbifClassification.phylumKey", GbifTerm.phylumKey)),
-  PHYLUM(new BaseEsField("gbifClassification.phylum", DwcTerm.phylum)),
-  CLASS_KEY(new BaseEsField("gbifClassification.classKey", GbifTerm.classKey)),
-  CLASS(new BaseEsField("gbifClassification.class", DwcTerm.class_)),
-  ORDER_KEY(new BaseEsField("gbifClassification.orderKey", GbifTerm.orderKey)),
-  ORDER(new BaseEsField("gbifClassification.order", DwcTerm.order)),
-  FAMILY_KEY(new BaseEsField("gbifClassification.familyKey", GbifTerm.familyKey)),
-  FAMILY(new BaseEsField("gbifClassification.family", DwcTerm.family)),
-  GENUS_KEY(new BaseEsField("gbifClassification.genusKey", GbifTerm.genusKey)),
-  GENUS(new BaseEsField("gbifClassification.genus", DwcTerm.genus)),
-  SUBGENUS_KEY(new BaseEsField("gbifClassification.subgenusKey", GbifTerm.subgenusKey)),
-  SUBGENUS(new BaseEsField("gbifClassification.subgenus", DwcTerm.subgenus)),
-  SPECIES_KEY(new BaseEsField("gbifClassification.speciesKey", GbifTerm.speciesKey)),
-  SPECIES(new BaseEsField("gbifClassification.species", GbifTerm.species)),
-  SCIENTIFIC_NAME(new BaseEsField("gbifClassification.usage.name", DwcTerm.scientificName)),
-  SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet)),
-  INFRA_SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
-  GENERIC_NAME(new BaseEsField("gbifClassification.usageParsedName.genericName", DwcTerm.genericName)),
-  TAXONOMIC_STATUS(new BaseEsField("gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus)),
-  TAXON_ID(new BaseEsField("gbifClassification.taxonID", DwcTerm.taxonID)),
-  TAXON_CONCEPT_ID(new BaseEsField("gbifClassification.taxonConceptID", DwcTerm.taxonConceptID)),
-  VERBATIM_SCIENTIFIC_NAME(new BaseEsField("gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName)),
-  IUCN_RED_LIST_CATEGORY(new BaseEsField("gbifClassification.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
+  //classifications is the array containing the multiple matched classifications
+  CLASSIFICATIONS(new BaseEsField("classifications", null)),
+  //checklist key is an array of identifiers for checklists which have a matched taxon i.e. not incertae sedis
+  CHECKLIST_KEY(new BaseEsField("checklistKey", GbifTerm.checklistKey)),
+
+  // Taxonomic classification
+  USAGE_TAXON_KEY(new ChecklistEsField("classifications.%s.usage.key", GbifTerm.taxonKey)),
+  TAXON_KEY(new ChecklistEsField("classifications.%s.taxonKeys", GbifTerm.taxonKey)),
+  TAXON_RANK(new ChecklistEsField("classifications.%s.usage.rank", DwcTerm.taxonRank)),
+  ACCEPTED_TAXON_KEY(new ChecklistEsField("classifications.%s.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
+  ACCEPTED_SCIENTIFIC_NAME(new ChecklistEsField("classifications.%s.acceptedUsage.name", GbifTerm.acceptedScientificName)),
+  KINGDOM_KEY(new ChecklistEsField("classifications.%s.classificationKeys.KINGDOM", GbifTerm.kingdomKey)),
+  KINGDOM(new ChecklistEsField("classifications.%s.classification.KINGDOM", DwcTerm.kingdom)),
+  PHYLUM_KEY(new ChecklistEsField("classifications.%s.classificationKeys.PHYLUM", GbifTerm.phylumKey)),
+  PHYLUM(new ChecklistEsField("classifications.%s.classification.PHYLUM", DwcTerm.phylum)),
+  CLASS_KEY(new ChecklistEsField("classifications.%s.classificationKeys.CLASS", GbifTerm.classKey)),
+  CLASS(new ChecklistEsField("classifications.%s.classification.CLASS", DwcTerm.class_)),
+  ORDER_KEY(new ChecklistEsField("classifications.%s.classificationKeys.ORDER", GbifTerm.orderKey)),
+  ORDER(new ChecklistEsField("classifications.%s.classification.ORDER", DwcTerm.order)),
+  FAMILY_KEY(new ChecklistEsField("classifications.%s.classificationKeys.FAMILY", GbifTerm.familyKey)),
+  FAMILY(new ChecklistEsField("classifications.%s.classification.FAMILY", DwcTerm.family)),
+  GENUS_KEY(new ChecklistEsField("classifications.%s.classificationKeys.GENUS", GbifTerm.genusKey)),
+  GENUS(new ChecklistEsField("classifications.%s.classification.GENUS", DwcTerm.genus)),
+  SUBGENUS_KEY(new ChecklistEsField("classifications.%s.classificationKeys.SUBGENUS", GbifTerm.subgenusKey)),
+  SUBGENUS(new ChecklistEsField("classifications.%s.classification.SUBGENUS", DwcTerm.subgenus)),
+  SPECIES_KEY(new ChecklistEsField("classifications.%s.classificationKeys.SPECIES", GbifTerm.speciesKey)),
+  SPECIES(new ChecklistEsField("classifications.%s.classification.SPECIES", GbifTerm.species)),
+  SCIENTIFIC_NAME(new ChecklistEsField("classifications.%s.usage.name", DwcTerm.scientificName)),
+  SCIENTIFIC_NAME_AUTHORSHIP(new ChecklistEsField("classifications.%s.usage.authorship", DwcTerm.scientificNameAuthorship)),
+  SPECIFIC_EPITHET(new ChecklistEsField("classifications.%s.usage.specificEpithet", DwcTerm.specificEpithet)),
+  INFRA_SPECIFIC_EPITHET(new ChecklistEsField("classifications.%s.usage.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
+  GENERIC_NAME(new ChecklistEsField("classifications.%s.usage.genericName", DwcTerm.genericName)),
+  TAXONOMIC_STATUS(new ChecklistEsField("classifications.%s.status", DwcTerm.taxonomicStatus)),
+  IUCN_RED_LIST_CATEGORY(new ChecklistEsField("classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
+  TAXONOMIC_ISSUE(new ChecklistEsField("classifications.%s.issues", GbifTerm.taxonomicIssue)),
+
+  // verbatim taxon fields - not specific to a single classification
+  TAXON_ID(new BaseEsField("taxonID", DwcTerm.taxonID)),
+  TAXON_CONCEPT_ID(new BaseEsField("taxonConceptID", DwcTerm.taxonConceptID)),
+  VERBATIM_SCIENTIFIC_NAME(new BaseEsField("verbatimScientificName", GbifTerm.verbatimScientificName)),
 
   // GrSciColl
   COLLECTION_KEY(new BaseEsField("collectionKey", GbifInternalTerm.collectionKey)),
@@ -254,10 +263,11 @@ public enum OccurrenceEsField implements EsField {
   MEDIA_ITEMS(new BaseEsField("multimediaItems", EsField.MEDIA_ITEMS)),
 
   // DNA
-   DNA_SEQUENCE_ID(new BaseEsField("dnaSequenceID", GbifTerm.dnaSequenceID)),
+  DNA_SEQUENCE_ID(new BaseEsField("dnaSequenceID", GbifTerm.dnaSequenceID)),
 
   //Issues
   ISSUE(new BaseEsField("issues", GbifTerm.issue)),
+  NON_TAXONOMIC_ISSUE(new BaseEsField("nonTaxonomicIssues", GbifTerm.nonTaxonomicIssue)),
 
   ESTABLISHMENT_MEANS(new BaseEsField("establishmentMeans.lineage", "establishmentMeans.concept", DwcTerm.establishmentMeans)),
   DEGREE_OF_ESTABLISHMENT_MEANS(new BaseEsField("degreeOfEstablishment.lineage", "degreeOfEstablishment.concept", DwcTerm.degreeOfEstablishment)),
@@ -318,6 +328,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
       .put(OccurrenceSearchParameter.PUBLISHED_BY_GBIF_REGION, PUBLISHED_BY_GBIF_REGION)
       .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
+      .put(OccurrenceSearchParameter.CHECKLIST_KEY,CHECKLIST_KEY)
       .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
       .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(OccurrenceSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
@@ -334,6 +345,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.TAXON_CONCEPT_ID, TAXON_CONCEPT_ID)
       .put(OccurrenceSearchParameter.TYPE_STATUS, TYPE_STATUS)
       .put(OccurrenceSearchParameter.TAXONOMIC_STATUS, TAXONOMIC_STATUS)
+      .put(OccurrenceSearchParameter.TAXONOMIC_ISSUE, TAXONOMIC_ISSUE)
       .put(OccurrenceSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
       .put(OccurrenceSearchParameter.ISSUE, ISSUE)
       .put(OccurrenceSearchParameter.OCCURRENCE_ID, OCCURRENCE_ID)
@@ -418,7 +430,7 @@ public enum OccurrenceEsField implements EsField {
       .build();
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, EVENT_DATE_GTE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
-  public static OccurrenceBaseEsFieldMapper buildFieldMapper() {
+  public static OccurrenceBaseEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
       return OccurrenceBaseEsFieldMapper.builder()
         .fullTextField(FULL_TEXT)
         .geoShapeField(COORDINATE_SHAPE)
@@ -432,6 +444,7 @@ public enum OccurrenceEsField implements EsField {
         .dateFields(DATE_FIELDS)
         .facetToEsMapping(FACET_TO_ES_MAPPING)
         .fieldEnumClass(OccurrenceEsField.class)
+        .defaulChecklistKey(defaultChecklistKey)
         .build();
   }
 

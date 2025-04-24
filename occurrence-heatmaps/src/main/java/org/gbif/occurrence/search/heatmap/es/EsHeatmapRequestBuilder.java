@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import org.elasticsearch.action.search.SearchRequest;
@@ -30,6 +31,7 @@ import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuild
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.springframework.beans.factory.annotation.Value;
 
 class EsHeatmapRequestBuilder {
 
@@ -42,9 +44,12 @@ class EsHeatmapRequestBuilder {
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
 
-  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient) {
+  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+                          ConceptClient conceptClient,
+                          NameUsageMatchingService nameUsageMatchingService) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper,
+      conceptClient, nameUsageMatchingService);
   }
 
   @VisibleForTesting
