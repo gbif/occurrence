@@ -67,6 +67,7 @@ public class DownloadTerms {
           .add(GbifTerm.lithostratigraphy)
           .add(GbifTerm.biostratigraphy)
           .add(GbifTerm.dnaSequenceID)
+          .add(GbifTerm.checklistKey)
           .build();
 
   /**

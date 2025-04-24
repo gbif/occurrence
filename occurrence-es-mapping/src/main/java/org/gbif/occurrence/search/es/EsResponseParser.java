@@ -121,7 +121,10 @@ public class EsResponseParser<T extends VerbatimOccurrence> {
       List<? extends Terms.Bucket> buckets = getBuckets(aggs);
 
       // get facet of the agg
-      OccurrenceSearchParameter facet =  occurrenceBaseEsFieldMapper.getSearchParameter(aggs.getName());
+      OccurrenceSearchParameter facet = occurrenceBaseEsFieldMapper.getSearchParameter(aggs.getName());
+      if (facet == null) {
+        facet = new OccurrenceSearchParameter(aggs.getName(), String.class);
+      }
 
       // check for paging in facets
       long facetOffset = extractFacetOffset(request, facet);

@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.search.heatmap.es;
 
-import org.gbif.occurrence.search.es.EsField;
+import org.gbif.occurrence.search.es.ChecklistEsField;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
@@ -42,7 +42,8 @@ public class EsHeatmapRequestBuilderTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
   private final EsHeatmapRequestBuilder esHeatmapRequestBuilder =
-      new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper(), null);
+      new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper("defaultChecklistKey"),
+        null, null);
 
   @Test
   public void heatmapRequestTest() throws IOException {
@@ -97,20 +98,21 @@ public class EsHeatmapRequestBuilderTest {
   }
 
   /** Tries to find a field in the list of term filters. */
-  private static Optional<String> findTermFilter(JsonNode node, EsField field) {
+  private static Optional<String> findTermFilter(JsonNode node, ChecklistEsField field, String defaultChecklistKey) {
+    String fieldName = field.getSearchFieldName(defaultChecklistKey);
     ArrayNode arrayNode =
         (ArrayNode) node.path(QUERY).path(BOOL).path(FILTER).get(2).path(BOOL).path(FILTER);
     return StreamSupport.stream(
             Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
-        .filter(termNode -> termNode.path(TERM).has(field.getSearchFieldName()))
-        .map(termNode -> termNode.path(TERM).get(field.getSearchFieldName()).get(VALUE).asText())
+        .filter(termNode -> termNode.path(BOOL).path(MUST).get(0).path(TERMS).has(fieldName))
+        .map(termNode -> termNode.path(BOOL).path(MUST).get(0).path(TERMS).get(fieldName).get(0).asText())
         .findFirst();
   }
 
   @Test
   public void heatmapRequestFilteredTest() throws IOException {
     OccurrenceHeatmapRequest request = new OccurrenceHeatmapRequest();
-    request.addTaxonKeyFilter(4);
+    request.addTaxonKeyFilter("4");
     request.setGeometry("-44, 30, -32, 54");
     request.setZoom(1);
 
@@ -122,7 +124,8 @@ public class EsHeatmapRequestBuilderTest {
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(1).has(TERM));
 
     // taxon key
-    Optional<String> taxaValue = findTermFilter(json, OccurrenceEsField.TAXON_KEY);
+    Optional<String> taxaValue = findTermFilter(json,
+      (ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField(), "defaultChecklistKey");
 
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));

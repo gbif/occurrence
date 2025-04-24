@@ -92,6 +92,8 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
                                       .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
+                                      .put(GbifInternalTerm.classifications, columnFor(GbifInternalTerm.classifications))
+                                      .put(GbifTerm.checklistKey, columnFor(GbifTerm.checklistKey))
                                       .build();
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
@@ -209,6 +211,9 @@ public class OccurrenceHDFSTableDefinition {
         && ARRAYS_FROM_VERBATIM_VALUES.contains(term)) {
       return interpretedField(term, cleanDelimitersArrayInitializer(term)); // no initializer
     }
+//    if (HiveDataTypes.TYPE_MAP_STRUCT.equals(HiveDataTypes.typeForTerm(term, false))) {
+//      return interpretedField(term, cleanDelimitersArrayInitializer(term)); // no initializer
+//    }
 
     return interpretedField(term, null); // no initializer
   }

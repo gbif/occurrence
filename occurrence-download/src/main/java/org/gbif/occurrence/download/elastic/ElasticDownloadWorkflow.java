@@ -72,7 +72,10 @@ public class ElasticDownloadWorkflow {
             .searchQuery(
                 EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
-                        DownloadWorkflowModule.esFieldMapper(configuration.getEsIndexType()))
+                        DownloadWorkflowModule.esFieldMapper(
+                          configuration.getEsIndexType(),
+                          configuration.getDefaultChecklistKey()
+                        ))
                     .toString())
             .downloadKey(download.getKey())
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
@@ -116,7 +119,10 @@ public class ElasticDownloadWorkflow {
         .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
         .esIndex(
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
-        .esFieldMapper(DownloadWorkflowModule.esFieldMapper(workflowConfiguration.getEsIndexType()))
+        .esFieldMapper(DownloadWorkflowModule.esFieldMapper(
+          workflowConfiguration.getEsIndexType(),
+          workflowConfiguration.getDefaultChecklistKey()
+        ))
         .build();
   }
 

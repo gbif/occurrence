@@ -50,10 +50,10 @@ public class OccurrenceHeatmapRequestProvider {
   /** Translate the raw value into value that API understands. */
   private static String translateFilterValue(OccurrenceSearchParameter param, String value) {
     if (param == OccurrenceSearchParameter.GEOMETRY) {
-      try { // checks if the parameters is in WKT format
+      try { //checks if the parameters is in WKT format
         SearchTypeValidator.validate(OccurrenceSearchParameter.GEOMETRY, value);
         return value;
-      } catch (IllegalArgumentException ex) { // if not is WKT, assumes to be a POLYGON
+      } catch (IllegalArgumentException ex) { //if not is WKT, assumes to be a POLYGON
         return String.format(POLYGON_PATTERN, value);
       }
     }
@@ -98,13 +98,13 @@ public class OccurrenceHeatmapRequestProvider {
       findSearchParam(entry.getKey())
           .ifPresent(
               p -> {
-                for (String val : removeEmptyParameters(entry.getValue())) {
+        for (String val : removeEmptyParameters(entry.getValue())) {
                   String translatedVal =
                       translateFilterValue(p, val); // this transformation is require
-                  SearchTypeValidator.validate(p, translatedVal);
-                  occurrenceHeatmapSearchRequest.addParameter(p, translatedVal);
-                }
-              });
+          SearchTypeValidator.validate(p, translatedVal);
+          occurrenceHeatmapSearchRequest.addParameter(p, translatedVal);
+        }
+      });
     }
 
     occurrenceHeatmapSearchRequest.setZoom(getIntParam(request, ZOOM_PARAM, DEFAULT_ZOOM_LEVEL));
@@ -126,15 +126,13 @@ public class OccurrenceHeatmapRequestProvider {
    */
   private static OccurrenceHeatmapRequest.Mode getMode(HttpServletRequest request) {
     return Optional.ofNullable(request.getParameter(MODE_PARAM))
-        .map(mode -> VocabularyUtils.lookupEnum(mode, OccurrenceHeatmapRequest.Mode.class))
-        .orElse(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
+            .map(mode -> VocabularyUtils.lookupEnum(mode, OccurrenceHeatmapRequest.Mode.class))
+          .orElse(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
   }
 
   private static Optional<OccurrenceSearchParameter> findSearchParam(String name) {
     try {
-      return Optional.ofNullable(
-          (OccurrenceSearchParameter)
-              VocabularyUtils.lookupEnum(name, OccurrenceSearchParameter.class));
+      return OccurrenceSearchParameter.lookup(name);
     } catch (IllegalArgumentException e) {
       // we have all params here, not only the enum ones, so this is ok to end up here a few times
     }

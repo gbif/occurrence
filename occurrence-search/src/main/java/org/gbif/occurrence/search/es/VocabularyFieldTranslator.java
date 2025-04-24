@@ -28,6 +28,7 @@ import org.elasticsearch.common.Strings;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
@@ -39,7 +40,11 @@ public class VocabularyFieldTranslator {
 
   private static final String GEO_TIME_VOCAB = "GeoTime";
   private static final ObjectMapper objectMapper =
-      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      new ObjectMapper()
+        .registerModule(new SimpleModule()
+          .addDeserializer(OccurrenceSearchParameter.class, new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
+        )
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @SneakyThrows
   public static Predicate translateVocabs(Predicate predicate, ConceptClient conceptClient) {

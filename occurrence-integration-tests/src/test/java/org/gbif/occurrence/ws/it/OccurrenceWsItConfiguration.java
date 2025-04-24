@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.ws.it;
 
-import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.UserRole;
@@ -26,7 +25,9 @@ import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.occurrence.test.mocks.*;
 import org.gbif.occurrence.test.servers.EsManageServer;
 import org.gbif.occurrence.test.servers.HBaseServer;
+import org.gbif.occurrence.ws.config.ChecklistAwareSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.remoteauth.IdentityServiceClient;
 import org.gbif.ws.remoteauth.LoggedUser;
@@ -55,7 +56,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cloud.zookeeper.ZookeeperAutoConfiguration;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -153,7 +153,7 @@ public class OccurrenceWsItConfiguration {
 
   @Bean
   public OccurrenceBaseEsFieldMapper esFieldMapper() {
-    return OccurrenceEsField.buildFieldMapper();
+    return OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
   }
 
   /** Mock name matching service. */
@@ -176,6 +176,11 @@ public class OccurrenceWsItConfiguration {
     return new DownloadCallbackServiceMock(occurrenceDownloadService);
   }
 
+  @Bean
+  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver checklistAwareSearchRequestHandlerMethodArgumentResolver() {
+    return new ChecklistAwareSearchRequestHandlerMethodArgumentResolver(null);
+  }
+
   /** Creates a DownloadRequestService using the available mock instances. */
   @Bean
   public DownloadRequestService downloadRequestService(
@@ -195,7 +200,7 @@ public class OccurrenceWsItConfiguration {
   /** Gets a connection from the embedded HBase mini-cluster. */
   @Bean
   public Connection hBaseConnection(HBaseServer hBaseServer) throws IOException {
-    return hBaseServer.getConnection();
+      return hBaseServer.getConnection();
   }
 
   /** HBase configuration made from HBase mini-cluster. */
@@ -230,11 +235,7 @@ public class OccurrenceWsItConfiguration {
       extends RoleMethodSecurityConfiguration {}
 
   @Configuration
-  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
-      super(context, remoteAuthClient);
-    }
-  }
+  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {}
 
   @Bean
   public ConceptClient conceptClient() {

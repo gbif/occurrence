@@ -90,6 +90,9 @@ public class DownloadWorkflowModule  {
 
   private final DownloadJobConfiguration downloadJobConfiguration;
 
+  // FIXME - this should be moved out to configuration
+  private final String defaultChecklistKey = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c";
+
   /**
    * DownloadPrepare action factory method.
    * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
@@ -216,8 +219,10 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
-  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType) {
-    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType? OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
+  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType,
+                                                          String defaultChecklistKey) {
+    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType ?
+      OccurrenceEsField.buildFieldMapper(defaultChecklistKey) : EventEsField.buildFieldMapper();
   }
 
   /**
@@ -234,9 +239,9 @@ public class DownloadWorkflowModule  {
 
   private <T extends VerbatimOccurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
-      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType()), false);
+      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType(),workflowConfiguration.getDefaultChecklistKey()), false);
     }
-    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType()), false);
+    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType(), workflowConfiguration.getDefaultChecklistKey()), false, defaultChecklistKey);
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){
@@ -343,6 +348,8 @@ public class DownloadWorkflowModule  {
     public static final String ES_SOCKET_TIMEOUT_KEY = "es.socket_timeout";
     public static final String ES_SNIFF_INTERVAL_KEY = "es.sniff_interval";
     public static final String ES_SNIFF_AFTER_FAILURE_DELAY_KEY = "es.sniff_after_failure_delay";
+
+    public static final String DEFAULT_CHECKLIST_KEY = PROPERTIES_PREFIX + "default_checklist_key";
 
     public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
