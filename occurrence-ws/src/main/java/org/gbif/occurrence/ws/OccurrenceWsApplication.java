@@ -27,6 +27,8 @@ import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
 
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -96,6 +98,7 @@ public class OccurrenceWsApplication {
             JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
                 .registerModule(new JavaTimeModule()))
         .withUrl(apiUrl)
+        .withExponentialBackoffRetry(Duration.ofSeconds(1), 1.0, 5)
         .build(ConceptClient.class);
   }
 

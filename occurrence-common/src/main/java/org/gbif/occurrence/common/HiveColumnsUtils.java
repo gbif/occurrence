@@ -57,7 +57,11 @@ public class HiveColumnsUtils {
     } else if (isHiveArray(term)) {
       return "ARRAY<STRING>";
     } else if(TermUtils.isVocabulary(term)) {
-      return "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
+      if (TermUtils.isArray(term)) {
+        return "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
+      } else {
+        return "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
+      }
     } else {
       return "STRING";
     }
@@ -77,7 +81,6 @@ public class HiveColumnsUtils {
         || GbifInternalTerm.dwcaExtension == term
         || DwcTerm.datasetID == term
         || DwcTerm.datasetName == term
-        || DwcTerm.typeStatus == term
         || DwcTerm.otherCatalogNumbers == term
         || DwcTerm.recordedBy == term
         || DwcTerm.identifiedBy == term
