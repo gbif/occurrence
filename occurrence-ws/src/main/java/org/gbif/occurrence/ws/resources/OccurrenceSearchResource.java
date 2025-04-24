@@ -40,7 +40,9 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -1557,6 +1559,12 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing post query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
       request.getOffset());
     return searchService.search(request);
+  }
+
+  @Hidden
+  @PostMapping("predicate/toesquery")
+  public String toEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   /**
