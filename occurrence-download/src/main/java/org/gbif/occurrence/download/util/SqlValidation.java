@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.util;
 
-import calcite_gbif_shaded.com.google.common.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;

@@ -20,14 +20,11 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.rest.client.species.Metadata;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
-import org.gbif.ws.util.CommonWsUtils;
 
 import java.util.*;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
-
-import io.micrometer.core.instrument.util.StringUtils;
 
 @Component
 @Slf4j
@@ -209,20 +206,5 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       }
     }
     return p;
-  }
-
-  private static String getFirstIgnoringCase(String parameter, Map<String, String[]> params) {
-    String value = CommonWsUtils.getFirst(params, parameter);
-    if (StringUtils.isNotEmpty(value)) {
-      return value;
-    } else {
-      value = CommonWsUtils.getFirst(params, parameter.toLowerCase());
-      if (StringUtils.isNotEmpty(value)) {
-        return value;
-      } else {
-        value = CommonWsUtils.getFirst(params, parameter.toUpperCase());
-        return StringUtils.isNotEmpty(value) ? value : null;
-      }
-    }
   }
 }

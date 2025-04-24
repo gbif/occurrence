@@ -54,7 +54,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
       "org.gbif.ws.remoteauth",
       "org.gbif.ws.security",
       "org.gbif.occurrence.search",
-      "org.gbif.occurrence.search.configuration",
       "org.gbif.occurrence.ws",
       "org.gbif.occurrence.download.service",
       "org.gbif.occurrence.persistence",
