@@ -13,8 +13,6 @@
     <packaging>jar</packaging>
 
     <properties>
-      <hadoop.version>3.3.5</hadoop.version>
-      <hbase.version>2.6.0-hadoop3</hbase.version>
       <apache-logging.version>2.14.1</apache-logging.version>
     </properties>
 
