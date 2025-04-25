@@ -201,7 +201,7 @@ public class EsSearchRequestBuilder {
     if (!StringUtils.isEmpty(checklistKey) && params.containsKey(taxonParam)) {
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.termsQuery("classifications."
-          + checklistKey + ".taxonKeys.keyword", params.get(taxonParam)
+          + checklistKey + ".taxonKeys", params.get(taxonParam)
         ));
       params.remove(taxonParam);
       bool.filter().add(checklistQuery);
@@ -278,10 +278,10 @@ public class EsSearchRequestBuilder {
       String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
 
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.TAXON_KEY,
-        "classifications." + checklistKey + ".taxonKeys.keyword");
+        "classifications." + checklistKey + ".taxonKeys");
 
       addChecklistKeyTaxonKeyQuery(params, bool, OccurrenceSearchParameter.ACCEPTED_TAXON_KEY,
-        "classifications." + checklistKey + ".acceptedUsage.key.keyword");
+        "classifications." + checklistKey + ".acceptedUsage.key");
 
       if (nameUsageMatchingService != null){
         nameUsageMatchingService.getMetadata(checklistKey)
@@ -306,7 +306,7 @@ public class EsSearchRequestBuilder {
       .forEach(e -> {
         String checklistKey = params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
         String depth = e.getKey().name().replace("TAXON_DEPTH_", "");
-        String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth + ".keyword";
+        String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth;
         BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
           .must(QueryBuilders.termQuery(esFieldToUse, e.getValue().iterator().next()));
         bool.filter().add(checklistQuery);
@@ -557,10 +557,10 @@ public class EsSearchRequestBuilder {
                 String esFieldToUse = null;
 
                 if (esField.getTerm().equals(GbifTerm.taxonKey)){
-                  esFieldToUse = "classifications." + checklistKey + ".taxonKeys.keyword";
+                  esFieldToUse = "classifications." + checklistKey + ".taxonKeys";
                 } else if (rankToField.containsKey(esField.getTerm())){
                   esFieldToUse = "classifications."
-                    + checklistKey + ".classificationKeys." + rankToField.get(esField.getTerm()).toUpperCase() + ".keyword";
+                    + checklistKey + ".classificationKeys." + rankToField.get(esField.getTerm()).toUpperCase();
                 } else {
                   return buildTermsAggs(
                     esField.getSearchFieldName(), esField, searchRequest, facetParam);
@@ -572,7 +572,7 @@ public class EsSearchRequestBuilder {
                 && isDynamicRankParam(searchRequest, facetParam)) {
                   String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
                   String rank = facetParam.name().replace("_KEY", "");
-                  String esFieldToUse = "classifications." + checklistKey + ".classificationKeys." + rank.toUpperCase() + ".keyword";
+                  String esFieldToUse = "classifications." + checklistKey + ".classificationKeys." + rank.toUpperCase();
                   return buildTermsAggs(
                     facetParam.name(),
                     esFieldToUse,
@@ -583,7 +583,7 @@ public class EsSearchRequestBuilder {
 
                 String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
                 String depth = facetParam.name().replace("TAXON_DEPTH_", "");
-                String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth + ".keyword";
+                String esFieldToUse = "classifications." + checklistKey + ".classificationDepth." + depth;
                 return buildTermsAggs(
                   facetParam.name(),
                   esFieldToUse,
