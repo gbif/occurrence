@@ -12,11 +12,17 @@
 
     <packaging>jar</packaging>
 
+    <properties>
+      <hadoop.version>3.3.5</hadoop.version>
+      <hbase.version>2.6.0-hadoop3</hbase.version>
+      <apache-logging.version>2.14.1</apache-logging.version>
+    </properties>
+
     <dependencies>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-minicluster</artifactId>
-        <version>3.3.5</version>
+        <version>${hadoop.version}</version>
         <exclusions>
           <exclusion>
             <groupId>log4j</groupId>
@@ -31,7 +37,7 @@
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-testing-util</artifactId>
-        <version>2.6.0-hadoop3</version>
+        <version>${hbase.version}</version>
         <exclusions>
           <exclusion>
             <groupId>org.apache.hadoop</groupId>
@@ -46,7 +52,7 @@
       <dependency>
         <groupId>org.apache.hbase</groupId>
         <artifactId>hbase-common</artifactId>
-        <version>2.6.0-hadoop3</version>
+        <version>${hbase.version}</version>
         <exclusions>
           <exclusion>
             <groupId>org.apache.hadoop</groupId>
@@ -62,7 +68,7 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
         <classifier>tests</classifier>
-        <version>3.3.5</version>
+        <version>${hadoop.version}</version>
         <exclusions>
           <exclusion>
             <groupId>com.fasterxml.woodstox</groupId>
@@ -81,7 +87,7 @@
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
-        <version>3.3.5</version>
+        <version>${hadoop.version}</version>
         <exclusions>
           <exclusion>
             <groupId>com.fasterxml.woodstox</groupId>
@@ -100,27 +106,27 @@
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-auth</artifactId>
-        <version>3.3.5</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-api</artifactId>
-        <version>2.14.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-core</artifactId>
-        <version>2.14.1</version>
+        <version>${hadoop.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client</artifactId>
-        <version>3.3.5</version>
+        <version>${hadoop.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-client-api</artifactId>
-        <version>3.3.5</version>
+        <version>${hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${apache-logging.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${apache-logging.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.woodstox</groupId>
