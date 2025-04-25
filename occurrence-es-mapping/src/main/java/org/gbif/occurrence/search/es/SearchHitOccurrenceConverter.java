@@ -424,8 +424,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"), au.get("authorship"))));
 
       //set the classification depth
-      Map<Integer, String> depth = (Map<Integer, String>) value.get("classificationDepth");
-      Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)).values();
+      Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
+      Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue)).values();
 
       Map<String, String> tree = (Map<String, String>) value.get("classification");
       Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
