@@ -43,7 +43,7 @@ pipeline {
       }
     }
 
-    stage('Maven build: Main project (Java 11)') {
+    stage('Maven build: Main project (Java 17)') {
        when {
         allOf {
           not { expression { params.RELEASE } };
@@ -203,12 +203,12 @@ pipeline {
     }
   }
 
-    post {
-      success {
-        echo 'Pipeline executed successfully!'
-      }
-      failure {
-        echo 'Pipeline execution failed!'
+  post {
+    success {
+      echo 'Pipeline executed successfully!'
+    }
+    failure {
+      echo 'Pipeline execution failed!'
     }
   }
 }
