@@ -188,17 +188,17 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
     if (searchParameter.name().startsWith("TAXON_DEPTH_")) {
       Integer extractedDepth = Integer.parseInt(searchParameter.name().substring("TAXON_DEPTH_".length()));
-      return String.format("classifications.%s.classificationDepth.%d.keyword", checklistKey, extractedDepth);
+      return String.format("classifications.%s.classificationDepth.%d", checklistKey, extractedDepth);
     }
 
     if (searchParameter == OccurrenceSearchParameter.TAXON_KEY) {
-      return String.format("classifications.%s.taxonKeys.keyword", checklistKey);
+      return String.format("classifications.%s.taxonKeys", checklistKey);
     }
 
     if (searchParameter == OccurrenceSearchParameter.ACCEPTED_TAXON_KEY) {
-      return String.format("classifications.%s.acceptedUsage.key.keyword", checklistKey);
+      return String.format("classifications.%s.acceptedUsage.key", checklistKey);
     }
 
-    return String.format("classifications.%s.taxonKeys.keyword", checklistKey);
+    return String.format("classifications.%s.taxonKeys", checklistKey);
   }
 }
