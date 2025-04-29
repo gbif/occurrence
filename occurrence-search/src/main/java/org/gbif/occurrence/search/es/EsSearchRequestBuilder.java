@@ -324,14 +324,14 @@ public class EsSearchRequestBuilder {
    */
   private void addChecklistDynamicRanks(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
     if (nameUsageMatchingService != null) {
-      nameUsageMatchingService.getMetadata(getChecklistKey(params))
-        .getMainIndex().getNameUsageByRankCount().keySet().forEach(rank -> {
+      Optional.ofNullable(nameUsageMatchingService.getMetadata(getChecklistKey(params))
+        .getMainIndex()).ifPresent( metadata -> metadata.getNameUsageByRankCount().keySet().forEach(rank -> {
           addTaxonKeyQuery(
             rank,
             bool,
             params
           );
-        });
+        }));
     }
   }
 
