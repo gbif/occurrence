@@ -52,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -132,11 +133,13 @@ public class OccurrenceSearchResource {
   public OccurrenceSearchResource(
     OccurrenceSearchService searchService,
     SearchTermService searchTermService,
-    ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService) {
+    ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService,
+    @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;
     this.esSearchRequestBuilder =
-        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), conceptClient, nameUsageMatchingService);
+        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(),
+          conceptClient, nameUsageMatchingService, defaultChecklistKey);
   }
 
   /**
@@ -1406,6 +1409,18 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "urn:lsid:dyntaxa.se:Taxon:103026"),
+        @Parameter(
+          name = "taxonomicIssue",
+          description =
+            "A specific taxonomic interpretation issue as defined in our OccurrenceIssue enumeration.\n\n"
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+          @ArraySchema(
+            uniqueItems = true,
+            schema = @Schema(implementation = OccurrenceIssue.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          example = "TAXON_CONCEPT_ID_NOT_FOUND"),
         @Parameter(
             name = "taxonomicStatus",
             description =

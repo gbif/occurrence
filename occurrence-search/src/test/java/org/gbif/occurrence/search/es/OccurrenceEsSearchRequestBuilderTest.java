@@ -46,7 +46,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
   private static final String INDEX = "index";
 
   private final EsSearchRequestBuilder esSearchRequestBuilder =
-      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), new ConceptClientMock(), null);
+      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), new ConceptClientMock(), null, "123");
 
   @Test
   public void termQueryTest() throws IOException {
@@ -67,8 +67,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValue(KINGDOM_KEY.getSearchFieldName())
-            .get(VALUE)
+            .findValues("classifications.123.classificationKeys.KINGDOM")
+            .get(0).get(0)
             .asInt());
   }
 

@@ -37,8 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSearchParameter> {
 
-
-
   private final Map<String, OccurrenceSearchParameter> esToSearchMapping;
 
   private final Map<OccurrenceSearchParameter,EsField> searchToEsMapping;
@@ -152,7 +150,6 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     return termToEsMapping.get(term);
   }
 
-
   public boolean isDateField(EsField esField) {
     return dateFields.contains(esField);
   }
@@ -184,21 +181,30 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     return defaultFilter;
   }
 
+  /**
+   * Gets the field name for a checklist field. The field name is a combination of the checklist key and the
+   * search parameter.
+   *
+   * @param checklistKey the checklist key
+   * @param searchParameter the search parameter
+   * @return the field name for the checklist field
+   */
   @Override
   public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
-    if (searchParameter.name().startsWith("TAXON_DEPTH_")) {
-      Integer extractedDepth = Integer.parseInt(searchParameter.name().substring("TAXON_DEPTH_".length()));
-      return String.format("classifications.%s.classificationDepth.%d", checklistKey, extractedDepth);
+
+    EsField esField = getEsField(searchParameter);
+    if (esField == null) {
+      throw new IllegalArgumentException("No mapping for search parameter " + searchParameter);
     }
 
-    if (searchParameter == OccurrenceSearchParameter.TAXON_KEY) {
-      return String.format("classifications.%s.taxonKeys", checklistKey);
+    if (esField instanceof OccurrenceEsField) {
+      OccurrenceEsField occurrenceEsField = (OccurrenceEsField) esField;
+      BaseEsField baseEsField = occurrenceEsField.getEsField();
+      if (baseEsField instanceof ChecklistEsField) {
+        return ((ChecklistEsField) baseEsField).getSearchFieldName(checklistKey);
+      }
     }
 
-    if (searchParameter == OccurrenceSearchParameter.ACCEPTED_TAXON_KEY) {
-      return String.format("classifications.%s.acceptedUsage.key", checklistKey);
-    }
-
-    return String.format("classifications.%s.taxonKeys", checklistKey);
+    return esField.getSearchFieldName();
   }
 }

@@ -36,6 +36,7 @@ import org.elasticsearch.search.aggregations.metrics.ParsedGeoCentroid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
@@ -57,10 +58,13 @@ public class OccurrenceHeatmapsEsService
       RestHighLevelClient esClient,
       String esIndex,
       OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
-      ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService) {
+      ConceptClient conceptClient,
+      NameUsageMatchingService nameUsageMatchingService,
+      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     this.esIndex = esIndex;
     this.esClient = esClient;
-    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient, nameUsageMatchingService);
+    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper,
+      conceptClient, nameUsageMatchingService, defaultChecklistKey);
   }
 
   @Override

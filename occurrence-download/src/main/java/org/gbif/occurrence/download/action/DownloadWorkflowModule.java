@@ -90,6 +90,9 @@ public class DownloadWorkflowModule  {
 
   private final DownloadJobConfiguration downloadJobConfiguration;
 
+  // FIXME - this should be moved out to configuration
+  private final String defaultChecklistKey = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c";
+
   /**
    * DownloadPrepare action factory method.
    * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
@@ -236,7 +239,7 @@ public class DownloadWorkflowModule  {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
       return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType()), false);
     }
-    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType()), false);
+    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType()), false, defaultChecklistKey);
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){

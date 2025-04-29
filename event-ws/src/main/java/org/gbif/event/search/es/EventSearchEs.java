@@ -89,7 +89,8 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
-    ConceptClient conceptClient
+    ConceptClient conceptClient,
+    @Value("${defaultChecklistKey}") String defaultChecklistKey
   ) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
@@ -101,9 +102,9 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     this.nameUsageMatchingService = nameUsageMatchingService;
     eventEsFieldMapper = EventEsField.buildFieldMapper();
     occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient, nameUsageMatchingService);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient, nameUsageMatchingService, "");
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true);
+    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true, defaultChecklistKey);
     this.esResponseParser = new EsResponseParser<>(eventEsFieldMapper, searchHitEventConverter);
   }
 

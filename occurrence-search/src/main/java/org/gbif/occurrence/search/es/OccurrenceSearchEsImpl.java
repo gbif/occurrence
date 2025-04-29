@@ -77,6 +77,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Occurrence> esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
+  private final String defaultChecklistKey;
 
   @Autowired
   public OccurrenceSearchEsImpl(
@@ -86,7 +87,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
     OccurrenceBaseEsFieldMapper esFieldMapper,
-    ConceptClient conceptClient) {
+    ConceptClient conceptClient,
+    @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -97,9 +99,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.nameUsageMatchingService = nameUsageMatchingService;
     this.esFieldMapper = esFieldMapper;
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceBaseEsFieldMapper(esFieldMapper).build();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient, nameUsageMatchingService);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
+    this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true, defaultChecklistKey);
     this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
@@ -349,7 +352,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
       Collection<String> scientificNames = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
       Collection<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
-      String checklistKey = null;
+      String checklistKey = defaultChecklistKey;
       if (checklistKeys != null && !checklistKeys.isEmpty()) {
         checklistKey = checklistKeys.iterator().next();
       }

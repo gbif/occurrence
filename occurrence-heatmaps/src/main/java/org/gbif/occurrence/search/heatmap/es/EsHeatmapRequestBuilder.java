@@ -31,6 +31,7 @@ import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuild
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.springframework.beans.factory.annotation.Value;
 
 class EsHeatmapRequestBuilder {
 
@@ -43,9 +44,13 @@ class EsHeatmapRequestBuilder {
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
 
-  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService) {
+  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+                          ConceptClient conceptClient,
+                          NameUsageMatchingService nameUsageMatchingService,
+                          @Value("defaultChecklistKey") String defaultChecklistKey) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper, conceptClient, nameUsageMatchingService);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper,
+      conceptClient, nameUsageMatchingService, defaultChecklistKey);
   }
 
   @VisibleForTesting
