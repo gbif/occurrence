@@ -245,7 +245,7 @@ public class SqlValidation {
         Arrays.asList(doubleType, doubleType),
         Arrays.asList("gt", "lte"));
 
-      //  Map definition
+      //  Map definition - needed for multiple classifications
       RelDataType structMap = tdf.createMapType(varChar, varCharArray);
 
       OccurrenceHDFSTableDefinition.definition().stream().forEach(

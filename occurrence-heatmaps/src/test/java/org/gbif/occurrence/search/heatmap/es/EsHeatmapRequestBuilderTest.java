@@ -103,8 +103,8 @@ public class EsHeatmapRequestBuilderTest {
         (ArrayNode) node.path(QUERY).path(BOOL).path(FILTER).get(2).path(BOOL).path(FILTER);
     return StreamSupport.stream(
             Spliterators.spliterator(arrayNode.elements(), 2, Spliterator.ORDERED), false)
-        .filter(termNode -> termNode.path("bool").path("must").get(0).path("terms").has(fieldName))
-        .map(termNode -> termNode.path("bool").path("must").get(0).path("terms").get(fieldName).get(0).asText())
+        .filter(termNode -> termNode.path(BOOL).path(MUST).get(0).path(TERMS).has(fieldName))
+        .map(termNode -> termNode.path(BOOL).path(MUST).get(0).path(TERMS).get(fieldName).get(0).asText())
         .findFirst();
   }
 

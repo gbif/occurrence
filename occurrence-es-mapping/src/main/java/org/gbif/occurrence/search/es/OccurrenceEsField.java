@@ -121,7 +121,9 @@ public enum OccurrenceEsField implements EsField {
   HAS_COORDINATE(new BaseEsField("hasCoordinate", GbifTerm.hasCoordinate)),
   REPATRIATED(new BaseEsField("repatriated", GbifTerm.repatriated)),
 
+  //classifications is the array containing the multiple matched classifications
   CLASSIFICATIONS(new BaseEsField("classifications", null)),
+  //checklist key is an array of identifiers for checklists which have a matched taxon i.e. not incertae sedis
   CHECKLIST_KEY(new BaseEsField("checklistKey", GbifTerm.checklistKey)),
 
   // Taxonomic classification
@@ -155,7 +157,7 @@ public enum OccurrenceEsField implements EsField {
   IUCN_RED_LIST_CATEGORY(new ChecklistEsField("classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
   TAXONOMIC_ISSUE(new ChecklistEsField("classifications.%s.issues", GbifTerm.taxonomicIssue)),
 
-  // verbatim taxon fields - not classification specific
+  // verbatim taxon fields - not specific to a single classification
   TAXON_ID(new BaseEsField("taxonID", DwcTerm.taxonID)),
   TAXON_CONCEPT_ID(new BaseEsField("taxonConceptID", DwcTerm.taxonConceptID)),
   VERBATIM_SCIENTIFIC_NAME(new BaseEsField("verbatimScientificName", GbifTerm.verbatimScientificName)),
