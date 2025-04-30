@@ -83,15 +83,4 @@ public class PredicateFactoryTest {
 
     assertNotNull(predicate);
   }
-
-  @Test
-  public void testInChecklistKeyTaxonDepthPredicate() {
-    Map<String, String[]> params = new HashMap<>();
-    params.put(OccurrenceSearchParameter.CHECKLIST_KEY.name(), new String[] {"7ddf754f-d193-4cc9-b351-99906754a03b"});
-    params.put("TAXON_DEPTH_0", new String[] {"5T6MX"});
-
-    Predicate predicate = PredicateFactory.build(params);
-
-    assertNotNull(predicate);
-  }
 }

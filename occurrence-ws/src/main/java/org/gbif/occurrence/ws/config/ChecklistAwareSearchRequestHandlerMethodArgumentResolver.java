@@ -96,15 +96,6 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     return request;
   }
 
-  public Optional<Integer> extractTaxonDepth(String param) {
-    String normalized =  param.toUpperCase().replaceAll("[. _-]", "");
-    if (normalized.startsWith("TAXONDEPTH")) {
-      String depth = normalized.substring("TAXONDEPTH".length());
-      return Optional.of(Integer.parseInt(depth));
-    }
-    return Optional.empty();
-  }
-
   private List<OccurrenceSearchParameter> getChecklistParameters(Map<String, String[]> params) {
 
     List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
@@ -144,7 +135,7 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
 
     List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
 
-    // add support for dynamic facets for ranks ....
+    // add support for dynamic facets for ranks
     if (request.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
       // get a list of recognised ranks for this checklist
       Set<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
@@ -196,13 +187,6 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
           p = cp;
           break;
         }
-      }
-    }
-
-    if (p == null) {
-      Optional<Integer> depthOpt = extractTaxonDepth(param);
-      if (depthOpt.isPresent()) {
-        p = new OccurrenceSearchParameter("TAXON_DEPTH_" + depthOpt.get(), String.class);
       }
     }
     return p;
