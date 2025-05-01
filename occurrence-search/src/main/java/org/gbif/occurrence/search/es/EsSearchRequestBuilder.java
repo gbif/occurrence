@@ -602,21 +602,7 @@ public class EsSearchRequestBuilder {
   }
 
   private boolean isTaxonomic(OccurrenceSearchParameter param) {
-    return param == OccurrenceSearchParameter.ACCEPTED_TAXON_KEY
-        || param == OccurrenceSearchParameter.TAXON_KEY
-        || param == OccurrenceSearchParameter.KINGDOM_KEY
-        || param == OccurrenceSearchParameter.PHYLUM_KEY
-        || param == OccurrenceSearchParameter.CLASS_KEY
-        || param == OccurrenceSearchParameter.ORDER_KEY
-        || param == OccurrenceSearchParameter.FAMILY_KEY
-        || param == OccurrenceSearchParameter.GENUS_KEY
-        || param == OccurrenceSearchParameter.SUBGENUS_KEY
-        || param == OccurrenceSearchParameter.SPECIES_KEY
-        || param == OccurrenceSearchParameter.SCIENTIFIC_NAME
-        || param == OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME
-        || param == OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY
-        || param == OccurrenceSearchParameter.TAXONOMIC_STATUS
-        || param == OccurrenceSearchParameter.TAXONOMIC_ISSUE;
+    return occurrenceBaseEsFieldMapper.isTaxonomic(param);
   }
 
   private ChildrenAggregationBuilder getChildrenAggregationBuilder(
