@@ -612,6 +612,8 @@ public class EsSearchRequestBuilder {
         || param == OccurrenceSearchParameter.GENUS_KEY
         || param == OccurrenceSearchParameter.SUBGENUS_KEY
         || param == OccurrenceSearchParameter.SPECIES_KEY
+        || param == OccurrenceSearchParameter.SCIENTIFIC_NAME
+        || param == OccurrenceSearchParameter.VERBATIM_SCIENTIFIC_NAME
         || param == OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY
         || param == OccurrenceSearchParameter.TAXONOMIC_STATUS
         || param == OccurrenceSearchParameter.TAXONOMIC_ISSUE;
