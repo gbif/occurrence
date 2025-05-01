@@ -452,7 +452,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
         .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
-      cl.setIucnRedListCategory((String) value.get("iucnRedListCategory"));
+      cl.setIucnRedListCategoryCode((String) value.get("iucnRedListCategoryCode"));
 
       cl.setClassification(
         keysSorted.stream()
