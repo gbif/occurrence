@@ -61,12 +61,21 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   private final List<FieldSortBuilder> defaultSort;
 
   private final Optional<QueryBuilder> defaultFilter;
+  
+  private final String defaulChecklistKey;
 
   @Builder
-  public OccurrenceBaseEsFieldMapper(Map<OccurrenceSearchParameter,EsField> searchToEsMapping, Set<EsField> dateFields, EsField fullTextField,
-                                     EsField geoDistanceField, EsField geoShapeField, EsField uniqueIdField, List<FieldSortBuilder> defaultSort,
-                                     Optional<QueryBuilder> defaultFilter, Class<? extends Enum<? extends EsField>> fieldEnumClass,
-                                     @Nullable Map<OccurrenceSearchParameter,EsField> facetToEsMapping) {
+  public OccurrenceBaseEsFieldMapper(Map<OccurrenceSearchParameter,EsField> searchToEsMapping,
+                                     Set<EsField> dateFields,
+                                     EsField fullTextField,
+                                     EsField geoDistanceField,
+                                     EsField geoShapeField,
+                                     EsField uniqueIdField,
+                                     List<FieldSortBuilder> defaultSort,
+                                     Optional<QueryBuilder> defaultFilter,
+                                     Class<? extends Enum<? extends EsField>> fieldEnumClass,
+                                     @Nullable Map<OccurrenceSearchParameter,EsField> facetToEsMapping,
+                                     String defaulChecklistKey) {
     this.searchToEsMapping = searchToEsMapping;
     esToSearchMapping = searchToEsMapping.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getSearchFieldName(),
                                                                                             Map.Entry::getKey));
@@ -80,6 +89,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     this.defaultSort = defaultSort;
     this.defaultFilter = defaultFilter;
     this.facetToEsMapping = facetToEsMapping == null? new HashMap<>(): facetToEsMapping;
+    this.defaulChecklistKey = defaulChecklistKey;
   }
 
   public OccurrenceSearchParameter getSearchParameter(String searchFieldName) {
@@ -160,6 +170,12 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   }
 
   @Override
+  public boolean isTaxonomic(OccurrenceSearchParameter searchParameter) {
+    return Optional.ofNullable(searchToEsMapping.get(searchParameter)).map(
+      esField -> ((OccurrenceEsField) esField).getEsField() instanceof ChecklistEsField).orElse(false);
+  }
+
+  @Override
   public boolean includeNullInPredicate(SimplePredicate<OccurrenceSearchParameter> predicate) {
     return OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == predicate.getKey() && predicate instanceof GreaterThanOrEqualsPredicate;
   }
@@ -200,8 +216,11 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     if (esField instanceof OccurrenceEsField) {
       OccurrenceEsField occurrenceEsField = (OccurrenceEsField) esField;
       BaseEsField baseEsField = occurrenceEsField.getEsField();
+
+
       if (baseEsField instanceof ChecklistEsField) {
-        return ((ChecklistEsField) baseEsField).getSearchFieldName(checklistKey);
+        return ((ChecklistEsField) baseEsField)
+          .getSearchFieldName(checklistKey != null ? checklistKey : defaulChecklistKey);
       }
     }
 

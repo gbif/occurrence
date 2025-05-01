@@ -59,12 +59,11 @@ public class OccurrenceHeatmapsEsService
       String esIndex,
       OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService,
-      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
+      NameUsageMatchingService nameUsageMatchingService) {
     this.esIndex = esIndex;
     this.esClient = esClient;
     this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper,
-      conceptClient, nameUsageMatchingService, defaultChecklistKey);
+      conceptClient, nameUsageMatchingService);
   }
 
   @Override

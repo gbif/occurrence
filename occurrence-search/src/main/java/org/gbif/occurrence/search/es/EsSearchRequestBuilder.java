@@ -81,16 +81,14 @@ public class EsSearchRequestBuilder {
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final ConceptClient conceptClient;
   private final NameUsageMatchingService nameUsageMatchingService;
-  private final String defaultChecklistKey;
 
   public EsSearchRequestBuilder(
-      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService,
-      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
+      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+      ConceptClient conceptClient,
+      NameUsageMatchingService nameUsageMatchingService) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
     this.conceptClient = conceptClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   public SearchRequest buildSearchRequest(OccurrenceSearchRequest searchRequest, String index) {
@@ -290,7 +288,7 @@ public class EsSearchRequestBuilder {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
       return params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
     }
-    return defaultChecklistKey;
+    return occurrenceBaseEsFieldMapper.getDefaulChecklistKey();
   }
 
   /**

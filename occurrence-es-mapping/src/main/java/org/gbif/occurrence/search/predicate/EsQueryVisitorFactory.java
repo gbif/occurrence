@@ -56,6 +56,11 @@ public class EsQueryVisitorFactory {
           }
 
           @Override
+          public boolean isTaxonomic(OccurrenceSearchParameter searchParameter) {
+            return fieldMapper.isTaxonomic(searchParameter);
+          }
+
+          @Override
           public boolean includeNullInPredicate(
             SimplePredicate<OccurrenceSearchParameter> predicate) {
             return fieldMapper.includeNullInPredicate(predicate);

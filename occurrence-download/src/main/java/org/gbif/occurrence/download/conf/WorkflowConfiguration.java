@@ -115,6 +115,15 @@ public class WorkflowConfiguration {
 
   /**
    *
+   * @return local temp dir where downloads files are created
+   */
+  public String getDefaultChecklistKey() {
+    Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DEFAULT_CHECKLIST_KEY);
+  }
+
+  /**
+   *
    * @return HDFS temp dir where downloads files are created
    */
   public String getHdfsTempDir() {

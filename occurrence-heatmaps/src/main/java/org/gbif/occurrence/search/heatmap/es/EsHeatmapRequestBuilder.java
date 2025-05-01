@@ -46,11 +46,10 @@ class EsHeatmapRequestBuilder {
 
   EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
                           ConceptClient conceptClient,
-                          NameUsageMatchingService nameUsageMatchingService,
-                          @Value("defaultChecklistKey") String defaultChecklistKey) {
+                          NameUsageMatchingService nameUsageMatchingService) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper,
-      conceptClient, nameUsageMatchingService, defaultChecklistKey);
+      conceptClient, nameUsageMatchingService);
   }
 
   @VisibleForTesting

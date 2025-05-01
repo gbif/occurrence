@@ -153,7 +153,7 @@ public class OccurrenceWsItConfiguration {
 
   @Bean
   public OccurrenceBaseEsFieldMapper esFieldMapper() {
-    return OccurrenceEsField.buildFieldMapper();
+    return OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
   }
 
   /** Mock name matching service. */
