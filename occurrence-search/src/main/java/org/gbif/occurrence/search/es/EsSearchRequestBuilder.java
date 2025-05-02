@@ -22,6 +22,7 @@ import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.rest.client.species.Metadata;
@@ -292,6 +293,17 @@ public class EsSearchRequestBuilder {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
       && params.containsKey(OccurrenceSearchParameter.ISSUE)) {
       String esFieldToUse = OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName();
+
+      // validate the value  - make sure it isn't taxonomic, otherwise throw an error
+      params.get(OccurrenceSearchParameter.ISSUE).forEach(issue -> {
+        OccurrenceIssue occurrenceIssue = OccurrenceIssue.valueOf(issue);
+        if (OccurrenceIssue.TAXONOMIC_RULES.contains(occurrenceIssue)) {
+          throw new IllegalArgumentException(
+            "Please use TAXONOMIC_ISSUE parameter instead of ISSUE parameter " +
+            " when using a checklistKey");
+        }
+      });
+
       // Build the query
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
         .must(QueryBuilders.termsQuery(esFieldToUse, params.get(OccurrenceSearchParameter.ISSUE))
