@@ -65,7 +65,6 @@ import org.locationtech.jts.io.WKTReader;
 import com.google.common.annotations.VisibleForTesting;
 
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Value;
 
 import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
@@ -235,6 +234,9 @@ public class EsSearchRequestBuilder {
       // Add the queries based on different taxonomic levels
       handleTaxonomicQueries(params, bool);
 
+      // handle the switch from issue -> non-taxonomic issue if checklistKey supplied
+      handleIssueQueries(params, bool);
+
       // adding geometry to bool
       if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
         BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
@@ -276,6 +278,27 @@ public class EsSearchRequestBuilder {
     occurrenceBaseEsFieldMapper.getDefaultFilter().ifPresent(df -> bool.filter().add(df));
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
+  }
+
+  /**
+   * If a user specifies a checklistKey and an Issue query, then we use the new NON_TAXONOMIC_ISSUE
+   * which doesnt contain taxonomic issues, which are now stored in a separate array, one per checklist.
+   *
+   * @param params the search parameters
+   * @param bool the bool query builder
+   */
+  private void handleIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+
+    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
+      && params.containsKey(OccurrenceSearchParameter.ISSUE)) {
+      String esFieldToUse = OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName();
+      // Build the query
+      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
+        .must(QueryBuilders.termsQuery(esFieldToUse, params.get(OccurrenceSearchParameter.ISSUE))
+      );
+      bool.filter().add(checklistQuery);
+      params.remove(OccurrenceSearchParameter.ISSUE);
+    }
   }
 
   /**
@@ -563,6 +586,15 @@ public class EsSearchRequestBuilder {
                 }
                 return getChildrenAggregationBuilder(
                   searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
+              }
+
+              // if a checklist has been supplied, then use the non taxonomic issues field
+              if (facetParam.equals(OccurrenceSearchParameter.ISSUE)
+                && searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
+                return buildTermsAggs(
+                  OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName(),
+                  OccurrenceEsField.NON_TAXONOMIC_ISSUE,
+                  searchRequest, facetParam);
               }
 
               // handle taxonomy based fields

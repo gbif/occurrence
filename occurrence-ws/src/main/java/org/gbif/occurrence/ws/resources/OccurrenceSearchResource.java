@@ -1578,8 +1578,18 @@ public class OccurrenceSearchResource {
 
   @Hidden
   @PostMapping("predicate/toesquery")
-  public String toEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
-    return esSearchRequestBuilder.buildQuery(request).map(AbstractQueryBuilder::toString).orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
+  public String predicateToEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    return esSearchRequestBuilder
+      .buildQuery(request)
+      .map(AbstractQueryBuilder::toString)
+      .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
+  }
+
+  @Hidden
+  @GetMapping("rest/toesquery")
+  public String restToEsQuery(@NotNull @Valid @ParameterObject OccurrenceSearchRequest request) {
+    return esSearchRequestBuilder.buildSearchRequest(request, "test")
+      .source().toString();
   }
 
   /**

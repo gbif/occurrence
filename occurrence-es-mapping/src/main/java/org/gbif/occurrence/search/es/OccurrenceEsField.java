@@ -267,6 +267,7 @@ public enum OccurrenceEsField implements EsField {
 
   //Issues
   ISSUE(new BaseEsField("issues", GbifTerm.issue)),
+  NON_TAXONOMIC_ISSUE(new BaseEsField("nonTaxonomicIssues", GbifTerm.nonTaxonomicIssue)),
 
   ESTABLISHMENT_MEANS(new BaseEsField("establishmentMeans.lineage", "establishmentMeans.concept", DwcTerm.establishmentMeans)),
   DEGREE_OF_ESTABLISHMENT_MEANS(new BaseEsField("degreeOfEstablishment.lineage", "degreeOfEstablishment.concept", DwcTerm.degreeOfEstablishment)),
