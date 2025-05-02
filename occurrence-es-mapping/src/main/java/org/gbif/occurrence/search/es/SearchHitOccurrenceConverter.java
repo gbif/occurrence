@@ -426,6 +426,13 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     return (ChecklistEsField) field.getEsField();
   }
 
+  private static String removeDepthSuffix(String rank){
+    if (rank == null) {
+      return null;
+    }
+    return rank.replaceAll("_\\d+$", "");
+  }
+
   private void setClassifications(SearchHit hit, Occurrence occ) {
 
     getMapValue(hit, "classifications").flatMap(classifications -> Optional.of(classifications.entrySet().stream().map(m -> {
@@ -459,7 +466,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
           .map(key -> new RankedName(
             key,
             tree.get(keyToRank.get(key)),
-            keyToRank.get(key),
+            removeDepthSuffix(keyToRank.get(key)),
             null)
           )
           .collect(Collectors.toList())
