@@ -465,16 +465,16 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
       Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(
         new Usage(
-          usage.get("key"),
-          usage.get("name"),
-          usage.get("rank"),
-          usage.get("code"),
-          usage.get("authorship"),
-          usage.get("genericName"),
-          usage.get("infragenericEpithet"),
-          usage.get("specificEpithet"),
-          usage.get("infraspecificEpithet"),
-          usage.get("formattedName")
+          au.get("key"),
+          au.get("name"),
+          au.get("rank"),
+          au.get("code"),
+          au.get("authorship"),
+          au.get("genericName"),
+          au.get("infragenericEpithet"),
+          au.get("specificEpithet"),
+          au.get("infraspecificEpithet"),
+          au.get("formattedName")
         )
       ));
 
