@@ -463,7 +463,20 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
 
       //set the accepted usage
       Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
-      Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(new RankedName(au.get("key"), au.get("name"), au.get("rank"), au.get("authorship"))));
+      Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(
+        new Usage(
+          usage.get("key"),
+          usage.get("name"),
+          usage.get("rank"),
+          usage.get("code"),
+          usage.get("authorship"),
+          usage.get("genericName"),
+          usage.get("infragenericEpithet"),
+          usage.get("specificEpithet"),
+          usage.get("infraspecificEpithet"),
+          usage.get("formattedName")
+        )
+      ));
 
       //set the classification depth
       Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
