@@ -181,7 +181,9 @@ public class EsSearchRequestBuilder {
                                            BoolQueryBuilder bool,
                                            OccurrenceSearchParameter taxonParam) {
 
-    if (params.containsKey(taxonParam)) {
+    if (params.containsKey(taxonParam) &&
+        params.get(taxonParam) != null &&
+        !params.get(taxonParam).isEmpty()) {
       String checklistKey = getChecklistKey(params);
       String esFieldToUse = occurrenceBaseEsFieldMapper.getChecklistField(checklistKey, taxonParam);
       // Build the query
