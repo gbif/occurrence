@@ -25,6 +25,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.v2.RankedName;
+import org.gbif.api.v2.Usage;
 import org.gbif.api.vocabulary.AgentIdentifierType;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
@@ -445,7 +446,17 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
 
       //set the usage
       Map<String, String> usage = (Map<String, String>) value.get("usage");
-      cl.setUsage(new RankedName(usage.get("key"), usage.get("name"), usage.get("rank"), usage.get("authorship")));
+      cl.setUsage(
+        new Usage(
+          usage.get("key"),
+          usage.get("name"),
+          usage.get("rank"),
+          usage.get("authorship"),
+          usage.get("infragenericEpithet"),
+          usage.get("specificEpithet"),
+          usage.get("infraspecificEpithet")
+        )
+      );
 
       //set the accepted usage
       Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
