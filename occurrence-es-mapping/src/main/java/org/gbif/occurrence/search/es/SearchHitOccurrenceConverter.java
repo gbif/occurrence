@@ -451,10 +451,13 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
           usage.get("key"),
           usage.get("name"),
           usage.get("rank"),
+          usage.get("code"),
           usage.get("authorship"),
+          usage.get("genericName"),
           usage.get("infragenericEpithet"),
           usage.get("specificEpithet"),
-          usage.get("infraspecificEpithet")
+          usage.get("infraspecificEpithet"),
+          usage.get("formattedName")
         )
       );
 

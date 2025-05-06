@@ -339,7 +339,7 @@ public class DownloadResource {
   @Secured(USER_ROLE)
   public ResponseEntity<String> startDownload(
       @NotNull @Valid @RequestBody DownloadRequest request,
-      @RequestParam(name = "source", required = false) String source,
+      @Parameter(hidden = true) @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
     if (Boolean.TRUE.equals(downloadsDisabled)) {

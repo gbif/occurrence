@@ -225,18 +225,11 @@ public class OccurrenceResource {
   )
   @OccurrenceErrorResponses
   @NullToNotFound
-  @GetMapping({"{gbifId}", "{gbifId}/"})
+  @GetMapping({"{gbifId}"})
   public Occurrence get(@PathVariable("gbifId") Long gbifId) {
     LOG.debug("Request Occurrence [{}]:", gbifId);
     return occurrenceGetByKey.get(gbifId);
   }
-//
-//  @Hidden
-//  @GetMapping({ "{gbifId}/"})
-//  public Occurrence get2(@PathVariable("gbifId") Long gbifId) {
-//    LOG.debug("Request Occurrence [{}]:", gbifId);
-//    return occurrenceGetByKey.get(gbifId);
-//  }
 
   /**
    * This retrieves a single Occurrence detail from the occurrence store.
@@ -267,14 +260,6 @@ public class OccurrenceResource {
     LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
     return occurrenceGetByKey.get(datasetKey, occurrenceId);
   }
-//
-//  @GetMapping("/{datasetKey}/{occurrenceId}/")
-//  @ResponseBody
-//  @Hidden
-//  public Occurrence get2(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
-//    LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
-//    return occurrenceGetByKey.get(datasetKey, occurrenceId);
-//  }
 
   /**
    * This retrieves a single occurrence fragment in its raw form as a string.

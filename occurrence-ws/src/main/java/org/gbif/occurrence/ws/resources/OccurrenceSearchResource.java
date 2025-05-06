@@ -20,16 +20,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.util.Range;
-import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.api.vocabulary.Continent;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.api.vocabulary.GbifRegion;
-import org.gbif.api.vocabulary.License;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.api.vocabulary.OccurrenceStatus;
-import org.gbif.api.vocabulary.TaxonomicStatus;
-import org.gbif.api.vocabulary.ThreatStatus;
+import org.gbif.api.vocabulary.*;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
@@ -84,6 +76,8 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PARAMETER;
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
+import static org.gbif.api.vocabulary.InterpretationRemarkSeverity.INFO;
+import static org.gbif.api.vocabulary.InterpretationRemarkSeverity.WARNING;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.DATASET_NAME_PATH;
@@ -225,7 +219,8 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "acceptedTaxonKey",
             description =
-                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). " +
+                  "Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -291,8 +286,8 @@ public class OccurrenceSearchResource {
             example = "212"),
         @Parameter(
           name = "checklistKey",
-          description = "The checklist key. This determines which taxonomy will be used for "
-            + "the search in conjunction with other taxon keys. If this is not specified, the GBIF "
+          description = "*Experimental.* The checklist key. This determines which taxonomy will be used for "
+            + "the search in conjunction with other taxon keys or scientificName. If this is not specified, the GBIF "
             + "backbone taxonomy will be used.",
           schema = @Schema(implementation = String.class),
           in = ParameterIn.QUERY,
@@ -1412,12 +1407,28 @@ public class OccurrenceSearchResource {
         @Parameter(
           name = "taxonomicIssue",
           description =
-            "A specific taxonomic interpretation issue as defined in our OccurrenceIssue enumeration.\n\n"
+            "*Experimental.* A specific taxonomic interpretation issue as defined in our " +
+              "OccurrenceIssue enumeration.\n\n"
               + API_PARAMETER_MAY_BE_REPEATED,
-          array =
-          @ArraySchema(
+          array = @ArraySchema(
             uniqueItems = true,
-            schema = @Schema(implementation = OccurrenceIssue.class)),
+            schema = @Schema(
+              type = "string",
+              allowableValues = {
+                "TAXON_MATCH_FUZZY",
+                "TAXON_MATCH_HIGHERRANK",
+                "TAXON_MATCH_AGGREGATE",
+                "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+                "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+                "TAXON_MATCH_TAXON_ID_IGNORED",
+                "SCIENTIFIC_NAME_ID_NOT_FOUND",
+                "TAXON_CONCEPT_ID_NOT_FOUND",
+                "TAXON_ID_NOT_FOUND",
+                "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+                "TAXON_MATCH_NONE"
+              }
+            )
+          ),
           explode = Explode.TRUE,
           in = ParameterIn.QUERY,
           example = "TAXON_CONCEPT_ID_NOT_FOUND"),
