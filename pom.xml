@@ -124,6 +124,7 @@
     <spring-boot-admin.version>3.3.4</spring-boot-admin.version>
     <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
     <swagger-annotations.version>2.2.25</swagger-annotations.version>
+    <micrometer.version>1.12.2</micrometer.version>
 
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
@@ -659,6 +660,12 @@
         <groupId>io.swagger.core.v3</groupId>
         <artifactId>swagger-annotations</artifactId>
         <version>${swagger-annotations.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>${micrometer.version}</version>
+        <scope>runtime</scope>
       </dependency>
 
       <!-- Other -->
