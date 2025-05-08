@@ -434,6 +434,23 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     return rank.replaceAll("_\\d+$", "");
   }
 
+  // Helper method to construct a Usage object from a map
+  private Usage createUsage(Map<String, String> data) {
+    if (data == null) return null;
+    return new Usage(
+      data.get("key"),
+      data.get("name"),
+      data.get("rank"),
+      data.get("code"),
+      data.get("authorship"),
+      data.get("genericName"),
+      data.get("infragenericEpithet"),
+      data.get("specificEpithet"),
+      data.get("infraspecificEpithet"),
+      data.get("formattedName")
+    );
+  }
+
   private void setClassifications(SearchHit hit, Occurrence occ) {
 
     getMapValue(hit, "classifications").flatMap(classifications -> Optional.of(classifications.entrySet().stream().map(m -> {
@@ -444,39 +461,13 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       Classification cl = new Classification();
       cl.setChecklistKey(datasetKey);
 
-      //set the usage
-      Map<String, String> usage = (Map<String, String>) value.get("usage");
-      cl.setUsage(
-        new Usage(
-          usage.get("key"),
-          usage.get("name"),
-          usage.get("rank"),
-          usage.get("code"),
-          usage.get("authorship"),
-          usage.get("genericName"),
-          usage.get("infragenericEpithet"),
-          usage.get("specificEpithet"),
-          usage.get("infraspecificEpithet"),
-          usage.get("formattedName")
-        )
-      );
+      // Set the usage
+      cl.setUsage(createUsage((Map<String, String>) value.get("usage")));
 
-      //set the accepted usage
-      Map<String, String> acceptedusage = (Map<String, String>) value.get("acceptedUsage");
-      Optional.ofNullable(acceptedusage).ifPresent(au -> cl.setAcceptedUsage(
-        new Usage(
-          au.get("key"),
-          au.get("name"),
-          au.get("rank"),
-          au.get("code"),
-          au.get("authorship"),
-          au.get("genericName"),
-          au.get("infragenericEpithet"),
-          au.get("specificEpithet"),
-          au.get("infraspecificEpithet"),
-          au.get("formattedName")
-        )
-      ));
+    // Set the accepted usage, if present
+      Optional.ofNullable((Map<String, String>) value.get("acceptedUsage"))
+        .map(this::createUsage)
+        .ifPresent(cl::setAcceptedUsage);
 
       //set the classification depth
       Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
