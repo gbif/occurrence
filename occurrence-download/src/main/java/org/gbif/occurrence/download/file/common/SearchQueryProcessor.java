@@ -88,7 +88,10 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence> {
   }
 
   private void consume(SearchResponse searchResponse, Consumer<T> consumer) {
-    esResponseParser.buildSearchResponse(searchResponse, new OccurrenceSearchRequest(0, searchResponse.getHits().getHits().length))
+    OccurrenceSearchRequest r = new OccurrenceSearchRequest();
+    r.setOffset(0);
+    r.setLimit(searchResponse.getHits().getHits().length);
+    esResponseParser.buildSearchResponse(searchResponse, r)
       .getResults().forEach(consumer);
   }
   /**
