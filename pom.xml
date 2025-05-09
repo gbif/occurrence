@@ -500,11 +500,6 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-hadoop-minicluster</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
         <artifactId>maven-extension-avsc-schema-generator</artifactId>
         <version>${project.version}</version>
       </dependency>
