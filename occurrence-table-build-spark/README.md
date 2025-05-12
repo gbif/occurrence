@@ -1,5 +1,5 @@
 ## Occurrence/Event Table Build
-Spark Job to crate Occurrence, Event and extensions tables used for downloads and data warehouse in Hive.
+Spark Job to create Occurrence, Event and extensions tables used for downloads and data warehouse in Hive.
 
 ```
 nohup sudo -u hdfs spark2-submit --class  org.gbif.occurrence.table.backfill.TableBackfill \

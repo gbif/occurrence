@@ -28,7 +28,6 @@ import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
-import org.gbif.api.util.VocabularyUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -70,16 +69,18 @@ public class PredicateFactory {
     List<Predicate> groupedByParam = new ArrayList<>();
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
-      OccurrenceSearchParameter param = toEnumParam(p.getKey());
-      boolean matchCase = Optional.ofNullable(params.get("matchCase")).map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
-      String[] values = p.getValue();
-      if (param != null && values != null && values.length > 0) {
-        // valid parameter
-        Predicate predicate = buildParamPredicate(param, matchCase, values);
-        if (predicate != null) {
-          groupedByParam.add(predicate);
+      toEnumParam(p.getKey()).ifPresent(param -> {
+        boolean matchCase = Optional.ofNullable(params.get("matchCase"))
+          .map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
+        String[] values = p.getValue();
+        if (values != null && values.length > 0) {
+          // valid parameter
+          Predicate predicate = buildParamPredicate(param, matchCase, values);
+          if (predicate != null) {
+            groupedByParam.add(predicate);
+          }
         }
-      }
+      });
     }
 
     if (groupedByParam.isEmpty()) {
@@ -98,9 +99,9 @@ public class PredicateFactory {
   /**
    * @return the search enum or null if it cant be converted
    */
-  private static OccurrenceSearchParameter toEnumParam(String name) {
+  private static Optional<OccurrenceSearchParameter> toEnumParam(String name) {
     try {
-      return VocabularyUtils.lookupEnum(name, OccurrenceSearchParameter.class);
+      return OccurrenceSearchParameter.lookup(name);
     } catch (IllegalArgumentException e) {
       return null;
     }

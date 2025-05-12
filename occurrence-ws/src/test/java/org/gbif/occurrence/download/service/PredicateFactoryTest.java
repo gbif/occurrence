@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.Predicate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,5 +71,16 @@ public class PredicateFactoryTest {
     params.put(OccurrenceSearchParameter.EVENT_DATE.name(), new String[] {"*,1980", "1990", "2000,2010", "2023-09"});
 
     assertNotNull(PredicateFactory.build(params));
+  }
+
+  @Test
+  public void testInChecklistKeyPredicate() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY.name(), new String[] {"7ddf754f-d193-4cc9-b351-99906754a03b"});
+    params.put(OccurrenceSearchParameter.SPECIES_KEY.name(), new String[] {"5XCPW"});
+
+    Predicate predicate = PredicateFactory.build(params);
+
+    assertNotNull(predicate);
   }
 }

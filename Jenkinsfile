@@ -4,7 +4,7 @@ pipeline {
   agent any
   tools {
     maven 'Maven 3.8.5'
-    jdk 'OpenJDK11'
+    jdk 'OpenJDK17'
   }
   options {
     buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -30,7 +30,20 @@ pipeline {
   }
   stages {
 
-    stage('Maven build: Main project (Java 11)') {
+    stage('Maven build: mini cluster module (Java 17)') {
+      tools {
+        jdk 'OpenJDK17'
+      }
+      steps {
+        configFileProvider([
+            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
+          ]) {
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -pl occurrence-hadoop-minicluster'
+        }
+      }
+    }
+
+    stage('Maven build: Main project (Java 17)') {
        when {
         allOf {
           not { expression { params.RELEASE } };
@@ -42,7 +55,7 @@ pipeline {
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS'),
             configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
           ]) {
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Denforcer.skip=true -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B'
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -Denforcer.skip=true -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B  -pl \'!occurrence-hadoop-minicluster\''
         }
       }
     }
@@ -105,7 +118,7 @@ pipeline {
           not { expression { params.RELEASE_TRINO } };
           branch 'dev';
         }
-      }
+        }
       steps {
         build job: "occurrence-ws-dev-deploy", wait: false, propagate: false
       }
@@ -153,7 +166,7 @@ pipeline {
                 cd occurrence-trino-udf
                 mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS_TRINO
               '''
-          }
+        }
       }
     }
 
@@ -171,7 +184,7 @@ pipeline {
       steps {
         sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
       }
-     }
+    }
 
      stage('Docker Release: Table build') {
       when {
@@ -187,15 +200,15 @@ pipeline {
       steps {
         sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
       }
-     }
+    }
   }
 
-    post {
-      success {
-        echo 'Pipeline executed successfully!'
-      }
-      failure {
-        echo 'Pipeline execution failed!'
+  post {
+    success {
+      echo 'Pipeline executed successfully!'
+    }
+    failure {
+      echo 'Pipeline execution failed!'
     }
   }
 }

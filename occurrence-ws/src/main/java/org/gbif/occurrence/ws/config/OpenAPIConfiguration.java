@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springdoc.core.customizers.OpenApiCustomiser;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ public class OpenAPIConfiguration {
    * Sorts tags (sections of the occurrence documentation) by the order extension, rather than alphabetically.
    */
   @Bean
-  public OpenApiCustomiser sortTagsByOrderExtension() {
+  public OpenApiCustomizer sortTagsByOrderExtension() {
     return openApi -> {
       // Sort tags (end up as main sections on the left) by custom Extension value.
       openApi.setTags(openApi.getTags()
