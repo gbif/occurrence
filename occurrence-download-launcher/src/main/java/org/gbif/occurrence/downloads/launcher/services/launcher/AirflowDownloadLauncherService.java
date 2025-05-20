@@ -52,8 +52,10 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
       Retry.of(
           "airflowApiCall",
           RetryConfig.custom()
-              .maxAttempts(7)
-              .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(6)))
+              // This will give up to 40 tries, from 2 to 75 seconds apart, over at most 13 minutes
+              // (approx)
+              .maxAttempts(40)
+              .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(2), 1.1))
               .build());
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
