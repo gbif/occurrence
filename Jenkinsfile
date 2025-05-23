@@ -51,6 +51,7 @@ pipeline {
               ]) {
               sh 'mvn clean deploy -Denforcer.skip=true -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B'
             }
+          }
       }
     }
 
