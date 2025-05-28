@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
@@ -61,6 +62,7 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   private final SparkStaticConfiguration sparkStaticConfiguration;
   private final AirflowClient bigDownloadsAirflowClient;
   private final AirflowClient smallDownloadsAirflowClient;
+  private final AirflowClient eventsDownloadsAirflowClient;
   private final OccurrenceDownloadClient downloadClient;
   private final AirflowConfiguration airflowConfiguration;
   private final LockerService lockerService;
@@ -77,6 +79,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         buildAirflowClient(airflowConfiguration.bigDownloadsAirflowDagName);
     this.smallDownloadsAirflowClient =
         buildAirflowClient(airflowConfiguration.smallDownloadsAirflowDagName);
+    this.eventsDownloadsAirflowClient =
+        buildAirflowClient(airflowConfiguration.eventsDownloadsAirflowDagName);
     this.lockerService = lockerService;
   }
 
@@ -177,7 +181,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                     sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
                 .driverMinResourceMemory(driverMinResourceMemory + "Gi")
                 .driverMinResourceCpu(driverMinResourceCpu + "m")
-                .driverMemoryOverhead(String.valueOf(sparkStaticConfiguration.getDriverMemoryOverheadMb()))
+                .driverMemoryOverhead(
+                    String.valueOf(sparkStaticConfiguration.getDriverMemoryOverheadMb()))
                 // Executor
                 .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
                 .executorMinResourceMemory(executorMinResourceMemory + "Gi")
@@ -346,7 +351,13 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
   }
 
   private AirflowClient getAirflowClient(Download download) {
-    return isSmallDownload(download) ? smallDownloadsAirflowClient : bigDownloadsAirflowClient;
+    return isEventDownload(download)
+        ? eventsDownloadsAirflowClient
+        : isSmallDownload(download) ? smallDownloadsAirflowClient : bigDownloadsAirflowClient;
+  }
+
+  private boolean isEventDownload(Download download) {
+    return download.getRequest().getType() == DownloadType.EVENT;
   }
 
   private AirflowClient buildAirflowClient(String dagName) {

@@ -149,11 +149,6 @@ public class WorkflowConfiguration {
     return SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE).toUpperCase());
   }
 
-  public DwcTerm getCoreTerm() {
-    Preconditions.checkNotNull(settings);
-    return getEsIndexType() == SearchType.OCCURRENCE? DwcTerm.Occurrence : DwcTerm.Event;
-  }
-
   /**
    *
    * @param downloadKey download id
