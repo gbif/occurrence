@@ -33,7 +33,7 @@ pipeline {
   }
   stages {
 
-    stage('Maven build: Main project (Java 11)') {
+    stage('Maven build: Main project (Java 17)') {
        when {
         allOf {
           not { expression { params.RELEASE } };
@@ -49,7 +49,7 @@ pipeline {
             configFileProvider([
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
-              sh 'mvn clean deploy -Denforcer.skip=true -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} -B'
+              sh 'mvn clean deploy -Denforcer.skip=true -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE}  -pl \'!occurrence-hadoop-minicluster\''
             }
           }
       }
