@@ -13,6 +13,8 @@
  */
 package org.gbif.event.ws;
 
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -58,7 +60,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
       "org.gbif.event.search",
       "org.gbif.event.ws",
       "org.gbif.occurrence.download.service",
-      "org.gbif.occurrence.mail"
+      "org.gbif.occurrence.mail",
+      "org.gbif.occurrence.search",
+      "org.gbif.occurrence.search.es",
     },
     excludeFilters = {
       @ComponentScan.Filter(
@@ -91,6 +95,8 @@ public class EventWsApplication {
       RestTemplateBuilder builder, @Value("${registry.ws.url}") String gbifApiUrl) {
     return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
   }
+
+
 
   @Bean
   public ConceptClient conceptClient(@Value("${api.url}") String apiUrl) {
