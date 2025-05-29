@@ -72,6 +72,8 @@
               <goal>repackage</goal>
             </goals>
             <configuration>
+              <!-- Fixes a nestedPath issue - see https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes#nested-jar-support -->
+              <loaderImplementation>CLASSIC</loaderImplementation>
               <attach>true</attach>
               <classifier>exec</classifier>
             </configuration>
@@ -145,6 +147,10 @@
       <groupId>org.gbif.registry</groupId>
       <artifactId>registry-ws-client</artifactId>
       <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
         <exclusion>
           <groupId>asm</groupId>
           <artifactId>asm</artifactId>
@@ -484,6 +490,12 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>gbif-common</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-logging</artifactId>
+          <groupId>commons-logging</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.gbif.predicates</groupId>
