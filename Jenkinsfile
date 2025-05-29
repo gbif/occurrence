@@ -33,6 +33,19 @@ pipeline {
   }
   stages {
 
+    stage('Maven build: mini cluster module (Java 17)') {
+      tools {
+        jdk 'OpenJDK17'
+      }
+      steps {
+        configFileProvider([
+            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
+          ]) {
+          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -pl occurrence-hadoop-minicluster'
+        }
+      }
+    }
+
     stage('Maven build: Main project (Java 17)') {
        when {
         allOf {
