@@ -13,14 +13,20 @@
  */
 package org.gbif.occurrence.ws.it;
 
+import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.SneakyThrows;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.ws.client.OccurrenceDownloadWsClient;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,15 +37,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import lombok.SneakyThrows;
-
-import static org.gbif.occurrence.ws.it.OccurrenceWsItConfiguration.TEST_USER;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -53,7 +50,7 @@ public class OccurrenceOccurrenceDownloadResourceIT {
 
   private final OccurrenceDownloadWsClient downloadWsClient;
 
-  private final OccurrenceDownloadService occurrenceDownloadService;
+  private final OccurrenceDownloadClient occurrenceDownloadService;
 
   private final ResourceLoader resourceLoader;
 
@@ -62,7 +59,7 @@ public class OccurrenceOccurrenceDownloadResourceIT {
   @Autowired
   public OccurrenceOccurrenceDownloadResourceIT(
       @LocalServerPort int localServerPort,
-      OccurrenceDownloadService occurrenceDownloadService,
+      OccurrenceDownloadClient occurrenceDownloadService,
       ResourceLoader resourceLoader) {
     ClientBuilder clientBuilder =
         new ClientBuilder()
