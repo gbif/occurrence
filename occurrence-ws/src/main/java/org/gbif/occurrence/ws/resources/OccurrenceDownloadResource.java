@@ -16,10 +16,10 @@ package org.gbif.occurrence.ws.resources;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.gbif.api.model.occurrence.DownloadType;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.resource.DownloadResource;
 import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.occurrence.download.service.OccurrenceDownloadRequestService;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.MediaType;
@@ -71,9 +71,9 @@ public class OccurrenceDownloadResource extends DownloadResource {
 
   public OccurrenceDownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
-      OccurrenceDownloadRequestService service,
+      DownloadRequestService service,
       CallbackService callbackService,
-      OccurrenceDownloadClient occurrenceDownloadService,
+      OccurrenceDownloadService occurrenceDownloadService,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
     super(
         archiveServerUrl,
