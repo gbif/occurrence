@@ -101,9 +101,9 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
   private DownloadUpdaterService getDownloadUpdaterService(
       DownloadLauncherMessage downloadLauncherMessage) {
     if (downloadLauncherMessage.getDownloadRequest().getType() == DownloadType.EVENT) {
-      return occurrenceDownloadUpdaterService;
-    } else {
       return eventDownloadUpdaterService;
+    } else {
+      return occurrenceDownloadUpdaterService;
     }
   }
 }

@@ -13,21 +13,23 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.EventDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
+import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
-
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
-
+import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,16 +41,14 @@ import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 
 class DownloadLauncherListenerTest {
 
-  @Mock
-  private DownloadLauncher jobManager;
-  @Mock
-  private DownloadUpdaterService downloadUpdaterService;
+  @Mock private OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
+  @Mock private EventDownloadLauncherService eventDownloadLauncherService;
+  @Mock private OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
+  @Mock private EventDownloadUpdaterService eventDownloadUpdaterService;
 
-  @Mock
-  private LockerService lockerService;
+  @Mock private LockerService lockerService;
 
-  @InjectMocks
-  private DownloadLauncherListener listener;
+  @InjectMocks private DownloadLauncherListener listener;
 
   @BeforeEach
   public void setUp() {
@@ -63,6 +63,7 @@ class DownloadLauncherListenerTest {
     request.setCreator("testUser");
     request.setFormat(DownloadFormat.DWCA);
     request.setNotificationAddresses(Collections.singleton("testEmail"));
+    request.setType(DownloadType.OCCURRENCE);
     request.setPredicate(
         new EqualsPredicate(
             OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
@@ -70,14 +71,14 @@ class DownloadLauncherListenerTest {
     DownloadLauncherMessage downloadLauncherMessage =
         new DownloadLauncherMessage(downloadKey, request);
 
-    Mockito.when(jobManager.createRun(downloadKey))
+    Mockito.when(occurrenceDownloadLauncherService.createRun(downloadKey))
         .thenReturn(DownloadLauncher.JobStatus.RUNNING);
-    Mockito.when(jobManager.getStatusByName(downloadKey))
-      .thenReturn(Optional.of(Status.RUNNING));
+    Mockito.when(occurrenceDownloadLauncherService.getStatusByName(downloadKey))
+        .thenReturn(Optional.of(Status.RUNNING));
 
     listener.handleMessage(downloadLauncherMessage);
 
-    Mockito.verify(jobManager).createRun(downloadKey);
+    Mockito.verify(occurrenceDownloadLauncherService).createRun(downloadKey);
     Mockito.verify(lockerService).lock(downloadKey, Thread.currentThread());
   }
 
@@ -89,6 +90,7 @@ class DownloadLauncherListenerTest {
     request.setCreator("testUser");
     request.setFormat(DownloadFormat.DWCA);
     request.setNotificationAddresses(Collections.singleton("testEmail"));
+    request.setType(DownloadType.OCCURRENCE);
     request.setPredicate(
         new EqualsPredicate(
             OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
@@ -96,13 +98,15 @@ class DownloadLauncherListenerTest {
     DownloadLauncherMessage downloadLauncherMessage =
         new DownloadLauncherMessage(downloadKey, request);
 
-    Mockito.when(jobManager.createRun(downloadKey)).thenReturn(DownloadLauncher.JobStatus.FAILED);
+    Mockito.when(occurrenceDownloadLauncherService.createRun(downloadKey))
+        .thenReturn(DownloadLauncher.JobStatus.FAILED);
 
-    Mockito.when(downloadUpdaterService.isStatusFinished(downloadKey)).thenReturn(Boolean.TRUE);
+    Mockito.when(occurrenceDownloadUpdaterService.isStatusFinished(downloadKey))
+        .thenReturn(Boolean.TRUE);
 
     listener.handleMessage(downloadLauncherMessage);
 
-    Mockito.verifyNoInteractions(jobManager);
+    Mockito.verifyNoInteractions(occurrenceDownloadLauncherService);
   }
 
   @Test
@@ -113,19 +117,20 @@ class DownloadLauncherListenerTest {
     request.setCreator("testUser");
     request.setFormat(DownloadFormat.DWCA);
     request.setNotificationAddresses(Collections.singleton("testEmail"));
+    request.setType(DownloadType.OCCURRENCE);
     request.setPredicate(
-      new EqualsPredicate(
-        OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
+        new EqualsPredicate(
+            OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
 
     DownloadLauncherMessage downloadLauncherMessage =
-      new DownloadLauncherMessage(downloadKey, request);
+        new DownloadLauncherMessage(downloadKey, request);
 
-    Mockito.when(jobManager.createRun(downloadKey))
-      .thenReturn(JobStatus.FINISHED);
+    Mockito.when(occurrenceDownloadLauncherService.createRun(downloadKey))
+        .thenReturn(JobStatus.FINISHED);
 
     listener.handleMessage(downloadLauncherMessage);
 
-    Mockito.verify(downloadUpdaterService).updateStatus(downloadKey, Status.SUCCEEDED);
+    Mockito.verify(occurrenceDownloadUpdaterService).updateStatus(downloadKey, Status.SUCCEEDED);
   }
 
   @Test
@@ -139,6 +144,7 @@ class DownloadLauncherListenerTest {
           request.setCreator("testUser");
           request.setFormat(DownloadFormat.DWCA);
           request.setNotificationAddresses(Collections.singleton("testEmail"));
+          request.setType(DownloadType.OCCURRENCE);
           request.setPredicate(
               new EqualsPredicate(
                   OccurrenceSearchParameter.DATASET_KEY, UUID.randomUUID().toString(), false));
@@ -146,11 +152,12 @@ class DownloadLauncherListenerTest {
           DownloadLauncherMessage downloadLauncherMessage =
               new DownloadLauncherMessage(downloadKey, request);
 
-          Mockito.when(jobManager.createRun(downloadKey)).thenReturn(JobStatus.FAILED);
+          Mockito.when(occurrenceDownloadLauncherService.createRun(downloadKey))
+              .thenReturn(JobStatus.FAILED);
 
           listener.handleMessage(downloadLauncherMessage);
 
-          Mockito.verify(downloadUpdaterService).updateStatus(downloadKey, Status.FAILED);
+          Mockito.verify(occurrenceDownloadUpdaterService).updateStatus(downloadKey, Status.FAILED);
         });
   }
 }
