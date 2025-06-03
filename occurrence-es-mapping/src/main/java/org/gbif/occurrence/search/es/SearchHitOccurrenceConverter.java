@@ -45,6 +45,8 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.event.search.es.EventEsField;
+import org.gbif.event.search.es.OccurrenceEventEsField;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
@@ -423,8 +425,19 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   }
 
   private ChecklistEsField getChecklistField(Term term) {
-    OccurrenceEsField field = (OccurrenceEsField) occurrenceBaseEsFieldMapper.getEsField(term);
-    return (ChecklistEsField) field.getEsField();
+    EsField esField = occurrenceBaseEsFieldMapper.getEsField(term);
+    if (esField instanceof OccurrenceEsField) {
+      OccurrenceEsField field = (OccurrenceEsField) esField;
+      return (ChecklistEsField) field.getEsField();
+    } else if (esField instanceof EventEsField) {
+      EventEsField field = (EventEsField) esField;
+      return (ChecklistEsField) field.getEsField();
+    } else if (esField instanceof OccurrenceEventEsField) {
+      OccurrenceEventEsField field = (OccurrenceEventEsField) esField;
+      return (ChecklistEsField) field.getEsField();
+    }
+
+    return null;
   }
 
   private static String removeDepthSuffix(String rank){
