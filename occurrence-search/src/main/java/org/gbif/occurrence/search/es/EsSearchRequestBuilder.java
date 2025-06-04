@@ -371,7 +371,8 @@ public class EsSearchRequestBuilder {
 
   @SneakyThrows
   public Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
-    VocabularyFieldTranslator.translateVocabs(searchRequest, conceptClient);
+    searchRequest.setPredicate(
+        VocabularyFieldTranslator.translateVocabs(searchRequest.getPredicate(), conceptClient));
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
