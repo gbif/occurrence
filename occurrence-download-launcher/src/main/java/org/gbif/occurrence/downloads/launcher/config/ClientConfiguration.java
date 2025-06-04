@@ -13,13 +13,12 @@
  */
 package org.gbif.occurrence.downloads.launcher.config;
 
+import java.time.Duration;
 import org.gbif.occurrence.downloads.launcher.pojo.RegistryConfiguration;
+import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
-import java.time.Duration;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,5 +42,23 @@ public class ClientConfiguration {
         // This will give up to 40 tries, from 2 to 75 seconds apart, over at most 13 minutes (approx)
         .withExponentialBackoffRetry(Duration.ofSeconds(2), 1.1, 40)
         .build(OccurrenceDownloadClient.class);
+  }
+
+  /**
+   * Provides an EventDownloadClient.
+   *
+   * @param configuration the registry configuration
+   * @return an EventDownloadClient
+   */
+  @Bean
+  public EventDownloadClient eventDownloadClient(RegistryConfiguration configuration) {
+    return new ClientBuilder()
+      .withUrl(configuration.getApiUrl())
+      .withCredentials(configuration.getUserName(), configuration.getPassword())
+      .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+      .withFormEncoder()
+      // This will give up to 40 tries, from 2 to 75 seconds apart, over at most 13 minutes (approx)
+      .withExponentialBackoffRetry(Duration.ofSeconds(2), 1.1, 40)
+      .build(EventDownloadClient.class);
   }
 }
