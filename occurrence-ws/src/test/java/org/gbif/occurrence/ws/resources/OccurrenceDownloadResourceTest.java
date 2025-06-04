@@ -129,7 +129,7 @@ public class OccurrenceDownloadResourceTest {
             DownloadType.OCCURRENCE,
           "testDescription",
           null,
-            Collections.singleton(Extension.AUDUBON));
+            Collections.singleton(Extension.AUDUBON), null);
     sqlDl =
         new SqlDownloadRequest(
            "SELECT gbifid FROM occurrence",
@@ -139,7 +139,7 @@ public class OccurrenceDownloadResourceTest {
           DownloadFormat.SQL_TSV_ZIP,
           DownloadType.OCCURRENCE,
           "testDescription",
-          null);
+          null,null);
     badSqlDl =
         new SqlDownloadRequest(
            "SELECT * FROM occurrence",
@@ -149,7 +149,7 @@ public class OccurrenceDownloadResourceTest {
           DownloadFormat.SQL_TSV_ZIP,
           DownloadType.OCCURRENCE,
           "testDescription",
-          null);
+          null,null);
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.emptyList());

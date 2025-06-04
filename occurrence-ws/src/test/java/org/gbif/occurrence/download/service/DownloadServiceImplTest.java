@@ -99,7 +99,7 @@ class DownloadServiceImplTest {
             DownloadType.OCCURRENCE,
           "testDescription",
           null,
-            Collections.singleton(Extension.AUDUBON));
+            Collections.singleton(Extension.AUDUBON), null);
     String id = requestService.create(dl, null);
 
     assertTrue(REGEX.matcher(id).matches());
@@ -117,7 +117,7 @@ class DownloadServiceImplTest {
             DownloadType.OCCURRENCE,
           "testDescription",
           null,
-            Collections.singleton(Extension.AUDUBON));
+            Collections.singleton(Extension.AUDUBON), null);
 
     when(downloadLimitsService.exceedsDownloadComplexity(any())).thenReturn("test");
 
@@ -202,7 +202,7 @@ class DownloadServiceImplTest {
             DownloadType.OCCURRENCE,
           "testDescription",
           null,
-            Collections.singleton(Extension.AUDUBON));
+            Collections.singleton(Extension.AUDUBON), null);
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(downloadKey);

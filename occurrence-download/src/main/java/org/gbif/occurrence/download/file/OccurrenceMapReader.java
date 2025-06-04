@@ -354,7 +354,7 @@ public class OccurrenceMapReader {
    * Builds Map that contains a lists of terms.
    */
   public static Map<String, String> selectTerms(Map<String,String> record, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    return  record.entrySet().stream()
+    return record.entrySet().stream()
       .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
       .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
