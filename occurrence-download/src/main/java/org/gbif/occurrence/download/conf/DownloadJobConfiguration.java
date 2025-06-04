@@ -43,6 +43,7 @@ import lombok.Data;
 public class DownloadJobConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(DownloadJobConfiguration.class);
+
   /** Occurrence download key/identifier. */
   private final String downloadKey;
 

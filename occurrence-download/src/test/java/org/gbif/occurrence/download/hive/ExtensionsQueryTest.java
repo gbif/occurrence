@@ -44,7 +44,9 @@ public class ExtensionsQueryTest {
       DownloadType.OCCURRENCE,
       null,
       null,
-      Extension.availableExtensions());
+      Extension.availableExtensions(),
+      null
+    );
 
     Download download = new Download();
     download.setKey("extension-test");
