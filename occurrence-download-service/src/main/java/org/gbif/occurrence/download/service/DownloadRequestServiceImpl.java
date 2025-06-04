@@ -174,7 +174,7 @@ public abstract class DownloadRequestServiceImpl
     try {
       exceedSimultaneousLimit =
           downloadLimitsService.exceedsSimultaneousDownloadLimit(
-              request.getCreator(), downloadType);
+              request.getCreator());
     } catch (Exception e) {
       throw new ServiceUnavailableException(
           "Failed to create download job while checking simultaneous download limit", e);

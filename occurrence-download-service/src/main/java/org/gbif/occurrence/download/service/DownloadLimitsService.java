@@ -15,13 +15,10 @@ package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadRequest;
-import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.conf.DownloadLimits;
-import org.gbif.registry.ws.client.EventDownloadClient;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,17 +26,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class DownloadLimitsService {
 
-  private final OccurrenceDownloadClient occurrenceDownloadService;
-  private final EventDownloadClient eventDownloadService;
+  private final OccurrenceDownloadService occurrenceDownloadService;
   private final DownloadLimits downloadLimits;
 
   @Autowired
   public DownloadLimitsService(
-      OccurrenceDownloadClient occurrenceDownloadService,
-      EventDownloadClient eventDownloadService,
-      DownloadLimits downloadLimits) {
+      OccurrenceDownloadService occurrenceDownloadService, DownloadLimits downloadLimits) {
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.eventDownloadService = eventDownloadService;
     this.downloadLimits = downloadLimits;
   }
 
@@ -47,10 +40,9 @@ public class DownloadLimitsService {
    * Checks if the user is allowed to create a download request. Validates if the download is under
    * the limits of simultaneous downloads.
    */
-  public String exceedsSimultaneousDownloadLimit(String userName, DownloadType downloadType) {
+  public String exceedsSimultaneousDownloadLimit(String userName) {
     long userDownloadsCount =
-        getOccurrenceDownloadService(downloadType)
-            .countByUser(userName, Download.Status.EXECUTING_STATUSES, null);
+        occurrenceDownloadService.countByUser(userName, Download.Status.EXECUTING_STATUSES, null);
     if (userDownloadsCount >= downloadLimits.getMaxUserDownloads()) {
       return "User "
           + userName
@@ -61,7 +53,7 @@ public class DownloadLimitsService {
     }
 
     long executingDownloadsCount =
-        getOccurrenceDownloadService(downloadType).count(Download.Status.EXECUTING_STATUSES, null);
+        occurrenceDownloadService.count(Download.Status.EXECUTING_STATUSES, null);
 
     if (downloadLimits.violatesLimits((int) userDownloadsCount, (int) executingDownloadsCount)) {
       return "Too many downloads are running.  Please wait for some to complete: see the GBIF health status page.";
@@ -84,13 +76,5 @@ public class DownloadLimitsService {
     }
 
     return null;
-  }
-
-  private OccurrenceDownloadService getOccurrenceDownloadService(DownloadType downloadType) {
-    if (downloadType == DownloadType.EVENT) {
-      return occurrenceDownloadService;
-    } else {
-      return eventDownloadService;
-    }
   }
 }

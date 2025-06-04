@@ -22,7 +22,6 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +36,7 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
-      @Qualifier("occurrenceDownloadClient") OccurrenceDownloadService occurrenceDownloadService,
+      OccurrenceDownloadService occurrenceDownloadService,
       OccurrenceSearchService occurrenceSearchService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,

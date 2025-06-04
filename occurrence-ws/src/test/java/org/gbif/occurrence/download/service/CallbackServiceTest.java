@@ -100,8 +100,7 @@ class CallbackServiceTest {
     downloadLimitsService = mock(DownloadLimitsService.class);
     messagePublisher = mock(MessagePublisher.class);
 
-    when(downloadLimitsService.exceedsSimultaneousDownloadLimit(
-            any(String.class), any(DownloadType.class)))
+    when(downloadLimitsService.exceedsSimultaneousDownloadLimit(any(String.class)))
         .thenReturn(null);
     when(downloadLimitsService.exceedsDownloadComplexity(any(DownloadRequest.class)))
         .thenReturn(null);

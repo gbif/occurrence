@@ -11,17 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.service;
+package org.gbif.event.download.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.occurrence.download.service.DownloadLimitsService;
+import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
-      @Qualifier("eventDownloadClient") OccurrenceDownloadService occurrenceDownloadService,
+      OccurrenceDownloadService occurrenceDownloadService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
