@@ -524,6 +524,7 @@ public class DownloadResource {
       @RequestParam(name = "source", required = false) String source,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
+      @RequestParam(name = "checklistKey", required = false) String checklistKey,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
@@ -532,7 +533,8 @@ public class DownloadResource {
     try {
       return ResponseEntity.ok(
           createDownload(
-              downloadPredicate(httpRequest, emails, format, extensions, description, machineDescriptionJson, principal),
+              downloadPredicate(httpRequest, emails, format, extensions, description, machineDescriptionJson,
+                checklistKey, principal),
               authentication,
               principal,
               parseSource(source, userAgent)));
@@ -569,6 +571,7 @@ public class DownloadResource {
       @RequestParam(name = "verbatimExtensions", required = false) String verbatimExtensions,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
+      @RequestParam(name = "checklistKey", required = false) String checklistKey,
       @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
@@ -604,7 +607,9 @@ public class DownloadResource {
         downloadType,
         description,
         machineDescription,
-        requestExtensions);
+        requestExtensions,
+        checklistKey
+    );
   }
 
   /**
@@ -709,7 +714,8 @@ public class DownloadResource {
         DownloadFormat.SQL_TSV_ZIP,
         downloadType,
         downloadRequest.getDescription(),
-        downloadRequest.getMachineDescription());
+        downloadRequest.getMachineDescription(),
+        downloadRequest.getChecklistKey());
       LOG.info("Returning request {}", request);
       return ResponseEntity.ok(request);
     } catch (Exception e) {
@@ -741,10 +747,11 @@ public class DownloadResource {
       properties = @ExtensionProperty(name = "Order", value = "0062")))
   @GetMapping("sql")
   public ResponseEntity<Object> downloadSqlGet(@Autowired HttpServletRequest httpRequest,
-                                               @RequestParam(name = "notification_address", required = false) String emails,
+    @RequestParam(name = "notification_address", required = false) String emails,
     @RequestParam(name = "description", required = false) String description,
     @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
-                                               @Autowired Principal principal) {
+    @RequestParam(name = "checklistKey", required = false) String checklistKey,
+    @Autowired Principal principal) {
     String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
 
@@ -770,7 +777,8 @@ public class DownloadResource {
       downloadType,
       description,
       machineDescription,
-      null);
+      null,
+      checklistKey);
 
     return downloadSqlPost(request);
   }

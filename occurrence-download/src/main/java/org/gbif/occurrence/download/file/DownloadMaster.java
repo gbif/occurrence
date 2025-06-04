@@ -103,7 +103,10 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
     SearchHitConverter<T> searchHitConverter) {
     conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
-    DownloadWorkflowModule downloadWorkflowModule = DownloadWorkflowModule.builder().workflowConfiguration(workflowConfiguration).downloadJobConfiguration(jobConfiguration).build();
+    DownloadWorkflowModule downloadWorkflowModule = DownloadWorkflowModule.builder()
+      .workflowConfiguration(workflowConfiguration)
+      .downloadJobConfiguration(jobConfiguration)
+      .build();
     this.curatorFramework = downloadWorkflowModule.curatorFramework();
     this.lockFactory = new ZooKeeperLockFactory(curatorFramework,
                                                 maxGlobalJobs,
