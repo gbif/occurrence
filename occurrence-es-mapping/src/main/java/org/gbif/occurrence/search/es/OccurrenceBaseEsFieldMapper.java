@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.dwc.terms.Term;
+import org.gbif.event.search.es.EventEsField;
 import org.gbif.predicate.query.EsFieldMapper;
 
 import java.util.*;
@@ -61,7 +62,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   private final List<FieldSortBuilder> defaultSort;
 
   private final Optional<QueryBuilder> defaultFilter;
-  
+
   private final String defaulChecklistKey;
 
   @Builder
@@ -171,8 +172,14 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
 
   @Override
   public boolean isTaxonomic(OccurrenceSearchParameter searchParameter) {
-    return Optional.ofNullable(searchToEsMapping.get(searchParameter)).map(
-      esField -> ((OccurrenceEsField) esField).getEsField() instanceof ChecklistEsField).orElse(false);
+    return Optional.ofNullable(searchToEsMapping.get(searchParameter))
+        .map(
+            esField ->
+                (esField instanceof OccurrenceEsField
+                        && ((OccurrenceEsField) esField).getEsField() instanceof ChecklistEsField)
+                    || ((esField instanceof EventEsField
+                        && ((EventEsField) esField).getEsField() instanceof ChecklistEsField)))
+        .orElse(false);
   }
 
   @Override
