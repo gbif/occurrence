@@ -15,9 +15,11 @@ package org.gbif.occurrence.downloads.launcher.listeners;
 
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
-import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.EventDownloadUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -27,10 +29,14 @@ import org.springframework.stereotype.Component;
 public class DeadLetterDownloadCancellationListener
     extends AbstractMessageCallback<DownloadLauncherMessage> {
 
-  private final DownloadUpdaterService downloadUpdaterService;
+  private final OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
+  private final EventDownloadUpdaterService eventDownloadUpdaterService;
 
-  public DeadLetterDownloadCancellationListener(DownloadUpdaterService downloadUpdaterService) {
-    this.downloadUpdaterService = downloadUpdaterService;
+  public DeadLetterDownloadCancellationListener(
+      OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService,
+      EventDownloadUpdaterService eventDownloadUpdaterService) {
+    this.occurrenceDownloadUpdaterService = occurrenceDownloadUpdaterService;
+    this.eventDownloadUpdaterService = eventDownloadUpdaterService;
   }
 
   @Override
@@ -38,6 +44,10 @@ public class DeadLetterDownloadCancellationListener
   public void handleMessage(DownloadLauncherMessage downloadsMessage) {
     log.info("Received message {}", downloadsMessage);
     String downloadKey = downloadsMessage.getDownloadKey();
-    downloadUpdaterService.updateStatus(downloadKey, Download.Status.CANCELLED);
+    if (downloadsMessage.getDownloadRequest().getType() == DownloadType.EVENT) {
+      eventDownloadUpdaterService.updateStatus(downloadKey, Download.Status.CANCELLED);
+    } else {
+      occurrenceDownloadUpdaterService.updateStatus(downloadKey, Download.Status.CANCELLED);
+    }
   }
 }

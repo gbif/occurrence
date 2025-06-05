@@ -33,21 +33,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowClient;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import org.gbif.registry.ws.client.BaseDownloadClient;
 
 @Slf4j
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class AirflowDownloadLauncherService implements DownloadLauncher {
+public abstract class AirflowDownloadLauncherService implements DownloadLauncher {
 
   private static final Retry AIRFLOW_RETRY =
       Retry.of(
@@ -60,32 +54,23 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
               .build());
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
-  private final AirflowClient bigDownloadsAirflowClient;
-  private final AirflowClient smallDownloadsAirflowClient;
-  private final AirflowClient eventsDownloadsAirflowClient;
-  private final OccurrenceDownloadClient downloadClient;
+  private final BaseDownloadClient downloadClient;
   private final AirflowConfiguration airflowConfiguration;
   private final LockerService lockerService;
 
   public AirflowDownloadLauncherService(
       SparkStaticConfiguration sparkStaticConfiguration,
       AirflowConfiguration airflowConfiguration,
-      OccurrenceDownloadClient downloadClient,
+      BaseDownloadClient downloadClient,
       LockerService lockerService) {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
     this.downloadClient = downloadClient;
     this.airflowConfiguration = airflowConfiguration;
-    this.bigDownloadsAirflowClient =
-        buildAirflowClient(airflowConfiguration.bigDownloadsAirflowDagName);
-    this.smallDownloadsAirflowClient =
-        buildAirflowClient(airflowConfiguration.smallDownloadsAirflowDagName);
-    this.eventsDownloadsAirflowClient =
-        buildAirflowClient(airflowConfiguration.eventsDownloadsAirflowDagName);
     this.lockerService = lockerService;
   }
 
   // NOTE: this has to match with the ElasticDownloadWorkflow#isSmallDownload method
-  private boolean isSmallDownload(Download download) {
+  protected boolean isSmallDownload(Download download) {
     return (download.getRequest().getFormat() == DownloadFormat.DWCA
             || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV)
         && download.getTotalRecords() != -1
@@ -350,17 +335,9 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         });
   }
 
-  private AirflowClient getAirflowClient(Download download) {
-    return isEventDownload(download)
-        ? eventsDownloadsAirflowClient
-        : isSmallDownload(download) ? smallDownloadsAirflowClient : bigDownloadsAirflowClient;
-  }
+  protected abstract AirflowClient getAirflowClient(Download download);
 
-  private boolean isEventDownload(Download download) {
-    return download.getRequest().getType() == DownloadType.EVENT;
-  }
-
-  private AirflowClient buildAirflowClient(String dagName) {
+  protected AirflowClient buildAirflowClient(String dagName) {
     return AirflowClient.builder()
         .airflowAddress(airflowConfiguration.airflowAddress)
         .airflowUser(airflowConfiguration.airflowUser)

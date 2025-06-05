@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.registry.ws.client.BaseDownloadClient;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,28 +32,27 @@ import org.springframework.stereotype.Service;
  * OccurrenceDownloadClient.
  */
 @Slf4j
-@Service
-public class DownloadUpdaterService {
+public abstract class DownloadUpdaterService {
 
-  private final OccurrenceDownloadClient occurrenceDownloadClient;
+  private final BaseDownloadClient downloadClient;
 
-  public DownloadUpdaterService(OccurrenceDownloadClient occurrenceDownloadClient) {
-    this.occurrenceDownloadClient = occurrenceDownloadClient;
+  public DownloadUpdaterService(BaseDownloadClient downloadClient) {
+    this.downloadClient = downloadClient;
   }
 
   public boolean isStatusFinished(String downloadKey) {
-    Download download = occurrenceDownloadClient.get(downloadKey);
+    Download download = downloadClient.get(downloadKey);
     return FINISH_STATUSES.contains(download.getStatus());
   }
 
   public List<Download> getExecutingDownloads() {
-    return occurrenceDownloadClient
+    return downloadClient
         .list(new PagingRequest(0, 48), Set.of(RUNNING, SUSPENDED), null)
         .getResults();
   }
 
   public void updateStatus(String downloadKey, Status status) {
-    Download download = occurrenceDownloadClient.get(downloadKey);
+    Download download = downloadClient.get(downloadKey);
     if (download != null) {
       if (!status.equals(download.getStatus())) {
         log.info(
@@ -72,11 +71,11 @@ public class DownloadUpdaterService {
   }
 
   public void updateDownload(Download download) {
-    occurrenceDownloadClient.update(download);
+    downloadClient.update(download);
   }
 
   public void markAsCancelled(String downloadKey) {
-    Download download = occurrenceDownloadClient.get(downloadKey);
+    Download download = downloadClient.get(downloadKey);
     if (download != null && EXECUTING_STATUSES.contains(download.getStatus())) {
       updateStatus(downloadKey, Status.CANCELLED);
     }

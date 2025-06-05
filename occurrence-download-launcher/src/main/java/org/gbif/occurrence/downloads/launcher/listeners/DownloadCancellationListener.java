@@ -13,34 +13,43 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
+import lombok.extern.slf4j.Slf4j;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.EventDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
+import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
-
+import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /** Listener that cancels a download job. */
 @Slf4j
 @Component
 public class DownloadCancellationListener extends AbstractMessageCallback<DownloadCancelMessage> {
 
-  private final DownloadLauncher jobManager;
-  private final DownloadUpdaterService downloadUpdaterService;
+  private final OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
+  private final EventDownloadLauncherService eventDownloadLauncherService;
+  private final OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
+  private final EventDownloadUpdaterService eventDownloadUpdaterService;
   private final LockerService lockerService;
 
   public DownloadCancellationListener(
-      DownloadLauncher jobManager,
-      DownloadUpdaterService downloadUpdaterService,
+      OccurrenceDownloadLauncherService occurrenceDownloadLauncherService,
+      EventDownloadLauncherService eventDownloadLauncherService,
+      OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService,
+      EventDownloadUpdaterService eventDownloadUpdaterService,
       LockerService lockerService) {
-    this.jobManager = jobManager;
-    this.downloadUpdaterService = downloadUpdaterService;
+    this.occurrenceDownloadLauncherService = occurrenceDownloadLauncherService;
+    this.eventDownloadLauncherService = eventDownloadLauncherService;
+    this.occurrenceDownloadUpdaterService = occurrenceDownloadUpdaterService;
+    this.eventDownloadUpdaterService = eventDownloadUpdaterService;
     this.lockerService = lockerService;
   }
 
@@ -51,15 +60,31 @@ public class DownloadCancellationListener extends AbstractMessageCallback<Downlo
       log.info("Received message {}", downloadsMessage);
       String downloadKey = downloadsMessage.getDownloadKey();
 
-      JobStatus jobStatus = jobManager.cancelRun(downloadKey);
+      JobStatus jobStatus = getDownloadLauncher(downloadsMessage).cancelRun(downloadKey);
       lockerService.unlock(downloadKey);
-      downloadUpdaterService.markAsCancelled(downloadKey);
+      getDownloadUpdaterService(downloadsMessage).markAsCancelled(downloadKey);
 
       log.info("Job cancellation status {}", jobStatus);
 
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
       throw new AmqpRejectAndDontRequeueException(ex.getMessage());
+    }
+  }
+
+  private DownloadLauncher getDownloadLauncher(DownloadCancelMessage downloadsMessage) {
+    if (downloadsMessage.getDownloadType() == DownloadType.EVENT) {
+      return eventDownloadLauncherService;
+    } else {
+      return occurrenceDownloadLauncherService;
+    }
+  }
+
+  private DownloadUpdaterService getDownloadUpdaterService(DownloadCancelMessage downloadsMessage) {
+    if (downloadsMessage.getDownloadType() == DownloadType.EVENT) {
+      return eventDownloadUpdaterService;
+    } else {
+      return occurrenceDownloadUpdaterService;
     }
   }
 }

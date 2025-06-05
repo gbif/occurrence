@@ -18,7 +18,6 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.resource.DownloadResource;
 import org.gbif.occurrence.download.service.CallbackService;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.MediaType;
@@ -36,13 +35,13 @@ public class EventDownloadResource extends DownloadResource {
 
   public EventDownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
-      DownloadRequestService service,
+      DownloadRequestService eventDownloadRequestService,
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
     super(
         archiveServerUrl,
-        service,
+        eventDownloadRequestService,
         callbackService,
         occurrenceDownloadService,
         DownloadType.EVENT,

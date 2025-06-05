@@ -13,41 +13,72 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
-import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.EventDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
+import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
-
+import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 class DownloadCancellationListenerTest {
 
-  private DownloadLauncher jobManager;
-  private DownloadUpdaterService downloadUpdaterService;
+  private OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
+  private EventDownloadLauncherService eventDownloadLauncherService;
+  private OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
+  private EventDownloadUpdaterService eventDownloadUpdaterService;
   private LockerService lockerService;
   private DownloadCancellationListener listener;
 
   @BeforeEach
   public void setUp() {
-    jobManager = Mockito.mock(DownloadLauncher.class);
-    downloadUpdaterService = Mockito.mock(DownloadUpdaterService.class);
+    occurrenceDownloadLauncherService = Mockito.mock(OccurrenceDownloadLauncherService.class);
+    eventDownloadLauncherService = Mockito.mock(EventDownloadLauncherService.class);
+    occurrenceDownloadUpdaterService = Mockito.mock(OccurrenceDownloadUpdaterService.class);
+    eventDownloadUpdaterService = Mockito.mock(EventDownloadUpdaterService.class);
     lockerService = Mockito.mock(LockerService.class);
-    listener = new DownloadCancellationListener(jobManager, downloadUpdaterService, lockerService);
+    listener =
+        new DownloadCancellationListener(
+            occurrenceDownloadLauncherService,
+            eventDownloadLauncherService,
+            occurrenceDownloadUpdaterService,
+            eventDownloadUpdaterService,
+            lockerService);
   }
 
   @Test
-  void testHandleMessage() {
+  void testHandleMessageOccurrences() {
     String downloadKey = "test-key";
-    DownloadCancelMessage downloadCancelMessage = new DownloadCancelMessage(downloadKey);
+    DownloadCancelMessage downloadCancelMessage =
+        new DownloadCancelMessage(downloadKey, DownloadType.OCCURRENCE);
 
-    Mockito.when(jobManager.cancelRun(downloadKey)).thenReturn(DownloadLauncher.JobStatus.CANCELLED);
+    Mockito.when(occurrenceDownloadLauncherService.cancelRun(downloadKey))
+        .thenReturn(DownloadLauncher.JobStatus.CANCELLED);
 
     listener.handleMessage(downloadCancelMessage);
 
-    Mockito.verify(jobManager).cancelRun(downloadKey);
+    Mockito.verify(occurrenceDownloadLauncherService).cancelRun(downloadKey);
     Mockito.verify(lockerService).unlock(downloadKey);
-    Mockito.verify(downloadUpdaterService).markAsCancelled(downloadKey);
+    Mockito.verify(occurrenceDownloadUpdaterService).markAsCancelled(downloadKey);
+  }
+
+  @Test
+  void testHandleMessageEvents() {
+    String downloadKey = "test-key";
+    DownloadCancelMessage downloadCancelMessage =
+        new DownloadCancelMessage(downloadKey, DownloadType.EVENT);
+
+    Mockito.when(eventDownloadLauncherService.cancelRun(downloadKey))
+        .thenReturn(DownloadLauncher.JobStatus.CANCELLED);
+
+    listener.handleMessage(downloadCancelMessage);
+
+    Mockito.verify(eventDownloadLauncherService).cancelRun(downloadKey);
+    Mockito.verify(lockerService).unlock(downloadKey);
+    Mockito.verify(eventDownloadUpdaterService).markAsCancelled(downloadKey);
   }
 }
