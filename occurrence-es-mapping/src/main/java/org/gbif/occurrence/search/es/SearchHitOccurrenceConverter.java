@@ -465,50 +465,54 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   }
 
   private void setClassifications(SearchHit hit, Occurrence occ) {
+    getMapValue(hit, "classifications").map(
+      classifications -> classifications.entrySet().stream()
+      .collect(Collectors.toMap(
+        Map.Entry::getKey,
+        mapEntry -> createClassification((Map<String, Object>) mapEntry.getValue()))))
+      .ifPresent(occ::setClassifications);
+  }
 
-    getMapValue(hit, "classifications").flatMap(classifications -> Optional.of(classifications.entrySet().stream().map(m -> {
+  private Classification createClassification(Map<String, Object> value) {
+    if (value == null) return null;
 
-      String datasetKey = m.getKey();
-      Map<String, Object> value = (Map<String, Object>) m.getValue();
+    Classification cl = new Classification();
 
-      Classification cl = new Classification();
-      cl.setChecklistKey(datasetKey);
-
-      // Set the usage
-      cl.setUsage(createUsage((Map<String, String>) value.get("usage")));
+    // Set the usage
+    cl.setUsage(createUsage((Map<String, String>) value.get("usage")));
 
     // Set the accepted usage, if present
-      Optional.ofNullable((Map<String, String>) value.get("acceptedUsage"))
-        .map(this::createUsage)
-        .ifPresent(cl::setAcceptedUsage);
+    Optional.ofNullable((Map<String, String>) value.get("acceptedUsage"))
+      .map(this::createUsage)
+      .ifPresent(cl::setAcceptedUsage);
 
-      //set the classification depth
-      Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
-      Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue)).values();
+    //set the classification depth
+    Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
+    Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue)).values();
 
-      Map<String, String> tree = (Map<String, String>) value.get("classification");
-      Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
-        .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    Map<String, String> tree = (Map<String, String>) value.get("classification");
+    Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
+      .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
-      cl.setIucnRedListCategoryCode((String) value.get("iucnRedListCategoryCode"));
+    cl.setIucnRedListCategoryCode((String) value.get("iucnRedListCategoryCode"));
 
-      cl.setClassification(
-        keysSorted.stream()
-          .map(key -> new RankedName(
-            key,
-            tree.get(keyToRank.get(key)),
-            removeDepthSuffix(keyToRank.get(key)),
-            null)
-          )
-          .collect(Collectors.toList())
-      );
+    cl.setClassification(
+      keysSorted.stream()
+        .map(key -> new RankedName(
+          key,
+          tree.get(keyToRank.get(key)),
+          removeDepthSuffix(keyToRank.get(key)),
+          null)
+        )
+        .collect(Collectors.toList())
+    );
 
-      cl.setTaxonomicStatus((String) value.get("status"));
-      cl.setIssues((List<String>) value.get("issues"));
+    cl.setTaxonomicStatus((String) value.get("status"));
+    cl.setIssues((List<String>) value.get("issues"));
 
-      return cl;
-    }).collect(Collectors.toList()))).ifPresent(occ::setClassifications);
+    return cl;
   }
+
 
   private void setGrscicollFields(SearchHit hit, Occurrence occ) {
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.institutionKey)).ifPresent(occ::setInstitutionKey);
