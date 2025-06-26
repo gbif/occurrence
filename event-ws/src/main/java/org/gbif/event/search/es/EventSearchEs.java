@@ -13,6 +13,8 @@
  */
 package org.gbif.event.search.es;
 
+import lombok.Getter;
+
 import org.gbif.api.model.common.paging.PageableBase;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -70,6 +72,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   private final int maxOffset;
   private final RestHighLevelClient esClient;
   private final String esIndex;
+  @Getter
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Event> esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
