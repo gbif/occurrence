@@ -191,40 +191,34 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
 
   @Override
   public JobStatus createRun(String downloadKey) {
-    try {
-      Download download = downloadClient.get(downloadKey);
-      Optional<Status> status = getStatusByName(download);
+    Download download = downloadClient.get(downloadKey);
+    Optional<Status> status = getStatusByName(download);
 
-      // Send task to Airflow is no statuses found
-      if (status.isEmpty()) {
-        JsonNode response =
-            Retry.<AirflowBody, JsonNode>decorateFunction(
-                    AIRFLOW_RETRY, body -> getAirflowClient(download).createRun(body))
-                .apply(getAirflowBody(download));
-        log.info("Create a run for: {}", response);
-      } else if (status.get() == SUCCEEDED) {
-        log.info("downloadKey {} is already has finished statuses", downloadKey);
-        return JobStatus.FINISHED;
-      } else if (FINISH_STATUSES.contains(status.get())) {
-        log.info(
-            "downloadKey {} is already in one of failed statuses: {}", downloadKey, status.get());
-        return JobStatus.FAILED;
-      } else if (EXECUTING_STATUSES.contains(status.get())) {
-        log.info(
-            "downloadKey {} is already in one of running statuses: {}", downloadKey, status.get());
-      }
-
-      asyncStatusCheck(download);
-      return JobStatus.RUNNING;
-    } catch (Exception ex) {
-      log.error(ex.getMessage(), ex);
+    // Send task to Airflow is no statuses found
+    if (status.isEmpty()) {
+      JsonNode response =
+          Retry.<AirflowBody, JsonNode>decorateFunction(
+                  AIRFLOW_RETRY, body -> getAirflowClient(download).createRun(body))
+              .apply(getAirflowBody(download));
+      log.info("Create a run for: {}", response);
+    } else if (status.get() == SUCCEEDED) {
+      log.info("downloadKey {} is already has finished statuses", downloadKey);
+      return JobStatus.FINISHED;
+    } else if (FINISH_STATUSES.contains(status.get())) {
+      log.info(
+          "downloadKey {} is already in one of failed statuses: {}", downloadKey, status.get());
       return JobStatus.FAILED;
+    } else if (EXECUTING_STATUSES.contains(status.get())) {
+      log.info(
+          "downloadKey {} is already in one of running statuses: {}", downloadKey, status.get());
     }
+
+    asyncStatusCheck(download);
+    return JobStatus.RUNNING;
   }
 
   @Override
   public JobStatus cancelRun(String downloadKey) {
-    try {
       Download download = downloadClient.get(downloadKey);
       String dagId = downloadDagId(downloadKey);
 
@@ -241,10 +235,6 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
       log.info("Airflow DAG {} has been marked as failed: {}", dagId, failedJsonNode);
 
       return JobStatus.CANCELLED;
-    } catch (Exception ex) {
-      log.error("Cancelling the download {}", downloadKey, ex);
-      return JobStatus.FAILED;
-    }
   }
 
   @SneakyThrows
