@@ -141,7 +141,6 @@ pipeline {
               sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS -Dappkeys.testfile=${APPKEYS_TESTFILE}'
             }
           }
-        }
       }
     }
 
