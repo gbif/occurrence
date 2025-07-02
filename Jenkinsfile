@@ -144,15 +144,17 @@ pipeline {
       }
       steps {
           configFileProvider(
-                  [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
-                          variable: 'MAVEN_SETTINGS_XML')]) {
+                  [
+                    configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS_XML'),
+                    configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
+                  ]) {
               git 'https://github.com/gbif/occurrence.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS'
+              sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS -Dappkeys.testfile=${APPKEYS_TESTFILE}  -pl \'!occurrence-hadoop-minicluster\''
           }
       }
     }
 
-    stage('Maven release: Trino module  ') {
+    stage('Maven release: Trino module') {
       tools {
         jdk 'OpenJDK17'
       }
