@@ -132,7 +132,7 @@ pipeline {
       }
     }
 
-    stage('Maven release: Main project (Java 11)') {
+    stage('Maven release: Main project') {
       when {
           allOf {
               expression { params.RELEASE };
@@ -152,7 +152,7 @@ pipeline {
       }
     }
 
-    stage('Maven release: Trino module (Java 17) ') {
+    stage('Maven release: Trino module  ') {
       tools {
         jdk 'OpenJDK17'
       }
