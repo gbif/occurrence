@@ -13,32 +13,40 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
-
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.mockito.Mockito.*;
-
 class DownloadsUpdaterScheduledTaskTest {
 
-  private DownloadUpdaterService downloadUpdaterService;
-  private DownloadLauncher downloadLauncher;
+  private OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
+  private EventDownloadLauncherService eventDownloadLauncherService;
+  private OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
+  private EventDownloadUpdaterService eventDownloadUpdaterService;
   private LockerService lockerService;
   private DownloadsUpdaterScheduledTask downloadsUpdaterScheduledTask;
 
   @BeforeEach
   public void setup() {
-    downloadUpdaterService = mock(DownloadUpdaterService.class);
-    downloadLauncher = mock(DownloadLauncher.class);
+    occurrenceDownloadLauncherService = mock(OccurrenceDownloadLauncherService.class);
+    eventDownloadLauncherService = mock(EventDownloadLauncherService.class);
+    occurrenceDownloadUpdaterService = mock(OccurrenceDownloadUpdaterService.class);
+    eventDownloadUpdaterService = mock(EventDownloadUpdaterService.class);
     lockerService = mock(LockerService.class);
 
     downloadsUpdaterScheduledTask =
-        new DownloadsUpdaterScheduledTask(downloadLauncher, downloadUpdaterService, lockerService);
+        new DownloadsUpdaterScheduledTask(
+            occurrenceDownloadLauncherService,
+            eventDownloadLauncherService,
+            occurrenceDownloadUpdaterService,
+            eventDownloadUpdaterService,
+            lockerService);
   }
 
   @Test
@@ -47,16 +55,16 @@ class DownloadsUpdaterScheduledTaskTest {
     download.setKey("testKey");
     download.setStatus(Status.RUNNING);
 
-    when(downloadUpdaterService.getExecutingDownloads())
+    when(occurrenceDownloadUpdaterService.getExecutingDownloads())
         .thenReturn(Collections.singletonList(download));
-    when(downloadLauncher.renewRunningDownloadsStatuses(anyList()))
+    when(occurrenceDownloadLauncherService.renewRunningDownloadsStatuses(anyList()))
         .thenReturn(Collections.singletonList(download));
 
     downloadsUpdaterScheduledTask.renewedDownloadsStatuses();
 
-    verify(downloadUpdaterService, times(1)).getExecutingDownloads();
-    verify(downloadLauncher, times(1)).renewRunningDownloadsStatuses(anyList());
-    verify(downloadUpdaterService, times(1)).updateDownload(download);
+    verify(occurrenceDownloadUpdaterService, times(1)).getExecutingDownloads();
+    verify(occurrenceDownloadLauncherService, times(1)).renewRunningDownloadsStatuses(anyList());
+    verify(occurrenceDownloadUpdaterService, times(1)).updateDownload(download);
     verify(lockerService, times(0)).unlock(download.getKey());
     verify(lockerService, times(1)).printLocks();
   }

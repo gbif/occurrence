@@ -17,8 +17,6 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 
-import org.gbif.api.model.checklistbank.NameUsageMatch;
-import org.gbif.api.model.checklistbank.NameUsageMatch.MatchType;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -26,16 +24,18 @@ import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
+import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import com.google.common.base.Preconditions;
 
 import lombok.SneakyThrows;
@@ -77,6 +77,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Occurrence> esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
+  private final String defaultChecklistKey;
 
   @Autowired
   public OccurrenceSearchEsImpl(
@@ -86,7 +87,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
     OccurrenceBaseEsFieldMapper esFieldMapper,
-    ConceptClient conceptClient) {
+    ConceptClient conceptClient,
+    @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -97,9 +99,10 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.nameUsageMatchingService = nameUsageMatchingService;
     this.esFieldMapper = esFieldMapper;
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceBaseEsFieldMapper(esFieldMapper).build();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient, nameUsageMatchingService);
+    this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true, defaultChecklistKey);
     this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
@@ -346,13 +349,30 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     boolean hasValidReplaces = true;
     if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
-      Collection<String> values = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
-      for (String value : values) {
-        NameUsageMatch nameUsageMatch = nameUsageMatchingService.match(value, null, null, true, false);
-        if (nameUsageMatch.getMatchType() == MatchType.EXACT) {
+
+      Collection<String> scientificNames = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
+      Collection<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
+      String checklistKey = defaultChecklistKey;
+      if (checklistKeys != null && !checklistKeys.isEmpty()) {
+        checklistKey = checklistKeys.iterator().next();
+      }
+
+      for (String scientificName : scientificNames) {
+
+        NameUsageMatchResponse nameUsageMatch = nameUsageMatchingService.match(NameUsageMatchRequest.builder()
+          .withChecklistKey(checklistKey)
+          .withScientificName(scientificName)
+          .withStrict(false)
+          .withVerbose(false)
+          .build());
+        if (nameUsageMatch.getDiagnostics().getMatchType() == NameUsageMatchResponse.MatchType.EXACT && Objects.nonNull(nameUsageMatch.getUsage())) {
           hasValidReplaces = true;
-          values.remove(value);
-          request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getUsageKey());
+          scientificNames.remove(scientificName);
+          if (nameUsageMatch.getAcceptedUsage() != null) {
+            request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getAcceptedUsage().getKey());
+          } else {
+            request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getUsage().getKey());
+          }
         }
       }
     }

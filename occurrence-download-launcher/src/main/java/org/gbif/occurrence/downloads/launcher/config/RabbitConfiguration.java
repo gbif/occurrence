@@ -27,6 +27,7 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.RabbitRetryTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -66,14 +67,14 @@ public class RabbitConfiguration {
   }
 
   @Bean
-  public Binding launcherQueueBinding(Queue launcherQueue) {
+  public Binding launcherQueueBinding(@Qualifier("launcherQueue") Queue launcherQueue) {
     return BindingBuilder.bind(launcherQueue)
         .to(new DirectExchange(DOWNLOADS_EXCHANGE))
         .with(DownloadLauncherMessage.ROUTING_KEY);
   }
 
   @Bean
-  public Binding cancellationQueueBinding(Queue cancellationQueue) {
+  public Binding cancellationQueueBinding(@Qualifier("cancellationQueue") Queue cancellationQueue) {
     return BindingBuilder.bind(cancellationQueue)
         .to(new DirectExchange(DOWNLOADS_EXCHANGE))
         .with(DownloadCancelMessage.ROUTING_KEY);

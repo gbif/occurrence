@@ -20,6 +20,7 @@ import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.MediaType;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
 import org.elasticsearch.action.search.SearchRequest;
@@ -45,12 +46,12 @@ public class OccurrenceEsSearchRequestBuilderTest {
   private static final String INDEX = "index";
 
   private final EsSearchRequestBuilder esSearchRequestBuilder =
-      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), new ConceptClientMock());
+      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper("defaultChecklistKey"), new ConceptClientMock(), null);
 
   @Test
   public void termQueryTest() throws IOException {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addKingdomKeyFilter(6);
+    searchRequest.addKingdomKeyFilter("6");
 
     QueryBuilder query =
         esSearchRequestBuilder
@@ -66,8 +67,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValue(KINGDOM_KEY.getSearchFieldName())
-            .get(VALUE)
+            .findValues("classifications.defaultChecklistKey.classificationKeys.KINGDOM")
+            .get(0).get(0)
             .asInt());
   }
 
@@ -741,7 +742,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
+    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
     EsField esField = esFieldMapper.getEsField(param);
 
     assertEquals(
@@ -845,4 +846,27 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertEquals(2, shouldNode.size());
     assertEquals(2, shouldNode.findValues(RANGE).size());
   }
+
+  @Test
+  public void checklistKeyTest() throws Exception{
+
+    Map<OccurrenceSearchParameter, Set<String>> params = new java.util.HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
+    QueryBuilder query =  esSearchRequestBuilder.buildQuery(params, null, false)
+      .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+  }
+
+  @Test
+  public void checklistKeyTaxonKeyTest()  throws Exception{
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.addParameter(OccurrenceSearchParameter.TAXON_KEY, "urn:lsid:marinespecies.org:taxname:1633955");
+    QueryBuilder query =  esSearchRequestBuilder.buildQueryNode(searchRequest)
+      .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    LOG.debug("Query: {}", jsonQuery);
+  }
+
 }

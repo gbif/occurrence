@@ -73,6 +73,9 @@ public class DownloadJobConfiguration {
   /** Requested extensions. */
   private final Set<Extension> extensions;
 
+  /** Requested extensions. */
+  private final String defaultChecklistKey;
+
   @Builder
   private DownloadJobConfiguration(
       String downloadKey,
@@ -84,7 +87,8 @@ public class DownloadJobConfiguration {
       String searchQuery,
       DownloadFormat downloadFormat,
       DwcTerm coreTerm,
-      Set<Extension> extensions) {
+      Set<Extension> extensions,
+      String defaultChecklistKey) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;
@@ -95,6 +99,7 @@ public class DownloadJobConfiguration {
     this.downloadFormat = downloadFormat;
     this.coreTerm = coreTerm;
     this.extensions = extensions;
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   public static DownloadJobConfiguration forSqlDownload(Download download, String sourceDir) {
@@ -119,9 +124,9 @@ public class DownloadJobConfiguration {
         : toSqlQuery(((PredicateDownloadRequest) download.getRequest()).getPredicate());
   }
 
-  public static OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
+  public OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
     return DownloadType.OCCURRENCE == download.getRequest().getType()
-        ? OccurrenceEsField.buildFieldMapper()
+        ? OccurrenceEsField.buildFieldMapper(defaultChecklistKey)
         : EventEsField.buildFieldMapper();
   }
 

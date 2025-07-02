@@ -13,15 +13,35 @@
  */
 package org.gbif.occurrence.download.service;
 
+import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
+import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadRequest;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
@@ -31,40 +51,13 @@ import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.*;
-
-import javax.annotation.Nullable;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-
-import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
-import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
-
-@Component
 @Slf4j
-public class DownloadRequestServiceImpl implements DownloadRequestService, CallbackService {
+public abstract class DownloadRequestServiceImpl
+    implements DownloadRequestService, CallbackService {
 
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
@@ -94,34 +87,33 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private final String wsUrl;
   private final File downloadMount;
   private final OccurrenceDownloadService occurrenceDownloadService;
-  private final OccurrenceSearchService occurrenceSearchService;
   private final OccurrenceEmailManager emailManager;
   private final EmailSender emailSender;
 
   private final DownloadLimitsService downloadLimitsService;
   private final MessagePublisher messagePublisher;
+  private final DownloadType downloadType;
 
-  @Autowired
   public DownloadRequestServiceImpl(
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
       OccurrenceDownloadService occurrenceDownloadService,
-      OccurrenceSearchService occurrenceSearchService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
-      MessagePublisher messagePublisher) {
+      MessagePublisher messagePublisher,
+      DownloadType downloadType) {
     this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
     this.downloadMount = new File(wsMountDir);
     this.occurrenceDownloadService = occurrenceDownloadService;
-    this.occurrenceSearchService = occurrenceSearchService;
     this.downloadLimitsService = downloadLimitsService;
     this.emailManager = emailManager;
     this.emailSender = emailSender;
     this.messagePublisher = messagePublisher;
+    this.downloadType = downloadType;
   }
 
   @Override
@@ -132,7 +124,7 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
         if (RUNNING_STATUSES.contains(download.getStatus())) {
           updateDownloadStatus(download, Download.Status.CANCELLED);
 
-          messagePublisher.send(new DownloadCancelMessage(downloadKey));
+          messagePublisher.send(new DownloadCancelMessage(downloadKey, downloadType));
 
           log.info("Download {} cancelled", downloadKey);
         }
@@ -155,7 +147,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     } else if (request instanceof SqlDownloadRequest) {
       try {
         SqlValidation sqlValidation = new SqlValidation();
-        HiveSqlQuery sqlQuery = sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql(), true);
+        HiveSqlQuery sqlQuery =
+            sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql(), true);
         log.debug("HiveSqlQuery {}", sqlQuery.getSql());
       } catch (QueryBuildingException qbe) {
         // Shouldn't happen, as the query has already been validated by this point.
@@ -180,7 +173,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     String exceedSimultaneousLimit;
     try {
       exceedSimultaneousLimit =
-          downloadLimitsService.exceedsSimultaneousDownloadLimit(request.getCreator());
+          downloadLimitsService.exceedsSimultaneousDownloadLimit(
+              request.getCreator());
     } catch (Exception e) {
       throw new ServiceUnavailableException(
           "Failed to create download job while checking simultaneous download limit", e);
@@ -267,7 +261,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     }
   }
 
-  @NotNull
   private File getDownloadFile(String filename, String downloadKey) {
     File localFile = new File(downloadMount, filename);
     if (localFile.canRead()) {
@@ -293,7 +286,8 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   /** Processes a callback from k8s watcher which update the download status. */
   @Override
   public void processCallback(String downloadId, String status) {
-    Preconditions.checkArgument(!Strings.isNullOrEmpty(downloadId), "<downloadId> may not be null or empty");
+    Preconditions.checkArgument(
+        !Strings.isNullOrEmpty(downloadId), "<downloadId> may not be null or empty");
     Preconditions.checkArgument(
         !Strings.isNullOrEmpty(status), "<status> may not be null or empty");
     Optional<JobStatus> opStatus = Enums.getIfPresent(JobStatus.class, status.toUpperCase());
@@ -390,12 +384,12 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
     download.setRequest(request);
     download.setSource(source);
 
-    // get number of records so the downloads launcher can use it to decide whether the download is big or small
+    // get number of records so the downloads launcher can use it to decide whether the download is
+    // big or small
     if (request instanceof PredicateDownloadRequest) {
       try {
         download.setTotalRecords(
-            occurrenceSearchService.countRecords(
-                ((PredicateDownloadRequest) download.getRequest()).getPredicate()));
+            countRecords(((PredicateDownloadRequest) download.getRequest()).getPredicate()));
       } catch (Exception ex) {
         download.setTotalRecords(-1);
         log.info(
@@ -426,4 +420,6 @@ public class DownloadRequestServiceImpl implements DownloadRequestService, Callb
   private String getDownloadFilename(Download download) {
     return download.getKey() + download.getRequest().getFileExtension();
   }
+
+  protected abstract long countRecords(Predicate predicate);
 }

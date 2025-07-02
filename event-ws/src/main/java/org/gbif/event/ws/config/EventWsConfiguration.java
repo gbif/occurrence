@@ -20,6 +20,8 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
+import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -70,5 +72,12 @@ public class EventWsConfiguration {
   @Configuration
   public static class EventSearchConfigurationWs extends OccurrenceSearchConfiguration {
 
+    @Value("${defaultChecklistKey}")
+    protected String defaultChecklistKey;
+
+    @Bean
+    public OccurrenceBaseEsFieldMapper esFieldMapper() {
+      return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
+    }
   }
 }

@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.dwc.terms.Term;
+import org.gbif.event.search.es.EventEsField;
 import org.gbif.predicate.query.EsFieldMapper;
 
 import java.util.*;
@@ -36,8 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSearchParameter> {
-
-
 
   private final Map<String, OccurrenceSearchParameter> esToSearchMapping;
 
@@ -64,11 +63,20 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
 
   private final Optional<QueryBuilder> defaultFilter;
 
+  private final String defaulChecklistKey;
+
   @Builder
-  public OccurrenceBaseEsFieldMapper(Map<OccurrenceSearchParameter,EsField> searchToEsMapping, Set<EsField> dateFields, EsField fullTextField,
-                                     EsField geoDistanceField, EsField geoShapeField, EsField uniqueIdField, List<FieldSortBuilder> defaultSort,
-                                     Optional<QueryBuilder> defaultFilter, Class<? extends Enum<? extends EsField>> fieldEnumClass,
-                                     @Nullable Map<OccurrenceSearchParameter,EsField> facetToEsMapping) {
+  public OccurrenceBaseEsFieldMapper(Map<OccurrenceSearchParameter,EsField> searchToEsMapping,
+                                     Set<EsField> dateFields,
+                                     EsField fullTextField,
+                                     EsField geoDistanceField,
+                                     EsField geoShapeField,
+                                     EsField uniqueIdField,
+                                     List<FieldSortBuilder> defaultSort,
+                                     Optional<QueryBuilder> defaultFilter,
+                                     Class<? extends Enum<? extends EsField>> fieldEnumClass,
+                                     @Nullable Map<OccurrenceSearchParameter,EsField> facetToEsMapping,
+                                     String defaulChecklistKey) {
     this.searchToEsMapping = searchToEsMapping;
     esToSearchMapping = searchToEsMapping.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getSearchFieldName(),
                                                                                             Map.Entry::getKey));
@@ -82,6 +90,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     this.defaultSort = defaultSort;
     this.defaultFilter = defaultFilter;
     this.facetToEsMapping = facetToEsMapping == null? new HashMap<>(): facetToEsMapping;
+    this.defaulChecklistKey = defaulChecklistKey;
   }
 
   public OccurrenceSearchParameter getSearchParameter(String searchFieldName) {
@@ -152,7 +161,6 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     return termToEsMapping.get(term);
   }
 
-
   public boolean isDateField(EsField esField) {
     return dateFields.contains(esField);
   }
@@ -160,6 +168,18 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   @Override
   public boolean isVocabulary(OccurrenceSearchParameter searchParameter) {
     return Optional.ofNullable(searchToEsMapping.get(searchParameter)).map(EsField::isVocabulary).orElse(false);
+  }
+
+  @Override
+  public boolean isTaxonomic(OccurrenceSearchParameter searchParameter) {
+    return Optional.ofNullable(searchToEsMapping.get(searchParameter))
+        .map(
+            esField ->
+                (esField instanceof OccurrenceEsField
+                        && ((OccurrenceEsField) esField).getEsField() instanceof ChecklistEsField)
+                    || ((esField instanceof EventEsField
+                        && ((EventEsField) esField).getEsField() instanceof ChecklistEsField)))
+        .orElse(false);
   }
 
   @Override
@@ -184,4 +204,33 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     return defaultFilter;
   }
 
+  /**
+   * Gets the field name for a checklist field. The field name is a combination of the checklist key and the
+   * search parameter.
+   *
+   * @param checklistKey the checklist key
+   * @param searchParameter the search parameter
+   * @return the field name for the checklist field
+   */
+  @Override
+  public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
+
+    EsField esField = getEsField(searchParameter);
+    if (esField == null) {
+      throw new IllegalArgumentException("No mapping for search parameter " + searchParameter);
+    }
+
+    if (esField instanceof OccurrenceEsField) {
+      OccurrenceEsField occurrenceEsField = (OccurrenceEsField) esField;
+      BaseEsField baseEsField = occurrenceEsField.getEsField();
+
+
+      if (baseEsField instanceof ChecklistEsField) {
+        return ((ChecklistEsField) baseEsField)
+          .getSearchFieldName(checklistKey != null ? checklistKey : defaulChecklistKey);
+      }
+    }
+
+    return esField.getSearchFieldName();
+  }
 }

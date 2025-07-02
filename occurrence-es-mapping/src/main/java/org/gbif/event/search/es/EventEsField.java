@@ -45,6 +45,7 @@ public enum EventEsField implements EsField {
   //Dataset derived
   DATASET_KEY(new BaseEsField("metadata.datasetKey", GbifTerm.datasetKey)),
   PUBLISHING_COUNTRY(new BaseEsField("metadata.publishingCountry", GbifTerm.publishingCountry)),
+  PUBLISHED_BY_GBIF_REGION(new BaseEsField("publishedByGbifRegion", GbifTerm.publishedByGbifRegion)),
   PUBLISHING_ORGANIZATION_KEY(new BaseEsField("metadata.publishingOrganizationKey", GbifInternalTerm.publishingOrgKey)),
   HOSTING_ORGANIZATION_KEY(new BaseEsField("metadata.hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey)),
   INSTALLATION_KEY(new BaseEsField("metadata.installationKey", GbifInternalTerm.installationKey)),
@@ -69,6 +70,8 @@ public enum EventEsField implements EsField {
   BASIS_OF_RECORD(new BaseEsField("event.basisOfRecord", DwcTerm.basisOfRecord)),
   TYPE_STATUS(new BaseEsField("event.typeStatus.lineage", "typeStatus.concept", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("event.occurrenceStatus", DwcTerm.occurrenceStatus)),
+  IS_SEQUENCED(new BaseEsField("event.isSequenced", GbifTerm.isSequenced)),
+  ASSOCIATED_SEQUENCES(new BaseEsField("event.associatedSequences", DwcTerm.associatedSequences)),
   DATASET_ID(new BaseEsField("event.datasetID", DwcTerm.datasetID)),
   DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true)),
   OTHER_CATALOG_NUMBERS(new BaseEsField("event.otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true)),
@@ -89,6 +92,7 @@ public enum EventEsField implements EsField {
   LATITUDE(new BaseEsField("event.decimalLatitude", DwcTerm.decimalLatitude)),
   LONGITUDE(new BaseEsField("event.decimalLongitude", DwcTerm.decimalLongitude)),
   COUNTRY_CODE(new BaseEsField("event.countryCode", DwcTerm.countryCode)),
+  GBIF_REGION(new BaseEsField("event.gbifRegion", GbifTerm.gbifRegion)),
   CONTINENT(new BaseEsField("event.continent", DwcTerm.continent)),
   COORDINATE_ACCURACY(new BaseEsField("event.coordinateAccuracy", GbifTerm.coordinateAccuracy)),
   ELEVATION_ACCURACY(new BaseEsField("event.elevationAccuracy", GbifTerm.elevationAccuracy)),
@@ -100,7 +104,12 @@ public enum EventEsField implements EsField {
   LOCALITY(new BaseEsField("event.locality", DwcTerm.locality, true)),
   COORDINATE_PRECISION(new BaseEsField("event.coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("event.coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
-  DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
+  DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("event.distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
+  ISLAND(new BaseEsField("event.island", DwcTerm.island)),
+  ISLAND_GROUP(new BaseEsField("event.islandGroup", DwcTerm.islandGroup)),
+  HIGHER_GEOGRAPHY(new BaseEsField("event.higherGeography", DwcTerm.higherGeography)),
+  GEOREFERENCED_BY(new BaseEsField("event.georeferencedBy", DwcTerm.georeferencedBy)),
+
   GADM_GID(new BaseEsField("event.gadm.gids", null)),
   GADM_LEVEL_0_GID(new BaseEsField("event.gadm.level0Gid", GadmTerm.level0Gid)),
   GADM_LEVEL_0_NAME(new BaseEsField("event.gadm.level0Name", GadmTerm.level0Name)),
@@ -152,8 +161,8 @@ public enum EventEsField implements EsField {
   INSTITUTION_KEY(new BaseEsField("event.institutionKey", GbifInternalTerm.institutionKey)),
 
   //Sampling
-  EVENT_ID(new BaseEsField("event.eventId", DwcTerm.eventID, true)),
-  PARENT_EVENT_ID(new BaseEsField("event.parentEventId", DwcTerm.parentEventID, true)),
+  EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true)),
+  PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true)),
   SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true)),
   LIFE_STAGE(new BaseEsField("event.lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("event.dateIdentified", DwcTerm.dateIdentified)),
@@ -179,6 +188,9 @@ public enum EventEsField implements EsField {
   //Media
   MEDIA_TYPE(new BaseEsField("event.mediaTypes", GbifTerm.mediaType)),
   MEDIA_ITEMS(new BaseEsField("event.multimediaItems", null)),
+
+  // DNA
+  DNA_SEQUENCE_ID(new BaseEsField("event.dnaSequenceID", GbifTerm.dnaSequenceID)),
 
   //Issues
   ISSUE(new BaseEsField("event.issues", GbifTerm.issue)),

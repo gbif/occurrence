@@ -1,4 +1,4 @@
-[![Build status](https://builds.gbif.org/job/occurrence-master/badge/icon)](https://builds.gbif.org/job/occurrence-master/lastBuild/console)
+[![Build status](https://builds.gbif.org/job/occurrence/job/dev/badge/icon?subject=dev%20branch%20status)](https://builds.gbif.org/job/occurrence/job/dev/lastBuild/console)
 [![Crowdin](https://badges.crowdin.net/gbif-registry/localized.svg)](https://crowdin.com/project/gbif-registry)
 
 # GBIF Occurrence

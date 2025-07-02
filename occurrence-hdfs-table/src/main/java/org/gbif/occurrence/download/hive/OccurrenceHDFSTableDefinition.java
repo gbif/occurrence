@@ -92,6 +92,8 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
                                       .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
+                                      .put(GbifInternalTerm.classifications, columnFor(GbifInternalTerm.classifications))
+                                      .put(GbifTerm.checklistKey, columnFor(GbifTerm.checklistKey))
                                       .build();
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();

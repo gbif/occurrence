@@ -38,15 +38,10 @@ import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowBody;
 import org.gbif.occurrence.downloads.launcher.services.launcher.airflow.AirflowClient;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+import org.gbif.registry.ws.client.BaseDownloadClient;
 
 @Slf4j
-@Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class AirflowDownloadLauncherService implements DownloadLauncher {
+public abstract class AirflowDownloadLauncherService implements DownloadLauncher {
 
   private static final Retry AIRFLOW_RETRY =
       Retry.of(
@@ -59,29 +54,23 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
               .build());
 
   private final SparkStaticConfiguration sparkStaticConfiguration;
-  private final AirflowClient bigDownloadsAirflowClient;
-  private final AirflowClient smallDownloadsAirflowClient;
-  private final OccurrenceDownloadClient downloadClient;
+  private final BaseDownloadClient downloadClient;
   private final AirflowConfiguration airflowConfiguration;
   private final LockerService lockerService;
 
   public AirflowDownloadLauncherService(
       SparkStaticConfiguration sparkStaticConfiguration,
       AirflowConfiguration airflowConfiguration,
-      OccurrenceDownloadClient downloadClient,
+      BaseDownloadClient downloadClient,
       LockerService lockerService) {
     this.sparkStaticConfiguration = sparkStaticConfiguration;
     this.downloadClient = downloadClient;
     this.airflowConfiguration = airflowConfiguration;
-    this.bigDownloadsAirflowClient =
-        buildAirflowClient(airflowConfiguration.bigDownloadsAirflowDagName);
-    this.smallDownloadsAirflowClient =
-        buildAirflowClient(airflowConfiguration.smallDownloadsAirflowDagName);
     this.lockerService = lockerService;
   }
 
   // NOTE: this has to match with the ElasticDownloadWorkflow#isSmallDownload method
-  private boolean isSmallDownload(Download download) {
+  protected boolean isSmallDownload(Download download) {
     return (download.getRequest().getFormat() == DownloadFormat.DWCA
             || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV)
         && download.getTotalRecords() != -1
@@ -177,7 +166,8 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
                     sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
                 .driverMinResourceMemory(driverMinResourceMemory + "Gi")
                 .driverMinResourceCpu(driverMinResourceCpu + "m")
-                .driverMemoryOverhead(String.valueOf(sparkStaticConfiguration.getDriverMemoryOverheadMb()))
+                .driverMemoryOverhead(
+                    String.valueOf(sparkStaticConfiguration.getDriverMemoryOverheadMb()))
                 // Executor
                 .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
                 .executorMinResourceMemory(executorMinResourceMemory + "Gi")
@@ -201,40 +191,34 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
 
   @Override
   public JobStatus createRun(String downloadKey) {
-    try {
-      Download download = downloadClient.get(downloadKey);
-      Optional<Status> status = getStatusByName(download);
+    Download download = downloadClient.get(downloadKey);
+    Optional<Status> status = getStatusByName(download);
 
-      // Send task to Airflow is no statuses found
-      if (status.isEmpty()) {
-        JsonNode response =
-            Retry.<AirflowBody, JsonNode>decorateFunction(
-                    AIRFLOW_RETRY, body -> getAirflowClient(download).createRun(body))
-                .apply(getAirflowBody(download));
-        log.info("Create a run for: {}", response);
-      } else if (status.get() == SUCCEEDED) {
-        log.info("downloadKey {} is already has finished statuses", downloadKey);
-        return JobStatus.FINISHED;
-      } else if (FINISH_STATUSES.contains(status.get())) {
-        log.info(
-            "downloadKey {} is already in one of failed statuses: {}", downloadKey, status.get());
-        return JobStatus.FAILED;
-      } else if (EXECUTING_STATUSES.contains(status.get())) {
-        log.info(
-            "downloadKey {} is already in one of running statuses: {}", downloadKey, status.get());
-      }
-
-      asyncStatusCheck(download);
-      return JobStatus.RUNNING;
-    } catch (Exception ex) {
-      log.error(ex.getMessage(), ex);
+    // Send task to Airflow is no statuses found
+    if (status.isEmpty()) {
+      JsonNode response =
+          Retry.<AirflowBody, JsonNode>decorateFunction(
+                  AIRFLOW_RETRY, body -> getAirflowClient(download).createRun(body))
+              .apply(getAirflowBody(download));
+      log.info("Create a run for: {}", response);
+    } else if (status.get() == SUCCEEDED) {
+      log.info("downloadKey {} is already has finished statuses", downloadKey);
+      return JobStatus.FINISHED;
+    } else if (FINISH_STATUSES.contains(status.get())) {
+      log.info(
+          "downloadKey {} is already in one of failed statuses: {}", downloadKey, status.get());
       return JobStatus.FAILED;
+    } else if (EXECUTING_STATUSES.contains(status.get())) {
+      log.info(
+          "downloadKey {} is already in one of running statuses: {}", downloadKey, status.get());
     }
+
+    asyncStatusCheck(download);
+    return JobStatus.RUNNING;
   }
 
   @Override
   public JobStatus cancelRun(String downloadKey) {
-    try {
       Download download = downloadClient.get(downloadKey);
       String dagId = downloadDagId(downloadKey);
 
@@ -251,10 +235,6 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
       log.info("Airflow DAG {} has been marked as failed: {}", dagId, failedJsonNode);
 
       return JobStatus.CANCELLED;
-    } catch (Exception ex) {
-      log.error("Cancelling the download {}", downloadKey, ex);
-      return JobStatus.FAILED;
-    }
   }
 
   @SneakyThrows
@@ -345,11 +325,9 @@ public class AirflowDownloadLauncherService implements DownloadLauncher {
         });
   }
 
-  private AirflowClient getAirflowClient(Download download) {
-    return isSmallDownload(download) ? smallDownloadsAirflowClient : bigDownloadsAirflowClient;
-  }
+  protected abstract AirflowClient getAirflowClient(Download download);
 
-  private AirflowClient buildAirflowClient(String dagName) {
+  protected AirflowClient buildAirflowClient(String dagName) {
     return AirflowClient.builder()
         .airflowAddress(airflowConfiguration.airflowAddress)
         .airflowUser(airflowConfiguration.airflowUser)

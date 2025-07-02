@@ -22,6 +22,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.search.es.BaseEsField;
+import org.gbif.occurrence.search.es.ChecklistEsField;
 import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 
@@ -35,6 +36,8 @@ import org.elasticsearch.search.sort.SortOrder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import static org.gbif.occurrence.search.es.OccurrenceEsField.PUBLISHED_BY_GBIF_REGION;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEventEsField implements EsField {
@@ -68,6 +71,8 @@ public enum OccurrenceEventEsField implements EsField {
   BASIS_OF_RECORD(new BaseEsField("occurrence.basisOfRecord", DwcTerm.basisOfRecord)),
   TYPE_STATUS(new BaseEsField("occurrence.typeStatus", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("occurrence.occurrenceStatus", DwcTerm.occurrenceStatus)),
+  IS_SEQUENCED(new BaseEsField("occurrence.isSequenced", GbifTerm.isSequenced)),
+  ASSOCIATED_SEQUENCES(new BaseEsField("occurrence.associatedSequences", DwcTerm.associatedSequences)),
   DATASET_ID(new BaseEsField("occurrence.datasetID", DwcTerm.datasetID)),
   DATASET_NAME(new BaseEsField("occurrence.datasetName", DwcTerm.datasetName, true)),
   OTHER_CATALOG_NUMBERS(new BaseEsField("occurrence.otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true)),
@@ -78,6 +83,8 @@ public enum OccurrenceEventEsField implements EsField {
   MONTH(new BaseEsField("occurrence.month", DwcTerm.month)),
   DAY(new BaseEsField("occurrence.day", DwcTerm.day)),
   EVENT_DATE(new BaseEsField("occurrence.eventDateInterval", DwcTerm.eventDate)),
+  EVENT_DATE_GTE(new BaseEsField("occurrence.eventDateSingle", GbifInternalTerm.eventDateGte)),
+  EVENT_DATE_INTERVAL(new BaseEsField("occurrence.eventDateInterval", EsField.EVENT_DATE_INTERVAL)),
 
   //Location
   COORDINATE_SHAPE(new BaseEsField("occurrence.scoordinates", null)),
@@ -85,6 +92,7 @@ public enum OccurrenceEventEsField implements EsField {
   LATITUDE(new BaseEsField("occurrence.decimalLatitude", DwcTerm.decimalLatitude)),
   LONGITUDE(new BaseEsField("occurrence.decimalLongitude", DwcTerm.decimalLongitude)),
   COUNTRY_CODE(new BaseEsField("occurrence.countryCode", DwcTerm.countryCode)),
+  GBIF_REGION(new BaseEsField("occurrence.gbifRegion", GbifTerm.gbifRegion)),
   CONTINENT(new BaseEsField("occurrence.continent", DwcTerm.continent)),
   COORDINATE_ACCURACY(new BaseEsField("occurrence.coordinateAccuracy", GbifTerm.coordinateAccuracy)),
   ELEVATION_ACCURACY(new BaseEsField("occurrence.elevationAccuracy", GbifTerm.elevationAccuracy)),
@@ -96,7 +104,12 @@ public enum OccurrenceEventEsField implements EsField {
   LOCALITY(new BaseEsField("occurrence.locality", DwcTerm.locality, true)),
   COORDINATE_PRECISION(new BaseEsField("occurrence.coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("occurrence.coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
-  DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
+  DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("occurrence.distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
+  ISLAND(new BaseEsField("occurrence.island", DwcTerm.island)),
+  ISLAND_GROUP(new BaseEsField("occurrence.islandGroup", DwcTerm.islandGroup)),
+  HIGHER_GEOGRAPHY(new BaseEsField("occurrence.higherGeography", DwcTerm.higherGeography)),
+  GEOREFERENCED_BY(new BaseEsField("occurrence.georeferencedBy", DwcTerm.georeferencedBy)),
+
   GADM_GID(new BaseEsField("occurrence.gadm.gids", null)),
   GADM_LEVEL_0_GID(new BaseEsField("occurrence.gadm.level0Gid", GadmTerm.level0Gid)),
   GADM_LEVEL_0_NAME(new BaseEsField("occurrence.gadm.level0Name", GadmTerm.level0Name)),
@@ -113,35 +126,38 @@ public enum OccurrenceEventEsField implements EsField {
   REPATRIATED(new BaseEsField("occurrence.repatriated", GbifTerm.repatriated)),
 
   //Taxonomic classification
-  USAGE_TAXON_KEY(new BaseEsField("occurrence.gbifClassification.usage.key", GbifTerm.taxonKey)),
-  TAXON_KEY(new BaseEsField("occurrence.gbifClassification.taxonKey", GbifTerm.taxonKey)),
-  TAXON_RANK(new BaseEsField("occurrence.gbifClassification.usage.rank", DwcTerm.taxonRank)),
-  ACCEPTED_TAXON_KEY(new BaseEsField("occurrence.gbifClassification.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
-  ACCEPTED_SCIENTIFIC_NAME(new BaseEsField("occurrence.gbifClassification.acceptedUsage.name", GbifTerm.acceptedScientificName)),
-  KINGDOM_KEY(new BaseEsField("occurrence.gbifClassification.kingdomKey", GbifTerm.kingdomKey)),
-  KINGDOM(new BaseEsField("occurrence.gbifClassification.kingdom", DwcTerm.kingdom)),
-  PHYLUM_KEY(new BaseEsField("occurrence.gbifClassification.phylumKey", GbifTerm.phylumKey)),
-  PHYLUM(new BaseEsField("occurrence.gbifClassification.phylum", DwcTerm.phylum)),
-  CLASS_KEY(new BaseEsField("occurrence.gbifClassification.classKey", GbifTerm.classKey)),
-  CLASS(new BaseEsField("occurrence.gbifClassification.class", DwcTerm.class_)),
-  ORDER_KEY(new BaseEsField("occurrence.gbifClassification.orderKey", GbifTerm.orderKey)),
-  ORDER(new BaseEsField("occurrence.gbifClassification.order", DwcTerm.order)),
-  FAMILY_KEY(new BaseEsField("occurrence.gbifClassification.familyKey", GbifTerm.familyKey)),
-  FAMILY(new BaseEsField("occurrence.gbifClassification.family", DwcTerm.family)),
-  GENUS_KEY(new BaseEsField("occurrence.gbifClassification.genusKey", GbifTerm.genusKey)),
-  GENUS(new BaseEsField("occurrence.gbifClassification.genus", DwcTerm.genus)),
-  SUBGENUS_KEY(new BaseEsField("occurrence.gbifClassification.subgenusKey", GbifTerm.subgenusKey)),
-  SUBGENUS(new BaseEsField("occurrence.gbifClassification.subgenus", DwcTerm.subgenus)),
-  SPECIES_KEY(new BaseEsField("occurrence.gbifClassification.speciesKey", GbifTerm.speciesKey)),
-  SPECIES(new BaseEsField("occurrence.gbifClassification.species", GbifTerm.species)),
-  SCIENTIFIC_NAME(new BaseEsField("occurrence.gbifClassification.usage.name", DwcTerm.scientificName)),
-  SPECIFIC_EPITHET(new BaseEsField("occurrence.gbifClassification.usageParsedName.specificEpithet", DwcTerm.specificEpithet)),
-  INFRA_SPECIFIC_EPITHET(new BaseEsField("gbifClassification.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
-  GENERIC_NAME(new BaseEsField("occurrence.gbifClassification.usageParsedName.genericName", DwcTerm.genericName)),
-  TAXONOMIC_STATUS(new BaseEsField("occurrence.gbifClassification.diagnostics.status", DwcTerm.taxonomicStatus)),
-  TAXON_ID(new BaseEsField("occurrence.gbifClassification.taxonID", DwcTerm.taxonID)),
-  VERBATIM_SCIENTIFIC_NAME(new BaseEsField("occurrence.gbifClassification.verbatimScientificName", GbifTerm.verbatimScientificName)),
-  IUCN_RED_LIST_CATEGORY(new BaseEsField("occurrence.gbifClassification.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
+  USAGE_TAXON_KEY(new ChecklistEsField("occurrence.classifications.%s.usage.key", GbifTerm.taxonKey)),
+  TAXON_KEY(new ChecklistEsField("occurrence.classifications.%s.taxonKeys", GbifTerm.taxonKey)),
+  TAXON_RANK(new ChecklistEsField("occurrence.classifications.%s.usage.rank", DwcTerm.taxonRank)),
+  ACCEPTED_TAXON_KEY(new ChecklistEsField("occurrence.classifications.%s.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
+  ACCEPTED_SCIENTIFIC_NAME(new ChecklistEsField("occurrence.classifications.%s.acceptedUsage.name", GbifTerm.acceptedScientificName)),
+  KINGDOM_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.KINGDOM", GbifTerm.kingdomKey)),
+  KINGDOM(new ChecklistEsField("occurrence.classifications.%s.classification.KINGDOM", DwcTerm.kingdom)),
+  PHYLUM_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.PHYLUM", GbifTerm.phylumKey)),
+  PHYLUM(new ChecklistEsField("occurrence.classifications.%s.classification.PHYLUM", DwcTerm.phylum)),
+  CLASS_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.CLASS", GbifTerm.classKey)),
+  CLASS(new ChecklistEsField("occurrence.classifications.%s.classification.CLASS", DwcTerm.class_)),
+  ORDER_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.ORDER", GbifTerm.orderKey)),
+  ORDER(new ChecklistEsField("occurrence.classifications.%s.classification.ORDER", DwcTerm.order)),
+  FAMILY_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.FAMILY", GbifTerm.familyKey)),
+  FAMILY(new ChecklistEsField("occurrence.classifications.%s.classification.FAMILY", DwcTerm.family)),
+  GENUS_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.GENUS", GbifTerm.genusKey)),
+  GENUS(new ChecklistEsField("occurrence.classifications.%s.classification.GENUS", DwcTerm.genus)),
+  SUBGENUS_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.SUBGENUS", GbifTerm.subgenusKey)),
+  SUBGENUS(new ChecklistEsField("occurrence.classifications.%s.classification.SUBGENUS", DwcTerm.subgenus)),
+  SPECIES_KEY(new ChecklistEsField("occurrence.classifications.%s.classificationKeys.SPECIES", GbifTerm.speciesKey)),
+  SPECIES(new ChecklistEsField("occurrence.classifications.%s.classification.SPECIES", GbifTerm.species)),
+  SCIENTIFIC_NAME(new ChecklistEsField("occurrence.classifications.%s.usage.name", DwcTerm.scientificName)),
+  SCIENTIFIC_NAME_AUTHORSHIP(new ChecklistEsField("occurrence.classifications.%s.usage.authorship", DwcTerm.scientificNameAuthorship)),
+  SPECIFIC_EPITHET(new ChecklistEsField("occurrence.classifications.%s.usage.specificEpithet", DwcTerm.specificEpithet)),
+  INFRA_SPECIFIC_EPITHET(new ChecklistEsField("occurrence.classifications.%s.usage.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
+  GENERIC_NAME(new ChecklistEsField("occurrence.classifications.%s.usage.genericName", DwcTerm.genericName)),
+  TAXONOMIC_STATUS(new ChecklistEsField("occurrence.classifications.%s.status", DwcTerm.taxonomicStatus)),
+  IUCN_RED_LIST_CATEGORY(new ChecklistEsField("occurrence.classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
+  TAXONOMIC_ISSUE(new ChecklistEsField("occurrence.classifications.%s.issues", GbifTerm.taxonomicIssue)),
+
+  TAXON_ID(new ChecklistEsField("occurrence.taxonID", DwcTerm.taxonID)),
+  VERBATIM_SCIENTIFIC_NAME(new BaseEsField("occurrence.verbatimScientificName", GbifTerm.verbatimScientificName)),
 
   // GrSciColl
   COLLECTION_KEY(new BaseEsField("occurrence.collectionKey", GbifInternalTerm.collectionKey)),
@@ -153,6 +169,7 @@ public enum OccurrenceEventEsField implements EsField {
   SAMPLING_PROTOCOL(new BaseEsField("occurrence.samplingProtocol", DwcTerm.samplingProtocol, true)),
   LIFE_STAGE(new BaseEsField("occurrence.lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("occurrence.dateIdentified", DwcTerm.dateIdentified)),
+  FIELD_NUMBER(new BaseEsField("occurrence.fieldNumber", DwcTerm.fieldNumber)),
   MODIFIED(new BaseEsField("occurrence.modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("occurrence.references", DcTerm.references)),
   SEX(new BaseEsField("occurrence.sex", DwcTerm.sex)),
@@ -166,6 +183,72 @@ public enum OccurrenceEventEsField implements EsField {
   SAMPLE_SIZE_VALUE(new BaseEsField("occurrence.sampleSizeValue", DwcTerm.sampleSizeValue)),
   RELATIVE_ORGANISM_QUANTITY(new BaseEsField("occurrence.relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity)),
 
+  EARLIEST_EON_OR_LOWEST_EONOTHEM(
+    new BaseEsField(
+      "occurrence.geologicalContext.earliestEonOrLowestEonothem.lineage",
+      "occurrence.geologicalContext.earliestEonOrLowestEonothem.concept",
+      DwcTerm.earliestEonOrLowestEonothem)),
+  LATEST_EON_OR_HIGHEST_EONOTHEM(
+    new BaseEsField(
+      "occurrence.geologicalContext.latestEonOrHighestEonothem.lineage",
+      "occurrence.geologicalContext.latestEonOrHighestEonothem.concept",
+      DwcTerm.latestEonOrHighestEonothem)),
+  EARLIEST_ERA_OR_LOWEST_ERATHEM(
+    new BaseEsField(
+      "occurrence.geologicalContext.earliestEraOrLowestErathem.lineage",
+      "occurrence.geologicalContext.earliestEraOrLowestErathem.concept",
+      DwcTerm.earliestEraOrLowestErathem)),
+  LATEST_ERA_OR_HIGHEST_ERATHEM(
+    new BaseEsField(
+      "occurrence.geologicalContext.latestEraOrHighestErathem.lineage",
+      "occurrence.geologicalContext.latestEraOrHighestErathem.concept",
+      DwcTerm.latestEraOrHighestErathem)),
+  EARLIEST_PERIOD_OR_LOWEST_SYSTEM(
+    new BaseEsField(
+      "occurrence.geologicalContext.earliestPeriodOrLowestSystem.lineage",
+      "occurrence.geologicalContext.earliestPeriodOrLowestSystem.concept",
+      DwcTerm.earliestPeriodOrLowestSystem)),
+  LATEST_PERIOD_OR_HIGHEST_SYSTEM(
+    new BaseEsField(
+      "occurrence.geologicalContext.latestPeriodOrHighestSystem.lineage",
+      "occurrence.geologicalContext.latestPeriodOrHighestSystem.concept",
+      DwcTerm.latestPeriodOrHighestSystem)),
+  EARLIEST_EPOCH_OR_LOWEST_SERIES(
+    new BaseEsField(
+      "occurrence.geologicalContext.earliestEpochOrLowestSeries.lineage",
+      "occurrence.geologicalContext.earliestEpochOrLowestSeries.concept",
+      DwcTerm.earliestEpochOrLowestSeries)),
+  LATEST_EPOCH_OR_HIGHEST_SERIES(
+    new BaseEsField(
+      "occurrence.geologicalContext.latestEpochOrHighestSeries.lineage",
+      "occurrence.geologicalContext.latestEpochOrHighestSeries.concept",
+      DwcTerm.latestEpochOrHighestSeries)),
+  EARLIEST_AGE_OR_LOWEST_STAGE(
+    new BaseEsField(
+      "occurrence.geologicalContext.earliestAgeOrLowestStage.lineage",
+      "occurrence.geologicalContext.earliestAgeOrLowestStage.concept",
+      DwcTerm.earliestAgeOrLowestStage)),
+  LATEST_AGE_OR_HIGHEST_STAGE(
+    new BaseEsField(
+      "occurrence.geologicalContext.latestAgeOrHighestStage.lineage",
+      "occurrence.geologicalContext.latestAgeOrHighestStage.concept",
+      DwcTerm.latestAgeOrHighestStage)),
+  LOWEST_BIOSTRATIGRAPHIC_ZONE(
+    new BaseEsField(
+      "occurrence.geologicalContext.lowestBiostratigraphicZone", DwcTerm.lowestBiostratigraphicZone)),
+  HIGHEST_BIOSTRATIGRAPHIC_ZONE(
+    new BaseEsField(
+      "occurrence.geologicalContext.highestBiostratigraphicZone", DwcTerm.highestBiostratigraphicZone)),
+  GROUP(new BaseEsField("occurrence.geologicalContext.group", DwcTerm.group)),
+  FORMATION(new BaseEsField("occurrence.geologicalContext.formation", DwcTerm.formation)),
+  MEMBER(new BaseEsField("occurrence.geologicalContext.member", DwcTerm.member)),
+  BED(new BaseEsField("occurrence.geologicalContext.bed", DwcTerm.bed)),
+  GEOLOGICAL_TIME(new BaseEsField("occurrence.geologicalContext.range", null)),
+  LITHOSTRATIGRAPHY(new BaseEsField("occurrence.geologicalContext.lithostratigraphy", null, true)),
+  BIOSTRATIGRAPHY(new BaseEsField("occurrence.geologicalContext.biostratigraphy", null, true)),
+
+
+
   //Crawling
   CRAWL_ID(new BaseEsField("crawlId", GbifInternalTerm.crawlId)),
   LAST_INTERPRETED(new BaseEsField("created", GbifTerm.lastInterpreted)),
@@ -175,6 +258,9 @@ public enum OccurrenceEventEsField implements EsField {
   //Media
   MEDIA_TYPE(new BaseEsField("occurrence.mediaTypes", GbifTerm.mediaType)),
   MEDIA_ITEMS(new BaseEsField("occurrence.multimediaItems", EsField.MEDIA_ITEMS)),
+
+  // DNA
+  DNA_SEQUENCE_ID(new BaseEsField("occurrence.dnaSequenceID", GbifTerm.dnaSequenceID)),
 
   //Issues
   ISSUE(new BaseEsField("occurrence.issues", GbifTerm.issue)),
@@ -190,7 +276,7 @@ public enum OccurrenceEventEsField implements EsField {
 
   //Event
   START_DAY_OF_YEAR(new BaseEsField("occurrence.startDayOfYear", DwcTerm.startDayOfYear)),
-  END_DAY_OF_YEAR(new BaseEsField("occurrence.endDayOfYear", DwcTerm.startDayOfYear)),
+  END_DAY_OF_YEAR(new BaseEsField("occurrence.endDayOfYear", DwcTerm.endDayOfYear)),
   EVENT_TYPE(new BaseEsField("occurrence.eventType", DwcTerm.eventType)),
   LOCATION_ID(new BaseEsField("occurrence.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("occurrence.parentsLineage", EsField.PARENTS_LINEAGE)),

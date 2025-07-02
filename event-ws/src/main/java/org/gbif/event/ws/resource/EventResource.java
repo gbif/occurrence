@@ -13,6 +13,10 @@
  */
 package org.gbif.event.ws.resource;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
+import org.elasticsearch.index.query.AbstractQueryBuilder;
+
 import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -20,6 +24,7 @@ import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.event.Lineage;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.event.search.es.EventSearchEs;
@@ -29,10 +34,13 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -114,5 +122,26 @@ public class EventResource {
   @GetMapping("search")
   public SearchResponse<Event, OccurrenceSearchParameter> search(@NotNull @Valid OccurrenceSearchRequest searchRequest) {
     return eventSearchEs.search(searchRequest);
+  }
+
+  @Hidden
+  @PostMapping("search/predicate/toesquery")
+  public String predicateToEsQuery(
+      @NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    return eventSearchEs
+        .getEsSearchRequestBuilder()
+        .buildQuery(request)
+        .map(AbstractQueryBuilder::toString)
+        .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
+  }
+
+  @Hidden
+  @GetMapping("search/rest/toesquery")
+  public String restToEsQuery(@NotNull @Valid @ParameterObject OccurrenceSearchRequest request) {
+    return eventSearchEs
+        .getEsSearchRequestBuilder()
+        .buildSearchRequest(request, "test")
+        .source()
+        .toString();
   }
 }

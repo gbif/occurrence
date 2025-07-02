@@ -13,16 +13,14 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
-
-import java.util.List;
-
+import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Scheduled task is used to update the statuses of the running downloads and unlock those that have
@@ -32,31 +30,55 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class DownloadsUpdaterScheduledTask {
 
-  private final DownloadUpdaterService downloadUpdaterService;
-  private final DownloadLauncher jobManager;
+  private final OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
+  private final EventDownloadLauncherService eventDownloadLauncherService;
+  private final OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
+  private final EventDownloadUpdaterService eventDownloadUpdaterService;
   private final LockerService lockerService;
 
   public DownloadsUpdaterScheduledTask(
-      DownloadLauncher jobManager,
-      DownloadUpdaterService downloadUpdaterService,
+      OccurrenceDownloadLauncherService occurrenceDownloadLauncherService,
+      EventDownloadLauncherService eventDownloadLauncherService,
+      OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService,
+      EventDownloadUpdaterService eventDownloadUpdaterService,
       LockerService lockerService) {
-    this.jobManager = jobManager;
-    this.downloadUpdaterService = downloadUpdaterService;
+    this.occurrenceDownloadLauncherService = occurrenceDownloadLauncherService;
+    this.eventDownloadLauncherService = eventDownloadLauncherService;
+    this.occurrenceDownloadUpdaterService = occurrenceDownloadUpdaterService;
+    this.eventDownloadUpdaterService = eventDownloadUpdaterService;
     this.lockerService = lockerService;
   }
 
   @Scheduled(cron = "${downloads.taskCron}")
   public void renewedDownloadsStatuses() {
-    log.info("Running scheduled check");
+    log.info("Running scheduled check for occurrence downloads");
     // Get list only of RUNNING or SUSPENDED jobs, because PREPARING can be in the queue
-    List<Download> downloads = downloadUpdaterService.getExecutingDownloads();
+    List<Download> occurrenceDownloads = occurrenceDownloadUpdaterService.getExecutingDownloads();
 
-    log.info("Found {} running downloads", downloads.size());
-    if (!downloads.isEmpty()) {
-      List<Download> renewedDownloads = jobManager.renewRunningDownloadsStatuses(downloads);
+    log.info("Found {} running occurrence downloads", occurrenceDownloads.size());
+    if (!occurrenceDownloads.isEmpty()) {
+      List<Download> renewedDownloads =
+          occurrenceDownloadLauncherService.renewRunningDownloadsStatuses(occurrenceDownloads);
       renewedDownloads.forEach(
           download -> {
-            downloadUpdaterService.updateDownload(download);
+            occurrenceDownloadUpdaterService.updateDownload(download);
+            if (Status.FINISH_STATUSES.contains(download.getStatus())) {
+              lockerService.unlock(download.getKey());
+            }
+          });
+    }
+
+    log.info("Running scheduled check for event downloads");
+    // Get list only of RUNNING or SUSPENDED jobs, because PREPARING can be in the queue
+    List<Download> eventDownloads = eventDownloadUpdaterService.getExecutingDownloads();
+
+    log.info("Found {} running event downloads", eventDownloads.size());
+    if (!eventDownloads.isEmpty()) {
+      List<Download> renewedDownloads =
+          eventDownloadLauncherService.renewRunningDownloadsStatuses(eventDownloads);
+      renewedDownloads.forEach(
+          download -> {
+            eventDownloadUpdaterService.updateDownload(download);
             if (Status.FINISH_STATUSES.contains(download.getStatus())) {
               lockerService.unlock(download.getKey());
             }
@@ -66,6 +88,6 @@ public class DownloadsUpdaterScheduledTask {
     // Print all locked downloads
     lockerService.printLocks();
 
-    log.info("Finihsed scheduled check");
+    log.info("Finished scheduled check");
   }
 }

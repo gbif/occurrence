@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.validation.constraints.NotNull;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -32,7 +34,6 @@ import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
@@ -46,12 +47,18 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+    configurer.setUseTrailingSlashMatch(true);
+  }
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
@@ -88,12 +95,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
     return new BeanPostProcessor() {
 
       @Override
-      public Object postProcessBeforeInitialization(@NotNull Object bean, String beanName) {
+      public Object postProcessBeforeInitialization(@NotNull Object bean, @NotNull String beanName) {
         return bean;
       }
 
       @Override
-      public Object postProcessAfterInitialization(@NotNull Object bean, String beanName) {
+      public Object postProcessAfterInitialization(@NotNull Object bean, @NotNull String beanName) {
         if (bean instanceof RequestMappingHandlerAdapter) {
           RequestMappingHandlerAdapter adapter = (RequestMappingHandlerAdapter) bean;
           List<HandlerMethodArgumentResolver> nullSafeArgumentResolvers =

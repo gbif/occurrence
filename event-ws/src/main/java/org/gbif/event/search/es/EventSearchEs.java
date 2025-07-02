@@ -13,7 +13,8 @@
  */
 package org.gbif.event.search.es;
 
-import org.gbif.api.model.checklistbank.NameUsageMatch;
+import lombok.Getter;
+
 import org.gbif.api.model.common.paging.PageableBase;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -23,14 +24,16 @@ import org.gbif.api.model.event.Lineage;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.service.checklistbank.NameUsageMatchingService;
 import org.gbif.api.service.common.SearchService;
+import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.es.EsResponseParser;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
+import org.gbif.rest.client.species.NameUsageMatchResponse;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import java.io.IOException;
@@ -69,6 +72,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   private final int maxOffset;
   private final RestHighLevelClient esClient;
   private final String esIndex;
+  @Getter
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Event> esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
@@ -88,7 +92,8 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
-    ConceptClient conceptClient
+    ConceptClient conceptClient,
+    @Value("${defaultChecklistKey}") String defaultChecklistKey
   ) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
@@ -100,9 +105,9 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     this.nameUsageMatchingService = nameUsageMatchingService;
     eventEsFieldMapper = EventEsField.buildFieldMapper();
     occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient);
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient, nameUsageMatchingService);
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true);
+    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true, defaultChecklistKey);
     this.esResponseParser = new EsResponseParser<>(eventEsFieldMapper, searchHitEventConverter);
   }
 
@@ -292,11 +297,15 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
       hasValidReplaces = false;
       Collection<String> values = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
       for (String value : values) {
-        NameUsageMatch nameUsageMatch = nameUsageMatchingService.match(value, null, null, true, false);
-        if (nameUsageMatch.getMatchType() == NameUsageMatch.MatchType.EXACT) {
+        NameUsageMatchResponse nameUsageMatch = nameUsageMatchingService.match(NameUsageMatchRequest.builder()
+          .withScientificName(value)
+          .withStrict(false)
+          .withVerbose(false)
+          .build());
+        if (nameUsageMatch.getDiagnostics().getMatchType() == NameUsageMatchResponse.MatchType.EXACT) {
           hasValidReplaces = true;
           values.remove(value);
-          request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getUsageKey());
+          request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getUsage().getKey());
         }
       }
     }

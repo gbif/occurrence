@@ -19,13 +19,10 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.service.conf.DownloadLimits;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * Helper service that checks if a download request should be accepted under the allowed limits.
- */
+/** Helper service that checks if a download request should be accepted under the allowed limits. */
 @Component
 public class DownloadLimitsService {
 
@@ -33,21 +30,26 @@ public class DownloadLimitsService {
   private final DownloadLimits downloadLimits;
 
   @Autowired
-  public DownloadLimitsService(OccurrenceDownloadService occurrenceDownloadService, DownloadLimits downloadLimits) {
+  public DownloadLimitsService(
+      OccurrenceDownloadService occurrenceDownloadService, DownloadLimits downloadLimits) {
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadLimits = downloadLimits;
   }
 
   /**
-   * Checks if the user is allowed to create a download request.
-   * Validates if the download is under the limits of simultaneous downloads.
+   * Checks if the user is allowed to create a download request. Validates if the download is under
+   * the limits of simultaneous downloads.
    */
   public String exceedsSimultaneousDownloadLimit(String userName) {
-    long userDownloadsCount = occurrenceDownloadService.countByUser(userName,
-                                                        Download.Status.EXECUTING_STATUSES, null);
+    long userDownloadsCount =
+        occurrenceDownloadService.countByUser(userName, Download.Status.EXECUTING_STATUSES, null);
     if (userDownloadsCount >= downloadLimits.getMaxUserDownloads()) {
-      return "User "+userName+" has too many simultaneous downloads; the limit is "+downloadLimits.getMaxUserDownloads()+".\n"
-      + "Please wait for some to complete, or cancel any unwanted downloads.  See your user page.";
+      return "User "
+          + userName
+          + " has too many simultaneous downloads; the limit is "
+          + downloadLimits.getMaxUserDownloads()
+          + ".\n"
+          + "Please wait for some to complete, or cancel any unwanted downloads.  See your user page.";
     }
 
     long executingDownloadsCount =
@@ -61,15 +63,16 @@ public class DownloadLimitsService {
   }
 
   /**
-   * Checks if the user is allowed to create this download request.
-   * Validates if the download is too long/complicated.
+   * Checks if the user is allowed to create this download request. Validates if the download is too
+   * long/complicated.
    */
   public String exceedsDownloadComplexity(DownloadRequest request) {
 
     if (request instanceof PredicateDownloadRequest) {
-      return downloadLimits.violatesFilterRules(((PredicateDownloadRequest)request).getPredicate());
+      return downloadLimits.violatesFilterRules(
+          ((PredicateDownloadRequest) request).getPredicate());
     } else if (request instanceof SqlDownloadRequest) {
-      return downloadLimits.violatesSqlFilterRules(((SqlDownloadRequest)request).getSql());
+      return downloadLimits.violatesSqlFilterRules(((SqlDownloadRequest) request).getSql());
     }
 
     return null;

@@ -109,7 +109,7 @@ public class DownloadArchiver {
     if (DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO == format) {
       return new String[] {
         getWarehouseTablePath(),
-        workflowConfiguration.getCoreTerm().simpleName().toLowerCase() + ".avro",
+        download.getRequest().getType().getCoreTerm().simpleName().toLowerCase() + ".avro",
         ""
       };
     }
@@ -117,7 +117,7 @@ public class DownloadArchiver {
     if (DownloadFormat.SIMPLE_PARQUET == format) {
       return new String[] {
         getWarehouseTablePath(),
-        workflowConfiguration.getCoreTerm().simpleName().toLowerCase() + ".parquet",
+        download.getRequest().getType().getCoreTerm().simpleName().toLowerCase() + ".parquet",
         ""
       };
     }
@@ -125,7 +125,7 @@ public class DownloadArchiver {
     if (DownloadFormat.BIONOMIA == format) {
       return new String[] {
         getWarehouseTablePath(),
-        workflowConfiguration.getCoreTerm().simpleName().toLowerCase() + ".avro",
+        download.getRequest().getType().getCoreTerm().simpleName().toLowerCase() + ".avro",
         "",
         getWarehouseTableSuffixPath("agents"),
         "agents.avro",
@@ -198,7 +198,7 @@ public class DownloadArchiver {
     String countPath = getWarehouseCountTablePath();
     RegistryClientUtil registryClientUtil = registryClient();
     OccurrenceDownloadService occurrenceDownloadService =
-        registryClientUtil.occurrenceDownloadService(workflowConfiguration.getCoreTerm());
+        registryClientUtil.occurrenceDownloadService(download.getRequest().getType().getCoreTerm());
     // persists species count information.
     DownloadCount.persist(
         download.getKey(),

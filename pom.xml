@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>1.0.33-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -97,6 +97,7 @@
     <module>occurrence-download</module>
     <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
+    <module>occurrence-hadoop-minicluster</module>
     <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
@@ -107,21 +108,23 @@
   </modules>
 
   <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <jdkLevel>11</jdkLevel>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+    <jdkLevel>17</jdkLevel>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <release.tagNameBase>occurrence</release.tagNameBase>
-    <spring-boot.version>2.3.12.RELEASE</spring-boot.version>
-    <spring-cloud-zookeeper.version>2.2.5.RELEASE</spring-cloud-zookeeper.version>
-    <spring-cloud-openfeign.version>2.2.10.RELEASE</spring-cloud-openfeign.version>
-    <mybatis-spring-boot-starter.version>2.3.2</mybatis-spring-boot-starter.version>
-    <mybatis-spring-boot-starter-test.version>2.3.2</mybatis-spring-boot-starter-test.version>
+    <spring-boot.version>3.3.12</spring-boot.version>
+    <spring-cloud-zookeeper.version>4.1.2</spring-cloud-zookeeper.version>
+    <spring-cloud-bootstrap.version>4.1.4</spring-cloud-bootstrap.version>
+    <spring-cloud-openfeign.version>4.1.3</spring-cloud-openfeign.version>
+    <mybatis-spring-boot-starter.version>3.0.3</mybatis-spring-boot-starter.version>
+    <mybatis-spring-boot-starter-test.version>3.0.3</mybatis-spring-boot-starter-test.version>
     <feign.version>10.12</feign.version>
-    <spring-boot-admin.version>2.2.4</spring-boot-admin.version>
-    <springdoc-openapi-ui.version>1.5.8</springdoc-openapi-ui.version>
-    <swagger-annotations.version>2.2.3</swagger-annotations.version>
+    <spring-boot-admin.version>3.3.4</spring-boot-admin.version>
+    <springdoc-openapi.version>2.6.0</springdoc-openapi.version>
+    <swagger-annotations.version>2.2.25</swagger-annotations.version>
+    <micrometer.version>1.12.2</micrometer.version>
 
     <!-- default configurations for all GBIF environments -->
     <hbase.maxConnectionPool>10</hbase.maxConnectionPool>
@@ -137,11 +140,11 @@
 
     <!-- VERSIONS -->
     <hikaricp.version>3.2.0</hikaricp.version>
-    <amqp-client.version>3.0.2</amqp-client.version>
+    <amqp-client.version>5.25.0</amqp-client.version>
     <freemarker.version>2.3.31</freemarker.version>
     <netty.version>3.9.9.Final</netty.version>
     <netty-all.version>4.1.74.Final</netty-all.version>
-    <glassfish-jersey.version>3.0.11</glassfish-jersey.version>
+    <glassfish-jersey.version>3.1.9</glassfish-jersey.version>
     <jakarta.rs-api.version>3.0.0</jakarta.rs-api.version>
 
     <!-- Fixing to the version JUnit and Mockito depending on -->
@@ -168,11 +171,11 @@
     <httpclient.version>4.5.2</httpclient.version>
     <httpcore.version>4.4.13</httpcore.version>
 
-    <jackson.version>2.17.1</jackson.version>
+    <jackson.version>2.17.2</jackson.version>
     <json.version>20220320</json.version>
     <jcommander.version>1.35</jcommander.version>
-    <slf4j.version>1.7.30</slf4j.version>
-    <logback.version>1.2.3</logback.version>
+    <slf4j.version>2.0.7</slf4j.version>
+    <logback.version>1.5.10</logback.version>
     <logstash-encoder.version>6.6</logstash-encoder.version>
     <mail.version>1.4.5</mail.version>
     <mockito.version>3.1.0</mockito.version>
@@ -189,7 +192,7 @@
     <janino.version>3.0.8</janino.version>
     <commons-compiler.version>3.0.8</commons-compiler.version>
 
-    <junit-jupiter.version>5.6.2</junit-jupiter.version>
+    <junit-jupiter.version>5.10.1</junit-jupiter.version>
     <mockito-junit-jupiter.version>5.10.0</mockito-junit-jupiter.version>
 
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
@@ -211,26 +214,26 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
-    <download-query-tools.version>2.0.2</download-query-tools.version>
-    <dwc-api.version>2.0.1</dwc-api.version>
+    <download-query-tools.version>2.0.3</download-query-tools.version>
+    <dwc-api.version>2.1.1</dwc-api.version>
     <dwca-io.version>3.0.0</dwca-io.version>
-    <gbif-api.version>2.1.3</gbif-api.version>
+    <gbif-api.version>2.1.9</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
-    <gbif-common-ws.version>2.0.7</gbif-common-ws.version>
+    <gbif-common-ws.version>2.1.0</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-metadata-profile.version>2.6</gbif-metadata-profile.version>
-    <gbif-parsers.version>0.67</gbif-parsers.version>
-    <gbif-postal-service.version>1.8.1</gbif-postal-service.version>
-    <gbif-registry.version>4.0.13</gbif-registry.version>
+    <gbif-parsers.version>0.63</gbif-parsers.version>
+    <gbif-postal-service.version>2.1.3</gbif-postal-service.version>
+    <gbif-registry.version>4.1.0</gbif-registry.version>
     <gbif-wrangler.version>1.0.0</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <gbif.kvs.version>2.0.0</gbif.kvs.version>
-    <gbif-cli.version>2.0.0</gbif-cli.version>
-    <gbif-predicates.version>2.0.5</gbif-predicates.version>
+    <gbif.kvs.version>3.0</gbif.kvs.version>
+    <gbif-cli.version>3.0</gbif-cli.version>
+    <gbif-predicates.version>2.1.0</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.0</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 
@@ -249,7 +252,7 @@
 
     <!-- es versions -->
     <elasticsearch.version>7.10.0</elasticsearch.version>
-    <testcontainers-elasticsearch.version>1.17.3</testcontainers-elasticsearch.version>
+    <testcontainers-elasticsearch.version>1.20.1</testcontainers-elasticsearch.version>
     <!-- Used to match version used by Elasticsearch-->
     <lucene.version>8.7.0</lucene.version>
 
@@ -279,7 +282,7 @@
     <!-- Tools-->
     <lombok.version>1.18.28</lombok.version>
     <delombok.output>src/main/lombok</delombok.output>
-    <lombok-maven-plugin.version>1.18.0.0</lombok-maven-plugin.version>
+    <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
 
     <!-- Extensions -->
     <wagon-ssh.version>2.4</wagon-ssh.version>
@@ -294,8 +297,8 @@
       </activation>
       <properties>
         <!-- cluster version -->
-        <hadoop.version>3.3.4</hadoop.version>
-        <hbase.version>2.5.3-hadoop3</hbase.version>
+        <hadoop.version>3.3.5</hadoop.version>
+        <hbase.version>2.6.0-hadoop3</hbase.version>
         <hive.version>3.1.3</hive.version>
         <zookeeper.version>3.8.1</zookeeper.version>
         <occurrence.environment>dev</occurrence.environment>
@@ -338,6 +341,11 @@
         <version>${lombok.version}</version>
         <scope>provided</scope>
         <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>3.0.2</version>
       </dependency>
 
       <!-- GBIF -->
@@ -543,6 +551,16 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.kvs</groupId>
+        <artifactId>kvs-common</artifactId>
+        <version>${gbif.kvs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.kvs</groupId>
+        <artifactId>kvs-rest-clients</artifactId>
+        <version>${gbif.kvs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.kvs</groupId>
         <artifactId>kvs-gbif</artifactId>
         <version>${gbif.kvs.version}</version>
       </dependency>
@@ -582,6 +600,11 @@
       </dependency>
       <dependency>
         <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        <version>${spring-cloud-bootstrap.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-zookeeper-discovery</artifactId>
         <version>${spring-cloud-zookeeper.version}</version>
         <exclusions>
@@ -609,11 +632,6 @@
       </dependency>
       <dependency>
         <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-starter-zookeeper-config</artifactId>
-        <version>${spring-cloud-zookeeper.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-openfeign</artifactId>
         <version>${spring-cloud-openfeign.version}</version>
       </dependency>
@@ -629,13 +647,24 @@
       </dependency>
       <dependency>
         <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-ui</artifactId>
-        <version>${springdoc-openapi-ui.version}</version>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc-openapi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+        <version>${springdoc-openapi.version}</version>
       </dependency>
       <dependency>
         <groupId>io.swagger.core.v3</groupId>
         <artifactId>swagger-annotations</artifactId>
         <version>${swagger-annotations.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>${micrometer.version}</version>
+        <scope>runtime</scope>
       </dependency>
 
       <!-- Other -->
@@ -1290,6 +1319,17 @@
         <artifactId>jersey-common</artifactId>
         <version>${glassfish-jersey.version}</version>
       </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>${glassfish-jersey.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-json-binding</artifactId>
+        <version>${glassfish-jersey.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>

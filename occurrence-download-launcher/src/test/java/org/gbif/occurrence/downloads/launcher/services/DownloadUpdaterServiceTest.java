@@ -31,7 +31,7 @@ class DownloadUpdaterServiceTest {
   @BeforeEach
   public void setup() {
     mockClient = mock(OccurrenceDownloadClient.class);
-    downloadUpdaterService = new DownloadUpdaterService(mockClient);
+    downloadUpdaterService = new OccurrenceDownloadUpdaterService(mockClient);
   }
 
   @Test

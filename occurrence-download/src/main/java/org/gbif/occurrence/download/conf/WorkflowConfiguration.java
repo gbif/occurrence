@@ -115,6 +115,15 @@ public class WorkflowConfiguration {
 
   /**
    *
+   * @return local temp dir where downloads files are created
+   */
+  public String getDefaultChecklistKey() {
+    Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DEFAULT_CHECKLIST_KEY);
+  }
+
+  /**
+   *
    * @return HDFS temp dir where downloads files are created
    */
   public String getHdfsTempDir() {
@@ -138,11 +147,6 @@ public class WorkflowConfiguration {
   public SearchType getEsIndexType() {
     Preconditions.checkNotNull(settings);
     return SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE).toUpperCase());
-  }
-
-  public DwcTerm getCoreTerm() {
-    Preconditions.checkNotNull(settings);
-    return getEsIndexType() == SearchType.OCCURRENCE? DwcTerm.Occurrence : DwcTerm.Event;
   }
 
   /**

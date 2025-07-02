@@ -13,35 +13,44 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.services.DownloadUpdaterService;
+import org.gbif.occurrence.downloads.launcher.services.EventDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
+import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
-
+import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /** Listen MQ to receive and run a download */
 @Slf4j
 @Component
 public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLauncherMessage> {
 
-  private final DownloadLauncher jobManager;
-  private final DownloadUpdaterService downloadUpdaterService;
+  private final OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
+  private final EventDownloadLauncherService eventDownloadLauncherService;
+  private final OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
+  private final EventDownloadUpdaterService eventDownloadUpdaterService;
   private final LockerService lockerService;
 
   public DownloadLauncherListener(
-      DownloadLauncher jobManager,
-      DownloadUpdaterService downloadUpdaterService,
+      OccurrenceDownloadLauncherService occurrenceDownloadLauncherService,
+      EventDownloadLauncherService eventDownloadLauncherService,
+      OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService,
+      EventDownloadUpdaterService eventDownloadUpdaterService,
       LockerService lockerService) {
-    this.jobManager = jobManager;
-    this.downloadUpdaterService = downloadUpdaterService;
+    this.occurrenceDownloadLauncherService = occurrenceDownloadLauncherService;
+    this.eventDownloadLauncherService = eventDownloadLauncherService;
+    this.occurrenceDownloadUpdaterService = occurrenceDownloadUpdaterService;
+    this.eventDownloadUpdaterService = eventDownloadUpdaterService;
     this.lockerService = lockerService;
   }
 
@@ -52,8 +61,8 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
       log.info("Received message {}", downloadsMessage);
       String downloadKey = downloadsMessage.getDownloadKey();
 
-      if (!downloadUpdaterService.isStatusFinished(downloadKey)) {
-        JobStatus jobStatus = jobManager.createRun(downloadKey);
+      if (!getDownloadUpdaterService(downloadsMessage).isStatusFinished(downloadKey)) {
+        JobStatus jobStatus = getDownloadLauncher(downloadsMessage).createRun(downloadKey);
 
         if (jobStatus == JobStatus.RUNNING) {
           // Keep status as PREPARING, Airflow will mark it as RUNNING when workflow is executed
@@ -62,13 +71,13 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
           // Status of the download must be updated only in DownloadResource.airflowCallback
         } else if (jobStatus == JobStatus.FAILED) {
           log.error("Failed to process message: {}", downloadsMessage);
-          downloadUpdaterService.updateStatus(downloadKey, Status.FAILED);
+          getDownloadUpdaterService(downloadsMessage).updateStatus(downloadKey, Status.FAILED);
           throw new IllegalStateException("Failed to process message");
         } else if (jobStatus == JobStatus.FINISHED) {
           log.warn(
               "Out of sync. Downloads {} status is not finished, but airflow status is finished",
               downloadsMessage);
-          downloadUpdaterService.updateStatus(downloadKey, Status.SUCCEEDED);
+          getDownloadUpdaterService(downloadsMessage).updateStatus(downloadKey, Status.SUCCEEDED);
         }
 
       } else {
@@ -78,6 +87,23 @@ public class DownloadLauncherListener extends AbstractMessageCallback<DownloadLa
     } catch (Exception ex) {
       log.error(ex.getMessage(), ex);
       throw new AmqpRejectAndDontRequeueException(ex.getMessage());
+    }
+  }
+
+  private DownloadLauncher getDownloadLauncher(DownloadLauncherMessage downloadLauncherMessage) {
+    if (downloadLauncherMessage.getDownloadRequest().getType() == DownloadType.EVENT) {
+      return eventDownloadLauncherService;
+    } else {
+      return occurrenceDownloadLauncherService;
+    }
+  }
+
+  private DownloadUpdaterService getDownloadUpdaterService(
+      DownloadLauncherMessage downloadLauncherMessage) {
+    if (downloadLauncherMessage.getDownloadRequest().getType() == DownloadType.EVENT) {
+      return eventDownloadUpdaterService;
+    } else {
+      return occurrenceDownloadUpdaterService;
     }
   }
 }

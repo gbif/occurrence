@@ -20,20 +20,12 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.util.Range;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.BasisOfRecord;
-import org.gbif.api.vocabulary.Continent;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.api.vocabulary.GbifRegion;
-import org.gbif.api.vocabulary.License;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.api.vocabulary.OccurrenceStatus;
-import org.gbif.api.vocabulary.TaxonomicStatus;
-import org.gbif.api.vocabulary.ThreatStatus;
+import org.gbif.api.vocabulary.*;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import java.lang.annotation.Inherited;
@@ -47,9 +39,12 @@ import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -81,6 +76,8 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PARAMETER;
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;
+import static org.gbif.api.vocabulary.InterpretationRemarkSeverity.INFO;
+import static org.gbif.api.vocabulary.InterpretationRemarkSeverity.WARNING;
 import static org.gbif.ws.paths.OccurrencePaths.CATALOG_NUMBER_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.COLLECTION_CODE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.DATASET_NAME_PATH;
@@ -128,13 +125,15 @@ public class OccurrenceSearchResource {
 
   @Autowired
   public OccurrenceSearchResource(
-      OccurrenceSearchService searchService,
-      SearchTermService searchTermService,
-      ConceptClient conceptClient) {
+    OccurrenceSearchService searchService,
+    SearchTermService searchTermService,
+    ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService,
+    @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;
     this.esSearchRequestBuilder =
-        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), conceptClient);
+        new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(defaultChecklistKey),
+          conceptClient, nameUsageMatchingService);
   }
 
   /**
@@ -220,7 +219,8 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "acceptedTaxonKey",
             description =
-                "A taxon key from the GBIF backbone. Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). " +
+                  "Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -284,6 +284,14 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "212"),
+        @Parameter(
+          name = "checklistKey",
+          description = "*Experimental.* The checklist key. This determines which taxonomy will be used for "
+            + "the search in conjunction with other taxon keys or scientificName. If this is not specified, the GBIF "
+            + "backbone taxonomy will be used.",
+          schema = @Schema(implementation = String.class),
+          in = ParameterIn.QUERY,
+          example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
         @Parameter(
             name = "collectionCode",
             description =
@@ -1306,7 +1314,8 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "scientificName",
             description =
-                "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c). "
+                "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c) "
+                    + "or the specified checklist (see checklistKey parameter). "
                     + "All included and synonym taxa are included in the search.\n\n"
                     + "Under the hood a call to the [species match service](https://www.gbif.org/developer/species#searching) "
                     + "is done first to retrieve a taxonKey. Only unique scientific names will return results, homonyms "
@@ -1376,7 +1385,7 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "taxonKey",
             description =
-                "A taxon key from the GBIF backbone. All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?taxonKey=212)) will match all birds, no matter which species."
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?taxonKey=212)) will match all birds, no matter which species."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -1395,6 +1404,34 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "urn:lsid:dyntaxa.se:Taxon:103026"),
+        @Parameter(
+          name = "taxonomicIssue",
+          description =
+            "*Experimental.* A specific taxonomic interpretation issue as defined in our " +
+              "OccurrenceIssue enumeration.\n\n"
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array = @ArraySchema(
+            uniqueItems = true,
+            schema = @Schema(
+              type = "string",
+              allowableValues = {
+                "TAXON_MATCH_FUZZY",
+                "TAXON_MATCH_HIGHERRANK",
+                "TAXON_MATCH_AGGREGATE",
+                "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+                "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+                "TAXON_MATCH_TAXON_ID_IGNORED",
+                "SCIENTIFIC_NAME_ID_NOT_FOUND",
+                "TAXON_CONCEPT_ID_NOT_FOUND",
+                "TAXON_ID_NOT_FOUND",
+                "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+                "TAXON_MATCH_NONE"
+              }
+            )
+          ),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          example = "TAXON_CONCEPT_ID_NOT_FOUND"),
         @Parameter(
             name = "taxonomicStatus",
             description =
@@ -1490,16 +1527,14 @@ public class OccurrenceSearchResource {
             hidden = true),
         @Parameter(
             name = "matchCase",
-            description =
-                "*Experimental.* Indicates if the search has to be case sensitive",
+            description = "*Experimental.* Indicates if the search has to be case sensitive",
             schema = @Schema(implementation = Boolean.class),
             in = ParameterIn.QUERY,
             example = "true"),
         @Parameter(
           name = "shuffle",
-          description =
-            "*Experimental.* Seed to sort the results randomly.",
-          explode = Explode.FALSE,
+          description = "*Experimental.* Seed to sort the results randomly.",
+          schema = @Schema(implementation = String.class),
           in = ParameterIn.QUERY,
           example = "abcdefgh"),
         @Parameter(
@@ -1535,7 +1570,7 @@ public class OccurrenceSearchResource {
       })
   @GetMapping
   public SearchResponse<Occurrence, OccurrenceSearchParameter> search(
-      OccurrenceSearchRequest request) {
+    @ParameterObject OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
     return searchService.search(request);
@@ -1550,6 +1585,22 @@ public class OccurrenceSearchResource {
     LOG.debug("Executing post query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
       request.getOffset());
     return searchService.search(request);
+  }
+
+  @Hidden
+  @PostMapping("predicate/toesquery")
+  public String predicateToEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+    return esSearchRequestBuilder
+      .buildQuery(request)
+      .map(AbstractQueryBuilder::toString)
+      .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
+  }
+
+  @Hidden
+  @GetMapping("rest/toesquery")
+  public String restToEsQuery(@NotNull @Valid @ParameterObject OccurrenceSearchRequest request) {
+    return esSearchRequestBuilder.buildSearchRequest(request, "test")
+      .source().toString();
   }
 
   /**
@@ -1884,7 +1935,7 @@ public class OccurrenceSearchResource {
                                  @RequestParam(PARAM_LIMIT) @SuggestLimitParameter int limit) {
     LOG.debug("Executing term suggest/search, term {}, query {}, limit {}", term, query, limit);
     return
-      VocabularyUtils.lookup(term, OccurrenceSearchParameter.class)
+      OccurrenceSearchParameter.lookup(term)
         .map(parameter -> searchTermService.searchFieldTerms(query, parameter, limit))
         .orElseThrow(() -> new IllegalArgumentException("Search not supported for term " +  term));
   }

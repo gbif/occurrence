@@ -18,6 +18,7 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.query.TitleLookupService;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,13 @@ public class DownloadMetadataBuilderTest {
   @SneakyThrows
   private Predicate testPredicate() {
     ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.registerModule(
+      new SimpleModule().addDeserializer(
+        OccurrenceSearchParameter.class,
+        new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()
+      )
+    );
+
     return objectMapper.readValue("{\n"
                                   + "    \"type\":\"and\",\n"
                                   + "    \"predicates\":[\n"

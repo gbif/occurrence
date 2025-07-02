@@ -30,7 +30,7 @@ SELECT gbifid FROM ${interpretedTable};
 
 <#list verbatim_extensions as verbatim_extension>
 -- ${verbatim_extension.extension} extension
-  CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName} (
+CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName} (
   <#list verbatim_extension.interpretedFields as field>
     ${field} string<#if field_has_next>,</#if>
   </#list>
@@ -40,11 +40,11 @@ SELECT gbifid FROM ${interpretedTable};
   TBLPROPERTIES ("serialization.null.format"="");
 
 -- load ${verbatim_extension.extension} extension
-  INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
-    SELECT
-    <#list verbatim_extension.verbatimFields as field>
+INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
+  SELECT
+  <#list verbatim_extension.verbatimFields as field>
       ext.${field}<#if field_has_next>,</#if>
-    </#list>
+  </#list>
     FROM ${downloadTableName}_occurrence_gbifId f
     JOIN iceberg.${r"${hiveDB}"}.occurrence_ext_${verbatim_extension.hiveTableName} ext
     ON f.gbifid = ext.gbifid

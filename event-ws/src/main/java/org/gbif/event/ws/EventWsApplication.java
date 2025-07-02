@@ -31,12 +31,12 @@ import org.gbif.ws.server.filter.IdentityFilter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.elasticsearch.ElasticSearchRestHealthContributorAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -46,8 +46,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootApplication(
     exclude = {
-      ElasticSearchRestHealthContributorAutoConfiguration.class,
-      RabbitAutoConfiguration.class
+      RabbitAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class
     })
 @EnableConfigurationProperties
 @ComponentScan(
@@ -59,11 +58,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
       "org.gbif.ws.server.mapper",
       "org.gbif.ws.remoteauth",
       "org.gbif.ws.security",
-      "org.gbif.occurrence.search",
       "org.gbif.event.search",
       "org.gbif.event.ws",
       "org.gbif.occurrence.download.service",
-      "org.gbif.occurrence.mail"
+      "org.gbif.occurrence.mail",
+      "org.gbif.occurrence.search",
+      "org.gbif.occurrence.search.es",
     },
     excludeFilters = {
       @ComponentScan.Filter(
@@ -74,7 +74,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
             IdentityFilter.class,
             AppIdentityFilter.class,
             GbifAuthenticationManagerImpl.class,
-            GbifAuthServiceImpl.class
+            GbifAuthServiceImpl.class,
+            WebMvcAutoConfiguration.class
           })
     })
 public class EventWsApplication {
@@ -96,6 +97,8 @@ public class EventWsApplication {
     return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
   }
 
+
+
   @Bean
   public ConceptClient conceptClient(@Value("${api.url}") String apiUrl) {
     return new ClientBuilder()
@@ -106,16 +109,6 @@ public class EventWsApplication {
       .build(ConceptClient.class);
   }
 
-  @Bean
-  public OccurrenceBaseEsFieldMapper esFieldMapper() {
-    return OccurrenceEsField.buildFieldMapper();
-  }
-
   @Configuration
-  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {
-
-    public SecurityConfiguration(ApplicationContext context, RemoteAuthClient remoteAuthClient) {
-      super(context, remoteAuthClient);
-    }
-  }
+  public class SecurityConfiguration  extends RemoteAuthWebSecurityConfigurer {}
 }

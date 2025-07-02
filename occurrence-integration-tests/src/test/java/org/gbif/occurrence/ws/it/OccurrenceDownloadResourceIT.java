@@ -26,7 +26,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.context.ActiveProfiles;
@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest(
     classes = OccurrenceWsItConfiguration.class,
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class OccurrenceOccurrenceDownloadResourceIT {
+public class OccurrenceDownloadResourceIT {
 
   private static final String TEST_DOWNLOAD_FILE = "classpath:0011066-200127171203522.zip";
 
@@ -60,7 +60,7 @@ public class OccurrenceOccurrenceDownloadResourceIT {
   private final int localServerPort;
 
   @Autowired
-  public OccurrenceOccurrenceDownloadResourceIT(
+  public OccurrenceDownloadResourceIT(
       @LocalServerPort int localServerPort,
       OccurrenceDownloadService occurrenceDownloadService,
       ResourceLoader resourceLoader) {

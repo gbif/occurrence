@@ -13,6 +13,7 @@
  */
 package org.gbif.event.search.es;
 
+import com.google.common.collect.ImmutableSet;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
@@ -42,15 +43,7 @@ import org.gbif.occurrence.search.es.SearchHitConverter;
 
 import java.net.URI;
 import java.text.ParseException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -74,6 +67,7 @@ import static org.gbif.occurrence.search.es.OccurrenceEsField.RECORDED_BY_ID;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
+  private static final Set<Term> EVENT_INTERPRETED_TERMS = ImmutableSet.of(DwcTerm.eventID, DwcTerm.parentEventID);
 
   private final boolean excludeInterpretedFromVerbatim;
 
@@ -136,7 +130,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
       verbatimCoreFields.entrySet().stream()
         .map(e -> new AbstractMap.SimpleEntry<>(mapTerm(e.getKey()), e.getValue()));
     if (excludeInterpretedFromVerbatim) {
-      termMap = termMap.filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()));
+      termMap = termMap.filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()) && !EVENT_INTERPRETED_TERMS.contains(e.getKey()));
     }
     return termMap.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
@@ -283,6 +277,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getListValueAsString(hit, PREPARATIONS).ifPresent(event::setPreparations);
     getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(event::setSamplingProtocol);
     getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(event::setOtherCatalogNumbers);
+    setEventLineageData(hit, event);
   }
 
   private void parseAgentIds(SearchHit hit, Event event) {
@@ -355,7 +350,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getStringValue(hit, GADM_LEVEL_3_NAME).ifPresent(name -> g.getLevel3().setName(name));
 
     event.setGadm(g);
-    setEventLineageData(hit, event);
   }
 
 

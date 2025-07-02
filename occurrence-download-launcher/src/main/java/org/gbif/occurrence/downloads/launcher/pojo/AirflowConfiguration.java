@@ -47,6 +47,8 @@ public class AirflowConfiguration {
 
   public String smallDownloadsAirflowDagName;
 
+  public String eventsDownloadsAirflowDagName;
+
   private String gbifApiUrl;
 
   public long apiCheckDelaySec = 3L;

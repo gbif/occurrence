@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,12 +27,13 @@ import java.util.List;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
-import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
@@ -43,9 +44,11 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -53,17 +56,25 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+  @Autowired protected ChecklistAwareSearchRequestHandlerMethodArgumentResolver resolver;
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+    configurer.setUseTrailingSlashMatch(true);
+  }
+
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
     argumentResolvers.add(new PageableHandlerMethodArgumentResolver());
     argumentResolvers.add(new CountryHandlerMethodArgumentResolver());
-    argumentResolvers.add(new OccurrenceSearchRequestHandlerMethodArgumentResolver());
+    argumentResolvers.add(resolver);
   }
 
   @Override
   public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
     StringHttpMessageConverter stringHttpMessageConverter = new StringHttpMessageConverter();
-    stringHttpMessageConverter.setSupportedMediaTypes(Lists.newArrayList(MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN));
+    stringHttpMessageConverter.setSupportedMediaTypes(
+        Lists.newArrayList(MediaType.APPLICATION_XML, MediaType.TEXT_PLAIN));
     converters.add(stringHttpMessageConverter);
   }
 
@@ -102,6 +113,22 @@ public class WebMvcConfig implements WebMvcConfigurer {
           argumentResolvers.add(0, paramNameProcessor());
           adapter.setArgumentResolvers(argumentResolvers);
         }
+        if (bean instanceof AbstractJackson2HttpMessageConverter) {
+          AbstractJackson2HttpMessageConverter converter =
+              (AbstractJackson2HttpMessageConverter) bean;
+          ObjectMapper objectMapper = converter.getObjectMapper();
+          objectMapper.registerModule(new JavaTimeModule());
+
+          objectMapper.registerModule(
+              new SimpleModule()
+                  .addKeyDeserializer(
+                      OccurrenceSearchParameter.class,
+                      new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
+                  .addDeserializer(
+                      OccurrenceSearchParameter.class,
+                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
+          objectMapper.addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
+        }
         return bean;
       }
     };
@@ -109,9 +136,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
   @Primary
   @Bean
-  public ObjectMapper registryObjectMapper() {
+  public ObjectMapper objectMapper() {
     return JacksonJsonObjectMapperProvider.getObjectMapper()
         .registerModule(new JavaTimeModule())
+        .registerModule(
+            new SimpleModule()
+                .addDeserializer(
+                    OccurrenceSearchParameter.class,
+                    new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()))
         .addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
   }
 
@@ -119,13 +151,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
   public XmlMapper xmlMapper() {
     XmlMapper xmlMapper = new XmlMapper();
     xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    xmlMapper.registerModules(Arrays.asList(new SimpleModule(), new JaxbAnnotationModule()));
+    xmlMapper.registerModules(
+        Arrays.asList(new SimpleModule(), new JakartaXmlBindAnnotationModule()));
     return xmlMapper;
   }
 
   @Bean
   public Jackson2ObjectMapperBuilderCustomizer customJson() {
-    return builder -> builder.modulesToInstall(new JaxbAnnotationModule());
+    return builder -> builder.modulesToInstall(new JakartaXmlBindAnnotationModule());
   }
 
   @Override
@@ -150,5 +183,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
       return AnnotatedElementUtils.hasAnnotation(beanType, RestController.class);
     }
   }
-
 }

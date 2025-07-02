@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.search.es;
 
+import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.AgentIdentifier;
@@ -23,6 +24,8 @@ import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.v2.RankedName;
+import org.gbif.api.v2.Usage;
 import org.gbif.api.vocabulary.AgentIdentifierType;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
@@ -42,12 +45,15 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.event.search.es.EventEsField;
+import org.gbif.event.search.es.OccurrenceEventEsField;
 import org.gbif.occurrence.common.TermUtils;
 
 import java.net.URI;
 import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,12 +71,17 @@ import com.google.common.collect.Maps;
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
 
-  public SearchHitOccurrenceConverter(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, boolean excludeInterpretedFromVerbatim) {
+  private final boolean excludeInterpretedFromVerbatim;
+  private final String defaultChecklistKey;
+
+  public SearchHitOccurrenceConverter(
+    OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+    boolean excludeInterpretedFromVerbatim,
+    String defaultChecklistKey) {
     super(occurrenceBaseEsFieldMapper);
     this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
+    this.defaultChecklistKey = defaultChecklistKey;
   }
-
-  private final boolean excludeInterpretedFromVerbatim;
 
   @Override
   public Occurrence apply(SearchHit hit) {
@@ -84,6 +95,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setCrawlingFields(hit, occ);
     setDatasetFields(hit, occ);
     setTaxonFields(hit, occ);
+    setClassifications(hit, occ);
     setGrscicollFields(hit, occ);
     setDnaFields(hit, occ);
 
@@ -371,34 +383,136 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     occ.setGadm(g);
   }
 
+  /**
+   * This is the old taxon fields method added before the new classifications array was added.
+   * Left here for backwards compatibility to support the API with integer taxon keys
+   * in the response. This code will need to be removed once the gbif backbone is no longer
+   * indexed.
+   *
+   * @param hit the search hit
+   * @param occ the occurrence to set the fields on
+   */
+  @Deprecated
   private void setTaxonFields(SearchHit hit, Occurrence occ) {
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.kingdomKey)).ifPresent(occ::setKingdomKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.kingdom)).ifPresent(occ::setKingdom);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.phylumKey)).ifPresent(occ::setPhylumKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.phylum)).ifPresent(occ::setPhylum);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.classKey)).ifPresent(occ::setClassKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.class_)).ifPresent(occ::setClazz);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.orderKey)).ifPresent(occ::setOrderKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.order)).ifPresent(occ::setOrder);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.familyKey)).ifPresent(occ::setFamilyKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.family)).ifPresent(occ::setFamily);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.genusKey)).ifPresent(occ::setGenusKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.genus)).ifPresent(occ::setGenus);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.subgenusKey)).ifPresent(occ::setSubgenusKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.subgenus)).ifPresent(occ::setSubgenus);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.speciesKey)).ifPresent(occ::setSpeciesKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.species)).ifPresent(occ::setSpecies);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.scientificName)).ifPresent(occ::setScientificName);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.specificEpithet)).ifPresent(occ::setSpecificEpithet);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.infraspecificEpithet)).ifPresent(occ::setInfraspecificEpithet);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.genericName)).ifPresent(occ::setGenericName);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.taxonRank)).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.taxonKey)).ifPresent(occ::setTaxonKey);
-    getIntValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.acceptedTaxonKey)).ifPresent(occ::setAcceptedTaxonKey);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifTerm.acceptedScientificName)).ifPresent(occ::setAcceptedScientificName);
-    getValue(hit, occurrenceBaseEsFieldMapper.getEsField(DwcTerm.taxonomicStatus), TaxonomicStatus::valueOf).ifPresent(occ::setTaxonomicStatus);
-    getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(IucnTerm.iucnRedListCategory)).ifPresent(occ::setIucnRedListCategory);
+
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.kingdomKey), defaultChecklistKey).ifPresent(occ::setKingdomKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.kingdom), defaultChecklistKey).ifPresent(occ::setKingdom);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.phylumKey), defaultChecklistKey).ifPresent(occ::setPhylumKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.phylum), defaultChecklistKey).ifPresent(occ::setPhylum);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.classKey), defaultChecklistKey).ifPresent(occ::setClassKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.class_), defaultChecklistKey).ifPresent(occ::setClazz);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.orderKey), defaultChecklistKey).ifPresent(occ::setOrderKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.order), defaultChecklistKey).ifPresent(occ::setOrder);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.familyKey), defaultChecklistKey).ifPresent(occ::setFamilyKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.family), defaultChecklistKey).ifPresent(occ::setFamily);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.genusKey), defaultChecklistKey).ifPresent(occ::setGenusKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.genus), defaultChecklistKey).ifPresent(occ::setGenus);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.subgenusKey), defaultChecklistKey).ifPresent(occ::setSubgenusKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.subgenus), defaultChecklistKey).ifPresent(occ::setSubgenus);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.speciesKey), defaultChecklistKey).ifPresent(occ::setSpeciesKey);
+    getChecklistStringValue(hit, getChecklistField(GbifTerm.species), defaultChecklistKey).ifPresent(occ::setSpecies);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.scientificName), defaultChecklistKey).ifPresent(occ::setScientificName);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.scientificNameAuthorship), defaultChecklistKey).ifPresent(occ::setScientificNameAuthorship);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.specificEpithet), defaultChecklistKey).ifPresent(occ::setSpecificEpithet);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.infraspecificEpithet), defaultChecklistKey).ifPresent(occ::setInfraspecificEpithet);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.genericName), defaultChecklistKey).ifPresent(occ::setGenericName);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.taxonRank), defaultChecklistKey).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.taxonKey), defaultChecklistKey).ifPresent(occ::setTaxonKey);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.acceptedTaxonKey), defaultChecklistKey).ifPresent(occ::setAcceptedTaxonKey);
+    getChecklistStringValue(hit, getChecklistField(GbifTerm.acceptedScientificName), defaultChecklistKey).ifPresent(occ::setAcceptedScientificName);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.taxonomicStatus), defaultChecklistKey).ifPresent(v -> occ.setTaxonomicStatus(TaxonomicStatus.valueOf(v)));
+    getChecklistStringValue(hit, getChecklistField(IucnTerm.iucnRedListCategory), defaultChecklistKey).ifPresent(occ::setIucnRedListCategory);
   }
+
+  private ChecklistEsField getChecklistField(Term term) {
+    EsField esField = occurrenceBaseEsFieldMapper.getEsField(term);
+    if (esField instanceof OccurrenceEsField) {
+      OccurrenceEsField field = (OccurrenceEsField) esField;
+      return (ChecklistEsField) field.getEsField();
+    } else if (esField instanceof EventEsField) {
+      EventEsField field = (EventEsField) esField;
+      return (ChecklistEsField) field.getEsField();
+    } else if (esField instanceof OccurrenceEventEsField) {
+      OccurrenceEventEsField field = (OccurrenceEventEsField) esField;
+      return (ChecklistEsField) field.getEsField();
+    }
+
+    return null;
+  }
+
+  private static String removeDepthSuffix(String rank){
+    if (rank == null) {
+      return null;
+    }
+    return rank.replaceAll("_\\d+$", "");
+  }
+
+  // Helper method to construct a Usage object from a map
+  private Usage createUsage(Map<String, String> data) {
+    if (data == null) return null;
+    return new Usage(
+      data.get("key"),
+      data.get("name"),
+      data.get("rank"),
+      data.get("code"),
+      data.get("authorship"),
+      data.get("genericName"),
+      data.get("infragenericEpithet"),
+      data.get("specificEpithet"),
+      data.get("infraspecificEpithet"),
+      data.get("formattedName")
+    );
+  }
+
+  private void setClassifications(SearchHit hit, Occurrence occ) {
+    getMapValue(hit, "classifications").map(
+      classifications -> classifications.entrySet().stream()
+      .collect(Collectors.toMap(
+        Map.Entry::getKey,
+        mapEntry -> createClassification((Map<String, Object>) mapEntry.getValue()))))
+      .ifPresent(occ::setClassifications);
+  }
+
+  private Classification createClassification(Map<String, Object> value) {
+    if (value == null) return null;
+
+    Classification cl = new Classification();
+
+    // Set the usage
+    cl.setUsage(createUsage((Map<String, String>) value.get("usage")));
+
+    // Set the accepted usage, if present
+    Optional.ofNullable((Map<String, String>) value.get("acceptedUsage"))
+      .map(this::createUsage)
+      .ifPresent(cl::setAcceptedUsage);
+
+    //set the classification depth
+    Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
+    Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue)).values();
+
+    Map<String, String> tree = (Map<String, String>) value.get("classification");
+    Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
+      .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
+    cl.setIucnRedListCategoryCode((String) value.get("iucnRedListCategoryCode"));
+
+    cl.setClassification(
+      keysSorted.stream()
+        .map(key -> new RankedName(
+          key,
+          tree.get(keyToRank.get(key)),
+          removeDepthSuffix(keyToRank.get(key)),
+          null)
+        )
+        .collect(Collectors.toList())
+    );
+
+    cl.setTaxonomicStatus((String) value.get("status"));
+    cl.setIssues((List<String>) value.get("issues"));
+
+    return cl;
+  }
+
 
   private void setGrscicollFields(SearchHit hit, Occurrence occ) {
     getStringValue(hit, occurrenceBaseEsFieldMapper.getEsField(GbifInternalTerm.institutionKey)).ifPresent(occ::setInstitutionKey);
