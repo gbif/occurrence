@@ -138,7 +138,7 @@ pipeline {
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS_XML'),
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS -Dappkeys.testfile=${APPKEYS_TESTFILE}'
+              sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true -Dappkeys.testfile=${APPKEYS_TESTFILE} release:prepare release:perform $RELEASE_ARGS'
             }
           }
       }
@@ -201,7 +201,7 @@ pipeline {
         sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
       }
      }
-  }
+    }
 
     post {
       success {
