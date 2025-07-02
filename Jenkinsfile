@@ -132,14 +132,15 @@ pipeline {
         withMaven(
           globalMavenSettingsConfig: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
           mavenOpts: '-Xms2048m -Xmx8192m',
+          mavenSettingsConfig: 'org.jenkinsci.plugins.configfiles.maven.MavenSettingsConfig1396361652540',
           traceability: true) {
             configFileProvider([
-                configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS_XML'),
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true -Pgbif-dev -U -Dappkeys.testfile=${APPKEYS_TESTFILE} release:prepare release:perform $RELEASE_ARGS'
+              sh 'mvn  -Denforcer.skip=true -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -U -Djetty.port=${JETTY_PORT} -Dappkeys.testfile=${APPKEYS_TESTFILE} release:prepare release:perform $RELEASE_ARGS'
             }
           }
+
       }
     }
 
