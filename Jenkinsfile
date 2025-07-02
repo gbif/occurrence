@@ -132,6 +132,26 @@ pipeline {
       }
     }
 
+    stage('Maven release: mini cluster module') {
+      when {
+          allOf {
+              expression { params.RELEASE };
+              branch 'master';
+          }
+      }
+      environment {
+          RELEASE_ARGS = utils.createReleaseArgs(params.RELEASE_VERSION, params.DEVELOPMENT_VERSION, params.DRY_RUN_RELEASE)
+      }
+      steps {
+        configFileProvider([
+            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
+          ]) {
+          sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS -pl occurrence-hadoop-minicluster'
+        }
+      }
+    }
+
+
     stage('Maven release: Main project') {
       when {
           allOf {
