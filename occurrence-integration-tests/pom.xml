@@ -192,8 +192,8 @@
     <!-- HBase Mini Cluster-->
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-hadoop-minicluster</artifactId>
-      <version>${project.version}</version>
+      <artifactId>hadoop-minicluster</artifactId>
+      <version>1.0.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>

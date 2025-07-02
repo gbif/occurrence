@@ -32,20 +32,6 @@ pipeline {
     POM_VERSION = readMavenPom().getVersion()
   }
   stages {
-
-    stage('Maven build: mini cluster module (Java 17)') {
-      tools {
-        jdk 'OpenJDK17'
-      }
-      steps {
-        configFileProvider([
-            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS')
-          ]) {
-          sh 'mvn -s ${MAVEN_SETTINGS} clean deploy -pl occurrence-hadoop-minicluster'
-        }
-      }
-    }
-
     stage('Maven build: Main project (Java 17)') {
        when {
         allOf {
@@ -132,26 +118,6 @@ pipeline {
       }
     }
 
-    stage('Maven release: mini cluster module') {
-      when {
-          allOf {
-              expression { params.RELEASE };
-              branch 'master';
-          }
-      }
-      environment {
-          RELEASE_ARGS = utils.createReleaseArgs(params.RELEASE_VERSION, params.DEVELOPMENT_VERSION, params.DRY_RUN_RELEASE)
-      }
-      steps {
-        configFileProvider([
-            configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709', variable: 'MAVEN_SETTINGS_XML')
-          ]) {
-          sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS -pl occurrence-hadoop-minicluster'
-        }
-      }
-    }
-
-
     stage('Maven release: Main project') {
       when {
           allOf {
@@ -169,7 +135,7 @@ pipeline {
                     configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
                   ]) {
               git 'https://github.com/gbif/occurrence.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS -Dappkeys.testfile=${APPKEYS_TESTFILE}  -pl \'!occurrence-hadoop-minicluster\''
+              sh 'mvn -s $MAVEN_SETTINGS_XML -B -Denforcer.skip=true release:prepare release:perform $RELEASE_ARGS -Dappkeys.testfile=${APPKEYS_TESTFILE} -pl \'!occurrence-hadoop-minicluster\''
           }
       }
     }
