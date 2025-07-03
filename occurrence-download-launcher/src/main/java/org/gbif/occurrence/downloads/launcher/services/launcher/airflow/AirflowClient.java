@@ -126,6 +126,25 @@ public class AirflowClient {
     }
   }
 
+  @SneakyThrows
+  public JsonNode listRunningTaskInstances(String dagRunId) {
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpGet get = new HttpGet(getUri(dagRunId) + "/taskInstances?state=running");
+      get.setHeaders(getHeaders());
+      return MAPPER.readTree(client.execute(get).getEntity().getContent());
+    }
+  }
+
+  @SneakyThrows
+  public JsonNode failTask(String dagRunId, String taskId) {
+    try (CloseableHttpClient client = HttpClients.createDefault()) {
+      HttpPatch patch = new HttpPatch(getUri(dagRunId) + "/taskInstances/" + taskId);
+      patch.setEntity(new StringEntity("{\"dry_run\": \"false\", \"new_state\": \"failed\"}"));
+      patch.setHeaders(getHeaders());
+      return MAPPER.readTree(client.execute(patch).getEntity().getContent());
+    }
+  }
+
   @JsonIgnore
   private String getBasicAuthString() {
     String stringToEncode = airflowUser + ":" + airflowPass;
