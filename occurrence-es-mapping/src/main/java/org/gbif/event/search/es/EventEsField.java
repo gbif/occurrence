@@ -13,6 +13,14 @@
  */
 package org.gbif.event.search.es;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import java.util.Optional;
+import java.util.Set;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -25,17 +33,6 @@ import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.search.es.BaseEsField;
 import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-
-import java.util.Optional;
-import java.util.Set;
-
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum EventEsField implements EsField {
@@ -163,6 +160,7 @@ public enum EventEsField implements EsField {
   //Sampling
   EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true)),
   PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true)),
+  EVENT_ID_HIERARCHY(new BaseEsField("event.eventHierarchy", null, true)),
   SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true)),
   LIFE_STAGE(new BaseEsField("event.lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("event.dateIdentified", DwcTerm.dateIdentified)),
@@ -288,6 +286,7 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.NETWORK_KEY, NETWORK_KEY)
       .put(OccurrenceSearchParameter.EVENT_ID, EVENT_ID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
+      .put(OccurrenceSearchParameter.EVENT_ID_HIERARCHY, EVENT_ID_HIERARCHY)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)
       .put(OccurrenceSearchParameter.PROJECT_ID, PROJECT_ID)
       .put(OccurrenceSearchParameter.PROGRAMME, PROGRAMME)
