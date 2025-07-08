@@ -1121,6 +1121,16 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "A 123"),
         @Parameter(
+            name = "eventIdHierarchy",
+            description =
+              "An identifier for the information associated with a sampling event and its children.\n\n"
+                + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "A 123"),
+        @Parameter(
             name = "pathway",
             description =
                 "The process by which an organism came to be in a given place at a given time, as defined in the "
