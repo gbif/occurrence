@@ -13,6 +13,14 @@
  */
 package org.gbif.event.search.es;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import java.util.Optional;
+import java.util.Set;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
@@ -25,17 +33,6 @@ import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.search.es.BaseEsField;
 import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-
-import java.util.Optional;
-import java.util.Set;
-
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum EventEsField implements EsField {
@@ -56,26 +53,26 @@ public enum EventEsField implements EsField {
   PROGRAMME(new BaseEsField("metadata.programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
-  INSTITUTION_CODE(new BaseEsField("event.institutionCode", DwcTerm.institutionCode, true)),
-  COLLECTION_CODE(new BaseEsField("event.collectionCode", DwcTerm.collectionCode, true)),
-  CATALOG_NUMBER(new BaseEsField("event.catalogNumber", DwcTerm.catalogNumber, true)),
+  INSTITUTION_CODE(new BaseEsField("event.institutionCode", DwcTerm.institutionCode, true, true)),
+  COLLECTION_CODE(new BaseEsField("event.collectionCode", DwcTerm.collectionCode, true, true)),
+  CATALOG_NUMBER(new BaseEsField("event.catalogNumber", DwcTerm.catalogNumber, true, true)),
 
-  ORGANISM_ID(new BaseEsField("event.organismId", DwcTerm.organismID, true)),
-  OCCURRENCE_ID(new BaseEsField("event.occurrenceId", DwcTerm.occurrenceID, true)),
-  RECORDED_BY(new BaseEsField("event.recordedBy", DwcTerm.recordedBy, true)),
-  IDENTIFIED_BY(new BaseEsField("event.identifiedBy", DwcTerm.identifiedBy, true)),
+  ORGANISM_ID(new BaseEsField("event.organismId", DwcTerm.organismID, true, true)),
+  OCCURRENCE_ID(new BaseEsField("event.occurrenceId", DwcTerm.occurrenceID, true, true)),
+  RECORDED_BY(new BaseEsField("event.recordedBy", DwcTerm.recordedBy, true, true)),
+  IDENTIFIED_BY(new BaseEsField("event.identifiedBy", DwcTerm.identifiedBy, true, true)),
   RECORDED_BY_ID(new BaseEsField("event.recordedByIds", "event.recordedByIds.value", DwcTerm.recordedByID)),
   IDENTIFIED_BY_ID(new BaseEsField("event.identifiedByIds", "event.identifiedByIds.value", DwcTerm.identifiedByID)),
-  RECORD_NUMBER(new BaseEsField("event.recordNumber", DwcTerm.recordNumber, true)),
+  RECORD_NUMBER(new BaseEsField("event.recordNumber", DwcTerm.recordNumber, true, true)),
   BASIS_OF_RECORD(new BaseEsField("event.basisOfRecord", DwcTerm.basisOfRecord)),
   TYPE_STATUS(new BaseEsField("event.typeStatus.lineage", "typeStatus.concept", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("event.occurrenceStatus", DwcTerm.occurrenceStatus)),
   IS_SEQUENCED(new BaseEsField("event.isSequenced", GbifTerm.isSequenced)),
   ASSOCIATED_SEQUENCES(new BaseEsField("event.associatedSequences", DwcTerm.associatedSequences)),
   DATASET_ID(new BaseEsField("event.datasetID", DwcTerm.datasetID)),
-  DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true)),
-  OTHER_CATALOG_NUMBERS(new BaseEsField("event.otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true)),
-  PREPARATIONS(new BaseEsField("event.preparations", DwcTerm.preparations, true)),
+  DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true, true)),
+  OTHER_CATALOG_NUMBERS(new BaseEsField("event.otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true, true)),
+  PREPARATIONS(new BaseEsField("event.preparations", DwcTerm.preparations, true, true)),
 
   //Temporal
   YEAR(new BaseEsField("event.year", DwcTerm.year)),
@@ -99,9 +96,9 @@ public enum EventEsField implements EsField {
   DEPTH_ACCURACY(new BaseEsField("event.depthAccuracy", GbifTerm.depthAccuracy)),
   ELEVATION(new BaseEsField("event.elevation", GbifTerm.elevation)),
   DEPTH(new BaseEsField("event.depth", GbifTerm.depth)),
-  STATE_PROVINCE(new BaseEsField("event.stateProvince", DwcTerm.stateProvince, true)), //NOT INTERPRETED
-  WATER_BODY(new BaseEsField("event.waterBody", DwcTerm.waterBody, true)),
-  LOCALITY(new BaseEsField("event.locality", DwcTerm.locality, true)),
+  STATE_PROVINCE(new BaseEsField("event.stateProvince", DwcTerm.stateProvince, true, true)), //NOT INTERPRETED
+  WATER_BODY(new BaseEsField("event.waterBody", DwcTerm.waterBody, true, true)),
+  LOCALITY(new BaseEsField("event.locality", DwcTerm.locality, true, true)),
   COORDINATE_PRECISION(new BaseEsField("event.coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("event.coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
   DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("event.distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
@@ -161,9 +158,9 @@ public enum EventEsField implements EsField {
   INSTITUTION_KEY(new BaseEsField("event.institutionKey", GbifInternalTerm.institutionKey)),
 
   //Sampling
-  EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true)),
-  PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true)),
-  SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true)),
+  EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true, true)),
+  PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true,true)),
+  SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true,true)),
   LIFE_STAGE(new BaseEsField("event.lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("event.dateIdentified", DwcTerm.dateIdentified)),
   MODIFIED(new BaseEsField("event.modified", DcTerm.modified)),
@@ -350,5 +347,10 @@ public enum EventEsField implements EsField {
   @Override
   public boolean isAutoSuggest() {
     return esField.isAutoSuggest();
+  }
+
+  @Override
+  public boolean isUsingText() {
+    return esField.isUsingText();
   }
 }
