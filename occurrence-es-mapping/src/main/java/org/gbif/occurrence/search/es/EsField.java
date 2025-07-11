@@ -31,7 +31,7 @@ public interface EsField {
   String getValueFieldName();
 
   default String getExactMatchFieldName() {
-    return isAutoSuggest()? getSearchFieldName() + ".keyword" : getSearchFieldName();
+    return getSearchFieldName();
   }
 
   default String getVerbatimFieldName() {
