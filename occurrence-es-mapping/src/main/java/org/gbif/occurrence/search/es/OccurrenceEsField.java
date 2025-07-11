@@ -51,26 +51,26 @@ public enum OccurrenceEsField implements EsField {
   PROGRAMME(new BaseEsField("programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
-  INSTITUTION_CODE(new BaseEsField("institutionCode", DwcTerm.institutionCode, true)),
-  COLLECTION_CODE(new BaseEsField("collectionCode", DwcTerm.collectionCode, true)),
-  CATALOG_NUMBER(new BaseEsField("catalogNumber", DwcTerm.catalogNumber, true)),
+  INSTITUTION_CODE(new BaseEsField("institutionCode", DwcTerm.institutionCode, false)),
+  COLLECTION_CODE(new BaseEsField("collectionCode", DwcTerm.collectionCode, false)),
+  CATALOG_NUMBER(new BaseEsField("catalogNumber", DwcTerm.catalogNumber, false)),
 
-  ORGANISM_ID(new BaseEsField("organismId", DwcTerm.organismID, true)),
-  OCCURRENCE_ID(new BaseEsField("occurrenceId", DwcTerm.occurrenceID, true)),
-  RECORDED_BY(new BaseEsField("recordedBy", DwcTerm.recordedBy, true)),
+  ORGANISM_ID(new BaseEsField("organismId", DwcTerm.organismID, false)),
+  OCCURRENCE_ID(new BaseEsField("occurrenceId", DwcTerm.occurrenceID, false)),
+  RECORDED_BY(new BaseEsField("recordedBy", DwcTerm.recordedBy, false)),
   IDENTIFIED_BY(new BaseEsField("identifiedBy", DwcTerm.identifiedBy, true)),
   RECORDED_BY_ID(new BaseEsField("recordedByIds.value", DwcTerm.recordedByID)),
   IDENTIFIED_BY_ID(new BaseEsField("identifiedByIds.value", DwcTerm.identifiedByID)),
-  RECORD_NUMBER(new BaseEsField("recordNumber", DwcTerm.recordNumber, true)),
+  RECORD_NUMBER(new BaseEsField("recordNumber", DwcTerm.recordNumber, false)),
   BASIS_OF_RECORD(new BaseEsField("basisOfRecord", DwcTerm.basisOfRecord)),
   TYPE_STATUS(new BaseEsField("typeStatus.lineage", "typeStatus.concepts", DwcTerm.typeStatus)),
   OCCURRENCE_STATUS(new BaseEsField("occurrenceStatus", DwcTerm.occurrenceStatus)),
   IS_SEQUENCED(new BaseEsField("isSequenced", GbifTerm.isSequenced)),
   ASSOCIATED_SEQUENCES(new BaseEsField("associatedSequences", DwcTerm.associatedSequences)),
   DATASET_ID(new BaseEsField("datasetID", DwcTerm.datasetID)),
-  DATASET_NAME(new BaseEsField("datasetName", DwcTerm.datasetName, true)),
+  DATASET_NAME(new BaseEsField("datasetName", DwcTerm.datasetName, false)),
   OTHER_CATALOG_NUMBERS(new BaseEsField("otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true)),
-  PREPARATIONS(new BaseEsField("preparations", DwcTerm.preparations, true)),
+  PREPARATIONS(new BaseEsField("preparations", DwcTerm.preparations, false)),
 
   //Temporal
   YEAR(new BaseEsField("year", DwcTerm.year)),
@@ -95,9 +95,9 @@ public enum OccurrenceEsField implements EsField {
   DEPTH_ACCURACY(new BaseEsField("depthAccuracy", GbifTerm.depthAccuracy)),
   ELEVATION(new BaseEsField("elevation", GbifTerm.elevation)),
   DEPTH(new BaseEsField("depth", GbifTerm.depth)),
-  STATE_PROVINCE(new BaseEsField("stateProvince", DwcTerm.stateProvince, true)), //NOT INTERPRETED
-  WATER_BODY(new BaseEsField("waterBody", DwcTerm.waterBody, true)),
-  LOCALITY(new BaseEsField("locality", DwcTerm.locality, true)),
+  STATE_PROVINCE(new BaseEsField("stateProvince", DwcTerm.stateProvince, false)), //NOT INTERPRETED
+  WATER_BODY(new BaseEsField("waterBody", DwcTerm.waterBody, false)),
+  LOCALITY(new BaseEsField("locality", DwcTerm.locality, false)),
   COORDINATE_PRECISION(new BaseEsField("coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
   DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
@@ -167,10 +167,10 @@ public enum OccurrenceEsField implements EsField {
   INSTITUTION_KEY(new BaseEsField("institutionKey", GbifInternalTerm.institutionKey)),
 
   //Sampling
-  EVENT_ID(new BaseEsField("eventId", DwcTerm.eventID, true)),
-  PARENT_EVENT_ID(new BaseEsField("parentEventId", DwcTerm.parentEventID, true)),
+  EVENT_ID(new BaseEsField("eventId", DwcTerm.eventID, false)),
+  PARENT_EVENT_ID(new BaseEsField("parentEventId", DwcTerm.parentEventID, false)),
   EVENT_ID_HIERARCHY(new BaseEsField("eventHierarchy", null, true)),
-  SAMPLING_PROTOCOL(new BaseEsField("samplingProtocol", DwcTerm.samplingProtocol, true)),
+  SAMPLING_PROTOCOL(new BaseEsField("samplingProtocol", DwcTerm.samplingProtocol, false)),
   PREVIOUS_IDENTIFICATIONS(new BaseEsField("previousIdentifications", DwcTerm.previousIdentifications)),
   LIFE_STAGE(new BaseEsField("lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("dateIdentified", DwcTerm.dateIdentified)),
