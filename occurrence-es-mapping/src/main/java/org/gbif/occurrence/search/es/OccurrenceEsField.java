@@ -373,7 +373,6 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.NETWORK_KEY, NETWORK_KEY)
       .put(OccurrenceSearchParameter.EVENT_ID, EVENT_ID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
-      .put(OccurrenceSearchParameter.EVENT_ID_HIERARCHY, EVENT_ID_HIERARCHY)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)
       .put(OccurrenceSearchParameter.PREVIOUS_IDENTIFICATIONS, PREVIOUS_IDENTIFICATIONS)
       .put(OccurrenceSearchParameter.PROJECT_ID, PROJECT_ID)
