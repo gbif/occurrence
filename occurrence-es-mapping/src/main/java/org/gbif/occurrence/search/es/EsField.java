@@ -31,20 +31,22 @@ public interface EsField {
   String getValueFieldName();
 
   default String getExactMatchFieldName() {
-    return getSearchFieldName();
+    return isAutoSuggest() && isUsingText()? getSearchFieldName() + ".keyword" : getSearchFieldName();
   }
 
   default String getVerbatimFieldName() {
-    return isAutoSuggest()? getSearchFieldName() + ".verbatim" : getSearchFieldName();
+    return isAutoSuggest() ? getSearchFieldName() + ".verbatim" : getSearchFieldName();
   }
 
   default String getSuggestFieldName() {
-    return isAutoSuggest()? getSearchFieldName() + ".suggest" : getSearchFieldName();
+    return isAutoSuggest() ? getSearchFieldName() + ".suggest" : getSearchFieldName();
   }
 
   Term getTerm();
 
   boolean isAutoSuggest();
+
+  boolean isUsingText();
 
   default boolean isChildField() {
     return false;

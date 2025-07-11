@@ -237,8 +237,8 @@ public enum OccurrenceEsField implements EsField {
   MEMBER(new BaseEsField("geologicalContext.member", DwcTerm.member)),
   BED(new BaseEsField("geologicalContext.bed", DwcTerm.bed)),
   GEOLOGICAL_TIME(new BaseEsField("geologicalContext.range", null)),
-  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", null, true)),
-  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", null, true)),
+  LITHOSTRATIGRAPHY(new BaseEsField("geologicalContext.lithostratigraphy", null, true, true)),
+  BIOSTRATIGRAPHY(new BaseEsField("geologicalContext.biostratigraphy", null, true, true)),
 
   MODIFIED(new BaseEsField("modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("references", DcTerm.references)),
@@ -468,5 +468,10 @@ public enum OccurrenceEsField implements EsField {
   @Override
   public boolean isAutoSuggest() {
     return esField.isAutoSuggest();
+  }
+
+  @Override
+  public boolean isUsingText() {
+    return esField.isUsingText();
   }
 }
