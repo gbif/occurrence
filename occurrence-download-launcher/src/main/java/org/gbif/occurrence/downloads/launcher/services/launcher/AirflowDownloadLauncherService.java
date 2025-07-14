@@ -229,6 +229,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
             .apply(dagId);
 
     for (JsonNode task : tasksToCancel.get("task_instances")) {
+      log.info("Found task {} with state {}", task.get("task_id").asText(), task.get("state").asText());
       if (!task.get("state").asText().equals("success")) {
         String taskId = task.get("task_id").asText();
         JsonNode failedTaskJsonNode =
