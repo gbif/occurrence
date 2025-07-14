@@ -143,7 +143,7 @@ public class AirflowClient {
   public JsonNode failTask(String dagRunId, String taskId) {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
       HttpPatch patch = new HttpPatch(getUri(dagRunId) + "/taskInstances/" + taskId);
-      patch.setEntity(new StringEntity("{\"dry_run\": \"false\", \"new_state\": \"failed\"}"));
+      patch.setEntity(new StringEntity("{\"dry_run\": false, \"new_state\": \"failed\"}"));
       patch.setHeaders(getHeaders());
       return MAPPER.readTree(client.execute(patch).getEntity().getContent());
     }
