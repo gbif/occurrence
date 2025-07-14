@@ -169,7 +169,6 @@ public enum OccurrenceEsField implements EsField {
   //Sampling
   EVENT_ID(new BaseEsField("eventId", DwcTerm.eventID, true)),
   PARENT_EVENT_ID(new BaseEsField("parentEventId", DwcTerm.parentEventID, true)),
-  EVENT_ID_HIERARCHY(new BaseEsField("eventHierarchy", null, true)),
   SAMPLING_PROTOCOL(new BaseEsField("samplingProtocol", DwcTerm.samplingProtocol, true)),
   PREVIOUS_IDENTIFICATIONS(new BaseEsField("previousIdentifications", DwcTerm.previousIdentifications)),
   LIFE_STAGE(new BaseEsField("lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
@@ -373,7 +372,6 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.NETWORK_KEY, NETWORK_KEY)
       .put(OccurrenceSearchParameter.EVENT_ID, EVENT_ID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
-      .put(OccurrenceSearchParameter.EVENT_ID_HIERARCHY, EVENT_ID_HIERARCHY)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)
       .put(OccurrenceSearchParameter.PREVIOUS_IDENTIFICATIONS, PREVIOUS_IDENTIFICATIONS)
       .put(OccurrenceSearchParameter.PROJECT_ID, PROJECT_ID)

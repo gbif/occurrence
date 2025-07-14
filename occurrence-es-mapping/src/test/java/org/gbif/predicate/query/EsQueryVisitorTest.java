@@ -1624,6 +1624,14 @@ public class EsQueryVisitorTest {
   @Test
   public void testAllParametersMapped() {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      if (param == OccurrenceSearchParameter.EVENT_ID_HIERARCHY
+          || param == OccurrenceSearchParameter.EVENT_TYPE
+          || param == OccurrenceSearchParameter.VERBATIM_EVENT_TYPE) {
+        // skip events-only parameters because this visitor uses the OccurrenceEsField but the params
+        // are shared with EventEsField
+        continue;
+      }
+
       try {
         Predicate p;
         Object value;
