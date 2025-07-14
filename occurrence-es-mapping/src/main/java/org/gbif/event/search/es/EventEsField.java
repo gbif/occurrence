@@ -203,7 +203,8 @@ public enum EventEsField implements EsField {
   EXTENSIONS(new BaseEsField("event.extensions", GbifInternalTerm.dwcaExtension)),
 
   //Event
-  EVENT_TYPE(new BaseEsField("event.eventType", DwcTerm.eventType)),
+  EVENT_TYPE(new BaseEsField("event.eventType.lineage", "event.eventType.concept", DwcTerm.eventType)),
+  VERBATIM_EVENT_TYPE(new BaseEsField("event.verbatimEventType", null)),
   LOCATION_ID(new BaseEsField("event.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("event.parentsLineage", UnknownTerm.build("event.parentsLineage"))),
 
@@ -310,6 +311,8 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.PREPARATIONS, PREPARATIONS)
       .put(OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS, DISTANCE_FROM_CENTROID_IN_METERS)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
+      .put(OccurrenceSearchParameter.EVENT_TYPE, EVENT_TYPE)
+      .put(OccurrenceSearchParameter.VERBATIM_EVENT_TYPE, VERBATIM_EVENT_TYPE)
       .build();
 
   private static final Set<EsField> DATE_FIELDS =

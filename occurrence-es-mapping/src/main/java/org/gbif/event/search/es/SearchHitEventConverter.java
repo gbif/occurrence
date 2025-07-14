@@ -415,21 +415,10 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     event.setId(hit.getId());
     getStringValue(hit, EventEsField.EVENT_ID).ifPresent(event::setEventID);
     getStringValue(hit, EventEsField.PARENT_EVENT_ID).ifPresent(event::setParentEventID);
-    getEventType(hit).ifPresent(event::setEventType);
+    getStringValue(hit, EVENT_TYPE).ifPresent(event::setEventType);
     getObjectsListValue(hit, EventEsField.PARENTS_LINEAGE)
       .map(v -> v.stream().map(l -> new Event.ParentLineage((String)l.get("id"), (String)l.get("eventType")))
         .collect(Collectors.toList()))
       .ifPresent(event::setParentsLineage);
-  }
-
-  private Optional<Event.VocabularyConcept> getEventType(SearchHit hit) {
-    return getMapValue(hit, EventEsField.EVENT_TYPE)
-        .map(
-            cm ->
-                new Event.VocabularyConcept(
-                    (String) cm.get("concept"),
-                    cm.containsKey("lineage")
-                        ? new HashSet<>((List<String>) cm.get("lineage"))
-                        : Collections.emptySet()));
   }
 }
