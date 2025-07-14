@@ -27,6 +27,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
@@ -145,7 +146,13 @@ public class AirflowClient {
       HttpPatch patch = new HttpPatch(getUri(dagRunId) + "/taskInstances/" + taskId);
       patch.setEntity(new StringEntity("{\"dry_run\": false, \"new_state\": \"failed\"}"));
       patch.setHeaders(getHeaders());
-      return MAPPER.readTree(client.execute(patch).getEntity().getContent());
+      CloseableHttpResponse response = client.execute(patch);
+      log.info(
+          "Failed task {} in dag run {} with status: {}",
+          taskId,
+          dagRunId,
+          response.getStatusLine());
+      return MAPPER.readTree(response.getEntity().getContent());
     }
   }
 
