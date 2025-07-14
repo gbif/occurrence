@@ -37,8 +37,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import static org.gbif.occurrence.search.es.OccurrenceEsField.PUBLISHED_BY_GBIF_REGION;
-
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEventEsField implements EsField {
 
@@ -421,4 +419,8 @@ public enum OccurrenceEventEsField implements EsField {
     return esField.isAutoSuggest();
   }
 
+  @Override
+  public boolean isUsingText() {
+    return esField.isUsingText();
+  }
 }

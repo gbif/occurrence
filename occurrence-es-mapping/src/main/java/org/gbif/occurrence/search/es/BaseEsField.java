@@ -33,11 +33,15 @@ public class BaseEsField implements EsField {
   @Getter(onMethod = @__({@Override}))
   private boolean autoSuggest;
 
+  @Getter(onMethod = @__({@Override}))
+  private boolean usingText;
+
   public BaseEsField(String searchFieldName, String valueFieldName, Term term) {
     this.searchFieldName = searchFieldName;
     this.term = term;
     this.autoSuggest = false;
     this.valueFieldName = valueFieldName;
+    this.usingText = false;
   }
 
   public BaseEsField(String searchFieldName, Term term) {
@@ -45,6 +49,7 @@ public class BaseEsField implements EsField {
     this.term = term;
     this.autoSuggest = false;
     this.valueFieldName = searchFieldName;
+    this.usingText = false;
   }
 
   public BaseEsField(String searchFieldName, Term term, boolean autoSuggest) {
@@ -52,6 +57,14 @@ public class BaseEsField implements EsField {
     this.term = term;
     this.autoSuggest = autoSuggest;
     this.valueFieldName = searchFieldName;
+    this.usingText = false;
   }
 
+  public BaseEsField(String searchFieldName, Term term, boolean autoSuggest, boolean usingText) {
+    this.searchFieldName = searchFieldName;
+    this.term = term;
+    this.autoSuggest = autoSuggest;
+    this.valueFieldName = searchFieldName;
+    this.usingText = usingText;
+  }
 }

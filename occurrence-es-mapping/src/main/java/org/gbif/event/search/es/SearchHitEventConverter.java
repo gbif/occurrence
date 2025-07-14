@@ -13,7 +13,28 @@
  */
 package org.gbif.event.search.es;
 
+import static org.gbif.event.search.es.EventEsField.*;
+import static org.gbif.event.search.es.EventEsField.CRAWL_ID;
+import static org.gbif.event.search.es.EventEsField.HOSTING_ORGANIZATION_KEY;
+import static org.gbif.event.search.es.EventEsField.LAST_CRAWLED;
+import static org.gbif.event.search.es.EventEsField.LAST_INTERPRETED;
+import static org.gbif.event.search.es.EventEsField.LAST_PARSED;
+import static org.gbif.event.search.es.EventEsField.MEDIA_ITEMS;
+import static org.gbif.event.search.es.EventEsField.NETWORK_KEY;
+import static org.gbif.event.search.es.EventEsField.PROTOCOL;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.IDENTIFIED_BY_ID;
+import static org.gbif.occurrence.search.es.OccurrenceEsField.RECORDED_BY_ID;
+
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import java.net.URI;
+import java.text.ParseException;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
@@ -40,30 +61,6 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
-
-import java.net.URI;
-import java.text.ParseException;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
-
-import com.google.common.collect.Maps;
-
-import static org.gbif.event.search.es.EventEsField.*;
-import static org.gbif.event.search.es.EventEsField.CRAWL_ID;
-import static org.gbif.event.search.es.EventEsField.HOSTING_ORGANIZATION_KEY;
-import static org.gbif.event.search.es.EventEsField.LAST_CRAWLED;
-import static org.gbif.event.search.es.EventEsField.LAST_INTERPRETED;
-import static org.gbif.event.search.es.EventEsField.LAST_PARSED;
-import static org.gbif.event.search.es.EventEsField.MEDIA_ITEMS;
-import static org.gbif.event.search.es.EventEsField.NETWORK_KEY;
-import static org.gbif.event.search.es.EventEsField.PROTOCOL;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.IDENTIFIED_BY_ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.RECORDED_BY_ID;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
@@ -418,15 +415,10 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     event.setId(hit.getId());
     getStringValue(hit, EventEsField.EVENT_ID).ifPresent(event::setEventID);
     getStringValue(hit, EventEsField.PARENT_EVENT_ID).ifPresent(event::setParentEventID);
-    getEventType(hit).ifPresent(event::setEventType);
+    getStringValue(hit, EVENT_TYPE).ifPresent(event::setEventType);
     getObjectsListValue(hit, EventEsField.PARENTS_LINEAGE)
       .map(v -> v.stream().map(l -> new Event.ParentLineage((String)l.get("id"), (String)l.get("eventType")))
         .collect(Collectors.toList()))
       .ifPresent(event::setParentsLineage);
-  }
-
-  private Optional<Event.VocabularyConcept> getEventType(SearchHit hit) {
-    return getMapValue(hit, EventEsField.EVENT_TYPE)
-      .map(cm -> new Event.VocabularyConcept((String)cm.get("concept"), new HashSet<>((List<String>)cm.get("lineage"))));
   }
 }

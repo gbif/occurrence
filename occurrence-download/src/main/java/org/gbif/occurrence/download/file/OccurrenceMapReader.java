@@ -317,7 +317,7 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DwcTerm.parentEventID.simpleName(), event.getParentEventID());
     interpretedEvent.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(event.getStartDayOfYear()));
     interpretedEvent.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
-    interpretedEvent.put(DwcTerm.eventType.simpleName(), getConcept(event.getEventType()));
+    interpretedEvent.put(DwcTerm.eventType.simpleName(), getSimpleValue(event.getEventType()));
 
     event.getVerbatimFields().forEach( (term, value) -> {
       if (!INTERPRETED_SOURCE_TERMS.contains(term)) {

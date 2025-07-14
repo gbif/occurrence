@@ -44,6 +44,12 @@ public class OccurrenceSearchResourceTest {
             .collect(Collectors.toSet());
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      if (param == OccurrenceSearchParameter.EVENT_ID_HIERARCHY
+        || param == OccurrenceSearchParameter.EVENT_TYPE
+        || param == OccurrenceSearchParameter.VERBATIM_EVENT_TYPE) {
+        // skip events-only parameters
+        continue;
+      }
 
       String name = null;
       if (param.equals(OccurrenceSearchParameter.IDENTIFIED_BY_ID)) {
