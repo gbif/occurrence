@@ -18,6 +18,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -127,9 +129,11 @@ public class AirflowClient {
   }
 
   @SneakyThrows
-  public JsonNode listActiveTaskInstances(String dagRunId) {
+  public JsonNode listTaskInstances(String dagRunId, List<String> states) {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
-      HttpGet get = new HttpGet(getUri(dagRunId) + "/taskInstances?state=running&state=skipped&&state=queued");
+      StringBuilder uri = new StringBuilder(getUri(dagRunId) + "/taskInstances?");
+      states.forEach(s -> uri.append("state=").append(s).append("&"));
+      HttpGet get = new HttpGet(uri.toString());
       get.setHeaders(getHeaders());
       return MAPPER.readTree(client.execute(get).getEntity().getContent());
     }

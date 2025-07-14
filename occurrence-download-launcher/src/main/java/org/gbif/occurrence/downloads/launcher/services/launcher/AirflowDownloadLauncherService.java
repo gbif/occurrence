@@ -222,25 +222,27 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     Download download = downloadClient.get(downloadKey);
     String dagId = downloadDagId(downloadKey);
 
-    JsonNode runningTasksJsonNode =
+    JsonNode tasksToCancel =
         Retry.<String, JsonNode>decorateFunction(
                 AIRFLOW_RETRY,
-                dagRunId -> getAirflowClient(download).listActiveTaskInstances(dagRunId))
+                dagRunId -> getAirflowClient(download).listTaskInstances(dagRunId, List.of()))
             .apply(dagId);
 
-    if (runningTasksJsonNode.get("task_instances").size() > 0) {
-      // we only cancel the first task in the list
-      JsonNode firstTask = runningTasksJsonNode.get("task_instances").get(0);
-      String taskId = firstTask.get("task_id").asText();
-      JsonNode failedTaskJsonNode =
-          Retry.<String, JsonNode>decorateFunction(
-                  AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).failTask(dagRunId, taskId))
-              .apply(dagId);
-      log.info(
-          "Airflow Task {} of DAG {} has been marked as failed: {}",
-          taskId,
-          dagId,
-          failedTaskJsonNode);
+    for (JsonNode task : tasksToCancel.get("task_instances")) {
+      if (!task.get("state").asText().equals("success")) {
+        String taskId = task.get("task_id").asText();
+        JsonNode failedTaskJsonNode =
+            Retry.<String, JsonNode>decorateFunction(
+                    AIRFLOW_RETRY,
+                    dagRunId -> getAirflowClient(download).failTask(dagRunId, taskId))
+                .apply(dagId);
+        log.info(
+            "Airflow Task {} of DAG {} has been marked as failed: {}",
+            taskId,
+            dagId,
+            failedTaskJsonNode);
+        break;
+      }
     }
 
     JsonNode failedJsonNode =
@@ -250,9 +252,9 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     log.info("Airflow DAG {} has been marked as failed: {}", dagId, failedJsonNode);
 
     JsonNode cancelledJsonNode =
-      Retry.<String, JsonNode>decorateFunction(
-          AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).setCancelledNote(dagRunId))
-        .apply(dagId);
+        Retry.<String, JsonNode>decorateFunction(
+                AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).setCancelledNote(dagRunId))
+            .apply(dagId);
     log.info("Airflow DAG {} has been noted as cancelled: {}", dagId, cancelledJsonNode);
 
     return JobStatus.CANCELLED;
