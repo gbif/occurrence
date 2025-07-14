@@ -225,24 +225,23 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     JsonNode runningTasksJsonNode =
         Retry.<String, JsonNode>decorateFunction(
                 AIRFLOW_RETRY,
-                dagRunId -> getAirflowClient(download).listRunningTaskInstances(dagRunId))
+                dagRunId -> getAirflowClient(download).listActiveTaskInstances(dagRunId))
             .apply(dagId);
-    runningTasksJsonNode
-        .get("task_instances")
-        .forEach(
-            task -> {
-              String taskId = task.get("task_id").asText();
-              JsonNode failedTaskJsonNode =
-                  Retry.<String, JsonNode>decorateFunction(
-                          AIRFLOW_RETRY,
-                          dagRunId -> getAirflowClient(download).failTask(dagRunId, taskId))
-                      .apply(dagId);
-              log.info(
-                  "Airflow Task {} of DAG {} has been marked as failed: {}",
-                  taskId,
-                  dagId,
-                  failedTaskJsonNode);
-            });
+
+    if (runningTasksJsonNode.get("task_instances").size() > 0) {
+      // we only cancel the first task in the list
+      JsonNode firstTask = runningTasksJsonNode.get("task_instances").get(0);
+      String taskId = firstTask.get("task_id").asText();
+      JsonNode failedTaskJsonNode =
+          Retry.<String, JsonNode>decorateFunction(
+                  AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).failTask(dagRunId, taskId))
+              .apply(dagId);
+      log.info(
+          "Airflow Task {} of DAG {} has been marked as failed: {}",
+          taskId,
+          dagId,
+          failedTaskJsonNode);
+    }
 
     JsonNode failedJsonNode =
         Retry.<String, JsonNode>decorateFunction(

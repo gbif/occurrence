@@ -127,9 +127,9 @@ public class AirflowClient {
   }
 
   @SneakyThrows
-  public JsonNode listRunningTaskInstances(String dagRunId) {
+  public JsonNode listActiveTaskInstances(String dagRunId) {
     try (CloseableHttpClient client = HttpClients.createDefault()) {
-      HttpGet get = new HttpGet(getUri(dagRunId) + "/taskInstances?state=running");
+      HttpGet get = new HttpGet(getUri(dagRunId) + "/taskInstances?state=running&state=skipped&&state=queued");
       get.setHeaders(getHeaders());
       return MAPPER.readTree(client.execute(get).getEntity().getContent());
     }
