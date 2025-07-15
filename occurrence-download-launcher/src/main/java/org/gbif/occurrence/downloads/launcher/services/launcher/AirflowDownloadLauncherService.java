@@ -223,12 +223,6 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     Download download = downloadClient.get(downloadKey);
     String dagId = downloadDagId(downloadKey);
 
-    JsonNode failedJsonNode =
-      Retry.<String, JsonNode>decorateFunction(
-          AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).failRun(dagRunId))
-        .apply(dagId);
-    log.info("Airflow DAG {} has been marked as failed: {}", dagId, failedJsonNode);
-
     JsonNode runningTasksJsonNode =
         Retry.<String, JsonNode>decorateFunction(
                 AIRFLOW_RETRY,
@@ -255,6 +249,12 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
                     failedTaskJsonNode);
               });
     }
+
+    JsonNode failedJsonNode =
+      Retry.<String, JsonNode>decorateFunction(
+          AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).failRun(dagRunId))
+        .apply(dagId);
+    log.info("Airflow DAG {} has been marked as failed: {}", dagId, failedJsonNode);
 
     JsonNode cancelledJsonNode =
         Retry.<String, JsonNode>decorateFunction(
