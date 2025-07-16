@@ -43,7 +43,7 @@ public class XmlToAvscGeneratorMojoTest {
     Schema schema = new Schema.Parser().parse(result.toFile());
     Assert.assertEquals("DnaDerivedDataTable", schema.getName());
     Assert.assertEquals("org.gbif.pipelines.io.avro.gbif", schema.getNamespace());
-    Assert.assertEquals(240, schema.getFields().size());
+    Assert.assertEquals(248, schema.getFields().size());
     Assert.assertNotNull(schema.getField("v_16srecover"));
   }
 }
