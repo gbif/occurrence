@@ -232,7 +232,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     if (runningTasksJsonNode.get("task_instances").isEmpty()) {
       long start = System.currentTimeMillis();
       while (runningTasksJsonNode.get("task_instances").isEmpty()
-          && System.currentTimeMillis() - start < 2000) {
+          && System.currentTimeMillis() - start < 5000) {
         runningTasksJsonNode =
             Retry.<String, JsonNode>decorateFunction(
                     AIRFLOW_RETRY,
