@@ -19,6 +19,7 @@ import java.util.function.Supplier;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
@@ -53,8 +54,10 @@ public class SparkDownloadWorkflow {
   public void run() {
     if (DownloadStage.CLEANUP != downloadStage) {
       Download download = getDownload();
+
       DownloadJobConfiguration jobConfiguration =
-          DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath());
+          DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration);
+
       DownloadQueryParameters queryParameters =
           DownloadQueryParameters.from(download, jobConfiguration, workflowConfiguration);
 

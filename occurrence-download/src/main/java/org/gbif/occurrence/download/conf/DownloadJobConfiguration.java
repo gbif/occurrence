@@ -43,7 +43,6 @@ import lombok.Data;
 public class DownloadJobConfiguration {
 
   private static final Logger log = LoggerFactory.getLogger(DownloadJobConfiguration.class);
-
   /** Occurrence download key/identifier. */
   private final String downloadKey;
 
@@ -75,7 +74,7 @@ public class DownloadJobConfiguration {
   private final Set<Extension> extensions;
 
   /** Requested extensions. */
-  private final String defaultChecklistKey;
+  private final String checklistKey;
 
   @Builder
   private DownloadJobConfiguration(
@@ -89,7 +88,7 @@ public class DownloadJobConfiguration {
       DownloadFormat downloadFormat,
       DwcTerm coreTerm,
       Set<Extension> extensions,
-      String defaultChecklistKey) {
+      String checklistKey) {
     this.downloadKey = downloadKey;
     this.filter = filter;
     this.user = user;
@@ -100,10 +99,11 @@ public class DownloadJobConfiguration {
     this.downloadFormat = downloadFormat;
     this.coreTerm = coreTerm;
     this.extensions = extensions;
-    this.defaultChecklistKey = defaultChecklistKey;
+    this.checklistKey = checklistKey;
   }
 
-  public static DownloadJobConfiguration forSqlDownload(Download download, String sourceDir) {
+  public static DownloadJobConfiguration forSqlDownload(Download download,
+                                                        WorkflowConfiguration workflowConfiguration) {
     return DownloadJobConfiguration.builder()
         .downloadKey(download.getKey())
         .downloadFormat(download.getRequest().getFormat())
@@ -112,7 +112,10 @@ public class DownloadJobConfiguration {
         .filter(getDownloadFilter(download))
         .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
         .isSmallDownload(false)
-        .sourceDir(sourceDir)
+        .sourceDir(workflowConfiguration.getHiveDBPath())
+        .checklistKey(download.getRequest().getChecklistKey() != null
+            ? download.getRequest().getChecklistKey()
+            : workflowConfiguration.getDefaultChecklistKey())
         .build();
   }
 
@@ -127,7 +130,7 @@ public class DownloadJobConfiguration {
 
   public OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
     return DownloadType.OCCURRENCE == download.getRequest().getType()
-        ? OccurrenceEsField.buildFieldMapper(defaultChecklistKey)
+        ? OccurrenceEsField.buildFieldMapper(checklistKey)
         : EventEsField.buildFieldMapper();
   }
 
