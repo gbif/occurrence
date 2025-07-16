@@ -13,21 +13,17 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import static org.springframework.test.util.AssertionErrors.assertTrue;
 
+import com.google.common.base.CaseFormat;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.base.CaseFormat;
-
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-
-import static org.springframework.test.util.AssertionErrors.assertTrue;
 
 public class OccurrenceSearchResourceTest {
 
@@ -44,6 +40,10 @@ public class OccurrenceSearchResourceTest {
             .collect(Collectors.toSet());
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      if (param == OccurrenceSearchParameter.EVENT_ID_HIERARCHY) {
+        // skip events-only parameters
+        continue;
+      }
 
       String name = null;
       if (param.equals(OccurrenceSearchParameter.IDENTIFIED_BY_ID)) {
