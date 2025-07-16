@@ -261,6 +261,32 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
               });
     }
 
+    // check again if there are still running tasks after failing them
+    runningTasksJsonNode =
+      Retry.<String, JsonNode>decorateFunction(
+          AIRFLOW_RETRY,
+          dagRunId ->
+            getAirflowClient(download).listTaskInstances(dagRunId, List.of("running")))
+        .apply(dagId);
+    if (!runningTasksJsonNode.get("task_instances").isEmpty()) {
+      runningTasksJsonNode
+        .get("task_instances")
+        .forEach(
+          task -> {
+            String taskId = task.get("task_id").asText();
+            JsonNode failedTaskJsonNode =
+              Retry.<String, JsonNode>decorateFunction(
+                  AIRFLOW_RETRY,
+                  dagRunId -> getAirflowClient(download).failTask(dagRunId, taskId))
+                .apply(dagId);
+            log.info(
+              "Airflow Task {} of DAG {} has been marked as failed: {}",
+              taskId,
+              dagId,
+              failedTaskJsonNode);
+          });
+    }
+
     JsonNode failedJsonNode =
         Retry.<String, JsonNode>decorateFunction(
                 AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).failRun(dagRunId))
