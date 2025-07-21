@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>1.1.3-SNAPSHOT</version>
+  <version>1.1.3-humboldt-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -214,7 +214,7 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
     <download-query-tools.version>2.0.3</download-query-tools.version>
-    <dwc-api.version>2.1.1</dwc-api.version>
+    <dwc-api.version>2.1.5-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.0</dwca-io.version>
     <gbif-api.version>2.1.14-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
@@ -1500,6 +1500,13 @@
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok-maven-plugin</artifactId>
         <version>${lombok-maven-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
           <outputDirectory>${delombok.output}</outputDirectory>
