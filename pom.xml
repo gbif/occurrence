@@ -214,7 +214,7 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
     <download-query-tools.version>2.0.3</download-query-tools.version>
-    <dwc-api.version>2.1.5-SNAPSHOT</dwc-api.version>
+    <dwc-api.version>2.1.5-humboldt-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.0</dwca-io.version>
     <gbif-api.version>2.1.14-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
