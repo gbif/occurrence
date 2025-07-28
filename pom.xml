@@ -214,14 +214,14 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
-    <download-query-tools.version>2.1.0-SNAPSHOT</download-query-tools.version>
-    <dwc-api.version>2.1.0-SNAPSHOT</dwc-api.version>
+    <download-query-tools.version>2.0.3</download-query-tools.version>
+    <dwc-api.version>2.1.2-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.0</dwca-io.version>
-    <gbif-api.version>2.1.8-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>2.1.12-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
-    <gbif-common-ws.version>2.1.0-SNAPSHOT</gbif-common-ws.version>
+    <gbif-common-ws.version>2.1.0</gbif-common-ws.version>
     <geocode.version>1.1</geocode.version>
     <gbif-httputils.version>0.10</gbif-httputils.version>
     <gbif-metadata-profile.version>2.6</gbif-metadata-profile.version>
