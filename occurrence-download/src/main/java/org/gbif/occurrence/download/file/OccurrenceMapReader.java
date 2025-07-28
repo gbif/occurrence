@@ -347,7 +347,7 @@ public class OccurrenceMapReader {
    * Builds Map that contains a lists of terms.
    */
   public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    return  selectTerms(buildInterpretedOccurrenceMap(occurrence), terms);
+    return selectTerms(buildInterpretedOccurrenceMap(occurrence), terms);
   }
 
   /**

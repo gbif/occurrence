@@ -37,13 +37,15 @@ public class GbifOccurrenceDownloads {
 
     WorkflowConfiguration workflowConfiguration =
         new WorkflowConfiguration(PropertiesUtil.readFromFile(propertiesFile));
+
     SparkDownloadWorkflow.builder()
         .downloadKey(downloadKey)
         .coreDwcTerm(dwcTerm)
         .downloadStage(downloadStage)
         .workflowConfiguration(workflowConfiguration)
         .queryExecutorSupplier(
-            () -> new SparkQueryExecutor(createSparkSession(downloadKey, workflowConfiguration)))
+            () -> new SparkQueryExecutor(createSparkSession(downloadKey, workflowConfiguration))
+        )
         .build()
         .run();
   }
