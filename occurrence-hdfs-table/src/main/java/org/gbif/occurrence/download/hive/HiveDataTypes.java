@@ -50,6 +50,7 @@ public final class HiveDataTypes {
   public static final String TYPE_VOCABULARY_STRUCT = "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
   public static final String TYPE_VOCABULARY_ARRAY_STRUCT = "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
   public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
+  public static final String TYPE_MAP_OF_MAP_STRUCT = "MAP<STRING, MAP<STRING, STRING>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
@@ -163,6 +164,8 @@ public final class HiveDataTypes {
       }
     } else if (term.equals(GbifInternalTerm.classifications)) {
       return TYPE_MAP_STRUCT;
+    } else if (term.equals(GbifInternalTerm.classificationDetails)) {
+      return TYPE_MAP_OF_MAP_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }
