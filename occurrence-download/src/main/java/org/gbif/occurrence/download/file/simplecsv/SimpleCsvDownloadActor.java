@@ -105,10 +105,6 @@ public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor 
               DownloadTerms.SIMPLE_DOWNLOAD_TERMS
             );
 
-            // select the taxonomy to include...
-            List<Classification> classifications = record.getClassifications();
-
-
             populateVerbatimCsvFields(recordMap, record);
 
             //collect usages

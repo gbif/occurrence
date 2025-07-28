@@ -114,8 +114,7 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
-    this.occurrenceBaseEsFieldMapper = DownloadWorkflowModule.esFieldMapper(
-      workflowConfiguration.getEsIndexType(), workflowConfiguration.getDefaultChecklistKey());
+    this.occurrenceBaseEsFieldMapper = DownloadWorkflowModule.esFieldMapper(workflowConfiguration);
     this.interpretedMapper = interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;

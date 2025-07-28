@@ -110,7 +110,7 @@ class CallbackServiceTest {
     when(occurrenceDownloadService.get(anyString())).thenReturn(mockDownload());
 
     service =
-        new DownloadRequestServiceImpl(
+        new OccurrenceDownloadRequestService(
             "http://gbif-dev.org/occurrence",
             "http://localhost:8080/",
             "",

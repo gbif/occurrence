@@ -74,7 +74,7 @@ class DownloadServiceImplTest {
   public void setup() {
     MessagePublisher messagePublisher = mock(MessagePublisher.class);
     requestService =
-        new DownloadRequestServiceImpl(
+        new OccurrenceDownloadRequestService(
             "",
             "",
             "",

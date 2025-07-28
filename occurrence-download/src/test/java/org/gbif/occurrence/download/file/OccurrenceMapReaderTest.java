@@ -72,36 +72,25 @@ public class OccurrenceMapReaderTest {
     occurrence.setLicense(License.CC_BY_4_0);
 
 
-//    Classification.builder()
-//      .usage(org.gbif.api.v2.Usage.builder()
-//        .key("2440897")
-//        .name(scientificName)
-//        .acceptedScientificName(scientificName)
-//        .kingdom("Animalia")
-//        .phylum("Chordata")
-//        .class_("Mammalia")
-//        .order("Perissodactyla")
-//        .family("Tapiridae")
-//        .genus("Tapirus")
-//        .species("bairdii")
-//        .build())
-//      .classification(List.of(
-//      org.gbif.api.v2.RankedName.builder().name("Animalia").rank("KINGDOM").key("1").build()
-//    ));
-//
-//
-//    occurrence.setClassifications(
-//      Map.of(Constants.NUB_DATASET_KEY.toString(), Classification.builder())
-//        .kingdom("Animalia")
-//        .phylum("Chordata")
-//        .class_("Mammalia")
-//        .order("Perissodactyla")
-//        .family("Tapiridae")
-//        .genus("Tapirus")
-//        .species("bairdii")
-//        .build())
-//    );
+    Classification classification = Classification.builder()
+      .usage(org.gbif.api.v2.Usage.builder()
+        .key("2440897")
+        .name(scientificName).build())
+      .acceptedUsage(org.gbif.api.v2.Usage.builder()
+        .key("2440897")
+        .name(scientificName).build())
+      .classification(List.of(
+        org.gbif.api.v2.RankedName.builder().name("Animalia").rank("KINGDOM").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Chordata").rank("PHYLUM").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Mammalia").rank("CLASS").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Perissodactyla").rank("ORDER").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Tapiridae").rank("FAMILY").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Tapirus").rank("GENUS").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("bairdii").rank("SPECIES").key("1").build()
+    )).build();
 
+    occurrence.setClassifications(
+      Map.of(Constants.NUB_DATASET_KEY.toString(), classification));
 
     //Varbatim fields not populated by Java fields must be copied into the result
     occurrence.setVerbatimField(DwcTerm.institutionCode, "INST");
