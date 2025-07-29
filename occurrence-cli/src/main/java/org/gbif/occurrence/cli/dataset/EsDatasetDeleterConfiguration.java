@@ -19,9 +19,9 @@ import org.gbif.occurrence.cli.common.GangliaConfiguration;
 import java.util.Arrays;
 import java.util.StringJoiner;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;

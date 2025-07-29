@@ -40,9 +40,9 @@ public class ElasticDownloadWorkflow {
       WorkflowConfiguration workflowConfiguration, DwcTerm coreDwcTerm, String downloadKey) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
-    downloadService =
+    this.downloadService =
         DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
-    download = downloadService.get(downloadKey);
+    this.download = downloadService.get(downloadKey);
     ConceptClient conceptClient = DownloadWorkflowModule.conceptClient(workflowConfiguration);
     translateVocabs(download, conceptClient);
   }
@@ -73,7 +73,10 @@ public class ElasticDownloadWorkflow {
                 EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
                         DownloadWorkflowModule.esFieldMapper(
-                          configuration
+                          configuration.getEsIndexType(),
+                          download.getRequest().getChecklistKey() != null
+                              ? download.getRequest().getChecklistKey()
+                              : configuration.getDefaultChecklistKey()
                         ))
                     .toString())
             .downloadKey(download.getKey())
@@ -119,7 +122,10 @@ public class ElasticDownloadWorkflow {
         .esIndex(
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
         .esFieldMapper(DownloadWorkflowModule.esFieldMapper(
-          workflowConfiguration
+          workflowConfiguration.getEsIndexType(),
+          download.getRequest().getChecklistKey() != null
+              ? download.getRequest().getChecklistKey()
+              : workflowConfiguration.getDefaultChecklistKey()
         ))
         .build();
   }

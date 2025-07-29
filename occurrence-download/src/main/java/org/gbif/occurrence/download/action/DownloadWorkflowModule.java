@@ -91,8 +91,6 @@ public class DownloadWorkflowModule  {
 
   private final DownloadJobConfiguration downloadJobConfiguration;
 
-  private final String defaultChecklistKey = Constants.NUB_DATASET_KEY.toString();
-
   /**
    * Creates a DownloadService for Event or Occurrence downloads.
    */
@@ -214,9 +212,10 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
-  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration workflowConfiguration) {
-    return WorkflowConfiguration.SearchType.OCCURRENCE == workflowConfiguration.getEsIndexType() ?
-      OccurrenceEsField.buildFieldMapper(workflowConfiguration.getDefaultChecklistKey()) : EventEsField.buildFieldMapper();
+
+  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType, String checklistKey) {
+    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType ?
+      OccurrenceEsField.buildFieldMapper(checklistKey) : EventEsField.buildFieldMapper();
   }
 
   /**
@@ -233,9 +232,13 @@ public class DownloadWorkflowModule  {
 
   private <T extends VerbatimOccurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
-      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration), false);
+      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType(),
+        downloadJobConfiguration.getChecklistKey() != null ? downloadJobConfiguration.getChecklistKey() : workflowConfiguration.getDefaultChecklistKey()
+      ), false);
     }
-    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration), false);
+    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType(),
+      downloadJobConfiguration.getChecklistKey() != null ? downloadJobConfiguration.getChecklistKey() : workflowConfiguration.getDefaultChecklistKey()
+    ), false);
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){
@@ -246,7 +249,8 @@ public class DownloadWorkflowModule  {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
       return (T record) -> OccurrenceMapReader.buildInterpretedEventMap((Event) record);
     }
-    return  (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record, workflowConfiguration.getDefaultChecklistKey());
+    return  (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record,
+      downloadJobConfiguration.getChecklistKey());
   }
 
   /** Creates an ActorRef that holds an instance of {@link DownloadMaster}. */
