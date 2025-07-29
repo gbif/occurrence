@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.action;
 
-import org.gbif.api.model.Constants;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
@@ -242,15 +241,17 @@ public class DownloadWorkflowModule  {
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){
-    return  OccurrenceMapReader::buildVerbatimOccurrenceMap;
+    return OccurrenceMapReader::buildVerbatimOccurrenceMap;
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> interpreterMapper() {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
       return (T record) -> OccurrenceMapReader.buildInterpretedEventMap((Event) record);
     }
-    return  (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record,
-      downloadJobConfiguration.getChecklistKey());
+    return (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record,
+      downloadJobConfiguration.getChecklistKey() != null ?
+        downloadJobConfiguration.getChecklistKey() : workflowConfiguration.getDefaultChecklistKey()
+    );
   }
 
   /** Creates an ActorRef that holds an instance of {@link DownloadMaster}. */

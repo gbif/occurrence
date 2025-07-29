@@ -269,21 +269,6 @@ public class DownloadTerms {
     GbifInternalTerm.eventDateLte
   );
 
-  /*
-   * The terms available for searching/selecting for occurrence SQL downloads.
-   */
-  public static final Set<Term> DOWNLOAD_SQL_VERBATIM_TERMS = DOWNLOAD_VERBATIM_TERMS;
-
-  /*
-   * The terms available for searching/selecting for occurrence SQL downloads.
-   */
-  public static final Set<Term> DOWNLOAD_SQL_TERMS = new ImmutableSet.Builder<Term>()
-    .addAll(DOWNLOAD_INTERPRETED_TERMS)
-    .addAll(DOWNLOAD_MULTIMEDIA_TERMS)
-    .addAll(INTERNAL_DOWNLOAD_TERMS)
-    .addAll(INTERNAL_SEARCH_TERMS)
-    .add(GbifTerm.verbatimScientificName).build();
-
   public static String simpleName(Pair<Group, Term> termPair) {
     Term term = termPair.getRight();
     if (termPair.getLeft().equals(Group.VERBATIM)) {

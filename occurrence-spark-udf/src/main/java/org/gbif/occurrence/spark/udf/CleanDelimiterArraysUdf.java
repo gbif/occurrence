@@ -40,6 +40,6 @@ public class CleanDelimiterArraysUdf implements UDF1<WrappedArray<String>,String
                       .map(CLEAN_DELIMITERS)
                       .filter(s -> s != null && !s.isEmpty())
                       .toArray(String[]::new);
-    return value.length > 0? value : null;
+    return value.length > 0 ? value : null;
   }
 }

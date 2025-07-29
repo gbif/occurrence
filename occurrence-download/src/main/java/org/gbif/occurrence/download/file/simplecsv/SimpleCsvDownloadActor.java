@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
-import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -26,7 +25,6 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 

@@ -71,7 +71,6 @@ public class OccurrenceMapReaderTest {
     occurrence.setReferences(reference);
     occurrence.setLicense(License.CC_BY_4_0);
 
-
     Classification classification = Classification.builder()
       .usage(org.gbif.api.v2.Usage.builder()
         .key("2440897")

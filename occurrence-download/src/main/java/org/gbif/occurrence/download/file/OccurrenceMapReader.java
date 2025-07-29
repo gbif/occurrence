@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
@@ -330,13 +329,6 @@ public class OccurrenceMapReader {
       .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificName), x));
     Optional.ofNullable(verbatimFields.get(DwcTerm.scientificNameAuthorship))
       .ifPresent(x -> map.put(keyFn.apply(DwcTerm.scientificNameAuthorship), x));
-  }
-
-  /**
-   * Builds Map that contains a lists of terms.
-   */
-  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms, String checklistKey) {
-    return selectTerms(buildInterpretedOccurrenceMap(occurrence, checklistKey), terms);
   }
 
   /**
