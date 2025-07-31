@@ -28,7 +28,7 @@ public class AvroQueries extends TsvQueries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey) {
     if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {

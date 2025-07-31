@@ -93,8 +93,8 @@ public abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted download fields
    */
-  public Map<String, InitializableField> selectInterpretedFields(boolean useInitializers) {
-    return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, useInitializers);
+  public Map<String, InitializableField> selectInterpretedFields(boolean useInitializers, String checklistKey) {
+    return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, useInitializers, checklistKey);
   }
 
   /**
@@ -107,25 +107,21 @@ public abstract class Queries {
 
   /**
    * @param useInitializers whether to convert dates, arrays etc to strings
-   * @return the select fields for the internal download fields
-   */
-  Map<String, InitializableField> selectInternalFields(boolean useInitializers) {
-    return selectDownloadFields(DownloadTerms.INTERNAL_DOWNLOAD_TERMS, useInitializers);
-  }
-
-  /**
-   * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the internal search fields
    */
   public Map<String, InitializableField> selectInternalSearchFields(boolean useInitializers) {
     return selectDownloadFields(DownloadTerms.INTERNAL_SEARCH_TERMS, useInitializers);
   }
 
+  Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers) {
+    return selectDownloadFields(terms, useInitializers, null);
+  }
+
   /**
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted download fields
    */
-  Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers) {
+  Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers, String checklistKey) {
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
@@ -145,7 +141,7 @@ public abstract class Queries {
       } else {
         result.put(term.simpleName(), new InitializableField(
           term,
-          useInitializers ? toInterpretedHiveInitializer(term) : toHiveInitializer(term),
+          useInitializers ? toInterpretedHiveInitializer(term, checklistKey) : toHiveInitializer(term),
           toHiveDataType(term)
         ));
       }
@@ -162,7 +158,7 @@ public abstract class Queries {
   /**
    * @return The initializer for an interpreted field, e.g. genus, toISO8601(eventdate) AS eventdate
    */
-  abstract String toInterpretedHiveInitializer(Term term);
+  abstract String toInterpretedHiveInitializer(Term term, String checklistKey);
 
   /**
    * Used for complex types like Structs which have nested elements.
@@ -212,8 +208,8 @@ public abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the simple download fields
    */
-  public Map<String, InitializableField> selectSimpleDownloadFields(boolean useInitializers) {
-    return selectGroupedDownloadFields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, useInitializers);
+  public Map<String, InitializableField> selectSimpleDownloadFields(boolean useInitializers, String checklistKey) {
+    return selectGroupedDownloadFields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, useInitializers, checklistKey);
   }
 
   /**
@@ -221,7 +217,8 @@ public abstract class Queries {
    * @return the select fields for the simple-with-verbatim download fields
    */
   Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(boolean useInitializers) {
-    return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS, useInitializers);
+    return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS,
+      useInitializers, null);
   }
 
   public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(boolean useInitializers) {
@@ -240,7 +237,10 @@ public abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the (mostly) interpreted table in the simple download
    */
-  Map<String, InitializableField> selectGroupedDownloadFields(Set<Pair<DownloadTerms.Group, Term>> termPairs, boolean useInitializers) {
+  Map<String, InitializableField> selectGroupedDownloadFields(Set<Pair<DownloadTerms.Group, Term>> termPairs,
+                                                              boolean useInitializers,
+                                                              String checklistKey) {
+
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
@@ -261,7 +261,7 @@ public abstract class Queries {
       } else {
         result.put(term.simpleName(), new InitializableField(
           term,
-          useInitializers ? toInterpretedHiveInitializer(term) : toHiveInitializer(term),
+          useInitializers ? toInterpretedHiveInitializer(term, checklistKey) : toHiveInitializer(term),
           toHiveDataType(term)
         ));
       }

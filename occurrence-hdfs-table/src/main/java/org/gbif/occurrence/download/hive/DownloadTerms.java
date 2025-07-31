@@ -115,6 +115,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.gbifID),
     Pair.of(Group.INTERPRETED, GbifTerm.datasetKey),
     Pair.of(Group.INTERPRETED, DwcTerm.occurrenceID),
+
     Pair.of(Group.INTERPRETED, DwcTerm.kingdom),
     Pair.of(Group.INTERPRETED, DwcTerm.phylum),
     Pair.of(Group.INTERPRETED, DwcTerm.class_),
@@ -129,6 +130,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.infraspecificEpithet),
     Pair.of(Group.INTERPRETED, DwcTerm.taxonRank),
     Pair.of(Group.INTERPRETED, DwcTerm.scientificName),
+
     Pair.of(Group.VERBATIM, DwcTerm.scientificName),
     Pair.of(Group.VERBATIM, DwcTerm.scientificNameAuthorship),
     Pair.of(Group.INTERPRETED, DwcTerm.countryCode),

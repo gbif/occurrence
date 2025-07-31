@@ -39,7 +39,7 @@ class AvroSchemaQueries extends Queries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey) {
     return term.simpleName();
   }
 

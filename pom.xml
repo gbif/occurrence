@@ -285,6 +285,8 @@
 
     <!-- Extensions -->
     <wagon-ssh.version>2.4</wagon-ssh.version>
+
+    <java.version>17</java.version>
   </properties>
 
   <!-- Profile created to manage multiple Hadoop version in different environments -->

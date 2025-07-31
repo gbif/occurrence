@@ -40,6 +40,16 @@ abstract class TsvQueries extends Queries {
     return "secondsToLocalISO8601(" + column + ") AS " + column;
   }
 
+  protected static String toTaxonomicHiveInitializer(Term term, String checklistKey) {
+    final String columnName = HiveColumns.columnFor(term);
+    return String.format(
+      "element_at(element_at(classificationdetails, '%s'), '%s') AS %s",
+      checklistKey,
+      columnName,
+      columnName
+    );
+  }
+
   /**
    * Transforms the term into secondsToISO8601(hiveColumn) expression.
    */

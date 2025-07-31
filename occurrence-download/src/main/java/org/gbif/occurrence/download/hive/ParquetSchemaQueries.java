@@ -59,7 +59,7 @@ class ParquetSchemaQueries extends Queries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey) {
     return term.simpleName().toLowerCase(Locale.ROOT);
   }
 }
