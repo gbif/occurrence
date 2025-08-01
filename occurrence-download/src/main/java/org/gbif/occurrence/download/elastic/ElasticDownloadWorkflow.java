@@ -66,6 +66,8 @@ public class ElasticDownloadWorkflow {
         DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,
         download.getRequest().getFormat().toString());
     WorkflowConfiguration configuration = new WorkflowConfiguration(settings);
+
+    log.info("Download with checklistKey {}", download.getRequest().getChecklistKey());
     FromSearchDownloadAction.run(
         configuration,
         DownloadJobConfiguration.builder()
@@ -78,7 +80,13 @@ public class ElasticDownloadWorkflow {
                               ? download.getRequest().getChecklistKey()
                               : configuration.getDefaultChecklistKey()
                         ))
-                    .toString())
+                    .toString()
+            )
+            .checklistKey(
+                download.getRequest().getChecklistKey() != null
+                    ? download.getRequest().getChecklistKey()
+                    : configuration.getDefaultChecklistKey()
+            )
             .downloadKey(download.getKey())
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
             .sourceDir(configuration.getTempDir())
