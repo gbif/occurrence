@@ -46,7 +46,7 @@ abstract class TsvQueries extends Queries {
     if (term == DwcTerm.order) {
       // Special case for keyword order
       return String.format(
-        "element_at(element_at(classificationdetails, '%s'), 'order') AS \"order\"",
+        "element_at(element_at(classificationdetails, '%s'), 'order') AS `order`",
         checklistKey
       );
     }
