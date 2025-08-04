@@ -240,13 +240,9 @@ public class SqlValidation {
         new AbstractMap.SimpleEntry<>("eventType", varChar)));
       RelDataType parentEventGbifId = tdf.createArrayType(keyValuePair, -1);
 
-      // Geological range structure: STRUCT<gt: DOUBLE,lte: DOUBLE>
-      RelDataType geologicalRange = tdf.createStructType(StructKind.PEEK_FIELDS_NO_EXPAND,
-        Arrays.asList(doubleType, doubleType),
-        Arrays.asList("gt", "lte"));
-
       //  Map definition - needed for multiple classifications
       RelDataType structMap = tdf.createMapType(varChar, varCharArray);
+      RelDataType structMapOfMap = tdf.createMapType(varChar, tdf.createMapType(varChar, varChar));
 
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
         field -> {
@@ -267,6 +263,10 @@ public class SqlValidation {
 
             case HiveDataTypes.TYPE_MAP_STRUCT:
               builder.add(field.getColumnName(), structMap);
+              break;
+
+            case HiveDataTypes.TYPE_MAP_OF_MAP_STRUCT:
+              builder.add(field.getColumnName(), structMapOfMap);
               break;
 
             case HiveDataTypes.TYPE_ARRAY_PARENT_STRUCT:

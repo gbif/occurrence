@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.Locale;
@@ -38,6 +39,28 @@ abstract class TsvQueries extends Queries {
   protected static String secondsToLocalISO8601Initializer(Term term) {
     final String column = HiveColumns.columnFor(term);
     return "secondsToLocalISO8601(" + column + ") AS " + column;
+  }
+
+  protected static String toTaxonomicHiveInitializer(Term term, String checklistKey) {
+    if (checklistKey == null || checklistKey.isEmpty()) {
+      throw new IllegalArgumentException("checklistKey must not be null or empty");
+    }
+
+    if (term == DwcTerm.order) {
+      // Special case for keyword order
+      return String.format(
+        "element_at(element_at(classificationdetails, '%s'), 'order') AS `order`",
+        checklistKey
+      );
+    }
+
+    final String columnName = HiveColumns.columnFor(term);
+    return String.format(
+      "element_at(element_at(classificationdetails, '%s'), '%s') AS %s",
+      checklistKey,
+      columnName,
+      columnName
+    );
   }
 
   /**

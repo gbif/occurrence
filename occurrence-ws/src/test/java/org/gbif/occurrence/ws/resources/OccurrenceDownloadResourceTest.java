@@ -13,15 +13,6 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.security.Principal;
-import java.util.Collections;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -32,11 +23,15 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.UserRole;
 import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.occurrence.download.service.OccurrenceDownloadRequestService;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+
+import java.security.Principal;
+import java.util.Collections;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -44,6 +39,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class OccurrenceDownloadResourceTest {
 
@@ -103,8 +105,8 @@ public class OccurrenceDownloadResourceTest {
   private void prepareMocks(String user, boolean failedCreation) {
     String archiveServerUrl = "http://test/";
     CallbackService callbackService = mock(CallbackService.class);
-    OccurrenceDownloadRequestService service = mock(OccurrenceDownloadRequestService.class);
-    OccurrenceDownloadClient downloadService = mock(OccurrenceDownloadClient.class);
+    DownloadRequestService service = mock(DownloadRequestService.class);
+    OccurrenceDownloadService downloadService = mock(OccurrenceDownloadService.class);
 
     GbifUser gbifUser = new GbifUser();
     gbifUser.setUserName(user);
@@ -125,29 +127,29 @@ public class OccurrenceDownloadResourceTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
-            "testDescription",
-            null,
-            Collections.singleton(Extension.AUDUBON));
+          "testDescription",
+          null,
+            Collections.singleton(Extension.AUDUBON), null);
     sqlDl =
         new SqlDownloadRequest(
-            "SELECT gbifid FROM occurrence",
-            USER,
-            null,
-            true,
-            DownloadFormat.SQL_TSV_ZIP,
-            DownloadType.OCCURRENCE,
-            "testDescription",
-            null);
+           "SELECT gbifid FROM occurrence",
+           USER,
+           null,
+           true,
+          DownloadFormat.SQL_TSV_ZIP,
+          DownloadType.OCCURRENCE,
+          "testDescription",
+          null,null);
     badSqlDl =
         new SqlDownloadRequest(
-            "SELECT * FROM occurrence",
-            USER,
-            null,
-            true,
-            DownloadFormat.SQL_TSV_ZIP,
-            DownloadType.OCCURRENCE,
-            "testDescription",
-            null);
+           "SELECT * FROM occurrence",
+           USER,
+           null,
+           true,
+          DownloadFormat.SQL_TSV_ZIP,
+          DownloadType.OCCURRENCE,
+          "testDescription",
+          null,null);
 
     PagingResponse<Download> empty = new PagingResponse<>();
     empty.setResults(Collections.emptyList());

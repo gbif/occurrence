@@ -14,8 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 
-import org.gbif.occurrence.download.sql.SqlQueryUtils;
-
+import org.gbif.api.model.Constants;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
@@ -24,22 +23,22 @@ public class GenerateHQLTest {
 
   @Test
   public void simpleCsvTest() throws Exception {
-    String simpleCsvDownloadQuery = GenerateHQL.simpleCsvQueryHQL();
+    String simpleCsvDownloadQuery = GenerateHQL.simpleCsvQueryHQL(Constants.NUB_DATASET_KEY.toString());
     System.out.println(simpleCsvDownloadQuery);
   }
 
   @Test
   public void dwcaTest() throws Exception {
-    String dwcaDownloadQuery = SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaQueryHQL);
+    String dwcaDownloadQuery = GenerateHQL.generateDwcaQueryHQL(Constants.NUB_DATASET_KEY.toString());
     System.out.println(dwcaDownloadQuery);
   }
 
   @Test
   public void simpleParquetTest() throws Exception {
-    String simpleParquetDownloadQuery = GenerateHQL.simpleParquetQueryHQL();
+    String simpleParquetDownloadQuery = GenerateHQL.simpleParquetQueryHQL(Constants.NUB_DATASET_KEY.toString());
     System.out.println(simpleParquetDownloadQuery);
 
     assertTrue("Column names should be lower-case", simpleParquetDownloadQuery.contains("`datasetkey` STRING"));
-    assertTrue("Verbatim column names should be lower-case", simpleParquetDownloadQuery.contains("`verbatimScientificName` STRING"));
+    assertTrue("Verbatim column names should be lower-case", simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"));
   }
 }

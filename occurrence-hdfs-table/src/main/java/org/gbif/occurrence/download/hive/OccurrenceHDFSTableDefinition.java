@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -35,7 +36,7 @@ import static org.gbif.occurrence.download.hive.HiveColumns.getVerbatimColPrefix
 /**
  * This provides the definition required to construct the occurrence HDFS table, for use as a Hive table.
  * The table is populated by a query which scans the Avro files, but along the way converts some fields to
- * e.g. Hive arrays which requires some UDF voodoo captured here.
+ * e.g., Hive arrays which require some UDF voodoo captured here.
  * <p/>
  * Note to developers: It is not easy to find a perfectly clean solution to this work.  Here we try and favour long
  * term code management over all else.  For that reason, Functional programming idioms are not used even though they
@@ -48,6 +49,15 @@ import static org.gbif.occurrence.download.hive.HiveColumns.getVerbatimColPrefix
  */
 @UtilityClass
 public class OccurrenceHDFSTableDefinition {
+
+  public static void main(String[] args) {
+    System.out.println(
+      "CREATE TABLE IF NOT EXISTS occurrence (\n"
+        + OccurrenceHDFSTableDefinition.definition().stream()
+        .map(field -> field.getHiveField() + " " + field.getHiveDataType())
+        .collect(Collectors.joining(", \n"))
+        + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")");
+  }
 
   private static final Set<Term> ARRAYS_FROM_VERBATIM_VALUES =
       ImmutableSet.of(
@@ -93,6 +103,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
                                       .put(GbifInternalTerm.classifications, columnFor(GbifInternalTerm.classifications))
+                                      .put(GbifInternalTerm.classificationDetails, columnFor(GbifInternalTerm.classificationDetails))
                                       .put(GbifTerm.checklistKey, columnFor(GbifTerm.checklistKey))
                                       .build();
 

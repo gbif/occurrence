@@ -40,7 +40,7 @@ class ParquetQueries extends Queries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey) {
     if (TermUtils.isInterpretedLocalDateSeconds(term)
         || TermUtils.isInterpretedUtcDateSeconds(term)
         || TermUtils.isInterpretedUtcDateMilliseconds(term)) {
