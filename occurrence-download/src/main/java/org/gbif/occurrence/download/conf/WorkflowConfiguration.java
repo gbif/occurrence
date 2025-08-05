@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.download.conf;
 
+import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -115,11 +115,12 @@ public class WorkflowConfiguration {
 
   /**
    *
-   * @return local temp dir where downloads files are created
+   * @return the default checklist key used for the download if no checklistKey is provided
    */
   public String getDefaultChecklistKey() {
     Preconditions.checkNotNull(settings);
-    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DEFAULT_CHECKLIST_KEY);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DEFAULT_CHECKLIST_KEY,
+      Constants.NUB_DATASET_KEY.toString());
   }
 
   /**

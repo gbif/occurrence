@@ -40,9 +40,9 @@ public class ElasticDownloadWorkflow {
       WorkflowConfiguration workflowConfiguration, DwcTerm coreDwcTerm, String downloadKey) {
     this.workflowConfiguration = workflowConfiguration;
     this.coreDwcTerm = coreDwcTerm;
-    downloadService =
+    this.downloadService =
         DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
-    download = downloadService.get(downloadKey);
+    this.download = downloadService.get(downloadKey);
     ConceptClient conceptClient = DownloadWorkflowModule.conceptClient(workflowConfiguration);
     translateVocabs(download, conceptClient);
   }
@@ -66,6 +66,7 @@ public class ElasticDownloadWorkflow {
         DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY,
         download.getRequest().getFormat().toString());
     WorkflowConfiguration configuration = new WorkflowConfiguration(settings);
+    log.info("Download with checklistKey {}", download.getRequest().getChecklistKey());
     FromSearchDownloadAction.run(
         configuration,
         DownloadJobConfiguration.builder()
@@ -74,9 +75,17 @@ public class ElasticDownloadWorkflow {
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
                         DownloadWorkflowModule.esFieldMapper(
                           configuration.getEsIndexType(),
-                          configuration.getDefaultChecklistKey()
+                          download.getRequest().getChecklistKey() != null
+                              ? download.getRequest().getChecklistKey()
+                              : configuration.getDefaultChecklistKey()
                         ))
-                    .toString())
+                    .toString()
+            )
+            .checklistKey(
+                download.getRequest().getChecklistKey() != null
+                    ? download.getRequest().getChecklistKey()
+                    : configuration.getDefaultChecklistKey()
+            )
             .downloadKey(download.getKey())
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
             .sourceDir(configuration.getTempDir())
@@ -121,7 +130,9 @@ public class ElasticDownloadWorkflow {
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
         .esFieldMapper(DownloadWorkflowModule.esFieldMapper(
           workflowConfiguration.getEsIndexType(),
-          workflowConfiguration.getDefaultChecklistKey()
+          download.getRequest().getChecklistKey() != null
+              ? download.getRequest().getChecklistKey()
+              : workflowConfiguration.getDefaultChecklistKey()
         ))
         .build();
   }

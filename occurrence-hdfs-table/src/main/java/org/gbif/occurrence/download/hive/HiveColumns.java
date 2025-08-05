@@ -39,7 +39,6 @@ public final class HiveColumns {
   private static final ImmutableSet<String> RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group");
   // reserved ISO SQL words, see https://en.wikipedia.org/wiki/List_of_SQL_reserved_words for more.
   private static final ImmutableSet<String> ISO_RESERVED_WORDS = ImmutableSet.of("date", "order", "format", "group", "year", "month", "day", "language", "references", "member");
-  private static final Pattern START_WITH_DIGIT = Pattern.compile("(\\d.*)");
   private static final Pattern START_WITH_DIGIT_OR_UNDERSCORE = Pattern.compile("(\\d.*)|(_.*)");
 
   public static String getVerbatimColPrefix() {

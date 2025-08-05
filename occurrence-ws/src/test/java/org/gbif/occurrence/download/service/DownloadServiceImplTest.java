@@ -13,20 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.regex.Pattern;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -46,6 +32,14 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +47,14 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DownloadServiceImplTest {
@@ -95,9 +97,9 @@ class DownloadServiceImplTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
-            "testDescription",
-            null,
-            Collections.singleton(Extension.AUDUBON));
+          "testDescription",
+          null,
+            Collections.singleton(Extension.AUDUBON), null);
     String id = requestService.create(dl, null);
 
     assertTrue(REGEX.matcher(id).matches());
@@ -113,9 +115,9 @@ class DownloadServiceImplTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
-            "testDescription",
-            null,
-            Collections.singleton(Extension.AUDUBON));
+          "testDescription",
+          null,
+            Collections.singleton(Extension.AUDUBON), null);
 
     when(downloadLimitsService.exceedsDownloadComplexity(any())).thenReturn("test");
 
@@ -198,9 +200,9 @@ class DownloadServiceImplTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
-            "testDescription",
-            null,
-            Collections.singleton(Extension.AUDUBON));
+          "testDescription",
+          null,
+            Collections.singleton(Extension.AUDUBON), null);
     Download download = new Download();
     download.setRequest(downloadRequest);
     download.setKey(downloadKey);

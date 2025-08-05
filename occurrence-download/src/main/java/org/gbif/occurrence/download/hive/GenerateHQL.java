@@ -31,6 +31,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.SneakyThrows;
+import org.gbif.api.model.Constants;
 
 import static org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition.avroField;
 
@@ -102,15 +103,15 @@ public class GenerateHQL {
 
       // generates HQL executed at actual download time (tightly coupled to table definitions above, hence this is
       // co-located)
-      generateDwcaQueryHQL(cfg, downloadDir);
-      generateSimpleCsvQueryHQL(cfg, simpleCsvDownloadDir);
-      generateSimpleAvroQueryHQL(cfg, simpleAvroDownloadDir);
-      generateSimpleAvroSchema(cfg, simpleAvroDownloadDir.getParentFile());
-      generateSimpleParquetQueryHQL(cfg, simpleParquetDownloadDir);
+      generateDwcaQueryHQL(cfg, Constants.NUB_DATASET_KEY.toString(), downloadDir);
+      generateSimpleCsvQueryHQL(cfg, Constants.NUB_DATASET_KEY.toString(), simpleCsvDownloadDir);
+      generateSimpleAvroQueryHQL(cfg, Constants.NUB_DATASET_KEY.toString(), simpleAvroDownloadDir);
+      generateSimpleAvroSchema(cfg, Constants.NUB_DATASET_KEY.toString(), simpleAvroDownloadDir.getParentFile());
+      generateSimpleParquetQueryHQL(cfg, Constants.NUB_DATASET_KEY.toString(), simpleParquetDownloadDir);
       generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
       generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
-      generateMapOfLifeQueryHQL(cfg, mapOfLifeDownloadDir);
-      generateMapOfLifeSchema(cfg, mapOfLifeDownloadDir.getParentFile());
+      generateMapOfLifeQueryHQL(cfg, Constants.NUB_DATASET_KEY.toString(), mapOfLifeDownloadDir);
+      generateMapOfLifeSchema(cfg, Constants.NUB_DATASET_KEY.toString(), mapOfLifeDownloadDir.getParentFile());
       generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
 
     } catch (Exception e) {
@@ -170,28 +171,24 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for DwCA downloads.
    */
-  public static void generateDwcaQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateDwcaQueryHQL(Configuration cfg, String checklistKey, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
-      generateDwcaQueryHQL(cfg, out);
+      generateDwcaQueryHQL(cfg, checklistKey, out);
     }
     generateDwcaDropTableQueryHQL(cfg, outDir);
   }
 
-  public static void generateDwcaQueryHQL(Configuration cfg, Writer writer) throws IOException, TemplateException {
+  public static void generateDwcaQueryHQL(Configuration cfg, String checklistKey, Writer writer) throws IOException, TemplateException {
       Template template = cfg.getTemplate("download/execute-query.ftl");
       Map<String, Object> data = ImmutableMap.<String, Object>builder()
         .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
-        .put("interpretedFields", HIVE_QUERIES.selectInterpretedFields(false).values())
-        .put("initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true).values())
+        .put("interpretedFields", HIVE_QUERIES.selectInterpretedFields(false, checklistKey).values())
+        .put("initializedInterpretedFields", HIVE_QUERIES.selectInterpretedFields(true, checklistKey).values())
         .put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values())
         .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
         .put("extensions", ExtensionTable.tableExtensions())
         .build();
       template.process(data, writer);
-  }
-
-  public static void generateDwcaQueryHQL(Writer writer) throws IOException, TemplateException {
-    generateDwcaQueryHQL(templateConfig(), writer);
   }
 
   public static void generateDwcaDropTableQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
@@ -211,27 +208,37 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for CSV downloads.
    */
-  public static void generateSimpleCsvQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateSimpleCsvQueryHQL(Configuration cfg, String checklistKey, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-csv-query.q"))) {
-      generateSimpleCsvQueryHQL(cfg, out);
+      generateSimpleCsvQueryHQL(cfg, checklistKey, out);
     }
   }
 
   /**
    * Generates the Hive query file used for CSV downloads.
    */
-  public static void generateSimpleCsvQueryHQL(Configuration cfg, Writer writer) throws IOException, TemplateException {
+  public static void generateSimpleCsvQueryHQL(Configuration cfg, String checklistKey, Writer writer) throws IOException, TemplateException {
     Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
-    Map<String, Object> data = ImmutableMap.of(FIELDS, HIVE_QUERIES.selectSimpleDownloadFields(true).values());
+    Map<String, Object> data = ImmutableMap.of(
+      FIELDS,
+      HIVE_QUERIES.selectSimpleDownloadFields(true, checklistKey).values()
+    );
     template.process(data, writer);
+  }
+
+  public static String generateDwcaQueryHQL(String checklistKey) throws IOException, TemplateException {
+    try (StringWriter stringWriter = new StringWriter()) {
+      generateDwcaQueryHQL(templateConfig(), checklistKey, stringWriter);
+      return stringWriter.toString();
+    }
   }
 
   /**
    * Generates the Hive query file used for CSV downloads.
    */
-  public static String simpleCsvQueryHQL() throws IOException, TemplateException {
+  public static String simpleCsvQueryHQL(String checklistKey) throws IOException, TemplateException {
     try (StringWriter stringWriter = new StringWriter()) {
-      generateSimpleCsvQueryHQL(templateConfig(), stringWriter);
+      generateSimpleCsvQueryHQL(templateConfig(), checklistKey, stringWriter);
       return stringWriter.toString();
     }
   }
@@ -252,14 +259,14 @@ public class GenerateHQL {
   /**
    * Generates the schema file used for simple AVRO downloads.
    */
-  public static void generateSimpleAvroSchema(Configuration cfg, File outDir) throws IOException {
+  public static void generateSimpleAvroSchema(Configuration cfg, String checklistKey, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-occurrence.avsc"))) {
-      out.write(simpleAvroSchema().toString(true));
+      out.write(simpleAvroSchema(checklistKey).toString(true));
     }
   }
 
-  public static Schema simpleAvroSchema() throws IOException {
-    Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(true);
+  public static Schema simpleAvroSchema(String checklistKey) throws IOException {
+    Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(true, checklistKey);
 
     SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
       .record("SimpleOccurrence")
@@ -272,26 +279,26 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for simple AVRO downloads.
    */
-  private static void generateSimpleAvroQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  private static void generateSimpleAvroQueryHQL(Configuration cfg, String checklistKey, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-      Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values(),
-                                             "avroSchema", simpleAvroSchema().toString(true));
+      Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true, checklistKey).values(),
+                                             "avroSchema", simpleAvroSchema(checklistKey).toString(true));
       template.process(data, out);
     }
   }
 
-  private static void generateSimpleAvroQueryHQL(Configuration cfg, Writer out) throws IOException, TemplateException {
+  private static void generateSimpleAvroQueryHQL(Configuration cfg, String checklistKey, Writer out) throws IOException, TemplateException {
     Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
-    Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true).values(),
-                                            "avroSchema", simpleAvroSchema().toString(true));
+    Map<String, Object> data = ImmutableMap.of(FIELDS, AVRO_QUERIES.selectSimpleDownloadFields(true, checklistKey).values(),
+                                            "avroSchema", simpleAvroSchema(checklistKey).toString(true));
     template.process(data, out);
   }
 
   @SneakyThrows
-  public static String simpleAvroQueryHQL() {
+  public static String simpleAvroQueryHQL(String checklistKey) {
     try (StringWriter out = new StringWriter()) {
-      generateSimpleAvroQueryHQL(templateConfig(), out);
+      generateSimpleAvroQueryHQL(templateConfig(), checklistKey, out);
       return out.toString();
     }
   }
@@ -299,18 +306,18 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for simple Parquet downloads.
    */
-  public static void generateSimpleParquetQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  public static void generateSimpleParquetQueryHQL(Configuration cfg, String checklistKey, File outDir) throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-parquet-query.q"))) {
-      generateSimpleParquetQueryHQL(cfg, out);
+      generateSimpleParquetQueryHQL(cfg, checklistKey, out);
     }
   }
 
-  private static void generateSimpleParquetQueryHQL(Configuration cfg, Writer out) throws IOException, TemplateException {
+  private static void generateSimpleParquetQueryHQL(Configuration cfg, String checklistKey, Writer out) throws IOException, TemplateException {
     Template template = cfg.getTemplate("simple-parquet-download/execute-simple-parquet-query.ftl");
 
     // We need the initializers (toLocalISO8601(eventDate) etc) but also the API-matching column name (verbatimScientificName etc).
-    Map<String, InitializableField> interpretedNames = PARQUET_QUERIES.selectSimpleDownloadFields(true);
-    Map<String, InitializableField> columnNames = PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(false);
+    Map<String, InitializableField> interpretedNames = PARQUET_QUERIES.selectSimpleDownloadFields(true, checklistKey);
+    Map<String, InitializableField> columnNames = PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(false, checklistKey);
 
     Map<String, Object> data = ImmutableMap.of(
       "hiveFields", interpretedNames,
@@ -320,9 +327,9 @@ public class GenerateHQL {
   }
 
   @SneakyThrows
-  public static String simpleParquetQueryHQL() {
+  public static String simpleParquetQueryHQL(String checklistKey) {
     try (StringWriter out = new StringWriter()) {
-      generateSimpleParquetQueryHQL(templateConfig(), out);
+      generateSimpleParquetQueryHQL(templateConfig(), checklistKey, out);
       return out.toString();
     }
   }
@@ -434,17 +441,18 @@ public class GenerateHQL {
   /**
    * Generates the AVRO schema for Map Of Life's custom format downloads.
    */
-  private static void generateMapOfLifeSchema(Configuration cfg, File outDir) throws IOException {
+  private static void generateMapOfLifeSchema(Configuration cfg, String checklistKey, File outDir) throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "map-of-life.avsc"))) {
-      out.write(mapOfLifeSchema().toString(true));
+      out.write(mapOfLifeSchema(checklistKey).toString(true));
     }
   }
 
   /**
    * Generates the AVRO schema for Map Of Life's custom format downloads.
    */
-  static Schema mapOfLifeSchema() {
-    Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true);
+  static Schema mapOfLifeSchema(String checklistKey) {
+    Map<String, InitializableField> fields = SIMPLE_AVRO_SCHEMA_QUERIES.selectGroupedDownloadFields(
+      MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true, checklistKey);
 
     SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
       .record("MapOfLife")
@@ -456,29 +464,29 @@ public class GenerateHQL {
   /**
    * Generates the Hive query file used for Map Of Life's custom format downloads.
    */
-  private static void generateMapOfLifeQueryHQL(Configuration cfg, File outDir) throws IOException, TemplateException {
+  private static void generateMapOfLifeQueryHQL(Configuration cfg, String checklistKey, File outDir) throws IOException, TemplateException {
     //AVRO_QUERIES.selectVerbatimFields().keySet().stream().forEach(System.out::println);
     //AVRO_QUERIES.selectInterpretedFields(true).keySet().stream().forEach(System.out::println);
     //AVRO_QUERIES.selectInternalFields(true).keySet().stream().forEach(System.out::println);
     try (FileWriter out = new FileWriter(new File(outDir, "execute-map-of-life-query.q"))) {
-      generateMapOfLifeQueryHQL(cfg, out);
+      generateMapOfLifeQueryHQL(cfg, checklistKey, out);
     }
   }
 
-  private static void generateMapOfLifeQueryHQL(Configuration cfg, Writer out) throws IOException, TemplateException {
+  private static void generateMapOfLifeQueryHQL(Configuration cfg, String checklistKey, Writer out) throws IOException, TemplateException {
     Template template = cfg.getTemplate("map-of-life-download/execute-map-of-life-query.ftl");
     Map<String, Object> data = ImmutableMap.of(
-      "fields", AVRO_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true),
-      "mapOfLifeAvroSchema", mapOfLifeSchema().toString(true)
+      "fields", AVRO_QUERIES.selectGroupedDownloadFields(MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS, true, checklistKey),
+      "mapOfLifeAvroSchema", mapOfLifeSchema(checklistKey).toString(true)
     );
     template.process(data, out);
 
   }
 
   @SneakyThrows
-  public static String mapOfLifeQueryHQL() {
+  public static String mapOfLifeQueryHQL(String checklistKey) {
     try (StringWriter out = new StringWriter()) {
-      generateMapOfLifeQueryHQL(templateConfig(), out);
+      generateMapOfLifeQueryHQL(templateConfig(), checklistKey, out);
       return out.toString();
     }
   }

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
@@ -44,7 +45,9 @@ public class ExtensionsQueryTest {
       DownloadType.OCCURRENCE,
       null,
       null,
-      Extension.availableExtensions());
+      Extension.availableExtensions(),
+      Constants.NUB_DATASET_KEY.toString()
+    );
 
     Download download = new Download();
     download.setKey("extension-test");

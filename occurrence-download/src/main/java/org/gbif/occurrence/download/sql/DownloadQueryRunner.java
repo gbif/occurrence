@@ -17,6 +17,7 @@ public class DownloadQueryRunner {
   private final Supplier<SparkQueryExecutor> queryExecutorSupplier;
   private final Download download;
   private final DownloadQueryParameters queryParameters;
+  private final String checklistKey;
 
   public void runDownloadQuery() {
     String downloadQuery = downloadQuery();
@@ -46,28 +47,22 @@ public class DownloadQueryRunner {
 
   @SneakyThrows
   private String downloadQuery() {
-    if (DownloadFormat.DWCA == download.getRequest().getFormat()) {
-      return SqlQueryUtils.queryTemplateToString(GenerateHQL::generateDwcaQueryHQL);
-    } else if (DownloadFormat.SPECIES_LIST == download.getRequest().getFormat()) {
-      return GenerateHQL.speciesListQueryHQL();
-    } else if (DownloadFormat.SIMPLE_CSV == download.getRequest().getFormat()) {
-      return GenerateHQL.simpleCsvQueryHQL();
-    } else if (DownloadFormat.SIMPLE_AVRO == download.getRequest().getFormat()) {
-      return GenerateHQL.simpleAvroQueryHQL();
-    } else if (DownloadFormat.SIMPLE_WITH_VERBATIM_AVRO == download.getRequest().getFormat()) {
-      return GenerateHQL.simpleWithVerbatimAvroQueryHQL();
-    } else if (DownloadFormat.SIMPLE_PARQUET == download.getRequest().getFormat()) {
-      return GenerateHQL.simpleParquetQueryHQL();
-    } else if (DownloadFormat.BIONOMIA == download.getRequest().getFormat()) {
-      return GenerateHQL.bionomiaQueryHQL();
-    } else if (DownloadFormat.MAP_OF_LIFE == download.getRequest().getFormat()) {
-      return GenerateHQL.mapOfLifeQueryHQL();
-    } else if (DownloadFormat.SQL_TSV_ZIP == download.getRequest().getFormat()) {
-      return GenerateHQL.sqlQueryHQL();
-    }
-
-    return null;
+    return switch (download.getRequest().getFormat()) {
+      case DWCA -> GenerateHQL.generateDwcaQueryHQL(checklistKey);
+      case SPECIES_LIST -> GenerateHQL.speciesListQueryHQL();
+      case SIMPLE_CSV -> GenerateHQL.simpleCsvQueryHQL(checklistKey);
+      case SIMPLE_AVRO -> GenerateHQL.simpleAvroQueryHQL(checklistKey);
+      case SIMPLE_WITH_VERBATIM_AVRO -> GenerateHQL.simpleWithVerbatimAvroQueryHQL();
+      case SIMPLE_PARQUET -> GenerateHQL.simpleParquetQueryHQL(checklistKey);
+      case BIONOMIA -> GenerateHQL.bionomiaQueryHQL();
+      case MAP_OF_LIFE -> GenerateHQL.mapOfLifeQueryHQL(checklistKey);
+      case SQL_TSV_ZIP -> GenerateHQL.sqlQueryHQL();
+      default ->
+        throw new IllegalArgumentException(
+          "Unsupported download format: " + download.getRequest().getFormat());
+    };
   }
+
 
   @SneakyThrows
   private String extensionQuery(Download download) {
