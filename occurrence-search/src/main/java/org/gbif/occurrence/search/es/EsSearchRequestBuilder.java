@@ -13,22 +13,10 @@
  */
 package org.gbif.occurrence.search.es;
 
-import org.gbif.api.model.common.search.SearchConstants;
-import org.gbif.api.model.occurrence.geo.DistanceUnit;
-import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.util.IsoDateParsingUtils;
-import org.gbif.api.util.Range;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
-import org.gbif.predicate.query.EsQueryVisitor;
-import org.gbif.rest.client.species.Metadata;
-import org.gbif.vocabulary.client.ConceptClient;
-import org.gbif.rest.client.species.NameUsageMatchingService;
+import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
@@ -36,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
-
+import lombok.SneakyThrows;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.Strings;
@@ -56,18 +44,27 @@ import org.elasticsearch.search.sort.ScriptSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.gbif.api.model.common.search.SearchConstants;
+import org.gbif.api.model.occurrence.geo.DistanceUnit;
+import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.util.IsoDateParsingUtils;
+import org.gbif.api.util.Range;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.event.search.es.EventEsField;
+import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
+import org.gbif.predicate.query.EsQueryVisitor;
+import org.gbif.rest.client.species.Metadata;
+import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.vocabulary.client.ConceptClient;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-
-import com.google.common.annotations.VisibleForTesting;
-
-import lombok.SneakyThrows;
-
-import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
 public class EsSearchRequestBuilder {
 
@@ -613,22 +610,23 @@ public class EsSearchRequestBuilder {
 
               // handle taxonomy based fields
               if (isTaxonomic(facetParam)) {
+                BaseEsField field = null;
+                String esFieldName = null;
                 if (esField instanceof OccurrenceEsField){
+                  field = ((OccurrenceEsField) esField).getEsField();
+                  esFieldName = ((OccurrenceEsField) esField).name();
+                } else if (esField instanceof EventEsField) {
+                  field = ((EventEsField) esField).getEsField();
+                  esFieldName = ((EventEsField) esField).name();
+                }
 
-                  BaseEsField field = ((OccurrenceEsField) esField).getEsField();
-                  if (field instanceof ChecklistEsField) {
-                    return buildTermsAggs( ((OccurrenceEsField) esField).name(), field, searchRequest, facetParam);
-                  } else {
-                    throw new IllegalArgumentException(
-                      "Facet "
-                        + facetParam
-                        + " is not a valid taxonomy field. Use the checklist field instead.");
-                  }
+                if (field instanceof ChecklistEsField) {
+                  return buildTermsAggs(esFieldName, field, searchRequest, facetParam);
                 } else {
                   throw new IllegalArgumentException(
-                      "Facet "
-                          + facetParam
-                          + " is not a valid taxonomy field. Use the checklist field instead.");
+                    "Facet "
+                      + facetParam
+                      + " is not a valid taxonomy field. Use the checklist field instead.");
                 }
               }
 

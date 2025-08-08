@@ -220,15 +220,18 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
       throw new IllegalArgumentException("No mapping for search parameter " + searchParameter);
     }
 
+    BaseEsField baseEsField = null;
     if (esField instanceof OccurrenceEsField) {
       OccurrenceEsField occurrenceEsField = (OccurrenceEsField) esField;
-      BaseEsField baseEsField = occurrenceEsField.getEsField();
+      baseEsField = occurrenceEsField.getEsField();
+    } else if (esField instanceof EventEsField) {
+      EventEsField eventEsField = (EventEsField) esField;
+      baseEsField = eventEsField.getEsField();
+    }
 
-
-      if (baseEsField instanceof ChecklistEsField) {
-        return ((ChecklistEsField) baseEsField)
+    if (baseEsField instanceof ChecklistEsField) {
+      return ((ChecklistEsField) baseEsField)
           .getSearchFieldName(checklistKey != null ? checklistKey : defaulChecklistKey);
-      }
     }
 
     return esField.getSearchFieldName();

@@ -383,7 +383,7 @@ public enum OccurrenceEventEsField implements EsField {
 
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED,LAST_PARSED);
 
-  public static OccurrenceBaseEsFieldMapper buildFieldMapper() {
+  public static OccurrenceBaseEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
       return OccurrenceBaseEsFieldMapper.builder()
         .fullTextField(FULL_TEXT)
         .geoShapeField(COORDINATE_SHAPE)
@@ -396,6 +396,7 @@ public enum OccurrenceEventEsField implements EsField {
         .searchToEsMapping(SEARCH_TO_ES_MAPPING)
         .dateFields(DATE_FIELDS)
         .fieldEnumClass(OccurrenceEventEsField.class)
+        .defaulChecklistKey(defaultChecklistKey)
         .build();
   }
 

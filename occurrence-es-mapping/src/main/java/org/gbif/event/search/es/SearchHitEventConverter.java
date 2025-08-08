@@ -38,6 +38,7 @@ import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
+import org.gbif.api.model.event.Humboldt;
 import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Gadm;
 import org.gbif.api.model.occurrence.GadmFeature;
@@ -45,6 +46,7 @@ import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.VocabularyUtils;
+import org.gbif.api.v2.RankedName;
 import org.gbif.api.vocabulary.AgentIdentifierType;
 import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
@@ -59,20 +61,23 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.SearchHitConverter;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
-  private static final Set<Term> EVENT_INTERPRETED_TERMS = ImmutableSet.of(DwcTerm.eventID, DwcTerm.parentEventID);
+  private static final Set<Term> EVENT_INTERPRETED_TERMS =
+      ImmutableSet.of(DwcTerm.eventID, DwcTerm.parentEventID);
 
   private final boolean excludeInterpretedFromVerbatim;
 
-  public SearchHitEventConverter(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper, boolean excludeInterpretedFromVerbatim) {
+  public SearchHitEventConverter(
+      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+      boolean excludeInterpretedFromVerbatim) {
     super(occurrenceBaseEsFieldMapper);
     this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
   }
-
 
   @Override
   public Event apply(SearchHit hit) {
@@ -89,16 +94,20 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
     // issues
     getListValue(hit, ISSUE)
-      .ifPresent(
-        v ->
-          event.setIssues(
-            v.stream().map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
-              .filter(Optional::isPresent)
-              .map(Optional::get)
-              .collect(Collectors.toSet())));
+        .ifPresent(
+            v ->
+                event.setIssues(
+                    v.stream()
+                        .map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .collect(Collectors.toSet())));
 
     // multimedia extension
     parseMultimediaItems(hit, event);
+
+    // humboldt extension
+    parseHumboldtItems(hit, event);
 
     parseAgentIds(hit, event);
 
@@ -106,11 +115,14 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     event.getVerbatimFields().putAll(extractVerbatimFields(hit));
 
     // add verbatim fields
-    getMapValue(hit, VERBATIM).ifPresent(verbatimData -> {
-      if (verbatimData.containsKey("extensions" )) {
-        event.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
-      }
-    });
+    getMapValue(hit, VERBATIM)
+        .ifPresent(
+            verbatimData -> {
+              if (verbatimData.containsKey("extensions")) {
+                event.setExtensions(
+                    parseExtensionsMap((Map<String, Object>) verbatimData.get("extensions")));
+              }
+            });
 
     setIdentifier(hit, event);
 
@@ -119,54 +131,63 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
   private Map<Term, String> extractVerbatimFields(SearchHit hit) {
     Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
-    if(verbatimFields == null) {
+    if (verbatimFields == null) {
       return Collections.emptyMap();
     }
     Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
     Stream<AbstractMap.SimpleEntry<Term, String>> termMap =
-      verbatimCoreFields.entrySet().stream()
-        .map(e -> new AbstractMap.SimpleEntry<>(mapTerm(e.getKey()), e.getValue()));
+        verbatimCoreFields.entrySet().stream()
+            .map(e -> new AbstractMap.SimpleEntry<>(mapTerm(e.getKey()), e.getValue()));
     if (excludeInterpretedFromVerbatim) {
-      termMap = termMap.filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()) && !EVENT_INTERPRETED_TERMS.contains(e.getKey()));
+      termMap =
+          termMap.filter(
+              e ->
+                  !TermUtils.isInterpretedSourceTerm(e.getKey())
+                      && !EVENT_INTERPRETED_TERMS.contains(e.getKey()));
     }
     return termMap.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  /**
-   * Transforms a SearchHit into a suitable Verbatim map of terms.
-   */
+  /** Transforms a SearchHit into a suitable Verbatim map of terms. */
   public VerbatimOccurrence toVerbatim(SearchHit hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
-      .ifPresent(vOcc::setPublishingCountry);
+        .ifPresent(vOcc::setPublishingCountry);
     getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(vOcc::setDatasetKey);
     getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(vOcc::setInstallationKey);
-    getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString).ifPresent(vOcc::setPublishingOrgKey);
-    getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString).ifPresent(vOcc::setHostingOrganizationKey);
+    getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
+        .ifPresent(vOcc::setPublishingOrgKey);
+    getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString)
+        .ifPresent(vOcc::setHostingOrganizationKey);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(vOcc::setProtocol);
 
     getListValue(hit, NETWORK_KEY)
-      .ifPresent(
-        v -> vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+        .ifPresent(
+            v ->
+                vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(vOcc::setCrawlId);
     getDateValue(hit, LAST_PARSED).ifPresent(vOcc::setLastParsed);
     getDateValue(hit, LAST_CRAWLED).ifPresent(vOcc::setLastCrawled);
     getValue(hit, GBIF_ID, Long::valueOf)
-      .ifPresent(
-        id -> {
-          vOcc.setKey(id);
-          vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
-        });
+        .ifPresent(
+            id -> {
+              vOcc.setKey(id);
+              vOcc.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
+            });
 
     setIdentifier(hit, vOcc);
 
     // add verbatim fields
-    getMapValue(hit, VERBATIM).ifPresent(verbatimData -> {
-      vOcc.getVerbatimFields().putAll(parseVerbatimTermMap((Map<String, Object>)(verbatimData).get("core")));
-      if (verbatimData.containsKey("extensions" )) {
-        vOcc.setExtensions(parseExtensionsMap((Map<String, Object>)verbatimData.get("extensions")));
-      }
-    });
+    getMapValue(hit, VERBATIM)
+        .ifPresent(
+            verbatimData -> {
+              vOcc.getVerbatimFields()
+                  .putAll(parseVerbatimTermMap((Map<String, Object>) (verbatimData).get("core")));
+              if (verbatimData.containsKey("extensions")) {
+                vOcc.setExtensions(
+                    parseExtensionsMap((Map<String, Object>) verbatimData.get("extensions")));
+              }
+            });
 
     return vOcc;
   }
@@ -186,27 +207,27 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
   }
 
   /**
-   * Parses a simple string based map into a Term based map, ignoring any non term entries and not parsing nested
-   * e.g. extensions data.
-   * This produces a Map of verbatim data.
+   * Parses a simple string based map into a Term based map, ignoring any non term entries and not
+   * parsing nested e.g. extensions data. This produces a Map of verbatim data.
    */
   private Map<Term, String> parseVerbatimTermMap(Map<String, Object> data) {
 
     Map<Term, String> terms = Maps.newHashMap();
-    data.forEach( (simpleTermName,value) -> {
-      if (Objects.nonNull(value) && !simpleTermName.equalsIgnoreCase("extensions")) {
-        Term term = TERM_FACTORY.findTerm(simpleTermName);
-        terms.put(term, value.toString());
-      }
-    });
+    data.forEach(
+        (simpleTermName, value) -> {
+          if (Objects.nonNull(value) && !simpleTermName.equalsIgnoreCase("extensions")) {
+            Term term = TERM_FACTORY.findTerm(simpleTermName);
+            terms.put(term, value.toString());
+          }
+        });
 
     return terms;
   }
 
   /**
-   * The id (the <id> reference in the DWCA meta.xml) is an identifier local to the DWCA, and could only have been
-   * used for "un-starring" a DWCA star record. However, we've exposed it as DcTerm.identifier for a long time in
-   * our public API v1, so we continue to do this.
+   * The id (the <id> reference in the DWCA meta.xml) is an identifier local to the DWCA, and could
+   * only have been used for "un-starring" a DWCA star record. However, we've exposed it as
+   * DcTerm.identifier for a long time in our public API v1, so we continue to do this.
    */
   private void setIdentifier(SearchHit hit, VerbatimOccurrence event) {
 
@@ -215,23 +236,24 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     String catalogNumber = event.getVerbatimField(DwcTerm.catalogNumber);
 
     // id format following the convention of DwC (http://rs.tdwg.org/dwc/terms/#occurrenceID)
-    String triplet = String.join(":", "urn:catalog", institutionCode, collectionCode, catalogNumber);
+    String triplet =
+        String.join(":", "urn:catalog", institutionCode, collectionCode, catalogNumber);
 
     String gbifId = Optional.ofNullable(event.getKey()).map(x -> Long.toString(x)).orElse("");
     String occId = event.getVerbatimField(DwcTerm.occurrenceID);
 
     getStringValue(hit, ID)
-      .filter(k -> !k.equals(gbifId) && (!Strings.isNullOrEmpty(occId) || !k.equals(triplet)))
-      .ifPresent(result -> event.getVerbatimFields().put(DcTerm.identifier, result));
+        .filter(k -> !k.equals(gbifId) && (!Strings.isNullOrEmpty(occId) || !k.equals(triplet)))
+        .ifPresent(result -> event.getVerbatimFields().put(DcTerm.identifier, result));
   }
 
   private void setEventFields(SearchHit hit, Event event) {
     getValue(hit, GBIF_ID, Long::valueOf)
-      .ifPresent(
-        id -> {
-          event.setKey(id);
-          event.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
-        });
+        .ifPresent(
+            id -> {
+              event.setKey(id);
+              event.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
+            });
     getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(event::setBasisOfRecord);
     getStringValue(hit, ESTABLISHMENT_MEANS).ifPresent(event::setEstablishmentMeans);
     getStringValue(hit, LIFE_STAGE).ifPresent(event::setLifeStage);
@@ -242,20 +264,20 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getStringValue(hit, SEX).ifPresent(event::setSex);
     getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(event::setIndividualCount);
     getStringValue(hit, IDENTIFIER)
-      .ifPresent(
-        v -> {
-          Identifier identifier = new Identifier();
-          identifier.setIdentifier(v);
-          event.setIdentifiers(Collections.singletonList(identifier));
-        });
+        .ifPresent(
+            v -> {
+              Identifier identifier = new Identifier();
+              identifier.setIdentifier(v);
+              event.setIdentifiers(Collections.singletonList(identifier));
+            });
 
     getStringValue(hit, RELATION)
-      .ifPresent(
-        v -> {
-          OccurrenceRelation occRelation = new OccurrenceRelation();
-          occRelation.setId(v);
-          event.setRelations(Collections.singletonList(occRelation));
-        });
+        .ifPresent(
+            v -> {
+              OccurrenceRelation occRelation = new OccurrenceRelation();
+              occRelation.setId(v);
+              event.setRelations(Collections.singletonList(occRelation));
+            });
     getStringValue(hit, PROJECT_ID).ifPresent(event::setProjectId);
     getStringValue(hit, PROGRAMME).ifPresent(event::setProgrammeAcronym);
 
@@ -265,7 +287,8 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(event::setOrganismQuantityType);
     getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(event::setRelativeOrganismQuantity);
 
-    getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf).ifPresent(event::setOccurrenceStatus);
+    getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf)
+        .ifPresent(event::setOccurrenceStatus);
     getBooleanValue(hit, IS_IN_CLUSTER).ifPresent(event::setInCluster);
     getListValueAsString(hit, DATASET_ID).ifPresent(event::setDatasetID);
     getListValueAsString(hit, DATASET_NAME).ifPresent(event::setDatasetName);
@@ -278,20 +301,21 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
   }
 
   private void parseAgentIds(SearchHit hit, Event event) {
-    Function<Map<String, Object>, AgentIdentifier> mapFn = m -> {
-      AgentIdentifier ai = new AgentIdentifier();
-      extractStringValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
-      extractStringValue(m, "value").ifPresent(ai::setValue);
-      return ai;
-    };
+    Function<Map<String, Object>, AgentIdentifier> mapFn =
+        m -> {
+          AgentIdentifier ai = new AgentIdentifier();
+          extractStringValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
+          extractStringValue(m, "value").ifPresent(ai::setValue);
+          return ai;
+        };
 
     getObjectsListValue(hit, RECORDED_BY_ID.getSearchFieldName().replace(".value", ""))
-      .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
-      .ifPresent(event::setRecordedByIds);
+        .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
+        .ifPresent(event::setRecordedByIds);
 
     getObjectsListValue(hit, IDENTIFIED_BY_ID.getSearchFieldName().replace(".value", ""))
-      .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
-      .ifPresent(event::setIdentifiedByIds);
+        .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
+        .ifPresent(event::setIdentifiedByIds);
   }
 
   private void setTemporalFields(SearchHit hit, Event event) {
@@ -299,11 +323,14 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, DAY, Integer::valueOf).ifPresent(event::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(event::setMonth);
     getValue(hit, YEAR, Integer::valueOf).ifPresent(event::setYear);
-    getStringValue(hit, EVENT_DATE_INTERVAL).ifPresent(m -> {
-      try {
-        event.setEventDate(IsoDateInterval.fromString(m));
-      } catch (ParseException e) {}
-    });
+    getStringValue(hit, EVENT_DATE_INTERVAL)
+        .ifPresent(
+            m -> {
+              try {
+                event.setEventDate(IsoDateInterval.fromString(m));
+              } catch (ParseException e) {
+              }
+            });
     getValue(hit, START_DAY_OF_YEAR, Integer::valueOf).ifPresent(event::setStartDayOfYear);
     getValue(hit, END_DAY_OF_YEAR, Integer::valueOf).ifPresent(event::setEndDayOfYear);
   }
@@ -314,7 +341,8 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(event::setCountry);
     getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(event::setCoordinateAccuracy);
     getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(event::setCoordinatePrecision);
-    getDoubleValue(hit, COORDINATE_UNCERTAINTY_IN_METERS).ifPresent(event::setCoordinateUncertaintyInMeters);
+    getDoubleValue(hit, COORDINATE_UNCERTAINTY_IN_METERS)
+        .ifPresent(event::setCoordinateUncertaintyInMeters);
     getDoubleValue(hit, LATITUDE).ifPresent(event::setDecimalLatitude);
     getDoubleValue(hit, LONGITUDE).ifPresent(event::setDecimalLongitude);
     getDoubleValue(hit, DEPTH).ifPresent(event::setDepth);
@@ -322,25 +350,34 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getDoubleValue(hit, ELEVATION).ifPresent(event::setElevation);
     getDoubleValue(hit, ELEVATION_ACCURACY).ifPresent(event::setElevationAccuracy);
     getStringValue(hit, WATER_BODY).ifPresent(event::setWaterBody);
-    getDoubleValue(hit, DISTANCE_FROM_CENTROID_IN_METERS).ifPresent(event::setDistanceFromCentroidInMeters);
+    getDoubleValue(hit, DISTANCE_FROM_CENTROID_IN_METERS)
+        .ifPresent(event::setDistanceFromCentroidInMeters);
 
     Gadm g = new Gadm();
-    getStringValue(hit, GADM_LEVEL_0_GID).ifPresent(gid -> {
-      g.setLevel0(new GadmFeature());
-      g.getLevel0().setGid(gid);
-    });
-    getStringValue(hit, GADM_LEVEL_1_GID).ifPresent(gid -> {
-      g.setLevel1(new GadmFeature());
-      g.getLevel1().setGid(gid);
-    });
-    getStringValue(hit, GADM_LEVEL_2_GID).ifPresent(gid -> {
-      g.setLevel2(new GadmFeature());
-      g.getLevel2().setGid(gid);
-    });
-    getStringValue(hit, GADM_LEVEL_3_GID).ifPresent(gid -> {
-      g.setLevel3(new GadmFeature());
-      g.getLevel3().setGid(gid);
-    });
+    getStringValue(hit, GADM_LEVEL_0_GID)
+        .ifPresent(
+            gid -> {
+              g.setLevel0(new GadmFeature());
+              g.getLevel0().setGid(gid);
+            });
+    getStringValue(hit, GADM_LEVEL_1_GID)
+        .ifPresent(
+            gid -> {
+              g.setLevel1(new GadmFeature());
+              g.getLevel1().setGid(gid);
+            });
+    getStringValue(hit, GADM_LEVEL_2_GID)
+        .ifPresent(
+            gid -> {
+              g.setLevel2(new GadmFeature());
+              g.getLevel2().setGid(gid);
+            });
+    getStringValue(hit, GADM_LEVEL_3_GID)
+        .ifPresent(
+            gid -> {
+              g.setLevel3(new GadmFeature());
+              g.getLevel3().setGid(gid);
+            });
     getStringValue(hit, GADM_LEVEL_0_NAME).ifPresent(name -> g.getLevel0().setName(name));
     getStringValue(hit, GADM_LEVEL_1_NAME).ifPresent(name -> g.getLevel1().setName(name));
     getStringValue(hit, GADM_LEVEL_2_NAME).ifPresent(name -> g.getLevel2().setName(name));
@@ -349,7 +386,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     event.setGadm(g);
   }
 
-
   private void setGrscicollFields(SearchHit hit, Event event) {
     getStringValue(hit, INSTITUTION_KEY).ifPresent(event::setInstitutionKey);
     getStringValue(hit, COLLECTION_KEY).ifPresent(event::setCollectionKey);
@@ -357,18 +393,21 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
   private void setDatasetFields(SearchHit hit, Event event) {
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
-      .ifPresent(event::setPublishingCountry);
+        .ifPresent(event::setPublishingCountry);
     getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(event::setDatasetKey);
     getValue(hit, INSTALLATION_KEY, UUID::fromString).ifPresent(event::setInstallationKey);
     getValue(hit, PUBLISHING_ORGANIZATION_KEY, UUID::fromString)
-      .ifPresent(event::setPublishingOrgKey);
+        .ifPresent(event::setPublishingOrgKey);
     getValue(hit, LICENSE, v -> License.fromString(v).orElse(null)).ifPresent(event::setLicense);
     getValue(hit, PROTOCOL, EndpointType::fromString).ifPresent(event::setProtocol);
-    getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString).ifPresent(event::setHostingOrganizationKey);
+    getValue(hit, HOSTING_ORGANIZATION_KEY, UUID::fromString)
+        .ifPresent(event::setHostingOrganizationKey);
 
     getListValue(hit, NETWORK_KEY)
-      .ifPresent(
-        v -> event.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+        .ifPresent(
+            v ->
+                event.setNetworkKeys(
+                    v.stream().map(UUID::fromString).collect(Collectors.toList())));
   }
 
   private void setCrawlingFields(SearchHit hit, Event event) {
@@ -380,35 +419,199 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
   private void parseMultimediaItems(SearchHit hit, Event event) {
 
-    Function<Map<String, Object>, MediaObject> mapFn = m -> {
-      MediaObject mediaObject = new MediaObject();
+    Function<Map<String, Object>, MediaObject> mapFn =
+        m -> {
+          MediaObject mediaObject = new MediaObject();
 
-      extractStringValue(m, "type", MediaType::valueOf).ifPresent(mediaObject::setType);
-      extractStringValue(m, "identifier", URI::create).ifPresent(mediaObject::setIdentifier);
-      extractStringValue(m, "references", URI::create).ifPresent(mediaObject::setReferences);
-      extractStringValue(m, "created", STRING_TO_DATE).ifPresent(mediaObject::setCreated);
-      extractStringValue(m, "format").ifPresent(mediaObject::setFormat);
-      extractStringValue(m, "audience").ifPresent(mediaObject::setAudience);
-      extractStringValue(m, "contributor").ifPresent(mediaObject::setContributor);
-      extractStringValue(m, "creator").ifPresent(mediaObject::setCreator);
-      extractStringValue(m, "description").ifPresent(mediaObject::setDescription);
-      extractStringValue(m, "publisher").ifPresent(mediaObject::setPublisher);
-      extractStringValue(m, "rightsHolder").ifPresent(mediaObject::setRightsHolder);
-      extractStringValue(m, "source").ifPresent(mediaObject::setSource);
-      extractStringValue(m, "title").ifPresent(mediaObject::setTitle);
-      extractStringValue(m, "license")
-        .map(license ->
-               License.fromString(license)
-                 .map(l -> Optional.ofNullable(l.getLicenseUrl()).orElse(license))
-                 .orElse(license))
-        .ifPresent(mediaObject::setLicense);
+          extractStringValue(m, "type", MediaType::valueOf).ifPresent(mediaObject::setType);
+          extractStringValue(m, "identifier", URI::create).ifPresent(mediaObject::setIdentifier);
+          extractStringValue(m, "references", URI::create).ifPresent(mediaObject::setReferences);
+          extractStringValue(m, "created", STRING_TO_DATE).ifPresent(mediaObject::setCreated);
+          extractStringValue(m, "format").ifPresent(mediaObject::setFormat);
+          extractStringValue(m, "audience").ifPresent(mediaObject::setAudience);
+          extractStringValue(m, "contributor").ifPresent(mediaObject::setContributor);
+          extractStringValue(m, "creator").ifPresent(mediaObject::setCreator);
+          extractStringValue(m, "description").ifPresent(mediaObject::setDescription);
+          extractStringValue(m, "publisher").ifPresent(mediaObject::setPublisher);
+          extractStringValue(m, "rightsHolder").ifPresent(mediaObject::setRightsHolder);
+          extractStringValue(m, "source").ifPresent(mediaObject::setSource);
+          extractStringValue(m, "title").ifPresent(mediaObject::setTitle);
+          extractStringValue(m, "license")
+              .map(
+                  license ->
+                      License.fromString(license)
+                          .map(l -> Optional.ofNullable(l.getLicenseUrl()).orElse(license))
+                          .orElse(license))
+              .ifPresent(mediaObject::setLicense);
 
-      return mediaObject;
-    };
+          return mediaObject;
+        };
 
     getObjectsListValue(hit, MEDIA_ITEMS)
-      .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
-      .ifPresent(event::setMedia);
+        .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
+        .ifPresent(event::setMedia);
+  }
+
+  private void parseHumboldtItems(SearchHit hit, Event event) {
+    // get the humboldt field name
+    Function<EsField, String> fn = e -> e.getValueFieldName().replace("event.humboldt.", "");
+
+    Function<Map<String, Object>, Humboldt> mapFn =
+        h -> {
+          Humboldt humboldt = new Humboldt();
+          getValue(h, fn.apply(HUMBOLDT_SITE_COUNT), Integer::parseInt)
+              .ifPresent(humboldt::setSiteCount);
+          getListValue(h, fn.apply(HUMBOLDT_VERBATIM_SITE_DESCRIPTIONS))
+              .ifPresent(humboldt::setVerbatimSiteDescriptions);
+          getListValue(h, fn.apply(HUMBOLDT_VERBATIM_SITE_NAMES))
+              .ifPresent(humboldt::setVerbatimSiteNames);
+          getDoubleValue(h, fn.apply(HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE))
+              .ifPresent(humboldt::setGeospatialScopeAreaValue);
+          getStringValue(h, fn.apply(HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT))
+              .ifPresent(humboldt::setGeospatialScopeAreaUnit);
+          getDoubleValue(h, fn.apply(HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE))
+              .ifPresent(humboldt::setTotalAreaSampledValue);
+          getStringValue(h, fn.apply(HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT))
+              .ifPresent(humboldt::setTotalAreaSampledUnit);
+          getListValue(h, fn.apply(HUMBOLDT_TARGET_HABITAT_SCOPE))
+              .ifPresent(humboldt::setTargetHabitatScope);
+          getListValue(h, fn.apply(HUMBOLDT_EXCLUDED_HABITAT_SCOPE))
+              .ifPresent(humboldt::setExcludedHabitatScope);
+          getDoubleValue(h, fn.apply(HUMBOLDT_EVENT_DURATION_VALUE))
+              .ifPresent(humboldt::setEventDurationValue);
+          getStringValue(h, fn.apply(HUMBOLDT_EVENT_DURATION_UNIT))
+              .ifPresent(humboldt::setEventDurationUnit);
+          createHumboldtTaxonClassification(h, fn.apply(HUMBOLDT_TARGET_TAXONOMIC_SCOPE))
+              .ifPresent(humboldt::setTargetTaxonomicScope);
+          createHumboldtTaxonClassification(h, fn.apply(HUMBOLDT_EXCLUDED_TAXONOMIC_SCOPE))
+              .ifPresent(humboldt::setExcludedTaxonomicScope);
+          getListValue(h, fn.apply(HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS))
+              .ifPresent(humboldt::setTaxonCompletenessProtocols);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED))
+              .ifPresent(humboldt::setIsTaxonomicScopeFullyReported);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_ABSENCE_REPORTED))
+              .ifPresent(humboldt::setIsAbsenceReported);
+          createHumboldtTaxonClassification(h, fn.apply(HUMBOLDT_ABSENT_TAXA))
+              .ifPresent(humboldt::setAbsentTaxa);
+          getBooleanValue(h, fn.apply(HUMBOLDT_HAS_NON_TARGET_TAXA))
+              .ifPresent(humboldt::setHasNonTargetTaxa);
+          createHumboldtTaxonClassification(h, fn.apply(HUMBOLDT_NON_TARGET_TAXA))
+              .ifPresent(humboldt::setNonTargetTaxa);
+          getBooleanValue(h, fn.apply(HUMBOLDT_ARE_NON_TARGET_TAXA_FULLY_REPORTED))
+              .ifPresent(humboldt::setAreNonTargetTaxaFullyReported);
+          getListValue(h, fn.apply(HUMBOLDT_TARGET_LIFE_STAGE_SCOPE))
+              .ifPresent(humboldt::setTargetLifeStageScope);
+          getListValue(h, fn.apply(HUMBOLDT_EXCLUDED_LIFE_STAGE_SCOPE))
+              .ifPresent(humboldt::setExcludedLifeStageScope);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_LIFE_STAGE_SCOPE_FULLY_REPORTED))
+              .ifPresent(humboldt::setIsLifeStageScopeFullyReported);
+          getListValue(h, fn.apply(HUMBOLDT_TARGET_DEGREE_OF_ESTABLISHMENT_SCOPE))
+              .ifPresent(humboldt::setTargetDegreeOfEstablishmentScope);
+          getListValue(h, fn.apply(HUMBOLDT_EXCLUDED_DEGREE_OF_ESTABLISHMENT_SCOPE))
+              .ifPresent(humboldt::setExcludedDegreeOfEstablishmentScope);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_DEGREE_OF_ESTABLISHMENT_SCOPE_FULLY_REPORTED))
+              .ifPresent(humboldt::setIsDegreeOfEstablishmentScopeFullyReported);
+          getListValue(h, fn.apply(HUMBOLDT_TARGET_GROWTH_FORM_SCOPE))
+              .ifPresent(humboldt::setTargetGrowthFormScope);
+          getListValue(h, fn.apply(HUMBOLDT_EXCLUDED_GROWTH_FORM_SCOPE))
+              .ifPresent(humboldt::setExcludedGrowthFormScope);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_GROWTH_FORM_SCOPE_FULLY_REPORTED))
+              .ifPresent(humboldt::setIsGrowthFormScopeFullyReported);
+          getBooleanValue(h, fn.apply(HUMBOLDT_HAS_NON_TARGET_ORGANISMS))
+              .ifPresent(humboldt::setHasNonTargetOrganisms);
+          getListValue(h, fn.apply(HUMBOLDT_COMPILATION_TYPES))
+              .ifPresent(humboldt::setCompilationTypes);
+          getListValue(h, fn.apply(HUMBOLDT_COMPILATION_SOURCE_TYPES))
+              .ifPresent(humboldt::setCompilationSourceTypes);
+          getListValue(h, fn.apply(HUMBOLDT_INVENTORY_TYPES))
+              .ifPresent(humboldt::setInventoryTypes);
+          getListValue(h, fn.apply(HUMBOLDT_PROTOCOL_NAMES)).ifPresent(humboldt::setProtocolNames);
+          getListValue(h, fn.apply(HUMBOLDT_PROTOCOL_DESCRIPTIONS))
+              .ifPresent(humboldt::setProtocolDescriptions);
+          getListValue(h, fn.apply(HUMBOLDT_PROTOCOL_REFERENCES))
+              .ifPresent(humboldt::setProtocolReferences);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_ABUNDANCE_REPORTED))
+              .ifPresent(humboldt::setIsAbundanceReported);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_ABUNDANCE_CAP_REPORTED))
+              .ifPresent(humboldt::setIsAbundanceCapReported);
+          getValue(h, fn.apply(HUMBOLDT_ABUNDANCE_CAP), Integer::parseInt)
+              .ifPresent(humboldt::setAbundanceCap);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_VEGETATION_COVER_REPORTED))
+              .ifPresent(humboldt::setIsVegetationCoverReported);
+          getBooleanValue(
+                  h, fn.apply(HUMBOLDT_IS_LEAST_SPECIFIC_TARGET_CATEGORY_QUANTITY_INCLUSIVE))
+              .ifPresent(humboldt::setIsLeastSpecificTargetCategoryQuantityInclusive);
+          getBooleanValue(h, fn.apply(HUMBOLDT_HAS_VOUCHERS)).ifPresent(humboldt::setHasVouchers);
+          getListValue(h, fn.apply(HUMBOLDT_VOUCHER_INSTITUTIONS))
+              .ifPresent(humboldt::setVoucherInstitutions);
+          getBooleanValue(h, fn.apply(HUMBOLDT_HAS_MATERIAL_SAMPLES))
+              .ifPresent(humboldt::setHasMaterialSamples);
+          getListValue(h, fn.apply(HUMBOLDT_MATERIAL_SAMPLE_TYPES))
+              .ifPresent(humboldt::setMaterialSampleTypes);
+          getListValue(h, fn.apply(HUMBOLDT_SAMPLING_PERFORMED_BY))
+              .ifPresent(humboldt::setSamplingPerformedBy);
+          getBooleanValue(h, fn.apply(HUMBOLDT_IS_SAMPLING_EFFORT_REPORTED))
+              .ifPresent(humboldt::setIsSamplingEffortReported);
+          getDoubleValue(h, fn.apply(HUMBOLDT_SAMPLING_EFFORT_VALUE))
+              .ifPresent(humboldt::setSamplingEffortValue);
+          getStringValue(h, fn.apply(HUMBOLDT_SAMPLING_EFFORT_UNIT))
+              .ifPresent(humboldt::setSamplingEffortUnit);
+
+          return humboldt;
+        };
+
+    getObjectsListValue(hit, HUMBOLDT_ITEMS)
+        .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
+        .ifPresent(event::setHumboldt);
+  }
+
+  private Optional<Map<String, List<Humboldt.TaxonClassification>>>
+      createHumboldtTaxonClassification(Map<String, Object> fields, String fieldName) {
+    return getMapValue(fields, fieldName)
+        .map(
+            c ->
+                c.entrySet().stream()
+                    .collect(
+                        Collectors.toMap(
+                            Map.Entry::getKey,
+                            classification -> {
+                              List<Map<String, Object>> values =
+                                  (List<Map<String, Object>>) classification.getValue();
+                              List<Humboldt.TaxonClassification> taxonClassifications =
+                                  new ArrayList<>();
+                              if (values != null && !values.isEmpty()) {
+                                values.forEach(
+                                    value -> {
+                                      Humboldt.TaxonClassification taxonClassification =
+                                          new Humboldt.TaxonClassification();
+                                      taxonClassification.setUsageKey(
+                                          (String) value.get("usageKey"));
+                                      taxonClassification.setUsageName(
+                                          (String) value.get("usageName"));
+                                      taxonClassification.setUsageRank(
+                                          (String) value.get("usageRank"));
+                                      taxonClassification.setIssues(
+                                          (List<String>) value.get("issues"));
+
+                                      Map<String, String> classificationKeys =
+                                          (Map<String, String>) value.get("classificationKeys");
+                                      taxonClassification.setClassification(
+                                          ((Map<String, String>) value.get("classification"))
+                                              .entrySet().stream()
+                                                  .map(
+                                                      e ->
+                                                          new RankedName(
+                                                              classificationKeys.get(e.getKey()),
+                                                              e.getValue(),
+                                                              e.getKey(),
+                                                              null))
+                                                  .collect(Collectors.toList()));
+
+                                      taxonClassifications.add(taxonClassification);
+                                    });
+                              }
+                              return taxonClassifications;
+                            })));
   }
 
   private void setEventLineageData(SearchHit hit, Event event) {
@@ -417,8 +620,14 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getStringValue(hit, EventEsField.PARENT_EVENT_ID).ifPresent(event::setParentEventID);
     getStringValue(hit, EVENT_TYPE).ifPresent(event::setEventType);
     getObjectsListValue(hit, EventEsField.PARENTS_LINEAGE)
-      .map(v -> v.stream().map(l -> new Event.ParentLineage((String)l.get("id"), (String)l.get("eventType")))
-        .collect(Collectors.toList()))
-      .ifPresent(event::setParentsLineage);
+        .map(
+            v ->
+                v.stream()
+                    .map(
+                        l ->
+                            new Event.ParentLineage(
+                                (String) l.get("id"), (String) l.get("eventType")))
+                    .collect(Collectors.toList()))
+        .ifPresent(event::setParentsLineage);
   }
 }

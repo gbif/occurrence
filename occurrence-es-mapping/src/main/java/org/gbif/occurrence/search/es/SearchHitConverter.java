@@ -13,10 +13,7 @@
  */
 package org.gbif.occurrence.search.es;
 
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
-import org.gbif.dwc.terms.UnknownTerm;
-
+import com.google.common.base.Strings;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -25,13 +22,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.elasticsearch.search.SearchHit;
-
-import com.google.common.base.Strings;
-
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.search.SearchHit;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
+import org.gbif.dwc.terms.UnknownTerm;
 
 @Slf4j
 @Data
@@ -113,7 +109,8 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
 
   protected final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
 
-  protected Optional<String> getChecklistStringValue(SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
+  protected Optional<String> getChecklistStringValue(
+      SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
     String fieldName = esField.getSearchFieldName(defaultChecklistKey);
     Map<String, Object> fields = hit.getSourceAsMap();
     fields = getNestedFieldValue(fields, fieldName);
@@ -121,7 +118,8 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
     return extractStringValue(fields, fieldName);
   }
 
-  protected Optional<Integer> getChecklistIntValue(SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
+  protected Optional<Integer> getChecklistIntValue(
+      SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
     String fieldName = esField.getSearchFieldName(defaultChecklistKey);
     Map<String, Object> fields = hit.getSourceAsMap();
     fields = getNestedFieldValue(fields, fieldName);
@@ -149,6 +147,10 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
     return getValue(hit, esField, Double::valueOf);
   }
 
+  protected Optional<Double> getDoubleValue(Map<String, Object> fields, String fieldName) {
+    return getValue(fields, fieldName, Double::valueOf);
+  }
+
   protected Optional<Date> getDateValue(SearchHit hit, EsField esField) {
     return getValue(hit, esField, STRING_TO_DATE);
   }
@@ -157,8 +159,22 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
     return getValue(hit, esField, Boolean::valueOf);
   }
 
+  protected Optional<Boolean> getBooleanValue(Map<String, Object> fields, String fieldName) {
+    return getValue(fields, fieldName, Boolean::valueOf);
+  }
+
   public String getValueFieldName(EsField occurrenceEsField) {
     return occurrenceEsField.getValueFieldName();
+  }
+
+  protected Optional<List<String>> getListValue(Map<String, Object> fields, String fieldName) {
+    return getComplexValue(
+        fields,
+        fieldName,
+        v -> {
+          List<String> value = (List<String>) v;
+          return value.isEmpty() ? null : value;
+        });
   }
 
   protected Optional<List<String>> getListValue(SearchHit hit, EsField esField) {
@@ -166,13 +182,7 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
   }
 
   protected Optional<List<String>> getListValue(SearchHit hit, String fieldName) {
-    return getComplexValue(
-        hit,
-        fieldName,
-        v -> {
-          List<String> value = (List<String>) v;
-          return value.isEmpty() ? null : value;
-        });
+    return getListValue(hit.getSourceAsMap(), fieldName);
   }
 
   protected Optional<String> getListValueAsString(SearchHit hit, EsField esField) {
@@ -196,6 +206,17 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
   protected Optional<Map<String, Object>> getMapValue(SearchHit hit, String fieldName) {
     return getComplexValue(
         hit,
+        fieldName,
+        v -> {
+          Map<String, Object> value = (Map<String, Object>) v;
+          return value.keySet().isEmpty() ? null : value;
+        });
+  }
+
+  protected Optional<Map<String, Object>> getMapValue(
+      Map<String, Object> fields, String fieldName) {
+    return getComplexValue(
+        fields,
         fieldName,
         v -> {
           Map<String, Object> value = (Map<String, Object>) v;
@@ -240,7 +261,11 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
 
   protected <T> Optional<T> getComplexValue(
       SearchHit hit, String fieldName, Function<Object, T> mapper) {
-    Map<String, Object> fields = hit.getSourceAsMap();
+    return getComplexValue(hit.getSourceAsMap(), fieldName, mapper);
+  }
+
+  protected <T> Optional<T> getComplexValue(
+      Map<String, Object> fields, String fieldName, Function<Object, T> mapper) {
     if (isNested(fieldName)) {
       fields = getNestedFieldValue(fields, fieldName);
       fieldName = getNestedFieldName(fieldName);
@@ -249,8 +274,15 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
   }
 
   protected <T> Optional<T> getValue(SearchHit hit, EsField esField, Function<String, T> mapper) {
-    String fieldName = getValueFieldName(esField);
-    Map<String, Object> fields = hit.getSourceAsMap();
+    return getValue(hit.getSourceAsMap(), getValueFieldName(esField), mapper);
+  }
+
+  protected Optional<String> getStringValue(Map<String, Object> fields, String fieldName) {
+    return getValue(fields, fieldName, Function.identity());
+  }
+
+  protected <T> Optional<T> getValue(
+      Map<String, Object> fields, String fieldName, Function<String, T> mapper) {
     if (isNested(fieldName)) {
       fields = getNestedFieldValue(fields, fieldName);
       fieldName = getNestedFieldName(fieldName);

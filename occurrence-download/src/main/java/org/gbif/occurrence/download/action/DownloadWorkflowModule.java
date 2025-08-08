@@ -222,7 +222,7 @@ public class DownloadWorkflowModule  {
   public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType,
                                                           String defaultChecklistKey) {
     return WorkflowConfiguration.SearchType.OCCURRENCE == searchType ?
-      OccurrenceEsField.buildFieldMapper(defaultChecklistKey) : EventEsField.buildFieldMapper();
+      OccurrenceEsField.buildFieldMapper(defaultChecklistKey) : EventEsField.buildFieldMapper(defaultChecklistKey);
   }
 
   /**

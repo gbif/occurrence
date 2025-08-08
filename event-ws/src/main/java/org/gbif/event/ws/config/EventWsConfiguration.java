@@ -72,9 +72,11 @@ public class EventWsConfiguration {
   @Configuration
   public static class EventSearchConfigurationWs extends OccurrenceSearchConfiguration {
 
+    // TODO: is this needed
     @Value("${defaultChecklistKey}")
     protected String defaultChecklistKey;
 
+    // TODO: is this needed
     @Bean
     public OccurrenceBaseEsFieldMapper esFieldMapper() {
       return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);

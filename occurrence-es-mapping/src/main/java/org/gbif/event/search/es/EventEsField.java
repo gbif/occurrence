@@ -24,6 +24,7 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -31,6 +32,7 @@ import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.search.es.BaseEsField;
+import org.gbif.occurrence.search.es.ChecklistEsField;
 import org.gbif.occurrence.search.es.EsField;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 
@@ -208,6 +210,63 @@ public enum EventEsField implements EsField {
   LOCATION_ID(new BaseEsField("event.locationID", DwcTerm.locationID)),
   PARENTS_LINEAGE(new BaseEsField("event.parentsLineage", UnknownTerm.build("event.parentsLineage"))),
 
+  // Humboldt
+  HUMBOLDT_ITEMS(new BaseEsField("event.humboldt", null)),
+  HUMBOLDT_SITE_COUNT(new BaseEsField("event.humboldt.siteCount", EcoTerm.siteCount)),
+  HUMBOLDT_VERBATIM_SITE_NAMES(new BaseEsField("event.humboldt.verbatimSiteNames", EcoTerm.verbatimSiteNames)),
+  HUMBOLDT_VERBATIM_SITE_DESCRIPTIONS(new BaseEsField("event.humboldt.verbatimSiteDescriptions", EcoTerm.verbatimSiteDescriptions)),
+  HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE(new BaseEsField("event.humboldt.geospatialScopeArea.value", EcoTerm.geospatialScopeAreaValue)),
+  HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT(new BaseEsField("event.humboldt.geospatialScopeArea.unit", EcoTerm.geospatialScopeAreaUnit)),
+  HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE(new BaseEsField("event.humboldt.totalAreaSampled.value", EcoTerm.totalAreaSampledValue)),
+  HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT(new BaseEsField("event.humboldt.totalAreaSampled.unit", EcoTerm.totalAreaSampledUnit)),
+  HUMBOLDT_TARGET_HABITAT_SCOPE(new BaseEsField("event.humboldt.targetHabitatScope", EcoTerm.targetHabitatScope)),
+  HUMBOLDT_EXCLUDED_HABITAT_SCOPE(new BaseEsField("event.humboldt.excludedHabitatScope", EcoTerm.excludedHabitatScope)),
+  HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES(new BaseEsField("event.humboldt.eventDurationValueInMinutes", null)),
+  HUMBOLDT_EVENT_DURATION_VALUE(new BaseEsField("event.humboldt.eventDurationValue.value", EcoTerm.eventDurationValue)),
+  HUMBOLDT_EVENT_DURATION_UNIT(new BaseEsField("event.humboldt.eventDurationValue.unit", EcoTerm.eventDurationUnit)),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE(new BaseEsField("event.humboldt.targetTaxonomicScope", EcoTerm.targetTaxonomicScope)),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usageName", null)),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usageKey", null)),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.taxonKeys", null)),
+  HUMBOLDT_TAXONOMIC_ISSUE(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.issues", GbifTerm.taxonomicIssue)),
+  HUMBOLDT_EXCLUDED_TAXONOMIC_SCOPE(new BaseEsField("event.humboldt.excludedTaxonomicScope", EcoTerm.excludedTaxonomicScope)),
+  HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS(new BaseEsField("event.humboldt.taxonCompletenessProtocols", EcoTerm.taxonCompletenessProtocols)),
+  HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED(new BaseEsField("event.humboldt.isTaxonomicScopeFullyReported", EcoTerm.isTaxonomicScopeFullyReported)),
+  HUMBOLDT_IS_ABSENCE_REPORTED(new BaseEsField("event.humboldt.isAbsenceReported", EcoTerm.isAbsenceReported)),
+  HUMBOLDT_ABSENT_TAXA(new BaseEsField("event.humboldt.absentTaxa", EcoTerm.absentTaxa)),
+  HUMBOLDT_HAS_NON_TARGET_TAXA(new BaseEsField("event.humboldt.hasNonTargetTaxa", EcoTerm.hasNonTargetTaxa)),
+  HUMBOLDT_NON_TARGET_TAXA(new BaseEsField("event.humboldt.nonTargetTaxa", EcoTerm.nonTargetTaxa)),
+  HUMBOLDT_ARE_NON_TARGET_TAXA_FULLY_REPORTED(new BaseEsField("event.humboldt.areNonTargetTaxaFullyReported", EcoTerm.areNonTargetTaxaFullyReported)),
+  HUMBOLDT_TARGET_LIFE_STAGE_SCOPE(new BaseEsField("event.humboldt.targetLifeStageScope.lineage", "event.humboldt.targetLifeStageScope.concept", EcoTerm.targetLifeStageScope)),
+  HUMBOLDT_EXCLUDED_LIFE_STAGE_SCOPE(new BaseEsField("event.humboldt.excludedLifeStageScope.lineage", "event.humboldt.excludedLifeStageScope.concept", EcoTerm.excludedLifeStageScope)),
+  HUMBOLDT_IS_LIFE_STAGE_SCOPE_FULLY_REPORTED(new BaseEsField("event.humboldt.isLifeStageScopeFullyReported", EcoTerm.isLifeStageScopeFullyReported)),
+  HUMBOLDT_TARGET_DEGREE_OF_ESTABLISHMENT_SCOPE(new BaseEsField("event.humboldt.targetDegreeOfEstablishmentScope.lineage", "event.humboldt.targetDegreeOfEstablishmentScope.concept", EcoTerm.targetDegreeOfEstablishmentScope)),
+  HUMBOLDT_EXCLUDED_DEGREE_OF_ESTABLISHMENT_SCOPE(new BaseEsField("event.humboldt.excludedDegreeOfEstablishmentScope.lineage", "event.humboldt.excludedDegreeOfEstablishmentScope.concept", EcoTerm.excludedDegreeOfEstablishmentScope)),
+  HUMBOLDT_IS_DEGREE_OF_ESTABLISHMENT_SCOPE_FULLY_REPORTED(new BaseEsField("event.humboldt.isDegreeOfEstablishmentScopeFullyReported", EcoTerm.isDegreeOfEstablishmentScopeFullyReported)),
+  HUMBOLDT_TARGET_GROWTH_FORM_SCOPE(new BaseEsField("event.humboldt.targetGrowthFormScope", EcoTerm.targetGrowthFormScope)),
+  HUMBOLDT_EXCLUDED_GROWTH_FORM_SCOPE(new BaseEsField("event.humboldt.excludedGrowthFormScope", EcoTerm.excludedGrowthFormScope)),
+  HUMBOLDT_IS_GROWTH_FORM_SCOPE_FULLY_REPORTED(new BaseEsField("event.humboldt.isGrowthFormScopeFullyReported", EcoTerm.isGrowthFormScopeFullyReported)),
+  HUMBOLDT_HAS_NON_TARGET_ORGANISMS(new BaseEsField("event.humboldt.hasNonTargetOrganisms", EcoTerm.hasNonTargetOrganisms)),
+  HUMBOLDT_COMPILATION_TYPES(new BaseEsField("event.humboldt.compilationTypes", EcoTerm.compilationTypes)),
+  HUMBOLDT_COMPILATION_SOURCE_TYPES(new BaseEsField("event.humboldt.compilationSourceTypes", EcoTerm.compilationSourceTypes)),
+  HUMBOLDT_INVENTORY_TYPES(new BaseEsField("event.humboldt.inventoryTypes", EcoTerm.inventoryTypes)),
+  HUMBOLDT_PROTOCOL_NAMES(new BaseEsField("event.humboldt.protocolNames", EcoTerm.protocolNames)),
+  HUMBOLDT_PROTOCOL_DESCRIPTIONS(new BaseEsField("event.humboldt.protocolDescriptions", EcoTerm.protocolDescriptions)),
+  HUMBOLDT_PROTOCOL_REFERENCES(new BaseEsField("event.humboldt.protocolReferences", EcoTerm.protocolReferences)),
+  HUMBOLDT_IS_ABUNDANCE_REPORTED(new BaseEsField("event.humboldt.isAbundanceReported", EcoTerm.isAbundanceReported)),
+  HUMBOLDT_IS_ABUNDANCE_CAP_REPORTED(new BaseEsField("event.humboldt.isAbundanceCapReported", EcoTerm.isAbundanceCapReported)),
+  HUMBOLDT_ABUNDANCE_CAP(new BaseEsField("event.humboldt.abundanceCap", EcoTerm.abundanceCap)),
+  HUMBOLDT_IS_VEGETATION_COVER_REPORTED(new BaseEsField("event.humboldt.isVegetationCoverReported", EcoTerm.isVegetationCoverReported)),
+  HUMBOLDT_IS_LEAST_SPECIFIC_TARGET_CATEGORY_QUANTITY_INCLUSIVE(new BaseEsField("event.humboldt.isLeastSpecificTargetCategoryQuantityInclusive", EcoTerm.isLeastSpecificTargetCategoryQuantityInclusive)),
+  HUMBOLDT_HAS_VOUCHERS(new BaseEsField("event.humboldt.hasVouchers", EcoTerm.hasVouchers)),
+  HUMBOLDT_VOUCHER_INSTITUTIONS(new BaseEsField("event.humboldt.voucherInstitutions", EcoTerm.voucherInstitutions)),
+  HUMBOLDT_HAS_MATERIAL_SAMPLES(new BaseEsField("event.humboldt.hasMaterialSamples", EcoTerm.hasMaterialSamples)),
+  HUMBOLDT_MATERIAL_SAMPLE_TYPES(new BaseEsField("event.humboldt.materialSampleTypes", EcoTerm.materialSampleTypes)),
+  HUMBOLDT_SAMPLING_PERFORMED_BY(new BaseEsField("event.humboldt.samplingPerformedBy", EcoTerm.samplingPerformedBy)),
+  HUMBOLDT_IS_SAMPLING_EFFORT_REPORTED(new BaseEsField("event.humboldt.isSamplingEffortReported", EcoTerm.isSamplingEffortReported)),
+  HUMBOLDT_SAMPLING_EFFORT_VALUE(new BaseEsField("event.humboldt.samplingEffort.value", EcoTerm.samplingEffortValue)),
+  HUMBOLDT_SAMPLING_EFFORT_UNIT(new BaseEsField("event.humboldt.samplingEffort.unit", EcoTerm.samplingEffortUnit)),
+
   //Verbatim
   VERBATIM(new BaseEsField("verbatim", UnknownTerm.build("verbatim")));
 
@@ -220,7 +279,6 @@ public enum EventEsField implements EsField {
   EventEsField(BaseEsField esField) {
     this.esField = esField;
   }
-
 
   public static final ImmutableMap<OccurrenceSearchParameter, EsField> SEARCH_TO_ES_MAPPING =
     ImmutableMap.<OccurrenceSearchParameter, EsField>builder()
@@ -313,12 +371,53 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .put(OccurrenceSearchParameter.EVENT_TYPE, EVENT_TYPE)
       .put(OccurrenceSearchParameter.VERBATIM_EVENT_TYPE, VERBATIM_EVENT_TYPE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_SITE_COUNT, HUMBOLDT_SITE_COUNT)
+      .put(OccurrenceSearchParameter.HUMBOLDT_VERBATIM_SITE_NAMES, HUMBOLDT_VERBATIM_SITE_NAMES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE, HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT, HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE, HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT, HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_HABITAT_SCOPE, HUMBOLDT_TARGET_HABITAT_SCOPE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE, HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY)
+      .put(OccurrenceSearchParameter.TAXONOMIC_ISSUE, HUMBOLDT_TAXONOMIC_ISSUE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS, HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED, HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_ABSENCE_REPORTED, HUMBOLDT_IS_ABSENCE_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_HAS_NON_TARGET_TAXA, HUMBOLDT_HAS_NON_TARGET_TAXA)
+      .put(OccurrenceSearchParameter.HUMBOLDT_ARE_NON_TARGET_TAXA_FULLY_REPORTED, HUMBOLDT_ARE_NON_TARGET_TAXA_FULLY_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_LIFE_STAGE_SCOPE, HUMBOLDT_TARGET_LIFE_STAGE_SCOPE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_LIFE_STAGE_SCOPE_FULLY_REPORTED, HUMBOLDT_IS_LIFE_STAGE_SCOPE_FULLY_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_DEGREE_OF_ESTABLISHMENT_SCOPE, HUMBOLDT_TARGET_DEGREE_OF_ESTABLISHMENT_SCOPE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_DEGREE_OF_ESTABLISHMENT_SCOPE_FULLY_REPORTED, HUMBOLDT_IS_DEGREE_OF_ESTABLISHMENT_SCOPE_FULLY_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_GROWTH_FORM_SCOPE, HUMBOLDT_TARGET_GROWTH_FORM_SCOPE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_GROWTH_FORM_SCOPE_FULLY_REPORTED,HUMBOLDT_IS_GROWTH_FORM_SCOPE_FULLY_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_HAS_NON_TARGET_ORGANISMS, HUMBOLDT_HAS_NON_TARGET_ORGANISMS)
+      .put(OccurrenceSearchParameter.HUMBOLDT_COMPILATION_TYPES, HUMBOLDT_COMPILATION_TYPES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_COMPILATION_SOURCE_TYPES, HUMBOLDT_COMPILATION_SOURCE_TYPES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_INVENTORY_TYPES, HUMBOLDT_INVENTORY_TYPES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_PROTOCOL_NAMES, HUMBOLDT_PROTOCOL_NAMES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_ABUNDANCE_REPORTED, HUMBOLDT_IS_ABUNDANCE_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_ABUNDANCE_CAP_REPORTED, HUMBOLDT_IS_ABUNDANCE_CAP_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_ABUNDANCE_CAP, HUMBOLDT_ABUNDANCE_CAP)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_VEGETATION_COVER_REPORTED, HUMBOLDT_IS_VEGETATION_COVER_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_LEAST_SPECIFIC_TARGET_CATEGORY_QUANTITY_INCLUSIVE, HUMBOLDT_IS_LEAST_SPECIFIC_TARGET_CATEGORY_QUANTITY_INCLUSIVE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_HAS_VOUCHERS, HUMBOLDT_HAS_VOUCHERS)
+      .put(OccurrenceSearchParameter.HUMBOLDT_VOUCHER_INSTITUTIONS, HUMBOLDT_VOUCHER_INSTITUTIONS)
+      .put(OccurrenceSearchParameter.HUMBOLDT_HAS_MATERIAL_SAMPLES,HUMBOLDT_HAS_MATERIAL_SAMPLES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_MATERIAL_SAMPLE_TYPES, HUMBOLDT_MATERIAL_SAMPLE_TYPES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_PERFORMED_BY, HUMBOLDT_SAMPLING_PERFORMED_BY)
+      .put(OccurrenceSearchParameter.HUMBOLDT_IS_SAMPLING_EFFORT_REPORTED, HUMBOLDT_IS_SAMPLING_EFFORT_REPORTED)
+      .put(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_VALUE, HUMBOLDT_SAMPLING_EFFORT_VALUE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT, HUMBOLDT_SAMPLING_EFFORT_UNIT)
       .build();
 
   private static final Set<EsField> DATE_FIELDS =
     ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
-  public static OccurrenceBaseEsFieldMapper buildFieldMapper() {
+  public static OccurrenceBaseEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
     return OccurrenceBaseEsFieldMapper.builder()
       .fullTextField(FULL_TEXT)
       .geoShapeField(COORDINATE_SHAPE)
@@ -331,6 +430,7 @@ public enum EventEsField implements EsField {
       .searchToEsMapping(SEARCH_TO_ES_MAPPING)
       .dateFields(DATE_FIELDS)
       .fieldEnumClass(EventEsField.class)
+      .defaulChecklistKey(defaultChecklistKey)
       .build();
   }
 

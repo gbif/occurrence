@@ -13,8 +13,27 @@
  */
 package org.gbif.event.search.es;
 
-import lombok.Getter;
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
+import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import lombok.Getter;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.common.paging.PageableBase;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -35,33 +54,10 @@ import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import com.google.common.base.Preconditions;
-
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
 @Component
 public class EventSearchEs implements SearchService<Event, OccurrenceSearchParameter, OccurrenceSearchRequest> {
@@ -103,8 +99,8 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-    eventEsFieldMapper = EventEsField.buildFieldMapper();
-    occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper();
+    eventEsFieldMapper = EventEsField.buildFieldMapper(defaultChecklistKey);
+    occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper(defaultChecklistKey);
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient, nameUsageMatchingService);
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true, defaultChecklistKey);
