@@ -46,7 +46,8 @@ public class OccurrenceSearchResourceTest {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
       if (param == OccurrenceSearchParameter.EVENT_ID_HIERARCHY
         || param == OccurrenceSearchParameter.EVENT_TYPE
-        || param == OccurrenceSearchParameter.VERBATIM_EVENT_TYPE) {
+        || param == OccurrenceSearchParameter.VERBATIM_EVENT_TYPE
+        || param.name().startsWith("HUMBOLDT_")) {
         // skip events-only parameters
         continue;
       }
