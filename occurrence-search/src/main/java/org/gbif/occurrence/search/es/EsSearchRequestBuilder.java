@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
@@ -236,6 +237,8 @@ public class EsSearchRequestBuilder {
       // handle the switch from issue -> non-taxonomic issue if checklistKey supplied
       handleIssueQueries(params, bool);
 
+      handleHumboldtUnitsQueries(params, bool);
+
       // adding geometry to bool
       if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
         BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
@@ -312,12 +315,76 @@ public class EsSearchRequestBuilder {
   }
 
   /**
+   * These fields are nested so they need nested queries. it's not done in a generic way since this
+   * might not be necessary when/if the units get normalized as it happens with the event duration.
+   */
+  private void handleHumboldtUnitsQueries(
+      Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+
+    BiConsumer<OccurrenceSearchParameter, BoolQueryBuilder> addParam =
+        (p, boolQueryBuilder) -> {
+          if (params.containsKey(p)) {
+            String value = params.get(p).iterator().next();
+            EsField esField = occurrenceBaseEsFieldMapper.getEsField(p);
+            if (isNumericRange(value)) {
+              RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
+              boolQueryBuilder.must().add(rangeQueryBuilder);
+            } else {
+              boolQueryBuilder
+                  .must()
+                  .add(QueryBuilders.termQuery(esField.getSearchFieldName(), value));
+            }
+            params.remove(p);
+          }
+        };
+
+    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE)
+        || params.containsKey(OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT)) {
+      BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+      addParam.accept(
+          OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE, boolQueryBuilder);
+      addParam.accept(
+          OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT, boolQueryBuilder);
+
+      bool.filter()
+          .add(
+              QueryBuilders.nestedQuery(
+                  "event.humboldt.geospatialScopeArea", boolQueryBuilder, ScoreMode.None));
+    }
+
+    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE)
+        || params.containsKey(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT)) {
+      BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+      addParam.accept(
+          OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE, boolQueryBuilder);
+      addParam.accept(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT, boolQueryBuilder);
+
+      bool.filter()
+          .add(
+              QueryBuilders.nestedQuery(
+                  "event.humboldt.totalAreaSampled", boolQueryBuilder, ScoreMode.None));
+    }
+
+    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_VALUE)
+        || params.containsKey(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT)) {
+      BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+      addParam.accept(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_VALUE, boolQueryBuilder);
+      addParam.accept(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT, boolQueryBuilder);
+
+      bool.filter()
+          .add(
+              QueryBuilders.nestedQuery(
+                  "event.humboldt.samplingEffort", boolQueryBuilder, ScoreMode.None));
+    }
+  }
+
+  /**
    * Retrieve the checklistKey from the request or fallback to the configured default.
    *
    * @param params
    * @return
    */
-  public String getChecklistKey(Map<OccurrenceSearchParameter, Set<String>> params){
+  public String getChecklistKey(Map<OccurrenceSearchParameter, Set<String>> params) {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
       return params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
     }

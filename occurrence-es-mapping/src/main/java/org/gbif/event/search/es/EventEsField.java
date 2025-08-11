@@ -424,9 +424,7 @@ public enum EventEsField implements EsField {
       .geoDistanceField(COORDINATE_POINT)
       .uniqueIdField(ID)
       .defaultFilter(Optional.of(QueryBuilders.termQuery("type","event")))
-      .defaultSort(ImmutableList.of(SortBuilders.fieldSort(YEAR.getSearchFieldName()).order(SortOrder.DESC),
-                                    SortBuilders.fieldSort(MONTH.getSearchFieldName()).order(SortOrder.ASC),
-                                    SortBuilders.fieldSort(ID.getSearchFieldName()).order(SortOrder.ASC)))
+      .defaultSort(ImmutableList.of(SortBuilders.fieldSort("yearMonthGbifIdSort").order(SortOrder.ASC)))
       .searchToEsMapping(SEARCH_TO_ES_MAPPING)
       .dateFields(DATE_FIELDS)
       .fieldEnumClass(EventEsField.class)
