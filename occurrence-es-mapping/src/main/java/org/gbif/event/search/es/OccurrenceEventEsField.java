@@ -422,4 +422,9 @@ public enum OccurrenceEventEsField implements EsField {
   public boolean isUsingText() {
     return esField.isUsingText();
   }
+
+  @Override
+  public boolean isNestedField() {
+    return esField.isNestedField();
+  }
 }

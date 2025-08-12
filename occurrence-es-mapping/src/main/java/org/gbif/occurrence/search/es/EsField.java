@@ -48,6 +48,8 @@ public interface EsField {
 
   boolean isUsingText();
 
+  boolean isNestedField();
+
   default boolean isChildField() {
     return false;
   }

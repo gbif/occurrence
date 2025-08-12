@@ -215,15 +215,15 @@ public enum EventEsField implements EsField {
   HUMBOLDT_SITE_COUNT(new BaseEsField("event.humboldt.siteCount", EcoTerm.siteCount)),
   HUMBOLDT_VERBATIM_SITE_NAMES(new BaseEsField("event.humboldt.verbatimSiteNames", EcoTerm.verbatimSiteNames)),
   HUMBOLDT_VERBATIM_SITE_DESCRIPTIONS(new BaseEsField("event.humboldt.verbatimSiteDescriptions", EcoTerm.verbatimSiteDescriptions)),
-  HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE(new BaseEsField("event.humboldt.geospatialScopeArea.value", EcoTerm.geospatialScopeAreaValue)),
-  HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT(new BaseEsField("event.humboldt.geospatialScopeArea.unit", EcoTerm.geospatialScopeAreaUnit)),
-  HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE(new BaseEsField("event.humboldt.totalAreaSampled.value", EcoTerm.totalAreaSampledValue)),
-  HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT(new BaseEsField("event.humboldt.totalAreaSampled.unit", EcoTerm.totalAreaSampledUnit)),
+  HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE(new BaseEsField("event.humboldt.geospatialScopeArea.value", EcoTerm.geospatialScopeAreaValue, false, false, true)),
+  HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT(new BaseEsField("event.humboldt.geospatialScopeArea.unit", EcoTerm.geospatialScopeAreaUnit, false, false, true)),
+  HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE(new BaseEsField("event.humboldt.totalAreaSampled.value", EcoTerm.totalAreaSampledValue, false, false, true)),
+  HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT(new BaseEsField("event.humboldt.totalAreaSampled.unit", EcoTerm.totalAreaSampledUnit, false, false, true)),
   HUMBOLDT_TARGET_HABITAT_SCOPE(new BaseEsField("event.humboldt.targetHabitatScope", EcoTerm.targetHabitatScope)),
   HUMBOLDT_EXCLUDED_HABITAT_SCOPE(new BaseEsField("event.humboldt.excludedHabitatScope", EcoTerm.excludedHabitatScope)),
   HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES(new BaseEsField("event.humboldt.eventDurationValueInMinutes", null)),
-  HUMBOLDT_EVENT_DURATION_VALUE(new BaseEsField("event.humboldt.eventDurationValue.value", EcoTerm.eventDurationValue)),
-  HUMBOLDT_EVENT_DURATION_UNIT(new BaseEsField("event.humboldt.eventDurationValue.unit", EcoTerm.eventDurationUnit)),
+  HUMBOLDT_EVENT_DURATION_VALUE(new BaseEsField("event.humboldt.eventDuration.value", EcoTerm.eventDurationValue, false, false, true)),
+  HUMBOLDT_EVENT_DURATION_UNIT(new BaseEsField("event.humboldt.eventDuration.unit", EcoTerm.eventDurationUnit, false, false, true)),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE(new BaseEsField("event.humboldt.targetTaxonomicScope", EcoTerm.targetTaxonomicScope)),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usageName", null)),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usageKey", null)),
@@ -264,8 +264,8 @@ public enum EventEsField implements EsField {
   HUMBOLDT_MATERIAL_SAMPLE_TYPES(new BaseEsField("event.humboldt.materialSampleTypes", EcoTerm.materialSampleTypes)),
   HUMBOLDT_SAMPLING_PERFORMED_BY(new BaseEsField("event.humboldt.samplingPerformedBy", EcoTerm.samplingPerformedBy)),
   HUMBOLDT_IS_SAMPLING_EFFORT_REPORTED(new BaseEsField("event.humboldt.isSamplingEffortReported", EcoTerm.isSamplingEffortReported)),
-  HUMBOLDT_SAMPLING_EFFORT_VALUE(new BaseEsField("event.humboldt.samplingEffort.value", EcoTerm.samplingEffortValue)),
-  HUMBOLDT_SAMPLING_EFFORT_UNIT(new BaseEsField("event.humboldt.samplingEffort.unit", EcoTerm.samplingEffortUnit)),
+  HUMBOLDT_SAMPLING_EFFORT_VALUE(new BaseEsField("event.humboldt.samplingEffort.value", EcoTerm.samplingEffortValue, false, false, true)),
+  HUMBOLDT_SAMPLING_EFFORT_UNIT(new BaseEsField("event.humboldt.samplingEffort.unit", EcoTerm.samplingEffortUnit, false, false, true)),
 
   //Verbatim
   VERBATIM(new BaseEsField("verbatim", UnknownTerm.build("verbatim")));
@@ -378,7 +378,9 @@ public enum EventEsField implements EsField {
       .put(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE, HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE)
       .put(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT, HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT)
       .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_HABITAT_SCOPE, HUMBOLDT_TARGET_HABITAT_SCOPE)
-      .put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE, HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES, HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+      .put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE, HUMBOLDT_EVENT_DURATION_VALUE)
+      .put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_UNIT, HUMBOLDT_EVENT_DURATION_UNIT)
       .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME)
       .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY)
       .put(OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY)
@@ -455,5 +457,10 @@ public enum EventEsField implements EsField {
   @Override
   public boolean isUsingText() {
     return esField.isUsingText();
+  }
+
+  @Override
+  public boolean isNestedField() {
+    return esField.isNestedField();
   }
 }

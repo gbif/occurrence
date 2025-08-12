@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
@@ -321,61 +321,52 @@ public class EsSearchRequestBuilder {
   private void handleHumboldtUnitsQueries(
       Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
 
-    BiConsumer<OccurrenceSearchParameter, BoolQueryBuilder> addParam =
-        (p, boolQueryBuilder) -> {
-          if (params.containsKey(p)) {
-            String value = params.get(p).iterator().next();
-            EsField esField = occurrenceBaseEsFieldMapper.getEsField(p);
-            if (isNumericRange(value)) {
-              RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
-              boolQueryBuilder.must().add(rangeQueryBuilder);
-            } else {
-              boolQueryBuilder
-                  .must()
-                  .add(QueryBuilders.termQuery(esField.getSearchFieldName(), value));
+    Consumer<List<OccurrenceSearchParameter>> addParams =
+        (pList) -> {
+          boolean queryAdded = false;
+          EsField esField = null;
+          BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+          for (OccurrenceSearchParameter p : pList) {
+            if (params.containsKey(p)) {
+              queryAdded = true;
+              String value = params.get(p).iterator().next();
+              esField = occurrenceBaseEsFieldMapper.getEsField(p);
+              if (isNumericRange(value)) {
+                RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
+                boolQueryBuilder.must().add(rangeQueryBuilder);
+              } else {
+                boolQueryBuilder
+                    .must()
+                    .add(QueryBuilders.termQuery(esField.getSearchFieldName(), value));
+              }
+              params.remove(p);
             }
-            params.remove(p);
+          }
+
+          if (queryAdded) {
+            bool.filter()
+                .add(
+                    QueryBuilders.nestedQuery(
+                        esField
+                            .getSearchFieldName()
+                            .substring(0, esField.getSearchFieldName().lastIndexOf(".")),
+                        boolQueryBuilder,
+                        ScoreMode.None));
           }
         };
 
-    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE)
-        || params.containsKey(OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT)) {
-      BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-      addParam.accept(
-          OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE, boolQueryBuilder);
-      addParam.accept(
-          OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT, boolQueryBuilder);
-
-      bool.filter()
-          .add(
-              QueryBuilders.nestedQuery(
-                  "event.humboldt.geospatialScopeArea", boolQueryBuilder, ScoreMode.None));
-    }
-
-    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE)
-        || params.containsKey(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT)) {
-      BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-      addParam.accept(
-          OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE, boolQueryBuilder);
-      addParam.accept(OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT, boolQueryBuilder);
-
-      bool.filter()
-          .add(
-              QueryBuilders.nestedQuery(
-                  "event.humboldt.totalAreaSampled", boolQueryBuilder, ScoreMode.None));
-    }
-
-    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_VALUE)
-        || params.containsKey(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT)) {
-      BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-      addParam.accept(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_VALUE, boolQueryBuilder);
-      addParam.accept(OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT, boolQueryBuilder);
-
-      bool.filter()
-          .add(
-              QueryBuilders.nestedQuery(
-                  "event.humboldt.samplingEffort", boolQueryBuilder, ScoreMode.None));
-    }
+    addParams.accept(
+        List.of(
+            OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE,
+            OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT));
+    addParams.accept(
+        List.of(
+            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE,
+            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT));
+    addParams.accept(
+        List.of(
+            OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_VALUE,
+            OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT));
   }
 
   /**
@@ -654,7 +645,10 @@ public class EsSearchRequestBuilder {
   private List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
     final AtomicReference<GroupedParams> groupedParams = new AtomicReference<>();
     return searchRequest.getFacets().stream()
-        .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null || isDynamicRankParam(searchRequest, p))
+        .filter(
+            p ->
+                occurrenceBaseEsFieldMapper.getEsField(p) != null
+                    || isDynamicRankParam(searchRequest, p))
         .map(
             facetParam -> {
               EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
@@ -663,23 +657,38 @@ public class EsSearchRequestBuilder {
                   groupedParams.set(groupParameters(searchRequest, true));
                 }
                 return getChildrenAggregationBuilder(
-                  searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
+                    searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
               }
 
               // if a checklist has been supplied, then use the non taxonomic issues field
               if (facetParam.equals(OccurrenceSearchParameter.ISSUE)
-                && searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
+                  && searchRequest
+                      .getParameters()
+                      .containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
                 return buildTermsAggs(
-                  OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName(),
-                  OccurrenceEsField.NON_TAXONOMIC_ISSUE,
-                  searchRequest, facetParam);
+                    OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName(),
+                    OccurrenceEsField.NON_TAXONOMIC_ISSUE,
+                    searchRequest,
+                    facetParam);
+              }
+
+              if (esField != null && esField.isNestedField()) {
+                TermsAggregationBuilder termsAggregationBuilder =
+                    buildTermsAggs(
+                        esField.getSearchFieldName(), esField, searchRequest, facetParam);
+                return AggregationBuilders.nested(
+                        facetParam.name(),
+                        esField
+                            .getSearchFieldName()
+                            .substring(0, esField.getSearchFieldName().lastIndexOf('.')))
+                    .subAggregation(termsAggregationBuilder);
               }
 
               // handle taxonomy based fields
               if (isTaxonomic(facetParam)) {
                 BaseEsField field = null;
                 String esFieldName = null;
-                if (esField instanceof OccurrenceEsField){
+                if (esField instanceof OccurrenceEsField) {
                   field = ((OccurrenceEsField) esField).getEsField();
                   esFieldName = ((OccurrenceEsField) esField).name();
                 } else if (esField instanceof EventEsField) {
@@ -691,23 +700,27 @@ public class EsSearchRequestBuilder {
                   return buildTermsAggs(esFieldName, field, searchRequest, facetParam);
                 } else {
                   throw new IllegalArgumentException(
-                    "Facet "
-                      + facetParam
-                      + " is not a valid taxonomy field. Use the checklist field instead.");
+                      "Facet "
+                          + facetParam
+                          + " is not a valid taxonomy field. Use the checklist field instead.");
                 }
               }
 
               if (isDynamicRankParam(searchRequest, facetParam)) {
-                String esFieldToUse = String.format("classifications.%s.classificationKeys.%s",
-                  getChecklistKey(searchRequest.getParameters()),
-                  facetParam.getName().substring(0, facetParam.getName().length() - 4).toUpperCase()
-                );
+                String esFieldToUse =
+                    String.format(
+                        "classifications.%s.classificationKeys.%s",
+                        getChecklistKey(searchRequest.getParameters()),
+                        facetParam
+                            .getName()
+                            .substring(0, facetParam.getName().length() - 4)
+                            .toUpperCase());
 
                 return buildTermsAggs(facetParam.name(), esFieldToUse, searchRequest, facetParam);
               }
 
-              return buildTermsAggs(esField.getSearchFieldName(), esField, searchRequest, facetParam);
-
+              return buildTermsAggs(
+                  esField.getSearchFieldName(), esField, searchRequest, facetParam);
             })
         .collect(Collectors.toList());
   }

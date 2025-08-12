@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.search.es;
 
+import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
+
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.SearchResponse;
@@ -94,6 +96,8 @@ public class EsResponseParser<T extends VerbatimOccurrence> {
       return toBucketList((ParsedChildren) aggregation);
     } else if (aggregation instanceof ParsedParent) {
       return toBucketList((ParsedParent) aggregation);
+    } else if (aggregation instanceof ParsedNested) {
+      return toBucketList((ParsedNested) aggregation);
     } else {
       throw new IllegalArgumentException(aggregation.getClass() + " aggregation not supported");
     }
