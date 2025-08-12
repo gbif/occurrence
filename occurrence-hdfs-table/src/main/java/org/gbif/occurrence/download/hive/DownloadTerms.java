@@ -115,6 +115,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, GbifTerm.gbifID),
     Pair.of(Group.INTERPRETED, GbifTerm.datasetKey),
     Pair.of(Group.INTERPRETED, DwcTerm.occurrenceID),
+
     Pair.of(Group.INTERPRETED, DwcTerm.kingdom),
     Pair.of(Group.INTERPRETED, DwcTerm.phylum),
     Pair.of(Group.INTERPRETED, DwcTerm.class_),
@@ -125,6 +126,7 @@ public class DownloadTerms {
     Pair.of(Group.INTERPRETED, DwcTerm.infraspecificEpithet),
     Pair.of(Group.INTERPRETED, DwcTerm.taxonRank),
     Pair.of(Group.INTERPRETED, DwcTerm.scientificName),
+
     Pair.of(Group.VERBATIM, DwcTerm.scientificName),
     Pair.of(Group.VERBATIM, DwcTerm.scientificNameAuthorship),
     Pair.of(Group.INTERPRETED, DwcTerm.countryCode),
@@ -264,21 +266,6 @@ public class DownloadTerms {
     GbifInternalTerm.eventDateGte,
     GbifInternalTerm.eventDateLte
   );
-
-  /*
-   * The terms available for searching/selecting for occurrence SQL downloads.
-   */
-  public static final Set<Term> DOWNLOAD_SQL_VERBATIM_TERMS = DOWNLOAD_VERBATIM_TERMS;
-
-  /*
-   * The terms available for searching/selecting for occurrence SQL downloads.
-   */
-  public static final Set<Term> DOWNLOAD_SQL_TERMS = new ImmutableSet.Builder<Term>()
-    .addAll(DOWNLOAD_INTERPRETED_TERMS)
-    .addAll(DOWNLOAD_MULTIMEDIA_TERMS)
-    .addAll(INTERNAL_DOWNLOAD_TERMS)
-    .addAll(INTERNAL_SEARCH_TERMS)
-    .add(GbifTerm.verbatimScientificName).build();
 
   public static String simpleName(Pair<Group, Term> termPair) {
     Term term = termPair.getRight();

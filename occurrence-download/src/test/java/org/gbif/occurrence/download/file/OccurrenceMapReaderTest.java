@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.file;
 
+import org.gbif.api.model.Constants;
+import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -69,6 +71,26 @@ public class OccurrenceMapReaderTest {
     occurrence.setReferences(reference);
     occurrence.setLicense(License.CC_BY_4_0);
 
+    Classification classification = Classification.builder()
+      .usage(org.gbif.api.v2.Usage.builder()
+        .key("2440897")
+        .name(scientificName).build())
+      .acceptedUsage(org.gbif.api.v2.Usage.builder()
+        .key("2440897")
+        .name(scientificName).build())
+      .classification(List.of(
+        org.gbif.api.v2.RankedName.builder().name("Animalia").rank("KINGDOM").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Chordata").rank("PHYLUM").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Mammalia").rank("CLASS").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Perissodactyla").rank("ORDER").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Tapiridae").rank("FAMILY").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("Tapirus").rank("GENUS").key("1").build(),
+        org.gbif.api.v2.RankedName.builder().name("bairdii").rank("SPECIES").key("1").build()
+    )).build();
+
+    occurrence.setClassifications(
+      Map.of(Constants.NUB_DATASET_KEY.toString(), classification));
+
     //Varbatim fields not populated by Java fields must be copied into the result
     occurrence.setVerbatimField(DwcTerm.institutionCode, "INST");
 
@@ -95,7 +117,7 @@ public class OccurrenceMapReaderTest {
     occurrence.setIssues(issues);
 
 
-    Map<String,String> occurrenceMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence);
+    Map<String,String> occurrenceMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence, Constants.NUB_DATASET_KEY.toString());
 
     assertEquals(Country.COSTA_RICA.getIso2LetterCode(), occurrenceMap.get(DwcTerm.countryCode.simpleName()));
     assertEquals(Country.TRINIDAD_TOBAGO.getIso2LetterCode(), occurrenceMap.get(GbifTerm.publishingCountry.simpleName()));

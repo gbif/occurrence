@@ -49,6 +49,7 @@ public class DownloadQueryParameters {
       Download download,
       DownloadJobConfiguration jobConfiguration,
       WorkflowConfiguration workflowConfiguration) {
+
     DownloadQueryParameters.DownloadQueryParametersBuilder builder =
         DownloadQueryParameters.builder()
             .downloadTableName(jobConfiguration.getDownloadTableName())
@@ -56,6 +57,7 @@ public class DownloadQueryParameters {
             .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
             .database(workflowConfiguration.getHiveDb())
             .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
+
     if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
       SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
 

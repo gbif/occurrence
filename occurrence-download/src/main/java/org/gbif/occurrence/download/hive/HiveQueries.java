@@ -29,8 +29,10 @@ public class HiveQueries extends TsvQueries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term) {
-    if (TermUtils.isInterpretedLocalDateSeconds(term)) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey) {
+    if (TermUtils.isTaxonomic(term)) {
+      return toTaxonomicHiveInitializer(term, checklistKey);
+    } else if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {
       return toVocabularyConceptHiveInitializer(term);

@@ -13,17 +13,16 @@
  */
 package org.gbif.occurrence.download.file;
 
+import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.util.ClassificationUtils;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.api.vocabulary.Rank;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GadmTerm;
@@ -51,7 +50,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
@@ -61,28 +59,14 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
  */
 public class OccurrenceMapReader {
 
-  private OccurrenceMapReader() {
-    // NOP
-  }
-
-  public static final Map<Rank, Term> rank2KeyTerm =
-    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, GbifTerm.kingdomKey).put(Rank.PHYLUM, GbifTerm.phylumKey)
-      .put(Rank.CLASS, GbifTerm.classKey).put(Rank.ORDER, GbifTerm.orderKey).put(Rank.FAMILY, GbifTerm.familyKey)
-      .put(Rank.GENUS, GbifTerm.genusKey).put(Rank.SUBGENUS, GbifTerm.subgenusKey)
-      .put(Rank.SPECIES, GbifTerm.speciesKey).build();
-
-  public static final Map<Rank, Term> rank2Term =
-    ImmutableMap.<Rank, Term>builder().put(Rank.KINGDOM, DwcTerm.kingdom).put(Rank.PHYLUM, DwcTerm.phylum)
-      .put(Rank.CLASS, DwcTerm.class_).put(Rank.ORDER, DwcTerm.order).put(Rank.FAMILY, DwcTerm.family)
-      .put(Rank.GENUS, DwcTerm.genus).put(Rank.SUBGENUS, DwcTerm.subgenus)
-      .put(Rank.SPECIES, GbifTerm.species).build();
+  private OccurrenceMapReader() {}
 
   private static final ImmutableSet<Term> INTERPRETED_SOURCE_TERMS = ImmutableSet.copyOf(TermUtils.interpretedSourceTerms());
 
 
-  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence) {
+  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, String checklistKey) {
 
-    Map<String,String> interpretedOccurrence = new HashMap<>();
+    final Map<String,String> interpretedOccurrence = new HashMap<>();
 
     //Basic record terms
     interpretedOccurrence.put(GbifTerm.gbifID.simpleName(), getSimpleValue(occurrence.getKey()));
@@ -155,25 +139,31 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(occurrence.getEndDayOfYear()));
 
     // taxonomy terms
-    interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(), getSimpleValue(occurrence.getTaxonKey()));
-    interpretedOccurrence.put(GbifTerm.acceptedTaxonKey.simpleName(), getSimpleValue(occurrence.getAcceptedTaxonKey()));
-    interpretedOccurrence.put(DwcTerm.scientificName.simpleName(), occurrence.getScientificName());
-    interpretedOccurrence.put(GbifTerm.acceptedScientificName.simpleName(), occurrence.getAcceptedScientificName());
-    interpretedOccurrence.put(GbifTerm.verbatimScientificName.simpleName(), occurrence.getVerbatimScientificName());
-    interpretedOccurrence.put(DwcTerm.genericName.simpleName(), occurrence.getGenericName());
-    interpretedOccurrence.put(GbifTerm.subgenusKey.simpleName(), getSimpleValue(occurrence.getSubgenusKey()));
-    interpretedOccurrence.put(DwcTerm.specificEpithet.simpleName(), occurrence.getSpecificEpithet());
-    interpretedOccurrence.put(DwcTerm.infraspecificEpithet.simpleName(), occurrence.getInfraspecificEpithet());
-    interpretedOccurrence.put(DwcTerm.taxonRank.simpleName(), getSimpleValue(occurrence.getTaxonRank()));
-    interpretedOccurrence.put(DwcTerm.taxonomicStatus.simpleName(), getSimpleValue(occurrence.getTaxonomicStatus()));
-    interpretedOccurrence.put(DwcTerm.genericName.simpleName(), getSimpleValue(occurrence.getGenericName()));
-    Rank.DWC_RANKS.forEach(rank -> {
-                              Optional.ofNullable(ClassificationUtils.getHigherRankKey(occurrence, rank))
-                                .ifPresent(rankKey -> interpretedOccurrence.put(rank2KeyTerm.get(rank).simpleName(), rankKey.toString()));
-                              Optional.ofNullable(ClassificationUtils.getHigherRank(occurrence, rank))
-                                .ifPresent(rankClassification -> interpretedOccurrence.put(rank2Term.get(rank).simpleName(), rankClassification));
-                           });
-    interpretedOccurrence.put(IucnTerm.iucnRedListCategory.simpleName(), getSimpleValue(occurrence.getIucnRedListCategory()));
+    if (occurrence.getClassifications() != null && occurrence.getClassifications().containsKey(checklistKey)){
+      Classification classification = occurrence.getClassifications().get(checklistKey);
+      interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(),
+        getSimpleValue(classification.getUsage().getKey()));
+
+      interpretedOccurrence.put(GbifTerm.acceptedTaxonKey.simpleName(),
+        getSimpleValue(classification.getAcceptedUsage().getKey()));
+
+      interpretedOccurrence.put(DwcTerm.scientificName.simpleName(), occurrence.getScientificName());
+      interpretedOccurrence.put(GbifTerm.acceptedScientificName.simpleName(), occurrence.getAcceptedScientificName());
+      interpretedOccurrence.put(GbifTerm.verbatimScientificName.simpleName(), occurrence.getVerbatimScientificName());
+      interpretedOccurrence.put(DwcTerm.genericName.simpleName(), getSimpleValue(occurrence.getGenericName()));
+      interpretedOccurrence.put(GbifTerm.subgenusKey.simpleName(), getSimpleValue(occurrence.getSubgenusKey()));
+      interpretedOccurrence.put(DwcTerm.specificEpithet.simpleName(), occurrence.getSpecificEpithet());
+      interpretedOccurrence.put(DwcTerm.infraspecificEpithet.simpleName(), occurrence.getInfraspecificEpithet());
+      interpretedOccurrence.put(DwcTerm.taxonRank.simpleName(), getSimpleValue(occurrence.getTaxonRank()));
+      interpretedOccurrence.put(DwcTerm.taxonomicStatus.simpleName(), getSimpleValue(occurrence.getTaxonomicStatus()));
+      if (classification.getClassification() != null) {
+        classification.getClassification().forEach(rankName -> {
+          interpretedOccurrence.put(rankName.getRank().toLowerCase(), rankName.getName());
+          interpretedOccurrence.put(rankName.getRank().toLowerCase() + "Key", rankName.getKey());
+        });
+      }
+      interpretedOccurrence.put(IucnTerm.iucnRedListCategory.simpleName(), getSimpleValue(occurrence.getIucnRedListCategory()));
+    }
 
     //location fields
     interpretedOccurrence.put(DwcTerm.countryCode.simpleName(), getCountryCode(occurrence.getCountry()));
@@ -346,17 +336,12 @@ public class OccurrenceMapReader {
   /**
    * Builds Map that contains a lists of terms.
    */
-  public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    return  selectTerms(buildInterpretedOccurrenceMap(occurrence), terms);
-  }
-
-  /**
-   * Builds Map that contains a lists of terms.
-   */
   public static Map<String, String> selectTerms(Map<String,String> record, Collection<Pair<DownloadTerms.Group, Term>> terms) {
-    return  record.entrySet().stream()
-      .filter(entry -> terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
-      .collect(HashMap::new, (m,v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
+    return record.entrySet().stream()
+      .filter(entry ->
+        terms.stream().anyMatch(term -> term.getRight().simpleName().equals(entry.getKey())))
+      .collect(HashMap::new, (m,v) ->
+        m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
 
   /**

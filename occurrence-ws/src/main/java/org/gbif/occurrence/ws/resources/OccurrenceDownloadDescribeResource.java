@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
@@ -160,7 +161,7 @@ public class OccurrenceDownloadDescribeResource {
       .build();
 
     private final Table interpreted = Table.builder()
-      .fields(toFieldList(HIVE_QUERIES.selectInterpretedFields(false), true))
+      .fields(toFieldList(HIVE_QUERIES.selectInterpretedFields(false, Constants.NUB_DATASET_KEY.toString()), true))
       .build();
 
     private final List<String> verbatimExtensions =
@@ -288,7 +289,7 @@ public class OccurrenceDownloadDescribeResource {
 
   private static final Table SQL = Table.builder()
     .fields(ImmutableSet.<Field>builder()
-      .addAll(toTypedFieldList(HIVE_QUERIES.selectInterpretedFields(false), true))
+      .addAll(toTypedFieldList(HIVE_QUERIES.selectInterpretedFields(false, Constants.NUB_DATASET_KEY.toString()), true))
       .addAll(toTypedFieldList(HIVE_QUERIES.selectInternalSearchFields(false), true))
       .addAll(toTypedFieldList(HIVE_QUERIES.selectVerbatimFields(), false))
       .build()

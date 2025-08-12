@@ -91,13 +91,6 @@ public class DownloadWorkflowModule  {
 
   private final DownloadJobConfiguration downloadJobConfiguration;
 
-  private final String defaultChecklistKey = Constants.NUB_DATASET_KEY.toString();
-
-  /**
-   * DownloadPrepare action factory method.
-   * This is the initial action that counts records and its output is used to decide if a download is processed through Hive or Es.
-   */
-
   /**
    * Creates a DownloadService for Event or Occurrence downloads.
    */
@@ -219,10 +212,10 @@ public class DownloadWorkflowModule  {
     return highLevelClient;
   }
 
-  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType,
-                                                          String defaultChecklistKey) {
+
+  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType, String checklistKey) {
     return WorkflowConfiguration.SearchType.OCCURRENCE == searchType ?
-      OccurrenceEsField.buildFieldMapper(defaultChecklistKey) : EventEsField.buildFieldMapper(defaultChecklistKey);
+      OccurrenceEsField.buildFieldMapper(checklistKey) : EventEsField.buildFieldMapper(checklistKey);
   }
 
   /**
@@ -239,20 +232,27 @@ public class DownloadWorkflowModule  {
 
   private <T extends VerbatimOccurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
-      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType(),workflowConfiguration.getDefaultChecklistKey()), false);
+      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType(),
+        downloadJobConfiguration.getChecklistKey() != null ? downloadJobConfiguration.getChecklistKey() : workflowConfiguration.getDefaultChecklistKey()
+      ), false);
     }
-    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType(), workflowConfiguration.getDefaultChecklistKey()), false, defaultChecklistKey);
+    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType(),
+      downloadJobConfiguration.getChecklistKey() != null ? downloadJobConfiguration.getChecklistKey() : workflowConfiguration.getDefaultChecklistKey()
+    ), false);
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){
-    return  OccurrenceMapReader::buildVerbatimOccurrenceMap;
+    return OccurrenceMapReader::buildVerbatimOccurrenceMap;
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String,String>> interpreterMapper() {
     if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
-      return (T record) -> OccurrenceMapReader.buildInterpretedEventMap((Event)record);
+      return (T record) -> OccurrenceMapReader.buildInterpretedEventMap((Event) record);
     }
-    return  (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record);
+    return (T record) -> OccurrenceMapReader.buildInterpretedOccurrenceMap((Occurrence) record,
+      downloadJobConfiguration.getChecklistKey() != null ?
+        downloadJobConfiguration.getChecklistKey() : workflowConfiguration.getDefaultChecklistKey()
+    );
   }
 
   /** Creates an ActorRef that holds an instance of {@link DownloadMaster}. */

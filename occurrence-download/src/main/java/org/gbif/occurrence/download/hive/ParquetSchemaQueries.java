@@ -21,7 +21,7 @@ import java.util.Locale;
 
 
 /**
- * Utilities related to the actual queries executed at runtime — these functions for generating AVRO downloads.
+ * Utilities related to the actual queries executed at runtime — these functions for generating Parquet downloads.
  */
 class ParquetSchemaQueries extends Queries {
 
@@ -59,7 +59,7 @@ class ParquetSchemaQueries extends Queries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey) {
     return term.simpleName().toLowerCase(Locale.ROOT);
   }
 }

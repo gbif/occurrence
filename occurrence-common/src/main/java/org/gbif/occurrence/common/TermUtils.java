@@ -151,6 +151,48 @@ public class TermUtils {
    *
    * <p>These are all explicit Java properties on the {@link org.gbif.api.model.occurrence.Occurrence} class.
    */
+  private static final Set<Term> TAXON_TERMS_POPULATED_BY_INTERPRETATION = ImmutableSet.of(
+    DwcTerm.kingdom,
+    DwcTerm.phylum,
+    DwcTerm.class_,
+    DwcTerm.order,
+    DwcTerm.superfamily,
+    DwcTerm.family,
+    DwcTerm.subfamily,
+    DwcTerm.tribe,
+    DwcTerm.subtribe,
+    DwcTerm.genus,
+    DwcTerm.subgenus,
+    GbifTerm.species,
+    DwcTerm.scientificName,
+    DwcTerm.taxonRank,
+    DwcTerm.taxonomicStatus,
+    GbifTerm.acceptedScientificName,
+    DwcTerm.genericName,
+    DwcTerm.specificEpithet,
+    DwcTerm.infraspecificEpithet,
+    DwcTerm.infragenericEpithet,
+    GbifTerm.taxonKey,
+    GbifTerm.acceptedTaxonKey,
+    GbifTerm.kingdomKey,
+    GbifTerm.phylumKey,
+    GbifTerm.classKey,
+    GbifTerm.orderKey,
+    GbifTerm.familyKey,
+    GbifTerm.genusKey,
+    GbifTerm.subgenusKey,
+    GbifTerm.speciesKey,
+    GbifTerm.taxonomicIssue,
+    IucnTerm.iucnRedListCategory
+    );
+
+  /**
+   * The terms that are present only due to explicit interpretation.  These are often typed explicitly, such as Dates
+   * or are the result of a routine that has analyzed various verbatim fields and interpreted them into new values,
+   * such as the dwc:kingdom ... dwc:scientificName fields which are subject to a NUB lookup.
+   *
+   * <p>These are all explicit Java properties on the {@link org.gbif.api.model.occurrence.Occurrence} class.
+   */
   private static final Set<Term> TERMS_POPULATED_BY_INTERPRETATION = ImmutableSet.of(
       DwcTerm.decimalLatitude,
       DwcTerm.decimalLongitude,
@@ -433,6 +475,10 @@ public class TermUtils {
    */
   public static boolean isInterpretedLocalDateSeconds(Term term) {
     return SQLColumnsUtils.isInterpretedLocalDateSeconds(term);
+  }
+
+  public static boolean isTaxonomic(Term term) {
+    return TAXON_TERMS_POPULATED_BY_INTERPRETATION.contains(term);
   }
 
   /**

@@ -53,8 +53,10 @@ public class SparkDownloadWorkflow {
   public void run() {
     if (DownloadStage.CLEANUP != downloadStage) {
       Download download = getDownload();
+
       DownloadJobConfiguration jobConfiguration =
-          DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration.getHiveDBPath());
+          DownloadJobConfiguration.forSqlDownload(download, workflowConfiguration);
+
       DownloadQueryParameters queryParameters =
           DownloadQueryParameters.from(download, jobConfiguration, workflowConfiguration);
 
@@ -63,6 +65,9 @@ public class SparkDownloadWorkflow {
             .download(download)
             .queryExecutorSupplier(queryExecutorSupplier)
             .queryParameters(queryParameters)
+            .checklistKey(download.getRequest().getChecklistKey() !=null ?
+              download.getRequest().getChecklistKey()
+              : workflowConfiguration.getDefaultChecklistKey())
             .build()
             .runDownloadQuery();
       }
