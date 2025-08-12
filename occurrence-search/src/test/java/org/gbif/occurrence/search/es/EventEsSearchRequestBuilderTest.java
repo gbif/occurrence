@@ -141,8 +141,7 @@ public class EventEsSearchRequestBuilderTest {
   @Test
   public void humboldtEventDurationTest() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addParameter(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE, "2");
-    searchRequest.addParameter(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_UNIT, "minutes");
+    searchRequest.addParameter(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES, "2");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
