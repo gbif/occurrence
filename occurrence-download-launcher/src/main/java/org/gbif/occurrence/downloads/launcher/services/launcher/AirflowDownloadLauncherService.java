@@ -94,16 +94,9 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
 
     // If memory per core is greater than 0, calculate the total memory limit
     if (memoryPerCoreGb > 0) {
-      // Calculate the total memory overhead in MB
-      int totalMemoryOverheadMb =
-          sparkStaticConfiguration.getMemoryOverheadMb()
-              + sparkStaticConfiguration.getVectorMemory();
-
-      // Convert the total memory overhead to GB
-      long totalMemoryOverheadGb = totalMemoryOverheadMb / 1024L;
 
       // Calculate the total memory limit
-      long totalMemoryLimitGb = (memoryPerCoreGb * executorInstances) + totalMemoryOverheadGb;
+      long totalMemoryLimitGb = (memoryPerCoreGb * executorInstances);
 
       // If the total memory limit is less than the executor memory limit, return the total memory
       // limit
@@ -128,7 +121,6 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     int executorCpu =
         Integer.parseInt(
             sparkStaticConfiguration.getExecutorResources().getCpu().getMin().replace("m", ""));
-    int memoryOverhead = sparkStaticConfiguration.getMemoryOverheadMb();
     // Given as megabytes (Mi)
     int vectorMemory = sparkStaticConfiguration.getVectorMemory();
     // Given as whole CPUs
@@ -139,14 +131,13 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
         Double.valueOf(
                 Math.ceil(
                     (driverMemory
-                            + vectorMemory
-                            + sparkStaticConfiguration.getDriverMemoryOverheadMb())
+                            + vectorMemory)
                         / 1024d))
             .intValue();
     int driverMinResourceCpu = driverCpu + vectorCpu;
     // Executor
     int executorMinResourceMemory =
-        Double.valueOf(Math.ceil((executorMemory + memoryOverhead + vectorMemory) / 1024d))
+        Double.valueOf(Math.ceil((executorMemory + vectorMemory) / 1024d))
             .intValue();
     int executorMinResourceCpu = executorCpu + vectorCpu;
 
@@ -166,10 +157,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
                     sparkStaticConfiguration.getDriverResources().getMemory().getLimitGb() + "Gi")
                 .driverMinResourceMemory(driverMinResourceMemory + "Gi")
                 .driverMinResourceCpu(driverMinResourceCpu + "m")
-                .driverMemoryOverhead(
-                    String.valueOf(sparkStaticConfiguration.getDriverMemoryOverheadMb()))
                 // Executor
-                .memoryOverhead(String.valueOf(sparkStaticConfiguration.getMemoryOverheadMb()))
                 .executorMinResourceMemory(executorMinResourceMemory + "Gi")
                 .executorMinResourceCpu(executorMinResourceCpu + "m")
                 .executorMinCpu(sparkStaticConfiguration.getExecutorResources().getCpu().getMin())
