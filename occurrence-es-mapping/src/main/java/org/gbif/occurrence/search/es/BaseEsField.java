@@ -37,7 +37,7 @@ public class BaseEsField implements EsField {
   private boolean usingText;
 
   @Getter(onMethod = @__({@Override}))
-  private boolean isNestedField;
+  private String nestedPath;
 
   public BaseEsField(String searchFieldName, String valueFieldName, Term term) {
     this.searchFieldName = searchFieldName;
@@ -45,7 +45,6 @@ public class BaseEsField implements EsField {
     this.autoSuggest = false;
     this.valueFieldName = valueFieldName;
     this.usingText = false;
-    this.isNestedField = false;
   }
 
   public BaseEsField(String searchFieldName, Term term) {
@@ -54,7 +53,15 @@ public class BaseEsField implements EsField {
     this.autoSuggest = false;
     this.valueFieldName = searchFieldName;
     this.usingText = false;
-    this.isNestedField = false;
+  }
+
+  public BaseEsField(String searchFieldName, Term term, String nestedPath) {
+    this.searchFieldName = searchFieldName;
+    this.term = term;
+    this.autoSuggest = false;
+    this.valueFieldName = searchFieldName;
+    this.usingText = false;
+    this.nestedPath = nestedPath;
   }
 
   public BaseEsField(String searchFieldName, Term term, boolean autoSuggest) {
@@ -63,7 +70,6 @@ public class BaseEsField implements EsField {
     this.autoSuggest = autoSuggest;
     this.valueFieldName = searchFieldName;
     this.usingText = false;
-    this.isNestedField = false;
   }
 
   public BaseEsField(String searchFieldName, Term term, boolean autoSuggest, boolean usingText) {
@@ -72,15 +78,10 @@ public class BaseEsField implements EsField {
     this.autoSuggest = autoSuggest;
     this.valueFieldName = searchFieldName;
     this.usingText = usingText;
-    this.isNestedField = false;
   }
 
-  public BaseEsField(String searchFieldName, Term term, boolean autoSuggest, boolean usingText, boolean nestedField) {
-    this.searchFieldName = searchFieldName;
-    this.term = term;
-    this.autoSuggest = autoSuggest;
-    this.valueFieldName = searchFieldName;
-    this.usingText = usingText;
-    this.isNestedField = nestedField;
+  @Override
+  public boolean isNestedField() {
+    return nestedPath != null && !nestedPath.isEmpty();
   }
 }

@@ -454,6 +454,11 @@ public enum OccurrenceEsField implements EsField {
   }
 
   @Override
+  public String getNestedPath() {
+    return esField.getNestedPath();
+  }
+
+  @Override
   public Term getTerm() {
     return esField.getTerm();
   }

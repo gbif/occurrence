@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
@@ -187,7 +186,15 @@ public class EsSearchRequestBuilder {
       BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
           .must(QueryBuilders.termsQuery(esFieldToUse, params.get(taxonParam))
         );
-      bool.filter().add(checklistQuery);
+
+      EsField esField = occurrenceBaseEsFieldMapper.getEsField(taxonParam);
+      if (esField.isNestedField()) {
+        bool.filter()
+            .add(
+                QueryBuilders.nestedQuery(esField.getNestedPath(), checklistQuery, ScoreMode.None));
+      } else {
+        bool.filter().add(checklistQuery);
+      }
     }
   }
 
@@ -236,8 +243,6 @@ public class EsSearchRequestBuilder {
 
       // handle the switch from issue -> non-taxonomic issue if checklistKey supplied
       handleIssueQueries(params, bool);
-
-      handleHumboldtUnitsQueries(params, bool);
 
       // adding geometry to bool
       if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
@@ -312,61 +317,6 @@ public class EsSearchRequestBuilder {
       bool.filter().add(checklistQuery);
       params.remove(OccurrenceSearchParameter.ISSUE);
     }
-  }
-
-  /**
-   * These fields are nested so they need nested queries. it's not done in a generic way since this
-   * might not be necessary when/if the units get normalized as it happens with the event duration.
-   */
-  private void handleHumboldtUnitsQueries(
-      Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
-
-    Consumer<List<OccurrenceSearchParameter>> addParams =
-        (pList) -> {
-          boolean queryAdded = false;
-          EsField esField = null;
-          BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-          for (OccurrenceSearchParameter p : pList) {
-            if (params.containsKey(p)) {
-              queryAdded = true;
-              String value = params.get(p).iterator().next();
-              esField = occurrenceBaseEsFieldMapper.getEsField(p);
-              if (isNumericRange(value)) {
-                RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
-                boolQueryBuilder.must().add(rangeQueryBuilder);
-              } else {
-                boolQueryBuilder
-                    .must()
-                    .add(QueryBuilders.termQuery(esField.getSearchFieldName(), value));
-              }
-              params.remove(p);
-            }
-          }
-
-          if (queryAdded) {
-            bool.filter()
-                .add(
-                    QueryBuilders.nestedQuery(
-                        esField
-                            .getSearchFieldName()
-                            .substring(0, esField.getSearchFieldName().lastIndexOf(".")),
-                        boolQueryBuilder,
-                        ScoreMode.None));
-          }
-        };
-
-    addParams.accept(
-        List.of(
-            OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE,
-            OccurrenceSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_UNIT));
-    addParams.accept(
-        List.of(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_VALUE,
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT));
-    addParams.accept(
-        List.of(
-            OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_VALUE,
-            OccurrenceSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT));
   }
 
   /**
@@ -603,7 +553,7 @@ public class EsSearchRequestBuilder {
                   AggregationBuilders.filter(esField.getSearchFieldName(), bool);
 
               // build terms aggs and add it to the filter aggs
-              TermsAggregationBuilder termsAggs =
+              AggregationBuilder termsAggs =
                   buildTermsAggs(
                       "filtered_" + esField.getSearchFieldName(),
                       esField,
@@ -670,18 +620,6 @@ public class EsSearchRequestBuilder {
                     OccurrenceEsField.NON_TAXONOMIC_ISSUE,
                     searchRequest,
                     facetParam);
-              }
-
-              if (esField != null && esField.isNestedField()) {
-                TermsAggregationBuilder termsAggregationBuilder =
-                    buildTermsAggs(
-                        esField.getSearchFieldName(), esField, searchRequest, facetParam);
-                return AggregationBuilders.nested(
-                        facetParam.name(),
-                        esField
-                            .getSearchFieldName()
-                            .substring(0, esField.getSearchFieldName().lastIndexOf('.')))
-                    .subAggregation(termsAggregationBuilder);
               }
 
               // handle taxonomy based fields
@@ -751,7 +689,7 @@ public class EsSearchRequestBuilder {
             buildTermsAggs(esField.getSearchFieldName(), esField, searchRequest, facetParam));
   }
 
-  private TermsAggregationBuilder buildTermsAggs(
+  private AggregationBuilder buildTermsAggs(
       String aggName,
       EsField esField,
       OccurrenceSearchRequest searchRequest,
@@ -764,10 +702,23 @@ public class EsSearchRequestBuilder {
       fieldName = searchRequest.isMatchCase() ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
     }
 
-    return buildTermsAggs(aggName, fieldName, searchRequest, facetParam);
+    return buildTermsAggs(aggName, fieldName, searchRequest, facetParam, esField);
   }
 
-  private static TermsAggregationBuilder buildTermsAggs(String aggName, String fieldName, OccurrenceSearchRequest searchRequest, OccurrenceSearchParameter facetParam ) {
+  private static AggregationBuilder buildTermsAggs(
+    String aggName,
+    String fieldName,
+    OccurrenceSearchRequest searchRequest,
+    OccurrenceSearchParameter facetParam) {
+    return buildTermsAggs(aggName, fieldName, searchRequest, facetParam, null);
+  }
+
+  private static AggregationBuilder buildTermsAggs(
+      String aggName,
+      String fieldName,
+      OccurrenceSearchRequest searchRequest,
+      OccurrenceSearchParameter facetParam,
+      EsField esField) {
     // build aggs for the field
     TermsAggregationBuilder termsAggsBuilder =
         AggregationBuilders.terms(aggName)
@@ -788,7 +739,12 @@ public class EsSearchRequestBuilder {
     termsAggsBuilder.shardSize(
         CARDINALITIES.getOrDefault(facetParam, DEFAULT_SHARD_SIZE.applyAsInt(size)));
 
-    return termsAggsBuilder;
+    if (esField != null && esField.isNestedField()) {
+      return AggregationBuilders.nested(facetParam.name(), esField.getNestedPath())
+        .subAggregation(termsAggsBuilder);
+    } else {
+      return termsAggsBuilder;
+    }
   }
 
   private static int calculateAggsSize(
@@ -878,6 +834,13 @@ public class EsSearchRequestBuilder {
           .map(q -> JoinQueryBuilders.hasChildQuery(esField.childrenRelation(), q, ScoreMode.None))
           .collect(Collectors.toList());
     }
+
+    if (esField.isNestedField()) {
+      return queries.stream()
+          .map(q -> QueryBuilders.nestedQuery(esField.getNestedPath(), q, ScoreMode.None))
+          .collect(Collectors.toList());
+    }
+
     return queries;
   }
 

@@ -42,6 +42,8 @@ public interface EsField {
     return isAutoSuggest() ? getSearchFieldName() + ".suggest" : getSearchFieldName();
   }
 
+  String getNestedPath();
+
   Term getTerm();
 
   boolean isAutoSuggest();
