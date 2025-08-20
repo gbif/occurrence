@@ -61,6 +61,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
 
   private final List<FieldSortBuilder> defaultSort;
 
+  // FIXME: this shouldn't be an Optional
   private final Optional<QueryBuilder> defaultFilter;
 
   private final String defaulChecklistKey;

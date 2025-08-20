@@ -61,7 +61,7 @@ public class EventEsSearchRequestBuilderTest {
             .findValues(
                 "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".usageKey")
             .get(0)
-            .get(0)
+            .get(VALUE)
             .asText());
     assertEquals(
         "tk",
@@ -71,7 +71,7 @@ public class EventEsSearchRequestBuilderTest {
             .findValues(
                 "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".taxonKeys")
             .get(0)
-            .get(0)
+            .get(VALUE)
             .asText());
   }
 
@@ -84,6 +84,9 @@ public class EventEsSearchRequestBuilderTest {
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    assertFalse(jsonQuery.path(BOOL).path(FILTER).findPath(NESTED).isEmpty());
+    assertEquals(
+        "event.humboldt", jsonQuery.path(BOOL).path(FILTER).findPath(NESTED).path(PATH).asText());
     assertEquals(
         "iss",
         jsonQuery
@@ -91,7 +94,7 @@ public class EventEsSearchRequestBuilderTest {
             .path(FILTER)
             .findValues("event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".issues")
             .get(0)
-            .get(0)
+            .get(VALUE)
             .asText());
   }
 
@@ -113,7 +116,7 @@ public class EventEsSearchRequestBuilderTest {
             .path(FILTER)
             .findValues("event.humboldt.targetTaxonomicScope.key2.usageKey")
             .get(0)
-            .get(0)
+            .get(VALUE)
             .asText());
   }
 
@@ -131,17 +134,29 @@ public class EventEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     JsonNode aggs =
         jsonQuery.path(AGGREGATIONS).path(HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY.name());
+    assertEquals("event.humboldt", aggs.path(NESTED).path(PATH).asText());
     assertEquals(
         String.format(
             HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY.getSearchFieldName(), DEFAULT_CHECKLIST_KEY),
-        aggs.path(TERMS).path(FIELD).asText());
-    assertEquals(5, aggs.path(TERMS).path(SIZE).asInt());
+        aggs.path(AGGREGATIONS)
+            .path(HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY.name())
+            .path(TERMS)
+            .path(FIELD)
+            .asText());
+    assertEquals(
+        5,
+        aggs.path(AGGREGATIONS)
+            .path(HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY.name())
+            .path(TERMS)
+            .path(SIZE)
+            .asInt());
   }
 
   @Test
   public void humboldtEventDurationTest() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addParameter(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES, "2");
+    searchRequest.addParameter(
+        OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES, "2");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)

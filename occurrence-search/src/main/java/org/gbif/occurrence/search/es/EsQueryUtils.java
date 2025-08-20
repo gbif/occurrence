@@ -52,7 +52,9 @@ public class EsQueryUtils {
   public static final String TERMS = "terms";
   public static final String FILTER = "filter";
   public static final String SHOULD = "should";
+  public static final String NESTED = "nested";
   public static final String RANGE = "range";
+  public static final String PATH = "path";
   public static final String GTE = "gte";
   public static final String LTE = "lte";
   public static final String VALUE = "value";
