@@ -23,6 +23,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -40,9 +41,16 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
+
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
@@ -467,6 +475,14 @@ public class TableBackfill {
                 field -> {
                   String columnName = field.getColumnName();
 
+                  // TODO: only if it's the events table??
+                  if (columnName.equals(GbifInternalTerm.humboldtItem)) {
+                    return from_json(
+                            col("ext_humboldt"),
+                            new ArrayType(createHumboldtStructTypeFromJson(), true))
+                        .alias(columnName);
+                  }
+
                   // Check if column exists in the Avro file
                   if (availableColumns.contains(columnName)) {
                     return field.getInitializer().equals(columnName)
@@ -544,5 +560,60 @@ public class TableBackfill {
 
   private String renameTable(String oldTable, String newTable) {
     return String.format("ALTER TABLE %s RENAME TO %s", oldTable, newTable);
+  }
+
+  private static StructType createHumboldtStructTypeFromJson() {
+    Set<Term> terms = new HashSet<>(DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS);
+    terms.add(GbifInternalTerm.humboldtEventDurationValueInMinutes);
+
+    StructType structType = new StructType();
+    for (Term humboldtTerm : terms) {
+      String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);
+      DataType type = null;
+      switch (hiveDataType){
+        case HiveDataTypes.TYPE_STRING:
+          type = DataTypes.StringType;
+          break;
+        case HiveDataTypes.TYPE_ARRAY_STRING:
+          type = new ArrayType(DataTypes.StringType, true);
+          break;
+        case HiveDataTypes.TYPE_INT:
+          type = DataTypes.IntegerType;
+          break;
+        case HiveDataTypes.TYPE_ARRAY_INT:
+          type = new ArrayType(DataTypes.IntegerType, true);
+          break;
+        case HiveDataTypes.TYPE_DOUBLE:
+          type = DataTypes.DoubleType;
+          break;
+        case HiveDataTypes.TYPE_BOOLEAN:
+          type = DataTypes.BooleanType;
+          break;
+        case HiveDataTypes.TYPE_MAP_OF_MAP_LIST_STRUCT:
+          type =
+              new MapType(
+                  DataTypes.StringType,
+                  new ArrayType(
+                      new MapType(DataTypes.StringType, DataTypes.StringType, true), true),
+                  true);
+          break;
+        case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
+          type =
+              new ArrayType(
+                  new StructType()
+                      .add("concept", DataTypes.StringType, true)
+                      .add("lineage", new ArrayType(DataTypes.StringType, true)),
+                  true);
+          break;
+      }
+
+      if (type != null) {
+        structType.add(humboldtTerm.simpleName(), type, true);
+      } else {
+        log.warn("Type not found for humboldt term {}", humboldtTerm);
+      }
+    }
+
+    return structType;
   }
 }

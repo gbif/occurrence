@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
@@ -48,7 +49,8 @@ public class DownloadTerms {
     GbifTerm.gbifID, // returned multiple times, so excluded and treated by adding once at the beginning
     GbifInternalTerm.fragmentHash, // omitted entirely
     GbifInternalTerm.fragment, // omitted entirely
-    GbifTerm.numberOfOccurrences
+    GbifTerm.numberOfOccurrences,
+    GbifInternalTerm.humboldtEventDurationValueInMinutes
   );
 
   /**
@@ -266,6 +268,48 @@ public class DownloadTerms {
     GbifInternalTerm.eventDateGte,
     GbifInternalTerm.eventDateLte
   );
+
+  public static final Set<EcoTerm> DOWNLOAD_HUMBOLDT_TERMS =
+      Set.of(
+          EcoTerm.siteCount,
+          EcoTerm.verbatimSiteNames,
+          EcoTerm.eventDurationValue,
+          EcoTerm.eventDurationUnit,
+          EcoTerm.geospatialScopeAreaValue,
+          EcoTerm.geospatialScopeAreaUnit,
+          EcoTerm.totalAreaSampledValue,
+          EcoTerm.totalAreaSampledUnit,
+          EcoTerm.samplingEffortValue,
+          EcoTerm.samplingEffortUnit,
+          EcoTerm.targetHabitatScope,
+          EcoTerm.targetTaxonomicScope,
+          EcoTerm.taxonCompletenessProtocols,
+          EcoTerm.isTaxonomicScopeFullyReported,
+          EcoTerm.isAbsenceReported,
+          EcoTerm.hasNonTargetTaxa,
+          EcoTerm.areNonTargetTaxaFullyReported,
+          EcoTerm.targetLifeStageScope,
+          EcoTerm.isLifeStageScopeFullyReported,
+          EcoTerm.targetDegreeOfEstablishmentScope,
+          EcoTerm.isDegreeOfEstablishmentScopeFullyReported,
+          EcoTerm.targetGrowthFormScope,
+          EcoTerm.isGrowthFormScopeFullyReported,
+          EcoTerm.hasNonTargetOrganisms,
+          EcoTerm.compilationTypes,
+          EcoTerm.compilationSourceTypes,
+          EcoTerm.inventoryTypes,
+          EcoTerm.protocolNames,
+          EcoTerm.isAbundanceReported,
+          EcoTerm.isAbundanceCapReported,
+          EcoTerm.abundanceCap,
+          EcoTerm.isVegetationCoverReported,
+          EcoTerm.isLeastSpecificTargetCategoryQuantityInclusive,
+          EcoTerm.hasVouchers,
+          EcoTerm.voucherInstitutions,
+          EcoTerm.hasMaterialSamples,
+          EcoTerm.materialSampleTypes,
+          EcoTerm.samplingPerformedBy,
+          EcoTerm.isSamplingEffortReported);
 
   public static String simpleName(Pair<Group, Term> termPair) {
     Term term = termPair.getRight();

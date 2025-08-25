@@ -13,24 +13,27 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import static org.gbif.occurrence.common.TermUtils.isVocabulary;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.AbstractMap;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.google.common.collect.ImmutableSet;
-
-import static org.gbif.occurrence.common.TermUtils.isVocabulary;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.EcoTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
 /**
  * Utilities to provide the Hive data type for a given term.
@@ -39,11 +42,13 @@ import static org.gbif.occurrence.common.TermUtils.isVocabulary;
  * whether it is used in the verbatim or interpreted context.  E.g. dwc:decimalLatitude may be a hive STRING when used
  * in verbatim, but a DOUBLE when interpreted.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class HiveDataTypes {
 
   public static final String TYPE_STRING = "STRING";
   public static final String TYPE_BOOLEAN = "BOOLEAN";
   public static final String TYPE_INT = "INT";
+  public static final String TYPE_ARRAY_INT = "ARRAY<INT>";
   public static final String TYPE_DOUBLE = "DOUBLE";
   public static final String TYPE_BIGINT = "BIGINT";
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
@@ -51,6 +56,7 @@ public final class HiveDataTypes {
   public static final String TYPE_VOCABULARY_ARRAY_STRUCT = "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
   public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
   public static final String TYPE_MAP_OF_MAP_STRUCT = "MAP<STRING, MAP<STRING, STRING>>";
+  public static final String TYPE_MAP_OF_MAP_LIST_STRUCT = "MAP<STRING, ARRAY<MAP<STRING, STRING>>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
@@ -80,11 +86,22 @@ public final class HiveDataTypes {
       GbifTerm.lithostratigraphy,
       GbifTerm.biostratigraphy,
       GbifTerm.dnaSequenceID,
-      GbifTerm.checklistKey
+      GbifTerm.checklistKey,
+      EcoTerm.verbatimSiteNames,
+      EcoTerm.targetHabitatScope,
+      EcoTerm.taxonCompletenessProtocols,
+      EcoTerm.targetGrowthFormScope,
+      EcoTerm.compilationTypes,
+      EcoTerm.compilationSourceTypes,
+      EcoTerm.inventoryTypes,
+      EcoTerm.protocolNames,
+      EcoTerm.voucherInstitutions,
+      EcoTerm.materialSampleTypes,
+      EcoTerm.samplingPerformedBy
     );
 
   // dates are all stored as BigInt
-  private static final Set<Term> BIGINT_TERMS = ImmutableSet.of(
+  private static final Set<Term> BIGINT_TERMS = Set.of(
     DwcTerm.dateIdentified,
     GbifTerm.lastInterpreted,
     GbifTerm.lastParsed,
@@ -94,7 +111,7 @@ public final class HiveDataTypes {
     GbifInternalTerm.eventDateGte,
     GbifInternalTerm.eventDateLte);
 
-  private static final Set<Term> INT_TERMS = ImmutableSet.of(
+  private static final Set<Term> INT_TERMS = Set.of(
     DwcTerm.year,
     DwcTerm.month,
     DwcTerm.day,
@@ -104,7 +121,9 @@ public final class HiveDataTypes {
     GbifInternalTerm.identifierCount,
     DwcTerm.individualCount);
 
-  private static final Set<Term> DOUBLE_TERMS = ImmutableSet.of(
+  private static final Set<Term> ARRAY_INT_TERMS = Set.of(EcoTerm.siteCount, EcoTerm.abundanceCap);
+
+  private static final Set<Term> DOUBLE_TERMS = Set.of(
     DwcTerm.decimalLatitude,
     DwcTerm.decimalLongitude,
     DwcTerm.coordinateUncertaintyInMeters,
@@ -116,19 +135,36 @@ public final class HiveDataTypes {
     DwcTerm.organismQuantity,
     DwcTerm.sampleSizeValue,
     GbifTerm.relativeOrganismQuantity,
-    GbifTerm.distanceFromCentroidInMeters);
+    GbifTerm.distanceFromCentroidInMeters,
+    GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
-  private static final Set<Term> BOOLEAN_TERMS = ImmutableSet.of(
+  private static final Set<Term> BOOLEAN_TERMS = Set.of(
     GbifTerm.hasCoordinate,
     GbifTerm.hasGeospatialIssues,
     GbifTerm.repatriated,
     GbifInternalTerm.isInCluster,
-    GbifTerm.isSequenced);
+    GbifTerm.isSequenced,
+    EcoTerm.isTaxonomicScopeFullyReported,
+    EcoTerm.isAbsenceReported,
+    EcoTerm.hasNonTargetTaxa,
+    EcoTerm.areNonTargetTaxaFullyReported,
+    EcoTerm.isLifeStageScopeFullyReported,
+    EcoTerm.isDegreeOfEstablishmentScopeFullyReported,
+    EcoTerm.isGrowthFormScopeFullyReported,
+    EcoTerm.hasNonTargetOrganisms,
+    EcoTerm.isAbundanceReported,
+    EcoTerm.isAbundanceCapReported,
+    EcoTerm.isVegetationCoverReported,
+    EcoTerm.isLeastSpecificTargetCategoryQuantityInclusive,
+    EcoTerm.hasVouchers,
+    EcoTerm.hasMaterialSamples,
+    EcoTerm.isSamplingEffortReported);
 
   static {
     // build the term type index of Term -> Type
     TYPED_TERMS = Stream.of(
       INT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_INT)),
+      ARRAY_INT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_ARRAY_INT)),
       BIGINT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BIGINT)),
       DOUBLE_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_DOUBLE)),
       BOOLEAN_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BOOLEAN)),
@@ -166,15 +202,35 @@ public final class HiveDataTypes {
       return TYPE_MAP_STRUCT;
     } else if (term.equals(GbifInternalTerm.classificationDetails)) {
       return TYPE_MAP_OF_MAP_STRUCT;
+    } else if (term.equals(EcoTerm.targetTaxonomicScope)) {
+      return TYPE_MAP_OF_MAP_LIST_STRUCT;
+    } else if (term.equals(GbifInternalTerm.humboldtItem)) {
+      return createHumboldtStruct();
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }
   }
 
-  /**
-   * Hidden constructor.
-   */
-  private HiveDataTypes() {
-    //empty default constructor.
+  public static String createHumboldtStruct() {
+    Set<Term> terms = new HashSet<>(DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS);
+    terms.add(GbifInternalTerm.humboldtEventDurationValueInMinutes);
+
+    StringBuilder struct = new StringBuilder();
+    struct.append("ARRAY<STRUCT<");
+    for (Iterator<Term> iterator = terms.iterator(); iterator.hasNext(); ) {
+      Term humboldtTerm = iterator.next();
+      String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);
+      struct.append(humboldtTerm.simpleName().toLowerCase());
+      struct.append(":");
+      struct.append(hiveDataType);
+
+      if (iterator.hasNext()) {
+        struct.append(",");
+      }
+    }
+
+    struct.append(">>");
+
+    return struct.toString();
   }
 }
