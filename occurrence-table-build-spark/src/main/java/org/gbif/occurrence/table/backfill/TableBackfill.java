@@ -604,7 +604,14 @@ public class TableBackfill {
               new ArrayType(
                   new StructType()
                       .add("concept", DataTypes.StringType, true)
-                      .add("lineage", new ArrayType(DataTypes.StringType, true)),
+                      .add("lineage", new ArrayType(DataTypes.StringType, true))
+                      .add(
+                          "tags",
+                          new ArrayType(
+                              new StructType()
+                                  .add("name", DataTypes.StringType)
+                                  .add("value", DataTypes.StringType),
+                              true)),
                   true);
           break;
       }
