@@ -605,11 +605,9 @@ public class TableBackfill {
           break;
         case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
           type =
-              new ArrayType(
-                  new StructType()
-                      .add("concepts", new ArrayType(DataTypes.StringType, true))
-                      .add("lineage", new ArrayType(DataTypes.StringType, true)),
-                  true);
+              new StructType()
+                  .add("concepts", new ArrayType(DataTypes.StringType, true))
+                  .add("lineage", new ArrayType(DataTypes.StringType, true));
           break;
       }
 
