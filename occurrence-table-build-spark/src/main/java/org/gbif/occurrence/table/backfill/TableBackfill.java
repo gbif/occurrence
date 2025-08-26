@@ -370,6 +370,8 @@ public class TableBackfill {
     return String.format("%s_multimedia", configuration.getTableName());
   }
 
+  // TODO: do the same for the humboldt table
+
   public void insertOverwriteMultimediaTable(SparkSession spark) {
     spark
         .table(configuration.getTableNameWithPrefix())
@@ -476,7 +478,7 @@ public class TableBackfill {
                   String columnName = field.getColumnName();
 
                   // TODO: only if it's the events table??
-                  if (columnName.equals(GbifInternalTerm.humboldtItem)) {
+                  if (columnName.equals(GbifInternalTerm.humboldtItem.name())) {
                     return from_json(
                             col("ext_humboldt"),
                             new ArrayType(createHumboldtStructTypeFromJson(), true))
