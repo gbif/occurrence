@@ -613,11 +613,7 @@ public class TableBackfill {
       }
 
       if (type != null) {
-        String columnName = humboldtTerm.simpleName();
-        if (TermUtils.isVocabulary(humboldtTerm) && TermUtils.isArray(humboldtTerm)) {
-          columnName += "VocabList";
-        }
-        structType = structType.add(columnName, type, true);
+        structType = structType.add(humboldtTerm.simpleName(), type, true);
       } else {
         log.warn("Type not found for humboldt term {}", humboldtTerm);
       }
