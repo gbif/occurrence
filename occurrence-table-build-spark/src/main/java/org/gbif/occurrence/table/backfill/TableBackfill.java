@@ -45,7 +45,6 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
-
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.hive.DownloadTerms;
@@ -243,7 +242,10 @@ public class TableBackfill {
       if (configuration.isUsePartitionedTable()) {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
-      log.info("Creating Avro table {} from source directory {}", configuration.getTableName(), fromSourceDir);
+      log.info(
+          "Creating Avro table {} from source directory {}",
+          configuration.getTableName(),
+          fromSourceDir);
       Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
@@ -267,9 +269,10 @@ public class TableBackfill {
     log.info("Create extension table: {}", extensionTable.getHiveTableName());
     spark.sparkContext().setJobDescription("Create " + extensionTable.getHiveTableName());
 
-    String extensionTableSql = configuration.isUsePartitionedTable()
-      ? createExtensionExternalTable(extensionTable)
-      : createExtensionTable(extensionTable);
+    String extensionTableSql =
+        configuration.isUsePartitionedTable()
+            ? createExtensionExternalTable(extensionTable)
+            : createExtensionTable(extensionTable);
 
     log.info("Creating extension table SQL {}", extensionTableSql);
     spark.sql(extensionTableSql);
@@ -536,12 +539,13 @@ public class TableBackfill {
                 log.info("Swapping Extension Table {}", extensionTableName(extensionTable));
                 if (spark.catalog().tableExists(extensionTableName(extensionTable))) {
                   spark.sql(
-                    renameTable(
-                      extensionTableName(extensionTable),
-                      "old_" + extensionTableName(extensionTable)));
+                      renameTable(
+                          extensionTableName(extensionTable),
+                          "old_" + extensionTableName(extensionTable)));
                 } else {
-                  log.info("Extension table {} does not exist - perhaps this is the first run ?, skipping rename",
-                    extensionTableName(extensionTable));
+                  log.info(
+                      "Extension table {} does not exist - perhaps this is the first run ?, skipping rename",
+                      extensionTableName(extensionTable));
                 }
                 spark.sql(
                     renameTable(
@@ -572,7 +576,7 @@ public class TableBackfill {
     for (Term humboldtTerm : terms) {
       String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);
       DataType type = null;
-      switch (hiveDataType){
+      switch (hiveDataType) {
         case HiveDataTypes.TYPE_STRING:
           type = DataTypes.StringType;
           break;
@@ -603,15 +607,8 @@ public class TableBackfill {
           type =
               new ArrayType(
                   new StructType()
-                      .add("concept", DataTypes.StringType, true)
-                      .add("lineage", new ArrayType(DataTypes.StringType, true))
-                      .add(
-                          "tags",
-                          new ArrayType(
-                              new StructType()
-                                  .add("name", DataTypes.StringType)
-                                  .add("value", DataTypes.StringType),
-                              true)),
+                      .add("concepts", new ArrayType(DataTypes.StringType, true))
+                      .add("lineage", new ArrayType(DataTypes.StringType, true)),
                   true);
           break;
       }
