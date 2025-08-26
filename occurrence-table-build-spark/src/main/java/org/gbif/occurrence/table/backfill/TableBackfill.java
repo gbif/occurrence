@@ -478,7 +478,7 @@ public class TableBackfill {
                   String columnName = field.getColumnName();
 
                   // TODO: only if it's the events table??
-                  if (columnName.equals(GbifInternalTerm.humboldtItem.name())) {
+                  if (columnName.equals(GbifInternalTerm.humboldtItem.name().toLowerCase())) {
                     return from_json(
                             col("ext_humboldt"),
                             new ArrayType(createHumboldtStructTypeFromJson(), true))
