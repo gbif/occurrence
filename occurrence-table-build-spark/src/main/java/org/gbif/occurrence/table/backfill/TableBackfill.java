@@ -47,6 +47,7 @@ import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
@@ -612,7 +613,11 @@ public class TableBackfill {
       }
 
       if (type != null) {
-        structType = structType.add(humboldtTerm.simpleName(), type, true);
+        String columnName = humboldtTerm.simpleName();
+        if (TermUtils.isVocabulary(humboldtTerm) && TermUtils.isArray(humboldtTerm)) {
+          columnName += "VocabList";
+        }
+        structType = structType.add(columnName, type, true);
       } else {
         log.warn("Type not found for humboldt term {}", humboldtTerm);
       }
