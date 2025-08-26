@@ -610,7 +610,7 @@ public class TableBackfill {
       }
 
       if (type != null) {
-        structType.add(humboldtTerm.simpleName(), type, true);
+        structType = structType.add(humboldtTerm.simpleName(), type, true);
       } else {
         log.warn("Type not found for humboldt term {}", humboldtTerm);
       }
