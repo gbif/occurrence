@@ -157,7 +157,7 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static List<InitializableField> extensions() {
     // only MULTIMEDIA is supported, but coded for future use
-    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA);
+    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA, Extension.HUMBOLDT);
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Extension e : extensions) {
       builder.add(new InitializableField(extensionTerm(e),
@@ -172,6 +172,8 @@ public class OccurrenceHDFSTableDefinition {
   private static Term extensionTerm(Extension extension) {
     if (Extension.MULTIMEDIA == extension) {
       return GbifTerm.Multimedia;
+    } else if (Extension.HUMBOLDT == extension) {
+      return GbifTerm.Humboldt;
     } else {
       return UnknownTerm.build(extension.name());
     }
