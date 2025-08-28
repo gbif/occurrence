@@ -135,7 +135,11 @@ public final class HiveDataTypes {
     DwcTerm.sampleSizeValue,
     GbifTerm.relativeOrganismQuantity,
     GbifTerm.distanceFromCentroidInMeters,
-    GbifInternalTerm.humboldtEventDurationValueInMinutes);
+    GbifInternalTerm.humboldtEventDurationValueInMinutes,
+    EcoTerm.samplingEffortValue,
+    EcoTerm.geospatialScopeAreaValue,
+    EcoTerm.totalAreaSampledValue,
+    EcoTerm.eventDurationValue);
 
   private static final Set<Term> BOOLEAN_TERMS = Set.of(
     GbifTerm.hasCoordinate,
