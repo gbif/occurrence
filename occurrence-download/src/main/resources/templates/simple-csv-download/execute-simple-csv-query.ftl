@@ -26,6 +26,9 @@ AS SELECT
   ${field.hiveField}<#if field_has_next>,</#if>
 </#list>
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
+<#if isHumboldtSearch>
+  LEFT JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h ON h.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
+</#if>
 WHERE ${r"${whereClause}"};
 
 -- creates the citations table, citation table is not compressed since it is read later from Java as TSV.
