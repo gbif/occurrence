@@ -473,7 +473,7 @@ public class TableBackfill {
             "INSERT OVERWRITE TABLE %1$s_humboldt \n"
                 + "SELECT "
                 + INTERPRETED_HUMBOLDT_TERMS.stream()
-                    .map(Term::simpleName)
+                    .map(t -> "h_record." + t.simpleName())
                     .collect(Collectors.joining(","))
                 + " FROM h_records",
             configuration.getTableNameWithPrefix()));
