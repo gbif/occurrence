@@ -13,6 +13,10 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import java.util.Set;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.EcoTerm;
@@ -21,13 +25,6 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-
-import java.util.Set;
-
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
@@ -50,8 +47,7 @@ public class DownloadTerms {
     GbifInternalTerm.fragmentHash, // omitted entirely
     GbifInternalTerm.fragment, // omitted entirely
     GbifTerm.numberOfOccurrences,
-    GbifInternalTerm.humboldtEventDurationValueInMinutes,
-    GbifInternalTerm.humboldtItem
+    GbifInternalTerm.humboldtEventDurationValueInMinutes
   );
 
   /**
@@ -320,28 +316,14 @@ public class DownloadTerms {
       EcoTerm.samplingPerformedBy,
       EcoTerm.isSamplingEffortReported,
       EcoTerm.samplingEffortValue,
-      EcoTerm.samplingEffortUnit);
+      EcoTerm.samplingEffortUnit,
+      GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
   public static final Set<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
-      Set.of(
-          EcoTerm.verbatimSiteDescriptions,
-          EcoTerm.excludedHabitatScope,
-          EcoTerm.excludedTaxonomicScope,
-          EcoTerm.absentTaxa,
-          EcoTerm.nonTargetTaxa,
-          EcoTerm.excludedLifeStageScope,
-          EcoTerm.excludedDegreeOfEstablishmentScope,
-          EcoTerm.excludedGrowthFormScope,
-          EcoTerm.protocolDescriptions,
-          EcoTerm.protocolReferences);
+      Set.of(GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
   public static final Set<Term> DOWNLOAD_HUMBOLDT_TERMS =
-      Sets.difference(
-          new ImmutableSet.Builder<Term>()
-              .add(GbifInternalTerm.humboldtEventDurationValueInMinutes)
-              .addAll(INTERPRETED_HUMBOLDT_TERMS)
-              .build(),
-          EXCLUSION_DOWNLOAD_HUMBOLDT);
+      Sets.difference(INTERPRETED_HUMBOLDT_TERMS, EXCLUSION_DOWNLOAD_HUMBOLDT);
 
   public static String simpleName(Pair<Group, Term> termPair) {
     Term term = termPair.getRight();

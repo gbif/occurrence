@@ -443,7 +443,7 @@ public class TableBackfill {
   public String createIfNotExistsHumboldt() {
     return String.format(
         "CREATE TABLE IF NOT EXISTS %s\n"
-            + "("
+            + "(gbifid STRING,"
             + INTERPRETED_HUMBOLDT_TERMS.stream()
                 .map(term -> term.simpleName() + " " + HiveDataTypes.typeForTerm(term, false))
                 .collect(Collectors.joining(","))
@@ -472,7 +472,7 @@ public class TableBackfill {
     spark.sql(
         String.format(
             "INSERT OVERWRITE TABLE %1$s_humboldt \n"
-                + "SELECT "
+                + "SELECT gbifid,"
                 + INTERPRETED_HUMBOLDT_TERMS.stream()
                     .map(t -> "h_record." + t.simpleName())
                     .collect(Collectors.joining(","))
@@ -533,14 +533,6 @@ public class TableBackfill {
             .map(
                 field -> {
                   String columnName = field.getColumnName();
-
-
-                  if (columnName.equals(GbifInternalTerm.humboldtItem.name().toLowerCase())) {
-                    return from_json(
-                            col("ext_humboldt"),
-                            new ArrayType(createHumboldtStructTypeFromJson(DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS), true))
-                        .alias(columnName);
-                  }
 
                   // Check if column exists in the Avro file
                   if (availableColumns.contains(columnName)) {

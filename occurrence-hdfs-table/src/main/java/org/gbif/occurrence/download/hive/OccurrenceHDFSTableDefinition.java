@@ -157,7 +157,7 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static List<InitializableField> extensions() {
     // only MULTIMEDIA is supported, but coded for future use
-    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA, Extension.HUMBOLDT);
+    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA);
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Extension e : extensions) {
       builder.add(new InitializableField(extensionTerm(e),
@@ -172,23 +172,9 @@ public class OccurrenceHDFSTableDefinition {
   private static Term extensionTerm(Extension extension) {
     if (Extension.MULTIMEDIA == extension) {
       return GbifTerm.Multimedia;
-    } else if (Extension.HUMBOLDT == extension) {
-      return GbifTerm.Humboldt;
     } else {
       return UnknownTerm.build(extension.name());
     }
-  }
-
-  private static List<InitializableField> humboldt() {
-    ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    builder.add(
-        new InitializableField(
-            GbifInternalTerm.humboldtItem,
-            columnFor(GbifInternalTerm.humboldtItem),
-            HiveDataTypes.createHumboldtStruct()
-            ));
-
-    return builder.build();
   }
 
   /**
@@ -203,7 +189,6 @@ public class OccurrenceHDFSTableDefinition {
       .addAll(internalFields())
       .addAll(interpretedFields())
       .addAll(extensions())
-      .addAll(humboldt())
       .build();
   }
 
