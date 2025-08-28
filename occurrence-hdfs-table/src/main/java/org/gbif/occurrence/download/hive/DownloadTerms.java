@@ -270,47 +270,78 @@ public class DownloadTerms {
     GbifInternalTerm.eventDateLte
   );
 
-  public static final Set<EcoTerm> DOWNLOAD_HUMBOLDT_TERMS =
+  public static final Set<Term> INTERPRETED_HUMBOLDT_TERMS =
+    Set.of(
+      EcoTerm.siteCount,
+      EcoTerm.verbatimSiteDescriptions,
+      EcoTerm.verbatimSiteNames,
+      EcoTerm.geospatialScopeAreaValue,
+      EcoTerm.geospatialScopeAreaUnit,
+      EcoTerm.totalAreaSampledValue,
+      EcoTerm.totalAreaSampledUnit,
+      EcoTerm.targetHabitatScope,
+      EcoTerm.excludedHabitatScope,
+      EcoTerm.eventDurationValue,
+      EcoTerm.eventDurationUnit,
+      EcoTerm.targetTaxonomicScope,
+      EcoTerm.excludedTaxonomicScope,
+      EcoTerm.taxonCompletenessProtocols,
+      EcoTerm.isTaxonomicScopeFullyReported,
+      EcoTerm.isAbsenceReported,
+      EcoTerm.absentTaxa,
+      EcoTerm.hasNonTargetTaxa,
+      EcoTerm.nonTargetTaxa,
+      EcoTerm.areNonTargetTaxaFullyReported,
+      EcoTerm.targetLifeStageScope,
+      EcoTerm.excludedLifeStageScope,
+      EcoTerm.isLifeStageScopeFullyReported,
+      EcoTerm.targetDegreeOfEstablishmentScope,
+      EcoTerm.excludedDegreeOfEstablishmentScope,
+      EcoTerm.isDegreeOfEstablishmentScopeFullyReported,
+      EcoTerm.targetGrowthFormScope,
+      EcoTerm.excludedGrowthFormScope,
+      EcoTerm.isGrowthFormScopeFullyReported,
+      EcoTerm.hasNonTargetOrganisms,
+      EcoTerm.compilationTypes,
+      EcoTerm.compilationSourceTypes,
+      EcoTerm.inventoryTypes,
+      EcoTerm.protocolNames,
+      EcoTerm.protocolDescriptions,
+      EcoTerm.protocolReferences,
+      EcoTerm.isAbundanceReported,
+      EcoTerm.isAbundanceCapReported,
+      EcoTerm.abundanceCap,
+      EcoTerm.isVegetationCoverReported,
+      EcoTerm.isLeastSpecificTargetCategoryQuantityInclusive,
+      EcoTerm.hasVouchers,
+      EcoTerm.voucherInstitutions,
+      EcoTerm.hasMaterialSamples,
+      EcoTerm.materialSampleTypes,
+      EcoTerm.samplingPerformedBy,
+      EcoTerm.isSamplingEffortReported,
+      EcoTerm.samplingEffortValue,
+      EcoTerm.samplingEffortUnit);
+
+  public static final Set<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
       Set.of(
-          EcoTerm.siteCount,
-          EcoTerm.verbatimSiteNames,
-          EcoTerm.eventDurationValue,
-          EcoTerm.eventDurationUnit,
-          EcoTerm.geospatialScopeAreaValue,
-          EcoTerm.geospatialScopeAreaUnit,
-          EcoTerm.totalAreaSampledValue,
-          EcoTerm.totalAreaSampledUnit,
-          EcoTerm.samplingEffortValue,
-          EcoTerm.samplingEffortUnit,
-          EcoTerm.targetHabitatScope,
-          EcoTerm.targetTaxonomicScope,
-          EcoTerm.taxonCompletenessProtocols,
-          EcoTerm.isTaxonomicScopeFullyReported,
-          EcoTerm.isAbsenceReported,
-          EcoTerm.hasNonTargetTaxa,
-          EcoTerm.areNonTargetTaxaFullyReported,
-          EcoTerm.targetLifeStageScope,
-          EcoTerm.isLifeStageScopeFullyReported,
-          EcoTerm.targetDegreeOfEstablishmentScope,
-          EcoTerm.isDegreeOfEstablishmentScopeFullyReported,
-          EcoTerm.targetGrowthFormScope,
-          EcoTerm.isGrowthFormScopeFullyReported,
-          EcoTerm.hasNonTargetOrganisms,
-          EcoTerm.compilationTypes,
-          EcoTerm.compilationSourceTypes,
-          EcoTerm.inventoryTypes,
-          EcoTerm.protocolNames,
-          EcoTerm.isAbundanceReported,
-          EcoTerm.isAbundanceCapReported,
-          EcoTerm.abundanceCap,
-          EcoTerm.isVegetationCoverReported,
-          EcoTerm.isLeastSpecificTargetCategoryQuantityInclusive,
-          EcoTerm.hasVouchers,
-          EcoTerm.voucherInstitutions,
-          EcoTerm.hasMaterialSamples,
-          EcoTerm.materialSampleTypes,
-          EcoTerm.samplingPerformedBy,
-          EcoTerm.isSamplingEffortReported);
+          EcoTerm.verbatimSiteDescriptions,
+          EcoTerm.excludedHabitatScope,
+          EcoTerm.excludedTaxonomicScope,
+          EcoTerm.absentTaxa,
+          EcoTerm.nonTargetTaxa,
+          EcoTerm.excludedLifeStageScope,
+          EcoTerm.excludedDegreeOfEstablishmentScope,
+          EcoTerm.excludedGrowthFormScope,
+          EcoTerm.protocolDescriptions,
+          EcoTerm.protocolReferences);
+
+  public static final Set<Term> DOWNLOAD_HUMBOLDT_TERMS =
+      Sets.difference(
+          new ImmutableSet.Builder<Term>()
+              .add(GbifInternalTerm.humboldtEventDurationValueInMinutes)
+              .addAll(INTERPRETED_HUMBOLDT_TERMS)
+              .build(),
+          EXCLUSION_DOWNLOAD_HUMBOLDT);
 
   public static String simpleName(Pair<Group, Term> termPair) {
     Term term = termPair.getRight();

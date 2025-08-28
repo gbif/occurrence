@@ -18,7 +18,6 @@ import static org.gbif.occurrence.common.TermUtils.isVocabulary;
 import com.google.common.collect.ImmutableSet;
 import java.util.AbstractMap;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -212,12 +211,9 @@ public final class HiveDataTypes {
   }
 
   public static String createHumboldtStruct() {
-    Set<Term> terms = new HashSet<>(DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS);
-    terms.add(GbifInternalTerm.humboldtEventDurationValueInMinutes);
-
     StringBuilder struct = new StringBuilder();
     struct.append("ARRAY<STRUCT<");
-    for (Iterator<Term> iterator = terms.iterator(); iterator.hasNext(); ) {
+    for (Iterator<Term> iterator = DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS.iterator(); iterator.hasNext(); ) {
       Term humboldtTerm = iterator.next();
       String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);
       struct.append(humboldtTerm.simpleName().toLowerCase());

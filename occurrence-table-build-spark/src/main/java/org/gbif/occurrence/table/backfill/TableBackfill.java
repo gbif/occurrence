@@ -18,12 +18,12 @@ import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.from_json;
 import static org.apache.spark.sql.functions.lit;
+import static org.gbif.occurrence.download.hive.DownloadTerms.INTERPRETED_HUMBOLDT_TERMS;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -47,7 +47,6 @@ import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
@@ -65,6 +64,7 @@ public class TableBackfill {
     TABLE,
     EXTENSIONS,
     MULTIMEDIA,
+    HUMBOLDT,
     ALL;
   }
 
@@ -144,6 +144,14 @@ public class TableBackfill {
     insertOverwriteMultimediaTable(spark);
   }
 
+  private void createHumboldtTable(SparkSession spark) {
+    log.info("Creating Humboldt Table");
+    spark.sparkContext().setJobDescription("Create " + humboldtTableName());
+
+    spark.sql(createIfNotExistsHumboldt());
+    insertOverwriteHumboldtTable(spark);
+  }
+
   private void executeCreateAction(Command command, SparkSession spark) {
     HdfsSnapshotAction snapshotAction =
         new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
@@ -165,6 +173,12 @@ public class TableBackfill {
       if (command.getOptions().contains(Option.ALL)
           || command.getOptions().contains(Option.MULTIMEDIA)) {
         createMultimediaTable(spark);
+      }
+
+      if (configuration.getCoreName().equalsIgnoreCase("event")
+          && (command.getOptions().contains(Option.ALL)
+              || command.getOptions().contains(Option.HUMBOLDT))) {
+        createHumboldtTable(spark);
       }
     } finally {
       snapshotAction.deleteHdfsSnapshot(jobId);
@@ -374,56 +388,94 @@ public class TableBackfill {
     return String.format("%s_multimedia", configuration.getTableName());
   }
 
-  // TODO: do the same for the humboldt table
-
   public void insertOverwriteMultimediaTable(SparkSession spark) {
+    spark
+      .table(configuration.getTableNameWithPrefix())
+      .select(
+        col("gbifid"),
+        from_json(
+          col("ext_multimedia"),
+          new ArrayType(
+            new StructType()
+              .add("type", "string", false)
+              .add("format", "string", false)
+              .add("identifier", "string", false)
+              .add("references", "string", false)
+              .add("title", "string", false)
+              .add("description", "string", false)
+              .add("source", "string", false)
+              .add("audience", "string", false)
+              .add("created", "string", false)
+              .add("creator", "string", false)
+              .add("contributor", "string", false)
+              .add("publisher", "string", false)
+              .add("license", "string", false)
+              .add("rightsHolder", "string", false),
+            true))
+          .alias("mm_record"))
+      .select(col("gbifid"), explode(col("mm_record")).alias("mm_record"))
+      .select(
+        col("gbifid"),
+        callUDF("cleanDelimiters", col("mm_record.type")).alias("type"),
+        callUDF("cleanDelimiters", col("mm_record.format")).alias("format"),
+        callUDF("cleanDelimiters", col("mm_record.identifier")).alias("identifier"),
+        callUDF("cleanDelimiters", col("mm_record.references")).alias("references"),
+        callUDF("cleanDelimiters", col("mm_record.title")).alias("title"),
+        callUDF("cleanDelimiters", col("mm_record.description")).alias("description"),
+        callUDF("cleanDelimiters", col("mm_record.source")).alias("source"),
+        callUDF("cleanDelimiters", col("mm_record.audience")).alias("audience"),
+        col("mm_record.created").alias("created"),
+        callUDF("cleanDelimiters", col("mm_record.creator")).alias("creator"),
+        callUDF("cleanDelimiters", col("mm_record.contributor")).alias("contributor"),
+        callUDF("cleanDelimiters", col("mm_record.publisher")).alias("publisher"),
+        callUDF("cleanDelimiters", col("mm_record.license")).alias("license"),
+        callUDF("cleanDelimiters", col("mm_record.rightsHolder")).alias("rightsHolder"))
+      .createOrReplaceTempView("mm_records");
+
+    spark.sql(
+      String.format(
+        "INSERT OVERWRITE TABLE %1$s_multimedia \n"
+          + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
+        configuration.getTableNameWithPrefix()));
+  }
+
+  public String createIfNotExistsHumboldt() {
+    return String.format(
+        "CREATE TABLE IF NOT EXISTS %s\n"
+            + "("
+            + INTERPRETED_HUMBOLDT_TERMS.stream()
+                .map(term -> term.simpleName() + " " + HiveDataTypes.typeForTerm(term, false))
+                .collect(Collectors.joining(","))
+            + ") \n"
+            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"ZSTD\")",
+        getPrefix() + humboldtTableName());
+  }
+
+  private String humboldtTableName() {
+    return String.format("%s_humboldt", configuration.getTableName());
+  }
+
+  public void insertOverwriteHumboldtTable(SparkSession spark) {
     spark
         .table(configuration.getTableNameWithPrefix())
         .select(
             col("gbifid"),
             from_json(
-                    col("ext_multimedia"),
+                    col("ext_humboldt"),
                     new ArrayType(
-                        new StructType()
-                            .add("type", "string", false)
-                            .add("format", "string", false)
-                            .add("identifier", "string", false)
-                            .add("references", "string", false)
-                            .add("title", "string", false)
-                            .add("description", "string", false)
-                            .add("source", "string", false)
-                            .add("audience", "string", false)
-                            .add("created", "string", false)
-                            .add("creator", "string", false)
-                            .add("contributor", "string", false)
-                            .add("publisher", "string", false)
-                            .add("license", "string", false)
-                            .add("rightsHolder", "string", false),
-                        true))
-                .alias("mm_record"))
-        .select(col("gbifid"), explode(col("mm_record")).alias("mm_record"))
-        .select(
-            col("gbifid"),
-            callUDF("cleanDelimiters", col("mm_record.type")).alias("type"),
-            callUDF("cleanDelimiters", col("mm_record.format")).alias("format"),
-            callUDF("cleanDelimiters", col("mm_record.identifier")).alias("identifier"),
-            callUDF("cleanDelimiters", col("mm_record.references")).alias("references"),
-            callUDF("cleanDelimiters", col("mm_record.title")).alias("title"),
-            callUDF("cleanDelimiters", col("mm_record.description")).alias("description"),
-            callUDF("cleanDelimiters", col("mm_record.source")).alias("source"),
-            callUDF("cleanDelimiters", col("mm_record.audience")).alias("audience"),
-            col("mm_record.created").alias("created"),
-            callUDF("cleanDelimiters", col("mm_record.creator")).alias("creator"),
-            callUDF("cleanDelimiters", col("mm_record.contributor")).alias("contributor"),
-            callUDF("cleanDelimiters", col("mm_record.publisher")).alias("publisher"),
-            callUDF("cleanDelimiters", col("mm_record.license")).alias("license"),
-            callUDF("cleanDelimiters", col("mm_record.rightsHolder")).alias("rightsHolder"))
-        .createOrReplaceTempView("mm_records");
+                        createHumboldtStructTypeFromJson(INTERPRETED_HUMBOLDT_TERMS), true))
+                .alias("h_record"))
+        .select(col("gbifid"), explode(col("h_record")).alias("h_record"))
+        .createOrReplaceTempView("h_records");
 
     spark.sql(
         String.format(
-            "INSERT OVERWRITE TABLE %1$s_multimedia \n"
-                + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
+            "INSERT OVERWRITE TABLE %1$s_humboldt \n"
+                + "SELECT "
+                + INTERPRETED_HUMBOLDT_TERMS.stream()
+                    .map(Term::simpleName)
+                    .collect(Collectors.joining(","))
+                + " FROM h_records",
             configuration.getTableNameWithPrefix()));
   }
 
@@ -481,11 +533,11 @@ public class TableBackfill {
                 field -> {
                   String columnName = field.getColumnName();
 
-                  // TODO: only if it's the events table??
+
                   if (columnName.equals(GbifInternalTerm.humboldtItem.name().toLowerCase())) {
                     return from_json(
                             col("ext_humboldt"),
-                            new ArrayType(createHumboldtStructTypeFromJson(), true))
+                            new ArrayType(createHumboldtStructTypeFromJson(DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS), true))
                         .alias(columnName);
                   }
 
@@ -563,16 +615,23 @@ public class TableBackfill {
       }
       spark.sql(renameTable(getPrefix() + multimediaTableName(), multimediaTableName()));
     }
+
+    if (configuration.getCoreName().equalsIgnoreCase("event")
+        && (command.getOptions().contains(Option.ALL)
+            || command.getOptions().contains(Option.HUMBOLDT))) {
+      log.info("Swapping Humboldt Table");
+      if (spark.catalog().tableExists(humboldtTableName())) {
+        spark.sql(renameTable(humboldtTableName(), "old_" + humboldtTableName()));
+      }
+      spark.sql(renameTable(getPrefix() + humboldtTableName(), humboldtTableName()));
+    }
   }
 
   private String renameTable(String oldTable, String newTable) {
     return String.format("ALTER TABLE %s RENAME TO %s", oldTable, newTable);
   }
 
-  private static StructType createHumboldtStructTypeFromJson() {
-    Set<Term> terms = new HashSet<>(DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS);
-    terms.add(GbifInternalTerm.humboldtEventDurationValueInMinutes);
-
+  private static StructType createHumboldtStructTypeFromJson(Set<Term> terms) {
     StructType structType = new StructType();
     for (Term humboldtTerm : terms) {
       String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);
