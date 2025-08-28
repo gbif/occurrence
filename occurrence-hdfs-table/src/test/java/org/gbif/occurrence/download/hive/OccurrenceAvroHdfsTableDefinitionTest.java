@@ -13,9 +13,4 @@ public class OccurrenceAvroHdfsTableDefinitionTest {
   public void hiveSchemaTest() {
     System.out.println(OccurrenceHDFSTableDefinition.definition());
   }
-
-  @Test
-  public void humboldtStructTest() {
-    System.out.println(HiveDataTypes.createHumboldtStruct());
-  }
 }
