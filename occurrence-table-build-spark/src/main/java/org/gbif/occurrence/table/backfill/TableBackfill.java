@@ -359,7 +359,7 @@ public class TableBackfill {
   }
 
   private String dropTable(String tableName) {
-    return String.format("DROP TABLE IF EXISTS %s", tableName);
+    return String.format("DROP TABLE IF EXISTS %s PURGE", tableName);
   }
 
   private String getSnapshotPath(String dataDirectory) {
