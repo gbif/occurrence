@@ -18,7 +18,6 @@ import static org.gbif.occurrence.common.TermUtils.isVocabulary;
 import com.google.common.collect.ImmutableSet;
 import java.util.AbstractMap;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -207,30 +206,8 @@ public final class HiveDataTypes {
       return TYPE_MAP_OF_MAP_STRUCT;
     } else if (term.equals(EcoTerm.targetTaxonomicScope)) {
       return TYPE_MAP_OF_MAP_LIST_STRUCT;
-    } else if (term.equals(GbifInternalTerm.humboldtItem)) {
-      return createHumboldtStruct();
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }
-  }
-
-  public static String createHumboldtStruct() {
-    StringBuilder struct = new StringBuilder();
-    struct.append("ARRAY<STRUCT<");
-    for (Iterator<Term> iterator = DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS.iterator(); iterator.hasNext(); ) {
-      Term humboldtTerm = iterator.next();
-      String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);
-      struct.append(humboldtTerm.simpleName().toLowerCase());
-      struct.append(":");
-      struct.append(hiveDataType);
-
-      if (iterator.hasNext()) {
-        struct.append(",");
-      }
-    }
-
-    struct.append(">>");
-
-    return struct.toString();
   }
 }
