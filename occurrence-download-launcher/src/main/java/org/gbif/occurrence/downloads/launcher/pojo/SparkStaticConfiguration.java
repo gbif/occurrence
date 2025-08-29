@@ -59,11 +59,9 @@ public class SparkStaticConfiguration {
 
   private Resources executorResources;
   private Resources driverResources;
-  private int driverMemoryOverheadMb;
   private long recordsPerInstance;
   private int minInstances;
   private int maxInstances;
-  private int memoryOverheadMb;
   private int memoryPerCoreGb;
 
   private int smallDownloadCutOff;
