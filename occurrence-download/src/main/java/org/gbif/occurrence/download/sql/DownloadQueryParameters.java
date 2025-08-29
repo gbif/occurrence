@@ -79,7 +79,7 @@ public class DownloadQueryParameters {
       builder.isHumboldtSearch(true);
     }
 
-    builder()
+    builder
         .checklistKey(
             download.getRequest().getChecklistKey() != null
                 ? download.getRequest().getChecklistKey()
