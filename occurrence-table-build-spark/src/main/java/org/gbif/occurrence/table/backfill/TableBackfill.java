@@ -648,12 +648,17 @@ public class TableBackfill {
         case HiveDataTypes.TYPE_BOOLEAN:
           type = DataTypes.BooleanType;
           break;
-        case HiveDataTypes.TYPE_MAP_OF_MAP_LIST_STRUCT:
+        case HiveDataTypes.TYPE_HUMBOLDT_TAXON_STRUCT:
           type =
               new MapType(
                   DataTypes.StringType,
                   new ArrayType(
-                      new MapType(DataTypes.StringType, DataTypes.StringType, true), true),
+                      new StructType()
+                          .add("usageKey", DataTypes.StringType, true)
+                          .add("usageName", DataTypes.StringType, true)
+                          .add("usageRank", DataTypes.StringType, true)
+                          .add("taxonKeys", new ArrayType(DataTypes.StringType, true)),
+                      true),
                   true);
           break;
         case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:

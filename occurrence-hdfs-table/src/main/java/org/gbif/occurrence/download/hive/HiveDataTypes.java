@@ -54,7 +54,8 @@ public final class HiveDataTypes {
   public static final String TYPE_VOCABULARY_ARRAY_STRUCT = "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
   public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
   public static final String TYPE_MAP_OF_MAP_STRUCT = "MAP<STRING, MAP<STRING, STRING>>";
-  public static final String TYPE_MAP_OF_MAP_LIST_STRUCT = "MAP<STRING, ARRAY<MAP<STRING, STRING>>>";
+  public static final String TYPE_HUMBOLDT_TAXON_STRUCT =
+      "MAP<STRING, ARRAY<STRUCT<usageKey: STRING, usageName: STRING, usageRank: STRING, taxonKeys: ARRAY<STRING>>>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
   public static final String TYPE_TIMESTAMP = "TIMESTAMP";
@@ -162,6 +163,15 @@ public final class HiveDataTypes {
     EcoTerm.hasMaterialSamples,
     EcoTerm.isSamplingEffortReported);
 
+  private static final Set<Term> TYPE_HUMBOLDT_TAXON_STRUCT_TERMS =
+      Set.of(
+          EcoTerm.targetTaxonomicScope,
+          EcoTerm.excludedTaxonomicScope,
+          EcoTerm.absentTaxa,
+          EcoTerm.nonTargetTaxa);
+
+  private static final Set<Term> MAP_STRUCT_TERMS = Set.of(GbifInternalTerm.classificationDetails);
+
   static {
     // build the term type index of Term -> Type
     TYPED_TERMS = Stream.of(
@@ -170,6 +180,8 @@ public final class HiveDataTypes {
       BIGINT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BIGINT)),
       DOUBLE_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_DOUBLE)),
       BOOLEAN_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BOOLEAN)),
+        TYPE_HUMBOLDT_TAXON_STRUCT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_HUMBOLDT_TAXON_STRUCT)),
+      MAP_STRUCT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_MAP_STRUCT)),
       ARRAY_STRING_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_ARRAY_STRING))
     ).flatMap(Function.identity())
      .collect(Collectors.collectingAndThen(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue), Collections::unmodifiableMap));
@@ -200,12 +212,8 @@ public final class HiveDataTypes {
       } else {
         return TYPE_VOCABULARY_STRUCT;
       }
-    } else if (term.equals(GbifInternalTerm.classifications)) {
-      return TYPE_MAP_STRUCT;
     } else if (term.equals(GbifInternalTerm.classificationDetails)) {
       return TYPE_MAP_OF_MAP_STRUCT;
-    } else if (term.equals(EcoTerm.targetTaxonomicScope)) {
-      return TYPE_MAP_OF_MAP_LIST_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }
