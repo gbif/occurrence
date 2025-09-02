@@ -317,10 +317,13 @@ public class DownloadTerms {
       EcoTerm.isSamplingEffortReported,
       EcoTerm.samplingEffortValue,
       EcoTerm.samplingEffortUnit,
-      GbifInternalTerm.humboldtEventDurationValueInMinutes);
+      GbifInternalTerm.humboldtEventDurationValueInMinutes,
+      GbifInternalTerm.humboldtTargetTaxonClassifications);
 
   public static final Set<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
-      Set.of(GbifInternalTerm.humboldtEventDurationValueInMinutes);
+      Set.of(
+          GbifInternalTerm.humboldtEventDurationValueInMinutes,
+          GbifInternalTerm.humboldtTargetTaxonClassifications);
 
   public static final Set<Term> DOWNLOAD_HUMBOLDT_TERMS =
       Sets.difference(INTERPRETED_HUMBOLDT_TERMS, EXCLUSION_DOWNLOAD_HUMBOLDT);

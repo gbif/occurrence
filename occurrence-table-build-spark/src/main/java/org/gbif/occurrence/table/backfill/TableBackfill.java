@@ -25,6 +25,7 @@ import com.google.common.base.Strings;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -45,6 +46,8 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
+import org.checkerframework.checker.units.qual.A;
+
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.hive.DownloadTerms;
@@ -648,7 +651,7 @@ public class TableBackfill {
         case HiveDataTypes.TYPE_BOOLEAN:
           type = DataTypes.BooleanType;
           break;
-        case HiveDataTypes.TYPE_HUMBOLDT_TAXON_STRUCT:
+        case HiveDataTypes.TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT:
           type =
               new MapType(
                   DataTypes.StringType,
@@ -657,8 +660,23 @@ public class TableBackfill {
                           .add("usageKey", DataTypes.StringType, true)
                           .add("usageName", DataTypes.StringType, true)
                           .add("usageRank", DataTypes.StringType, true)
-                          .add("taxonKeys", new ArrayType(DataTypes.StringType, true)),
+                          .add(
+                              "rankedNames",
+                              new ArrayType(
+                                  new StructType()
+                                      .add("key", DataTypes.StringType, true)
+                                      .add("name", DataTypes.StringType, true)
+                                      .add("rank", DataTypes.StringType, true),
+                                  true)),
                       true),
+                  true);
+          break;
+        case HiveDataTypes.TYPE_HUMBOLDT_TAXON_STRUCT:
+          type =
+              new MapType(
+                  DataTypes.StringType,
+                  new MapType(
+                      DataTypes.StringType, new ArrayType(DataTypes.StringType, true), true),
                   true);
           break;
         case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
