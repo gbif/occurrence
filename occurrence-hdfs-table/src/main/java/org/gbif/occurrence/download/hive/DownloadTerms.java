@@ -47,7 +47,8 @@ public class DownloadTerms {
     GbifInternalTerm.fragmentHash, // omitted entirely
     GbifInternalTerm.fragment, // omitted entirely
     GbifTerm.numberOfOccurrences,
-    GbifInternalTerm.humboldtEventDurationValueInMinutes
+    GbifInternalTerm.humboldtEventDurationValueInMinutes,
+    GbifInternalTerm.humboldtTargetTaxonClassifications
   );
 
   /**

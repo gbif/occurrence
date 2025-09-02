@@ -56,7 +56,7 @@ public final class HiveDataTypes {
   public static final String TYPE_MAP_OF_MAP_STRUCT = "MAP<STRING, MAP<STRING, STRING>>";
   public static final String TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT =
       "MAP<STRING, ARRAY<STRUCT<usageKey: STRING, usageName: STRING, usageRank: STRING, "
-          + "rankedNames: ARRAY<STRUCT<key: STRING, name: STRING, rank: STRING>>>";
+          + "rankedNames: ARRAY<STRUCT<key: STRING, name: STRING, rank: STRING>>>>>";
   public static final String TYPE_HUMBOLDT_TAXON_STRUCT = "MAP<STRING, MAP<STRING, ARRAY<STRING>>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT = "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
