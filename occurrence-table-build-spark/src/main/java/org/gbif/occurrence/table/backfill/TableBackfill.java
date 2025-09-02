@@ -656,7 +656,7 @@ public class TableBackfill {
         case HiveDataTypes.TYPE_BOOLEAN:
           type = DataTypes.BooleanType;
           break;
-        case HiveDataTypes.TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT:
+        case HiveDataTypes.TYPE_HUMBOLDT_TAXON_STRUCT:
           type =
               new MapType(
                   DataTypes.StringType,
@@ -676,7 +676,7 @@ public class TableBackfill {
                       true),
                   true);
           break;
-        case HiveDataTypes.TYPE_HUMBOLDT_TAXON_STRUCT:
+        case HiveDataTypes.TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT:
           type =
               new MapType(
                   DataTypes.StringType,
