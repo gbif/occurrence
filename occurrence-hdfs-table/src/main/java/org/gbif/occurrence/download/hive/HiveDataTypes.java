@@ -172,8 +172,6 @@ public final class HiveDataTypes {
           EcoTerm.absentTaxa,
           EcoTerm.nonTargetTaxa);
 
-  private static final Set<Term> MAP_STRUCT_TERMS = Set.of(GbifInternalTerm.classificationDetails);
-
   static {
     // build the term type index of Term -> Type
     TYPED_TERMS = Stream.of(
@@ -183,7 +181,6 @@ public final class HiveDataTypes {
       DOUBLE_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_DOUBLE)),
       BOOLEAN_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BOOLEAN)),
       TYPE_HUMBOLDT_TAXON_STRUCT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_HUMBOLDT_TAXON_STRUCT)),
-      MAP_STRUCT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_MAP_STRUCT)),
       ARRAY_STRING_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_ARRAY_STRING))
     ).flatMap(Function.identity())
      .collect(Collectors.collectingAndThen(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue), Collections::unmodifiableMap));
@@ -214,6 +211,8 @@ public final class HiveDataTypes {
       } else {
         return TYPE_VOCABULARY_STRUCT;
       }
+    } else if (term.equals(GbifInternalTerm.classifications)) {
+      return TYPE_MAP_STRUCT;
     } else if (term.equals(GbifInternalTerm.classificationDetails)) {
       return TYPE_MAP_OF_MAP_STRUCT;
     } else if (term.equals(GbifInternalTerm.humboldtTargetTaxonClassifications)) {

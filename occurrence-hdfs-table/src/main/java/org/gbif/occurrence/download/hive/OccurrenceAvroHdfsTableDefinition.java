@@ -103,7 +103,7 @@ public class OccurrenceAvroHdfsTableDefinition {
       default:
         if (initializableField.getColumnName().equalsIgnoreCase("gbifid")) {
           builder.name(initializableField.getColumnName()).type().stringType().noDefault();
-        } else if (!initializableField.getColumnName().equalsIgnoreCase("humboldtItem")) {
+        } else if (!initializableField.getColumnName().equalsIgnoreCase("humboldttargettaxonclassifications")) {
           // ignore humboldtItem since this is populated from the ext_humboldt json field
           builder.name(initializableField.getColumnName()).type().nullable().stringType().noDefault();
         }
