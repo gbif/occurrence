@@ -201,6 +201,11 @@ public class TableBackfill {
       spark.sql(dropTable(prefix + configuration.getTableName() + "_multimedia"));
     }
     if (command.getOptions().contains(Option.ALL)
+        || command.getOptions().contains(Option.HUMBOLDT)) {
+      log.info("Deleting Humboldt Table ");
+      spark.sql(dropTable(prefix + configuration.getTableName() + "_humboldt"));
+    }
+    if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.EXTENSIONS)) {
       log.info("Deleting Extension Tables");
       ExtensionTable.tableExtensions()
