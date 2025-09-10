@@ -33,8 +33,9 @@ import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
-import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
@@ -57,6 +58,9 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+  @Autowired
+  protected ChecklistAwareSearchRequestHandlerMethodArgumentResolver resolver;
+
   @Override
   public void configurePathMatch(PathMatchConfigurer configurer) {
     configurer.setUseTrailingSlashMatch(true);
@@ -66,7 +70,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
     argumentResolvers.add(new PageableHandlerMethodArgumentResolver());
     argumentResolvers.add(new CountryHandlerMethodArgumentResolver());
-    argumentResolvers.add(new OccurrenceSearchRequestHandlerMethodArgumentResolver());
+    argumentResolvers.add(resolver);
   }
 
   @Override

@@ -233,7 +233,7 @@ public class EsSearchRequestBuilder {
   @VisibleForTesting
   Optional<QueryBuilder> buildQuery(
       Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchCase, String checklistKey) {
-    VocabularyFieldTranslator.translateVocabs(params, conceptClient);
+    RequestFieldsTranslator.translateVocabs(params, conceptClient);
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
@@ -391,7 +391,7 @@ public class EsSearchRequestBuilder {
   @SneakyThrows
   public Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
     searchRequest.setPredicate(
-        VocabularyFieldTranslator.translateVocabs(searchRequest.getPredicate(), conceptClient));
+        RequestFieldsTranslator.translateVocabs(searchRequest.getPredicate(), conceptClient));
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();

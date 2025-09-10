@@ -14,6 +14,7 @@
 package org.gbif.event.download.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -30,11 +31,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class EventDownloadRequestService extends DownloadRequestServiceImpl {
 
+  private final String defaultChecklistKey;
+
   @Autowired
   public EventDownloadRequestService(
       @Value("${occurrence.download.portal.url}") String portalUrl,
       @Value("${occurrence.download.ws.url}") String wsUrl,
       @Value("${occurrence.download.ws.mount}") String wsMountDir,
+      @Value("${defaultChecklistKey}") String defaultChecklistKey,
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
@@ -50,11 +54,21 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
         emailSender,
         messagePublisher,
         DownloadType.EVENT);
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   @Override
   protected long countRecords(Predicate predicate) {
     // it always goes thru the big downloads wf
     return -1;
+  }
+
+  @Override
+  public String create(DownloadRequest request, String source) {
+    if (request.getChecklistKey() == null) {
+      // set default checklistKey
+      request.setChecklistKey(defaultChecklistKey);
+    }
+    return super.create(request, source);
   }
 }

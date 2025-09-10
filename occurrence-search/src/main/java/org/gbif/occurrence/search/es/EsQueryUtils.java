@@ -47,6 +47,7 @@ public class EsQueryUtils {
   public static final String QUERY = "query";
   public static final String BOOL = "bool";
   public static final String MUST = "must";
+  public static final String MUST_NOT = "must_not";
   public static final String MATCH = "match";
   public static final String TERM = "term";
   public static final String TERMS = "terms";

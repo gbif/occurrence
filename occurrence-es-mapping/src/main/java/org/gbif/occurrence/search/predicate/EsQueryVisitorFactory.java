@@ -56,6 +56,11 @@ public class EsQueryVisitorFactory {
           }
 
           @Override
+          public String getNestedPath(OccurrenceSearchParameter searchParameter) {
+            return fieldMapper.getNestedPath(searchParameter);
+          }
+
+          @Override
           public boolean isTaxonomic(OccurrenceSearchParameter searchParameter) {
             return fieldMapper.isTaxonomic(searchParameter);
           }
