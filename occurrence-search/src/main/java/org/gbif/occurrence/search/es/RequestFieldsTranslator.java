@@ -98,7 +98,10 @@ public class RequestFieldsTranslator {
       String durationParam =
           params.get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next();
       String translatedParam = processHumboldtEventDurationParam(durationParam);
-      params.replace(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of(translatedParam));
+      params.put(
+          OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
+          Set.of(translatedParam));
+      params.remove(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION);
     }
 
     if (params.containsKey(OccurrenceSearchParameter.GEOLOGICAL_TIME)) {
