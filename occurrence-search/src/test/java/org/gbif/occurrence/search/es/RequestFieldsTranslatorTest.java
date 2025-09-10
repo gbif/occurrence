@@ -122,23 +122,38 @@ public class RequestFieldsTranslatorTest {
     params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h"));
     RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
     assertEquals(
-        "60.0", params.get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next());
+        "60.0",
+        params
+            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .iterator()
+            .next());
 
     params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h,2h"));
     RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
     assertEquals(
         "60.0,120.0",
-        params.get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next());
+        params
+            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .iterator()
+            .next());
 
     params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("*,2h"));
     RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
     assertEquals(
-        "*,120.0", params.get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next());
+        "*,120.0",
+        params
+            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .iterator()
+            .next());
 
     params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h,*"));
     RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
     assertEquals(
-        "60.0,*", params.get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next());
+        "60.0,*",
+        params
+            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .iterator()
+            .next());
 
     params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1foo"));
     assertThrows(
