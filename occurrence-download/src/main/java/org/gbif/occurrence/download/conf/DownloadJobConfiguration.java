@@ -121,12 +121,15 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * Returns the string representation of a download base on the download format: Json Predicate or Sql clause.
+   * Returns the string representation of a download base on the download format: Json Predicate or
+   * Sql clause.
    */
   private static String getDownloadFilter(Download download) {
     return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
         ? ((SqlDownloadRequest) download.getRequest()).getSql()
-        : toSqlQuery(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+        : toSqlQuery(
+            ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
+            download.getRequest().getChecklistKey());
   }
 
   public OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
@@ -217,7 +220,7 @@ public class DownloadJobConfiguration {
   }
 
   @SneakyThrows
-  private static String toSqlQuery(Predicate predicate) {
-    return QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate);
+  private static String toSqlQuery(Predicate predicate, String defaultChecklistKey) {
+    return QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey).buildQuery(predicate);
   }
 }
