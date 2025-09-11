@@ -120,7 +120,9 @@ public final class HiveDataTypes {
     DwcTerm.endDayOfYear,
     GbifInternalTerm.crawlId,
     GbifInternalTerm.identifierCount,
-    DwcTerm.individualCount);
+    DwcTerm.individualCount,
+    EcoTerm.siteCount,
+    EcoTerm.abundanceCap);
 
   private static final Set<Term> DOUBLE_TERMS = Set.of(
     DwcTerm.decimalLatitude,
