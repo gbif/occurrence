@@ -647,9 +647,6 @@ public class TableBackfill {
         case HiveDataTypes.TYPE_INT:
           type = DataTypes.IntegerType;
           break;
-        case HiveDataTypes.TYPE_ARRAY_INT:
-          type = new ArrayType(DataTypes.IntegerType, true);
-          break;
         case HiveDataTypes.TYPE_DOUBLE:
           type = DataTypes.DoubleType;
           break;

@@ -46,7 +46,6 @@ public final class HiveDataTypes {
   public static final String TYPE_STRING = "STRING";
   public static final String TYPE_BOOLEAN = "BOOLEAN";
   public static final String TYPE_INT = "INT";
-  public static final String TYPE_ARRAY_INT = "ARRAY<INT>";
   public static final String TYPE_DOUBLE = "DOUBLE";
   public static final String TYPE_BIGINT = "BIGINT";
   public static final String TYPE_ARRAY_STRING = "ARRAY<STRING>";
@@ -123,8 +122,6 @@ public final class HiveDataTypes {
     GbifInternalTerm.identifierCount,
     DwcTerm.individualCount);
 
-  private static final Set<Term> ARRAY_INT_TERMS = Set.of(EcoTerm.siteCount, EcoTerm.abundanceCap);
-
   private static final Set<Term> DOUBLE_TERMS = Set.of(
     DwcTerm.decimalLatitude,
     DwcTerm.decimalLongitude,
@@ -177,7 +174,6 @@ public final class HiveDataTypes {
     // build the term type index of Term -> Type
     TYPED_TERMS = Stream.of(
       INT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_INT)),
-      ARRAY_INT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_ARRAY_INT)),
       BIGINT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BIGINT)),
       DOUBLE_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_DOUBLE)),
       BOOLEAN_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BOOLEAN)),
