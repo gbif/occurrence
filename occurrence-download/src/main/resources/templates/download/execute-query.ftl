@@ -78,8 +78,9 @@ CREATE TABLE ${r"${humboldtTable}"} (
 <#list humboldtFields as field>
   ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
 </#list>
-) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="")
-AS
+) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+INSERT INTO TABLE ${r"${humboldtTable}"}
 SELECT
 <#list humboldtSelectFields as field>
     <#if field.hiveField == "gbifid">h.</#if>${field.hiveField}<#if field_has_next>,</#if>
