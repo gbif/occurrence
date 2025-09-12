@@ -13,28 +13,25 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import static org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition.avroField;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
+import lombok.SneakyThrows;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-
-import freemarker.cache.ClassTemplateLoader;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import lombok.SneakyThrows;
 import org.gbif.api.model.Constants;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
-
-import static org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition.avroField;
 
 /**
  * Generates HQL scripts dynamically which are used to create the download HDFS tables, and querying
@@ -196,12 +193,13 @@ public class GenerateHQL {
       Configuration cfg, DownloadQueryParameters queryParameters, File outDir)
       throws IOException, TemplateException {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-query.q"))) {
-      generateDwcaQueryHQL(cfg, queryParameters.getChecklistKey(), out);
+      generateDwcaQueryHQL(cfg, queryParameters, out);
     }
     generateDwcaDropTableQueryHQL(cfg, outDir);
   }
 
-  public static void generateDwcaQueryHQL(Configuration cfg, String checklistKey, Writer writer)
+  public static void generateDwcaQueryHQL(
+      Configuration cfg, DownloadQueryParameters queryParameters, Writer writer)
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("download/execute-query.ftl");
     Map<String, Object> data =
@@ -209,13 +207,26 @@ public class GenerateHQL {
             .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
             .put(
                 "interpretedFields",
-                HIVE_QUERIES.selectInterpretedFields(false, checklistKey).values())
+                HIVE_QUERIES
+                    .selectInterpretedFields(false, queryParameters.getChecklistKey())
+                    .values())
             .put(
                 "initializedInterpretedFields",
-                HIVE_QUERIES.selectInterpretedFields(true, checklistKey).values())
+                HIVE_QUERIES
+                    .selectInterpretedFields(true, queryParameters.getChecklistKey())
+                    .values())
             .put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values())
             .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
             .put("extensions", ExtensionTable.tableExtensions())
+            .put(IS_HUMBOLDT_SEARCH, queryParameters.isHumboldtSearch())
+            .put(
+                "humboldtFields",
+                HIVE_QUERIES
+                    .selectHumboldtFields(false, queryParameters.getChecklistKey())
+                    .values())
+            .put(
+                "humboldtSelectFields",
+                HIVE_QUERIES.selectHumboldtFields(true, queryParameters.getChecklistKey()).values())
             .build();
     template.process(data, writer);
   }
@@ -266,7 +277,7 @@ public class GenerateHQL {
   public static String generateDwcaQueryHQL(DownloadQueryParameters queryParameters)
       throws IOException, TemplateException {
     try (StringWriter stringWriter = new StringWriter()) {
-      generateDwcaQueryHQL(templateConfig(), queryParameters.getChecklistKey(), stringWriter);
+      generateDwcaQueryHQL(templateConfig(), queryParameters, stringWriter);
       return stringWriter.toString();
     }
   }

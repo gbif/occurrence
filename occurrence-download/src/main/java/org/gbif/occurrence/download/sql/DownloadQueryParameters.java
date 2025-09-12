@@ -112,6 +112,7 @@ public class DownloadQueryParameters {
     parameters.put("interpretedTable", downloadTableName + "_interpreted");
     parameters.put("citationTable", downloadTableName + "_citation");
     parameters.put("multimediaTable", downloadTableName + "_multimedia");
+    parameters.put("humboldtTable", downloadTableName + "_humboldt");
     return parameters;
   }
 }

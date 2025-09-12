@@ -189,6 +189,17 @@ public class DownloadJobConfiguration {
   }
 
   /**
+   * Humboldt table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_humboldt/ - small downloads
+   * format: sourceDir/downloadKey/humboldt
+   */
+  public String getHumboldtDataFileName() {
+    return isSmallDownload
+        ? getDownloadTempDir() + DwcDownloadsConstants.HUMBOLDT_FILENAME
+        : getDownloadTempDir(TableSuffixes.HUMBOLDT_SUFFIX);
+  }
+
+  /**
    * Directory where downloads files will be temporary stored. The output varies for small and big
    * downloads: - small downloads: sourceDir/downloadKey(suffix)/ - big downloads:
    * sourceDir/downloadTableName(suffix)/

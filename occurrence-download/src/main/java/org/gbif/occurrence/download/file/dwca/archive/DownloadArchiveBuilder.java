@@ -184,6 +184,12 @@ public class DownloadArchiveBuilder {
         MULTIMEDIA_FILENAME,
         HeadersFileUtil.getMultimediaTableHeader());
 
+    appendPreCompressedFile(
+      out,
+      new Path(configuration.getHumboldtDataFileName()),
+      HUMBOLDT_FILENAME,
+      HeadersFileUtil.getMultimediaTableHeader());
+
     appendExtensionFiles(out);
   }
 

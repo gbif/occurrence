@@ -42,25 +42,7 @@ abstract class TsvQueries extends Queries {
   }
 
   protected static String toTaxonomicHiveInitializer(Term term, String checklistKey) {
-    if (checklistKey == null || checklistKey.isEmpty()) {
-      throw new IllegalArgumentException("checklistKey must not be null or empty");
-    }
-
-    if (term == DwcTerm.order) {
-      // Special case for keyword order
-      return String.format(
-        "element_at(element_at(classificationdetails, '%s'), 'order') AS `order`",
-        checklistKey
-      );
-    }
-
-    final String columnName = HiveColumns.columnFor(term);
-    return String.format(
-      "element_at(element_at(classificationdetails, '%s'), '%s') AS %s",
-      checklistKey,
-      columnName,
-      columnName
-    );
+    return toTaxonomicHiveInitializer(term, checklistKey, "classificationdetails");
   }
 
   /**
