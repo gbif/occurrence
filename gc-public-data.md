@@ -35,7 +35,7 @@ Additional information may be retrived using the [GBIF API](https://www.gbif.org
 
 |              Field¹              |     Type      | Nullable | Description                   |
 |----------------------------------|---------------|----------|-------------------------------|
-| gbifid                           | BigInt        | N        | GBIF's identifier for the occurrence |
+| gbifid                           | String        | N        | GBIF's identifier for the occurrence |
 | datasetkey                       | String (UUID) | N        | GBIF's UUID for the [dataset](https://www.gbif.org/developer/registry#datasets) containing this occurrence |
 | publishingorgkey                 | String (UUID) | N        | GBIF's UUID for the [organization](https://www.gbif.org/developer/registry#organizations) publishing this occurrence. |
 | occurrencestatus                 | String        | N        | See [dwc:occurrenceStatus](https://dwc.tdwg.org/terms/#occurrenceStatus). Either the value `PRESENT` or `ABSENT`.  **Many users will wish to filter for `PRESENT` data.** |
@@ -67,9 +67,9 @@ Additional information may be retrived using the [GBIF API](https://www.gbif.org
 | depth                            | Double        | Y        | See [dwc:depth](https://dwc.tdwg.org/terms/#depth).  If provided by the data publisher, GBIF's interpretation has normalized this value to metres. |
 | depthaccuracy                    | Double        | Y        | See [dwc:depthAccuracy](https://dwc.tdwg.org/terms/#depthAccuracy).  If provided by the data publisher, GBIF's interpretation has normalized this value to metres. |
 | eventdate                        | Timestamp     | Y        | See [dwc:eventDate](https://dwc.tdwg.org/terms/#eventDate).  GBIF's interpretation has normalized this value to an ISO 8601 date with a local time. |
-| year                             | Integer       | Y        | See [dwc:year](https://dwc.tdwg.org/terms/#year). |
-| month                            | Integer       | Y        | See [dwc:month](https://dwc.tdwg.org/terms/#month). |
-| day                              | Integer       | Y        | See [dwc:day](https://dwc.tdwg.org/terms/#day). |
+| year                             | Integer       | Y        | See [dwc:year](https://dwc.tdwg.org/terms/#year). If null, the event date may span more than one year. |
+| month                            | Integer       | Y        | See [dwc:month](https://dwc.tdwg.org/terms/#month). If null, the event date may span more than one month. |
+| day                              | Integer       | Y        | See [dwc:day](https://dwc.tdwg.org/terms/#day). If null, the event date may span more than one day. |
 | individualcount                  | Integer       | Y        | See [dwc:individualCount](https://dwc.tdwg.org/terms/#individualCount). |
 | establishmentmeans               | String        | Y        | See [dwc:establishmentMeans](https://dwc.tdwg.org/terms/#establishmentMeans). |
 | occurrenceid                     | String        | Y²       | See [dwc:occurrenceID](https://dwc.tdwg.org/terms/#occurrenceID). |
@@ -99,6 +99,10 @@ Snapshots from 2021-04-13 included only CC0 and CC-BY data.
 From 2022-04-01, snapshots include all data (CC0, CC-BY, CC-BY-NC).  Filter using the `license` column if you need to exclude CC-BY-NC data.
 
 From 2022-05-01, the timestamp fields `eventDate`, `dateIdentified` and `lastIntepreted` have a timestamp type, rather than the previous string type.  The fields `identifiedby`, `recordedby` and `typestatus` are changed from a string type to a string array.
+
+From 2023-02-01, the `gbifid` field has string type, for compatibility with other biodiversity data aggregators.
+
+From 2025-08-01, the fields `taxonkey` and `specieskey` have string type, in preparation for a future change to Catalogue of Life’s taxonomy.
 
 ## Getting started with BigQuery
 
