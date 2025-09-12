@@ -135,7 +135,7 @@ public abstract class Queries {
               toTaxonomicHiveInitializer(
                   EcoTerm.targetTaxonomicScope,
                   checklistKey,
-                  term.simpleName().toLowerCase(),
+                  EcoTerm.targetTaxonomicScope.simpleName().toLowerCase(),
                   "usagename");
         } else {
           columnName = toInterpretedHiveInitializer(term, checklistKey);
@@ -334,6 +334,6 @@ public abstract class Queries {
       "element_at(element_at(" + column + ", '%s'), '%s') AS %s",
       checklistKey,
       subColumn,
-      subColumn);
+      column);
   }
 }
