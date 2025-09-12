@@ -127,14 +127,11 @@ public abstract class Queries {
             || term == EcoTerm.nonTargetTaxa) {
           columnName =
               toTaxonomicHiveInitializer(
-                  term, checklistKey, term.simpleName().toLowerCase(), "usagename");
+                  term, checklistKey, term.simpleName().toLowerCase(), "usagename", term.simpleName());
         } else if (TermUtils.isTaxonomic(term)) {
           columnName =
               toTaxonomicHiveInitializer(
-                  term,
-                  checklistKey,
-                  EcoTerm.targetTaxonomicScope.simpleName().toLowerCase(),
-                  term.simpleName().toLowerCase());
+                  term, checklistKey, EcoTerm.targetTaxonomicScope.simpleName().toLowerCase());
         } else {
           columnName = toInterpretedHiveInitializer(term, checklistKey);
         }
@@ -313,11 +310,12 @@ public abstract class Queries {
 
   protected static String toTaxonomicHiveInitializer(
     Term term, String checklistKey, String column) {
-    return toTaxonomicHiveInitializer(term, checklistKey, column, HiveColumns.columnFor(term));
+    return toTaxonomicHiveInitializer(
+        term, checklistKey, column, HiveColumns.columnFor(term), term.simpleName().toLowerCase());
   }
 
   protected static String toTaxonomicHiveInitializer(
-    Term term, String checklistKey, String column, String subColumn) {
+    Term term, String checklistKey, String column, String subColumn, String alias) {
     if (checklistKey == null || checklistKey.isEmpty()) {
       throw new IllegalArgumentException("checklistKey must not be null or empty");
     }
@@ -332,7 +330,7 @@ public abstract class Queries {
       "element_at(element_at(" + column + ", '%s'), '%s') AS %s",
       checklistKey,
       subColumn,
-      column);
+      alias);
   }
 
 }
