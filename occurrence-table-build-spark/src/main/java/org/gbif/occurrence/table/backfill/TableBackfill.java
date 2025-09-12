@@ -25,7 +25,6 @@ import com.google.common.base.Strings;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -46,11 +45,7 @@ import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
-import org.checkerframework.checker.units.qual.A;
-
-import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
@@ -223,7 +218,8 @@ public class TableBackfill {
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
-        // first we remove the old tables and the new ones in case it failed before and they weren't renamed
+        // first we remove the old tables and the new ones in case it failed before and they weren't
+        // renamed
         executeDeleteAction(command, spark, "old_");
         executeDeleteAction(command, spark, "new_");
         if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
@@ -399,53 +395,53 @@ public class TableBackfill {
 
   public void insertOverwriteMultimediaTable(SparkSession spark) {
     spark
-      .table(configuration.getTableNameWithPrefix())
-      .select(
-        col("gbifid"),
-        from_json(
-          col("ext_multimedia"),
-          new ArrayType(
-            new StructType()
-              .add("type", "string", false)
-              .add("format", "string", false)
-              .add("identifier", "string", false)
-              .add("references", "string", false)
-              .add("title", "string", false)
-              .add("description", "string", false)
-              .add("source", "string", false)
-              .add("audience", "string", false)
-              .add("created", "string", false)
-              .add("creator", "string", false)
-              .add("contributor", "string", false)
-              .add("publisher", "string", false)
-              .add("license", "string", false)
-              .add("rightsHolder", "string", false),
-            true))
-          .alias("mm_record"))
-      .select(col("gbifid"), explode(col("mm_record")).alias("mm_record"))
-      .select(
-        col("gbifid"),
-        callUDF("cleanDelimiters", col("mm_record.type")).alias("type"),
-        callUDF("cleanDelimiters", col("mm_record.format")).alias("format"),
-        callUDF("cleanDelimiters", col("mm_record.identifier")).alias("identifier"),
-        callUDF("cleanDelimiters", col("mm_record.references")).alias("references"),
-        callUDF("cleanDelimiters", col("mm_record.title")).alias("title"),
-        callUDF("cleanDelimiters", col("mm_record.description")).alias("description"),
-        callUDF("cleanDelimiters", col("mm_record.source")).alias("source"),
-        callUDF("cleanDelimiters", col("mm_record.audience")).alias("audience"),
-        col("mm_record.created").alias("created"),
-        callUDF("cleanDelimiters", col("mm_record.creator")).alias("creator"),
-        callUDF("cleanDelimiters", col("mm_record.contributor")).alias("contributor"),
-        callUDF("cleanDelimiters", col("mm_record.publisher")).alias("publisher"),
-        callUDF("cleanDelimiters", col("mm_record.license")).alias("license"),
-        callUDF("cleanDelimiters", col("mm_record.rightsHolder")).alias("rightsHolder"))
-      .createOrReplaceTempView("mm_records");
+        .table(configuration.getTableNameWithPrefix())
+        .select(
+            col("gbifid"),
+            from_json(
+                    col("ext_multimedia"),
+                    new ArrayType(
+                        new StructType()
+                            .add("type", "string", false)
+                            .add("format", "string", false)
+                            .add("identifier", "string", false)
+                            .add("references", "string", false)
+                            .add("title", "string", false)
+                            .add("description", "string", false)
+                            .add("source", "string", false)
+                            .add("audience", "string", false)
+                            .add("created", "string", false)
+                            .add("creator", "string", false)
+                            .add("contributor", "string", false)
+                            .add("publisher", "string", false)
+                            .add("license", "string", false)
+                            .add("rightsHolder", "string", false),
+                        true))
+                .alias("mm_record"))
+        .select(col("gbifid"), explode(col("mm_record")).alias("mm_record"))
+        .select(
+            col("gbifid"),
+            callUDF("cleanDelimiters", col("mm_record.type")).alias("type"),
+            callUDF("cleanDelimiters", col("mm_record.format")).alias("format"),
+            callUDF("cleanDelimiters", col("mm_record.identifier")).alias("identifier"),
+            callUDF("cleanDelimiters", col("mm_record.references")).alias("references"),
+            callUDF("cleanDelimiters", col("mm_record.title")).alias("title"),
+            callUDF("cleanDelimiters", col("mm_record.description")).alias("description"),
+            callUDF("cleanDelimiters", col("mm_record.source")).alias("source"),
+            callUDF("cleanDelimiters", col("mm_record.audience")).alias("audience"),
+            col("mm_record.created").alias("created"),
+            callUDF("cleanDelimiters", col("mm_record.creator")).alias("creator"),
+            callUDF("cleanDelimiters", col("mm_record.contributor")).alias("contributor"),
+            callUDF("cleanDelimiters", col("mm_record.publisher")).alias("publisher"),
+            callUDF("cleanDelimiters", col("mm_record.license")).alias("license"),
+            callUDF("cleanDelimiters", col("mm_record.rightsHolder")).alias("rightsHolder"))
+        .createOrReplaceTempView("mm_records");
 
     spark.sql(
-      String.format(
-        "INSERT OVERWRITE TABLE %1$s_multimedia \n"
-          + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
-        configuration.getTableNameWithPrefix()));
+        String.format(
+            "INSERT OVERWRITE TABLE %1$s_multimedia \n"
+                + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
+            configuration.getTableNameWithPrefix()));
   }
 
   public String createIfNotExistsHumboldt() {
@@ -653,24 +649,11 @@ public class TableBackfill {
         case HiveDataTypes.TYPE_BOOLEAN:
           type = DataTypes.BooleanType;
           break;
-        case HiveDataTypes.TYPE_HUMBOLDT_TAXON_STRUCT:
+        case HiveDataTypes.TYPE_MAP_OF_MAP_STRUCT:
           type =
               new MapType(
                   DataTypes.StringType,
-                  new ArrayType(
-                      new StructType()
-                          .add("usageKey", DataTypes.StringType, true)
-                          .add("usageName", DataTypes.StringType, true)
-                          .add("usageRank", DataTypes.StringType, true)
-                          .add(
-                              "rankedNames",
-                              new ArrayType(
-                                  new StructType()
-                                      .add("key", DataTypes.StringType, true)
-                                      .add("name", DataTypes.StringType, true)
-                                      .add("rank", DataTypes.StringType, true),
-                                  true)),
-                      true),
+                  new MapType(DataTypes.StringType, DataTypes.StringType, true),
                   true);
           break;
         case HiveDataTypes.TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT:
