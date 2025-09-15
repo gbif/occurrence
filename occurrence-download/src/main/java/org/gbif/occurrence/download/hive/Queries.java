@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import static org.gbif.occurrence.common.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
+
 import com.google.common.collect.ImmutableMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -114,7 +116,7 @@ public abstract class Queries {
     // always add the GBIF ID
     result.put(GbifTerm.gbifID.simpleName(), selectGbifId());
 
-    for (Term term : DownloadTerms.DOWNLOAD_HUMBOLDT_TERMS) {
+    for (Term term : DOWNLOAD_HUMBOLDT_TERMS) {
       if (GbifTerm.gbifID == term) {
         continue; // for safety, we code defensively as it may be added
       }

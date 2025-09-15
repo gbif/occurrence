@@ -26,6 +26,8 @@ import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
+import static org.gbif.occurrence.common.TermUtils.INTERPRETED_HUMBOLDT_TERMS;
+
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
  */
@@ -244,89 +246,6 @@ public class DownloadTerms {
           GbifInternalTerm.dwcaExtension,
           GbifInternalTerm.eventDateGte,
           GbifInternalTerm.eventDateLte);
-
-  public static final Set<Term> INTERPRETED_HUMBOLDT_TERMS =
-      Set.of(
-          EcoTerm.siteCount,
-          EcoTerm.verbatimSiteDescriptions,
-          EcoTerm.verbatimSiteNames,
-          EcoTerm.geospatialScopeAreaValue,
-          EcoTerm.geospatialScopeAreaUnit,
-          EcoTerm.totalAreaSampledValue,
-          EcoTerm.totalAreaSampledUnit,
-          EcoTerm.targetHabitatScope,
-          EcoTerm.excludedHabitatScope,
-          EcoTerm.eventDurationValue,
-          EcoTerm.eventDurationUnit,
-          EcoTerm.targetTaxonomicScope,
-          EcoTerm.excludedTaxonomicScope,
-          EcoTerm.taxonCompletenessProtocols,
-          EcoTerm.isTaxonomicScopeFullyReported,
-          EcoTerm.isAbsenceReported,
-          EcoTerm.absentTaxa,
-          EcoTerm.hasNonTargetTaxa,
-          EcoTerm.nonTargetTaxa,
-          EcoTerm.areNonTargetTaxaFullyReported,
-          EcoTerm.targetLifeStageScope,
-          EcoTerm.excludedLifeStageScope,
-          EcoTerm.isLifeStageScopeFullyReported,
-          EcoTerm.targetDegreeOfEstablishmentScope,
-          EcoTerm.excludedDegreeOfEstablishmentScope,
-          EcoTerm.isDegreeOfEstablishmentScopeFullyReported,
-          EcoTerm.targetGrowthFormScope,
-          EcoTerm.excludedGrowthFormScope,
-          EcoTerm.isGrowthFormScopeFullyReported,
-          EcoTerm.hasNonTargetOrganisms,
-          EcoTerm.compilationTypes,
-          EcoTerm.compilationSourceTypes,
-          EcoTerm.inventoryTypes,
-          EcoTerm.protocolNames,
-          EcoTerm.protocolDescriptions,
-          EcoTerm.protocolReferences,
-          EcoTerm.isAbundanceReported,
-          EcoTerm.isAbundanceCapReported,
-          EcoTerm.abundanceCap,
-          EcoTerm.isVegetationCoverReported,
-          EcoTerm.isLeastSpecificTargetCategoryQuantityInclusive,
-          EcoTerm.hasVouchers,
-          EcoTerm.voucherInstitutions,
-          EcoTerm.hasMaterialSamples,
-          EcoTerm.materialSampleTypes,
-          EcoTerm.samplingPerformedBy,
-          EcoTerm.isSamplingEffortReported,
-          EcoTerm.samplingEffortValue,
-          EcoTerm.samplingEffortUnit,
-          GbifInternalTerm.humboldtEventDurationValueInMinutes);
-
-  public static final Set<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
-      Set.of(
-          GbifInternalTerm.humboldtEventDurationValueInMinutes);
-
-  public static final Set<Term> DOWNLOAD_HUMBOLDT_TERMS =
-      Sets.difference(
-          new ImmutableSet.Builder<Term>()
-              .addAll(INTERPRETED_HUMBOLDT_TERMS)
-              .add(DwcTerm.kingdom)
-              .add(GbifTerm.kingdomKey)
-              .add(DwcTerm.phylum)
-              .add(GbifTerm.phylumKey)
-              .add(DwcTerm.class_)
-              .add(GbifTerm.classKey)
-              .add(DwcTerm.order)
-              .add(GbifTerm.orderKey)
-              .add(DwcTerm.family)
-              .add(GbifTerm.familyKey)
-              .add(DwcTerm.genus)
-              .add(GbifTerm.genusKey)
-              .add(DwcTerm.subgenus)
-              .add(GbifTerm.subgenusKey)
-              .add(GbifTerm.species)
-              .add(GbifTerm.speciesKey)
-              .add(DwcTerm.taxonRank)
-              .add(GbifTerm.taxonKey)
-              .add(GbifTerm.taxonomicIssue)
-              .build(),
-          EXCLUSION_DOWNLOAD_HUMBOLDT);
 
   public static String simpleName(Pair<Group, Term> termPair) {
     Term term = termPair.getRight();

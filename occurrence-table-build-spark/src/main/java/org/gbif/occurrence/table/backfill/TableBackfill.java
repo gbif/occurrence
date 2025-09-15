@@ -18,7 +18,7 @@ import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.from_json;
 import static org.apache.spark.sql.functions.lit;
-import static org.gbif.occurrence.download.hive.DownloadTerms.INTERPRETED_HUMBOLDT_TERMS;
+import static org.gbif.occurrence.common.TermUtils.INTERPRETED_HUMBOLDT_TERMS;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
