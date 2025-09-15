@@ -323,14 +323,15 @@ public abstract class Queries {
     if (term == DwcTerm.order) {
       // Special case for keyword order
       return String.format(
-        "element_at(element_at(" + column + ", '%s'), 'order') AS `order`", checklistKey);
+          "array_join(element_at(element_at(" + column + ", '%s'), 'order'),'\\;') AS `order`",
+          checklistKey);
     }
 
     return String.format(
-      "element_at(element_at(" + column + ", '%s'), '%s') AS %s",
-      checklistKey,
-      subColumn,
-      alias);
+        "array_join(element_at(element_at(" + column + ", '%s'), '%s'),'\\;') AS %s",
+        checklistKey,
+        subColumn,
+        alias);
   }
 
 }

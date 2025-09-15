@@ -13,28 +13,27 @@
  */
 package org.gbif.occurrence.common;
 
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GadmTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.IucnTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.predicate.query.SQLColumnsUtils;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.EcoTerm;
+import org.gbif.dwc.terms.GadmTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.predicate.query.SQLColumnsUtils;
 
 /**
  * This class serves to document the terms used in various stages of processing.  Please note that changes to this
@@ -468,6 +467,14 @@ public class TermUtils {
    */
   public static Iterable<Term> multimediaTerms() {
     return Iterables.concat(Collections.singletonList(GbifTerm.gbifID), MULTIMEDIA_TERMS);
+  }
+
+  /**
+   * Lists all terms relevant for a humboldt extension record.
+   * gbifID is included and comes first as it is the foreign key to the core record.
+   */
+  public static Iterable<Term> humboldtTerms() {
+    return Iterables.concat(Collections.singletonList(GbifTerm.gbifID), List.of(EcoTerm.values()));
   }
 
   /**
