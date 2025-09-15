@@ -649,14 +649,7 @@ public class TableBackfill {
         case HiveDataTypes.TYPE_BOOLEAN:
           type = DataTypes.BooleanType;
           break;
-        case HiveDataTypes.TYPE_MAP_OF_MAP_STRUCT:
-          type =
-              new MapType(
-                  DataTypes.StringType,
-                  new MapType(DataTypes.StringType, DataTypes.StringType, true),
-                  true);
-          break;
-        case HiveDataTypes.TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT:
+        case HiveDataTypes.TYPE_MAP_OF_MAP_ARRAY_STRUCT:
           type =
               new MapType(
                   DataTypes.StringType,

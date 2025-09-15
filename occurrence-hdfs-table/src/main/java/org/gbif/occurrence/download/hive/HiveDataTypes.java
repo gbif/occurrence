@@ -55,8 +55,7 @@ public final class HiveDataTypes {
       "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
   public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
   public static final String TYPE_MAP_OF_MAP_STRUCT = "MAP<STRING, MAP<STRING, STRING>>";
-  public static final String TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT =
-      "MAP<STRING, MAP<STRING, ARRAY<STRING>>>";
+  public static final String TYPE_MAP_OF_MAP_ARRAY_STRUCT = "MAP<STRING, MAP<STRING, ARRAY<STRING>>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT =
       "ARRAY<STRUCT<id: STRING,eventType: STRING>>";
   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
@@ -168,9 +167,8 @@ public final class HiveDataTypes {
           EcoTerm.hasMaterialSamples,
           EcoTerm.isSamplingEffortReported);
 
-  private static final Set<Term> TYPE_MAP_OF_MAP_STRUCT_TERMS =
+  private static final Set<Term> TYPE_MAP_OF_MAP_ARRAY_STRUCT_TERMS =
       Set.of(
-          GbifInternalTerm.classificationDetails,
           EcoTerm.targetTaxonomicScope,
           EcoTerm.excludedTaxonomicScope,
           EcoTerm.absentTaxa,
@@ -184,8 +182,8 @@ public final class HiveDataTypes {
                 BIGINT_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BIGINT)),
                 DOUBLE_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_DOUBLE)),
                 BOOLEAN_TERMS.stream().map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_BOOLEAN)),
-                TYPE_MAP_OF_MAP_STRUCT_TERMS.stream()
-                    .map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_MAP_OF_MAP_STRUCT)),
+                TYPE_MAP_OF_MAP_ARRAY_STRUCT_TERMS.stream()
+                    .map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_MAP_OF_MAP_ARRAY_STRUCT)),
                 ARRAY_STRING_TERMS.stream()
                     .map(t -> new AbstractMap.SimpleEntry<>(t, TYPE_ARRAY_STRING)))
             .flatMap(Function.identity())
@@ -221,8 +219,8 @@ public final class HiveDataTypes {
       }
     } else if (term.equals(GbifInternalTerm.classifications)) {
       return TYPE_MAP_STRUCT;
-    } else if (term.equals(GbifInternalTerm.humboldtTargetTaxonClassifications)) {
-      return TYPE_HUMBOLDT_CLASSIFICATIONS_STRUCT;
+    } else if (term.equals(GbifInternalTerm.classificationDetails)) {
+      return TYPE_MAP_OF_MAP_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }

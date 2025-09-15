@@ -45,8 +45,7 @@ public class DownloadTerms {
           GbifInternalTerm.fragmentHash, // omitted entirely
           GbifInternalTerm.fragment, // omitted entirely
           GbifTerm.numberOfOccurrences,
-          GbifInternalTerm.humboldtEventDurationValueInMinutes,
-          GbifInternalTerm.humboldtTargetTaxonClassifications);
+          GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
   /** This set is used for the HDFS table definition */
   public static final Set<Term> EXCLUSIONS_HDFS =
@@ -297,13 +296,11 @@ public class DownloadTerms {
           EcoTerm.isSamplingEffortReported,
           EcoTerm.samplingEffortValue,
           EcoTerm.samplingEffortUnit,
-          GbifInternalTerm.humboldtEventDurationValueInMinutes,
-          GbifInternalTerm.humboldtTargetTaxonClassifications);
+          GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
   public static final Set<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
       Set.of(
-          GbifInternalTerm.humboldtEventDurationValueInMinutes,
-          GbifInternalTerm.humboldtTargetTaxonClassifications);
+          GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
   public static final Set<Term> DOWNLOAD_HUMBOLDT_TERMS =
       Sets.difference(
