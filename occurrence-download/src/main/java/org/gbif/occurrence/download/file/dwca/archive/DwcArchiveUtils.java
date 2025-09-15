@@ -151,8 +151,11 @@ public class DwcArchiveUtils {
     ArchiveFile multimedia = createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
     downloadArchive.addExtension(multimedia);
 
-    ArchiveFile humboldt = createArchiveFile(HUMBOLDT_FILENAME, GbifTerm.Humboldt, TermUtils.humboldtTerms());
-    downloadArchive.addExtension(humboldt);
+    if (DwcTerm.Event == coreTerm) {
+      ArchiveFile humboldt =
+          createArchiveFile(HUMBOLDT_FILENAME, GbifTerm.Humboldt, TermUtils.humboldtTerms());
+      downloadArchive.addExtension(humboldt);
+    }
 
     addVerbatimExtensionsFiles(verbatimExtensions, downloadArchive);
 
