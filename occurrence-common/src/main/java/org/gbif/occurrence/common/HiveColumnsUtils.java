@@ -93,15 +93,20 @@ public class HiveColumnsUtils {
         || GbifTerm.projectId == term
         || EcoTerm.voucherInstitutions == term
         || EcoTerm.verbatimSiteNames == term
+        || EcoTerm.verbatimSiteDescriptions == term
         || EcoTerm.compilationSourceTypes == term
         || EcoTerm.targetHabitatScope == term
+        || EcoTerm.excludedHabitatScope == term
         || EcoTerm.targetGrowthFormScope == term
+        || EcoTerm.excludedGrowthFormScope == term
         || EcoTerm.taxonCompletenessProtocols == term
         || EcoTerm.samplingPerformedBy == term
         || EcoTerm.compilationTypes == term
         || EcoTerm.materialSampleTypes == term
         || EcoTerm.inventoryTypes == term
         || EcoTerm.protocolNames == term
+        || EcoTerm.protocolDescriptions == term
+        || EcoTerm.protocolReferences == term
         || EcoTerm.targetLifeStageScope == term
         || EcoTerm.targetDegreeOfEstablishmentScope == term
         || EcoTerm.excludedLifeStageScope == term
