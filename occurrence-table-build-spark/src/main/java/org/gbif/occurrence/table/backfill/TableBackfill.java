@@ -628,7 +628,7 @@ public class TableBackfill {
     return String.format("ALTER TABLE %s RENAME TO %s", oldTable, newTable);
   }
 
-  private static StructType createHumboldtStructTypeFromJson(Set<Term> terms) {
+  private static StructType createHumboldtStructTypeFromJson(List<Term> terms) {
     StructType structType = new StructType();
     for (Term humboldtTerm : terms) {
       String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);

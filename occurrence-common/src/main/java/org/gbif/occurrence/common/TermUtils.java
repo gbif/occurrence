@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -369,26 +370,28 @@ public class TermUtils {
     Sets.difference(TERMS_SUBJECT_TO_INTERPRETATION, TERMS_POPULATED_BY_INTERPRETATION);
 
   /**
-   * Term list of the extension excluding the coreid just as defined by:
-   * <a href="http://rs.gbif.org/terms/1.0/Multimedia">the multimedia extension</a>
+   * Term list of the extension excluding the coreid just as defined by: <a
+   * href="http://rs.gbif.org/terms/1.0/Multimedia">the multimedia extension</a>
    */
-  private static final List<DcTerm> MULTIMEDIA_TERMS = ImmutableList.of(DcTerm.type,
-                                                                        DcTerm.format,
-                                                                        DcTerm.identifier,
-                                                                        DcTerm.references,
-                                                                        DcTerm.title,
-                                                                        DcTerm.description,
-                                                                        DcTerm.source,
-                                                                        DcTerm.audience,
-                                                                        DcTerm.created,
-                                                                        DcTerm.creator,
-                                                                        DcTerm.contributor,
-                                                                        DcTerm.publisher,
-                                                                        DcTerm.license,
-                                                                        DcTerm.rightsHolder);
+  private static final List<DcTerm> MULTIMEDIA_TERMS =
+      ImmutableList.of(
+          DcTerm.type,
+          DcTerm.format,
+          DcTerm.identifier,
+          DcTerm.references,
+          DcTerm.title,
+          DcTerm.description,
+          DcTerm.source,
+          DcTerm.audience,
+          DcTerm.created,
+          DcTerm.creator,
+          DcTerm.contributor,
+          DcTerm.publisher,
+          DcTerm.license,
+          DcTerm.rightsHolder);
 
-  public static final Set<Term> INTERPRETED_HUMBOLDT_TERMS =
-    Set.of(
+  public static final List<Term> INTERPRETED_HUMBOLDT_TERMS =
+    List.of(
       EcoTerm.siteCount,
       EcoTerm.verbatimSiteDescriptions,
       EcoTerm.verbatimSiteNames,
@@ -440,39 +443,38 @@ public class TermUtils {
       EcoTerm.samplingEffortUnit,
       GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
-  public static final Set<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
-    Set.of(
-      GbifInternalTerm.humboldtEventDurationValueInMinutes);
+  public static final List<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
+      List.of(GbifInternalTerm.humboldtEventDurationValueInMinutes);
 
-  public static final Set<Term> DOWNLOAD_HUMBOLDT_TERMS =
-    Sets.difference(
-      new ImmutableSet.Builder<Term>()
-        .addAll(INTERPRETED_HUMBOLDT_TERMS)
-        .add(DwcTerm.kingdom)
-        .add(GbifTerm.kingdomKey)
-        .add(DwcTerm.phylum)
-        .add(GbifTerm.phylumKey)
-        .add(DwcTerm.class_)
-        .add(GbifTerm.classKey)
-        .add(DwcTerm.order)
-        .add(GbifTerm.orderKey)
-        .add(DwcTerm.family)
-        .add(GbifTerm.familyKey)
-        .add(DwcTerm.genus)
-        .add(GbifTerm.genusKey)
-        .add(DwcTerm.subgenus)
-        .add(GbifTerm.subgenusKey)
-        .add(GbifTerm.species)
-        .add(GbifTerm.speciesKey)
-        .add(DwcTerm.taxonRank)
-        .add(GbifTerm.taxonKey)
-        .add(GbifTerm.taxonomicIssue)
-        .build(),
-      EXCLUSION_DOWNLOAD_HUMBOLDT);
-
+  public static final List<Term> DOWNLOAD_HUMBOLDT_TERMS = downloadHumboldtTerms();
 
   private TermUtils() {
     // private constructor
+  }
+
+  private static List<Term> downloadHumboldtTerms() {
+    List<Term> terms = new ArrayList<>(INTERPRETED_HUMBOLDT_TERMS);
+    terms.add(DwcTerm.kingdom);
+    terms.add(GbifTerm.kingdomKey);
+    terms.add(DwcTerm.phylum);
+    terms.add(GbifTerm.phylumKey);
+    terms.add(DwcTerm.class_);
+    terms.add(GbifTerm.classKey);
+    terms.add(DwcTerm.order);
+    terms.add(GbifTerm.orderKey);
+    terms.add(DwcTerm.family);
+    terms.add(GbifTerm.familyKey);
+    terms.add(DwcTerm.genus);
+    terms.add(GbifTerm.genusKey);
+    terms.add(DwcTerm.subgenus);
+    terms.add(GbifTerm.subgenusKey);
+    terms.add(GbifTerm.species);
+    terms.add(GbifTerm.speciesKey);
+    terms.add(DwcTerm.taxonRank);
+    terms.add(GbifTerm.taxonKey);
+    terms.add(GbifTerm.taxonomicIssue);
+    EXCLUSION_DOWNLOAD_HUMBOLDT.forEach(terms::remove);
+    return terms;
   }
 
   /**

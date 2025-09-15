@@ -26,8 +26,6 @@ import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
-import static org.gbif.occurrence.common.TermUtils.INTERPRETED_HUMBOLDT_TERMS;
-
 /**
  * Definitions of terms used in downloading, and in create tables used during the download process.
  */
