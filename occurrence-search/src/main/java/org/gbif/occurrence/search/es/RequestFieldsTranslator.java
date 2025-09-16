@@ -13,38 +13,39 @@
  */
 package org.gbif.occurrence.search.es;
 
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.vocabulary.api.ConceptView;
-import org.gbif.vocabulary.client.ConceptClient;
-import org.gbif.vocabulary.model.Tag;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import org.elasticsearch.common.Strings;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import org.elasticsearch.common.Strings;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.vocabulary.DurationUnit;
+import org.gbif.vocabulary.api.ConceptView;
+import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.vocabulary.model.Tag;
 
-public class VocabularyFieldTranslator {
+public class RequestFieldsTranslator {
+
+  // TODO: add to this class the dnaSequence conversion too?
 
   private static final String GEO_TIME_VOCAB = "GeoTime";
   private static final ObjectMapper objectMapper =
       new ObjectMapper()
-        .registerModule(new SimpleModule()
-          .addDeserializer(OccurrenceSearchParameter.class, new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
-        )
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+          .registerModule(
+              new SimpleModule()
+                  .addDeserializer(
+                      OccurrenceSearchParameter.class,
+                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()))
+          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @SneakyThrows
   public static Predicate translateVocabs(Predicate predicate, ConceptClient conceptClient) {
@@ -61,8 +62,21 @@ public class VocabularyFieldTranslator {
                   .asText()
                   .equals(OccurrenceSearchParameter.GEOLOGICAL_TIME.name())) {
                 String translatedParam =
-                    processParam(parent.findValue("value").asText(), conceptClient);
+                    processGeoTimeParam(parent.findValue("value").asText(), conceptClient);
                 ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
+              } else if (parent
+                  .findValue("key")
+                  .asText()
+                  .equals(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION.name())) {
+                String translatedParam =
+                    processHumboldtEventDurationParam(parent.findValue("value").asText());
+                ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
+                ((ObjectNode) parent)
+                    .replace(
+                        "key",
+                        new TextNode(
+                            OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES
+                                .name()));
               }
             });
 
@@ -80,14 +94,65 @@ public class VocabularyFieldTranslator {
       return;
     }
 
+    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION)) {
+      String durationParam =
+          params.get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next();
+      String translatedParam = processHumboldtEventDurationParam(durationParam);
+      params.put(
+          OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
+          Set.of(translatedParam));
+      params.remove(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION);
+    }
+
     if (params.containsKey(OccurrenceSearchParameter.GEOLOGICAL_TIME)) {
       String geoTimeParam = params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next();
-      String translatedParam = processParam(geoTimeParam, conceptClient);
+      String translatedParam = processGeoTimeParam(geoTimeParam, conceptClient);
       params.replace(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of(translatedParam));
     }
   }
 
-  private static String processParam(String geoTimeParam, ConceptClient conceptClient) {
+  private static String processHumboldtEventDurationParam(String durationParam) {
+    if (Strings.isNullOrEmpty(durationParam)) {
+      return durationParam;
+    }
+
+    if (durationParam.contains(EsQueryUtils.RANGE_SEPARATOR)) {
+      String[] range = durationParam.split(",");
+      String lowerBound = range[0];
+      String higherBound = range[1];
+
+      String translatedRange = "";
+
+      if (lowerBound.equals(EsQueryUtils.RANGE_WILDCARD)) {
+        translatedRange = "*,";
+      } else {
+        DurationUnit.Duration lowerDuration =
+            DurationUnit.Duration.parse(lowerBound)
+                .orElseThrow(
+                    () -> new IllegalArgumentException("Invalid humboldt event lower duration"));
+        translatedRange += lowerDuration.toMinutes() + ",";
+      }
+
+      if (higherBound.equals(EsQueryUtils.RANGE_WILDCARD)) {
+        translatedRange += "*";
+      } else {
+        DurationUnit.Duration higherDuration =
+            DurationUnit.Duration.parse(higherBound)
+                .orElseThrow(
+                    () -> new IllegalArgumentException("Invalid humboldt event higher duration"));
+        translatedRange += higherDuration.toMinutes();
+      }
+
+      return translatedRange;
+    } else {
+      DurationUnit.Duration duration =
+          DurationUnit.Duration.parse(durationParam)
+              .orElseThrow(() -> new IllegalArgumentException("Invalid humboldt event duration"));
+      return String.valueOf(duration.toMinutes());
+    }
+  }
+
+  private static String processGeoTimeParam(String geoTimeParam, ConceptClient conceptClient) {
     if (Strings.isNullOrEmpty(geoTimeParam)) {
       return geoTimeParam;
     }

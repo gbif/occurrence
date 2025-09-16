@@ -18,6 +18,7 @@ import static org.apache.spark.sql.functions.col;
 import static org.apache.spark.sql.functions.explode;
 import static org.apache.spark.sql.functions.from_json;
 import static org.apache.spark.sql.functions.lit;
+import static org.gbif.occurrence.common.TermUtils.INTERPRETED_HUMBOLDT_TERMS;
 
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
@@ -40,9 +41,13 @@ import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.ArrayType;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
+import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
@@ -57,6 +62,7 @@ public class TableBackfill {
     TABLE,
     EXTENSIONS,
     MULTIMEDIA,
+    HUMBOLDT,
     ALL;
   }
 
@@ -136,6 +142,14 @@ public class TableBackfill {
     insertOverwriteMultimediaTable(spark);
   }
 
+  private void createHumboldtTable(SparkSession spark) {
+    log.info("Creating Humboldt Table");
+    spark.sparkContext().setJobDescription("Create " + humboldtTableName());
+
+    spark.sql(createIfNotExistsHumboldt());
+    insertOverwriteHumboldtTable(spark);
+  }
+
   private void executeCreateAction(Command command, SparkSession spark) {
     HdfsSnapshotAction snapshotAction =
         new HdfsSnapshotAction(configuration, spark.sparkContext().hadoopConfiguration());
@@ -158,6 +172,12 @@ public class TableBackfill {
           || command.getOptions().contains(Option.MULTIMEDIA)) {
         createMultimediaTable(spark);
       }
+
+      if (configuration.getCoreName().equalsIgnoreCase("event")
+          && (command.getOptions().contains(Option.ALL)
+              || command.getOptions().contains(Option.HUMBOLDT))) {
+        createHumboldtTable(spark);
+      }
     } finally {
       snapshotAction.deleteHdfsSnapshot(jobId);
       log.info("Creation finished");
@@ -174,6 +194,11 @@ public class TableBackfill {
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Deleting Multimedia Table ");
       spark.sql(dropTable(prefix + configuration.getTableName() + "_multimedia"));
+    }
+    if (command.getOptions().contains(Option.ALL)
+        || command.getOptions().contains(Option.HUMBOLDT)) {
+      log.info("Deleting Humboldt Table ");
+      spark.sql(dropTable(prefix + configuration.getTableName() + "_humboldt"));
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -193,8 +218,10 @@ public class TableBackfill {
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
-        // first we remove the old tables
+        // first we remove the old tables and the new ones in case it failed before and they weren't
+        // renamed
         executeDeleteAction(command, spark, "old_");
+        executeDeleteAction(command, spark, "new_");
         if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
           configuration.setPrefixTable("new");
         }
@@ -235,7 +262,10 @@ public class TableBackfill {
       if (configuration.isUsePartitionedTable()) {
         spark.sql(" set hive.exec.dynamic.partition.mode=nonstrict");
       }
-      log.info("Creating Avro table {} from source directory {}", configuration.getTableName(), fromSourceDir);
+      log.info(
+          "Creating Avro table {} from source directory {}",
+          configuration.getTableName(),
+          fromSourceDir);
       Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
@@ -259,9 +289,10 @@ public class TableBackfill {
     log.info("Create extension table: {}", extensionTable.getHiveTableName());
     spark.sparkContext().setJobDescription("Create " + extensionTable.getHiveTableName());
 
-    String extensionTableSql = configuration.isUsePartitionedTable()
-      ? createExtensionExternalTable(extensionTable)
-      : createExtensionTable(extensionTable);
+    String extensionTableSql =
+        configuration.isUsePartitionedTable()
+            ? createExtensionExternalTable(extensionTable)
+            : createExtensionTable(extensionTable);
 
     log.info("Creating extension table SQL {}", extensionTableSql);
     spark.sql(extensionTableSql);
@@ -332,7 +363,7 @@ public class TableBackfill {
   }
 
   private String dropTable(String tableName) {
-    return String.format("DROP TABLE IF EXISTS %s", tableName);
+    return String.format("DROP TABLE IF EXISTS %s PURGE", tableName);
   }
 
   private String getSnapshotPath(String dataDirectory) {
@@ -410,6 +441,46 @@ public class TableBackfill {
         String.format(
             "INSERT OVERWRITE TABLE %1$s_multimedia \n"
                 + "SELECT gbifid, type, format, identifier, references, title, description, source, audience, created, creator, contributor, publisher, license, rightsHolder FROM mm_records",
+            configuration.getTableNameWithPrefix()));
+  }
+
+  public String createIfNotExistsHumboldt() {
+    return String.format(
+        "CREATE TABLE IF NOT EXISTS %s\n"
+            + "(gbifid STRING,"
+            + INTERPRETED_HUMBOLDT_TERMS.stream()
+                .map(term -> term.simpleName() + " " + HiveDataTypes.typeForTerm(term, false))
+                .collect(Collectors.joining(","))
+            + ") \n"
+            + "STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"ZSTD\")",
+        getPrefix() + humboldtTableName());
+  }
+
+  private String humboldtTableName() {
+    return String.format("%s_humboldt", configuration.getTableName());
+  }
+
+  public void insertOverwriteHumboldtTable(SparkSession spark) {
+    spark
+        .table(configuration.getTableNameWithPrefix())
+        .select(
+            col("gbifid"),
+            from_json(
+                    col("ext_humboldt"),
+                    new ArrayType(
+                        createHumboldtStructTypeFromJson(INTERPRETED_HUMBOLDT_TERMS), true))
+                .alias("h_record"))
+        .select(col("gbifid"), explode(col("h_record")).alias("h_record"))
+        .createOrReplaceTempView("h_records");
+
+    spark.sql(
+        String.format(
+            "INSERT OVERWRITE TABLE %1$s_humboldt \n"
+                + "SELECT gbifid,"
+                + INTERPRETED_HUMBOLDT_TERMS.stream()
+                    .map(t -> "h_record." + t.simpleName())
+                    .collect(Collectors.joining(","))
+                + " FROM h_records",
             configuration.getTableNameWithPrefix()));
   }
 
@@ -518,12 +589,13 @@ public class TableBackfill {
                 log.info("Swapping Extension Table {}", extensionTableName(extensionTable));
                 if (spark.catalog().tableExists(extensionTableName(extensionTable))) {
                   spark.sql(
-                    renameTable(
-                      extensionTableName(extensionTable),
-                      "old_" + extensionTableName(extensionTable)));
+                      renameTable(
+                          extensionTableName(extensionTable),
+                          "old_" + extensionTableName(extensionTable)));
                 } else {
-                  log.info("Extension table {} does not exist - perhaps this is the first run ?, skipping rename",
-                    extensionTableName(extensionTable));
+                  log.info(
+                      "Extension table {} does not exist - perhaps this is the first run ?, skipping rename",
+                      extensionTableName(extensionTable));
                 }
                 spark.sql(
                     renameTable(
@@ -540,9 +612,66 @@ public class TableBackfill {
       }
       spark.sql(renameTable(getPrefix() + multimediaTableName(), multimediaTableName()));
     }
+
+    if (configuration.getCoreName().equalsIgnoreCase("event")
+        && (command.getOptions().contains(Option.ALL)
+            || command.getOptions().contains(Option.HUMBOLDT))) {
+      log.info("Swapping Humboldt Table");
+      if (spark.catalog().tableExists(humboldtTableName())) {
+        spark.sql(renameTable(humboldtTableName(), "old_" + humboldtTableName()));
+      }
+      spark.sql(renameTable(getPrefix() + humboldtTableName(), humboldtTableName()));
+    }
   }
 
   private String renameTable(String oldTable, String newTable) {
     return String.format("ALTER TABLE %s RENAME TO %s", oldTable, newTable);
+  }
+
+  private static StructType createHumboldtStructTypeFromJson(List<Term> terms) {
+    StructType structType = new StructType();
+    for (Term humboldtTerm : terms) {
+      String hiveDataType = HiveDataTypes.typeForTerm(humboldtTerm, false);
+      DataType type = null;
+      switch (hiveDataType) {
+        case HiveDataTypes.TYPE_STRING:
+          type = DataTypes.StringType;
+          break;
+        case HiveDataTypes.TYPE_ARRAY_STRING:
+          type = new ArrayType(DataTypes.StringType, true);
+          break;
+        case HiveDataTypes.TYPE_INT:
+          type = DataTypes.IntegerType;
+          break;
+        case HiveDataTypes.TYPE_DOUBLE:
+          type = DataTypes.DoubleType;
+          break;
+        case HiveDataTypes.TYPE_BOOLEAN:
+          type = DataTypes.BooleanType;
+          break;
+        case HiveDataTypes.TYPE_MAP_OF_MAP_ARRAY_STRUCT:
+          type =
+              new MapType(
+                  DataTypes.StringType,
+                  new MapType(
+                      DataTypes.StringType, new ArrayType(DataTypes.StringType, true), true),
+                  true);
+          break;
+        case HiveDataTypes.TYPE_VOCABULARY_ARRAY_STRUCT:
+          type =
+              new StructType()
+                  .add("concepts", new ArrayType(DataTypes.StringType, true))
+                  .add("lineage", new ArrayType(DataTypes.StringType, true));
+          break;
+      }
+
+      if (type != null) {
+        structType = structType.add(humboldtTerm.simpleName(), type, true);
+      } else {
+        log.warn("Type not found for humboldt term {}", humboldtTerm);
+      }
+    }
+
+    return structType;
   }
 }

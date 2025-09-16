@@ -68,7 +68,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .findValues("classifications.defaultChecklistKey.classificationKeys.KINGDOM")
-            .get(0).get(0)
+            .get(0)
+            .get(VALUE)
             .asInt());
   }
 
@@ -852,7 +853,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     Map<OccurrenceSearchParameter, Set<String>> params = new java.util.HashMap<>();
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
-    QueryBuilder query =  esSearchRequestBuilder.buildQuery(params, null, false)
+    QueryBuilder query =  esSearchRequestBuilder.buildQuery(params, null, false, "1")
       .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);

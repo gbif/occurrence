@@ -13,28 +13,28 @@
  */
 package org.gbif.occurrence.common;
 
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GadmTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.IucnTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.predicate.query.SQLColumnsUtils;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.EcoTerm;
+import org.gbif.dwc.terms.GadmTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.predicate.query.SQLColumnsUtils;
 
 /**
  * This class serves to document the terms used in various stages of processing.  Please note that changes to this
@@ -370,26 +370,111 @@ public class TermUtils {
     Sets.difference(TERMS_SUBJECT_TO_INTERPRETATION, TERMS_POPULATED_BY_INTERPRETATION);
 
   /**
-   * Term list of the extension excluding the coreid just as defined by:
-   * <a href="http://rs.gbif.org/terms/1.0/Multimedia">the multimedia extension</a>
+   * Term list of the extension excluding the coreid just as defined by: <a
+   * href="http://rs.gbif.org/terms/1.0/Multimedia">the multimedia extension</a>
    */
-  private static final List<DcTerm> MULTIMEDIA_TERMS = ImmutableList.of(DcTerm.type,
-                                                                        DcTerm.format,
-                                                                        DcTerm.identifier,
-                                                                        DcTerm.references,
-                                                                        DcTerm.title,
-                                                                        DcTerm.description,
-                                                                        DcTerm.source,
-                                                                        DcTerm.audience,
-                                                                        DcTerm.created,
-                                                                        DcTerm.creator,
-                                                                        DcTerm.contributor,
-                                                                        DcTerm.publisher,
-                                                                        DcTerm.license,
-                                                                        DcTerm.rightsHolder);
+  private static final List<DcTerm> MULTIMEDIA_TERMS =
+      ImmutableList.of(
+          DcTerm.type,
+          DcTerm.format,
+          DcTerm.identifier,
+          DcTerm.references,
+          DcTerm.title,
+          DcTerm.description,
+          DcTerm.source,
+          DcTerm.audience,
+          DcTerm.created,
+          DcTerm.creator,
+          DcTerm.contributor,
+          DcTerm.publisher,
+          DcTerm.license,
+          DcTerm.rightsHolder);
+
+  public static final List<Term> INTERPRETED_HUMBOLDT_TERMS =
+    List.of(
+      EcoTerm.siteCount,
+      EcoTerm.verbatimSiteDescriptions,
+      EcoTerm.verbatimSiteNames,
+      EcoTerm.geospatialScopeAreaValue,
+      EcoTerm.geospatialScopeAreaUnit,
+      EcoTerm.totalAreaSampledValue,
+      EcoTerm.totalAreaSampledUnit,
+      EcoTerm.targetHabitatScope,
+      EcoTerm.excludedHabitatScope,
+      EcoTerm.eventDurationValue,
+      EcoTerm.eventDurationUnit,
+      EcoTerm.targetTaxonomicScope,
+      EcoTerm.excludedTaxonomicScope,
+      EcoTerm.taxonCompletenessProtocols,
+      EcoTerm.isTaxonomicScopeFullyReported,
+      EcoTerm.isAbsenceReported,
+      EcoTerm.absentTaxa,
+      EcoTerm.hasNonTargetTaxa,
+      EcoTerm.nonTargetTaxa,
+      EcoTerm.areNonTargetTaxaFullyReported,
+      EcoTerm.targetLifeStageScope,
+      EcoTerm.excludedLifeStageScope,
+      EcoTerm.isLifeStageScopeFullyReported,
+      EcoTerm.targetDegreeOfEstablishmentScope,
+      EcoTerm.excludedDegreeOfEstablishmentScope,
+      EcoTerm.isDegreeOfEstablishmentScopeFullyReported,
+      EcoTerm.targetGrowthFormScope,
+      EcoTerm.excludedGrowthFormScope,
+      EcoTerm.isGrowthFormScopeFullyReported,
+      EcoTerm.hasNonTargetOrganisms,
+      EcoTerm.compilationTypes,
+      EcoTerm.compilationSourceTypes,
+      EcoTerm.inventoryTypes,
+      EcoTerm.protocolNames,
+      EcoTerm.protocolDescriptions,
+      EcoTerm.protocolReferences,
+      EcoTerm.isAbundanceReported,
+      EcoTerm.isAbundanceCapReported,
+      EcoTerm.abundanceCap,
+      EcoTerm.isVegetationCoverReported,
+      EcoTerm.isLeastSpecificTargetCategoryQuantityInclusive,
+      EcoTerm.hasVouchers,
+      EcoTerm.voucherInstitutions,
+      EcoTerm.hasMaterialSamples,
+      EcoTerm.materialSampleTypes,
+      EcoTerm.samplingPerformedBy,
+      EcoTerm.isSamplingEffortReported,
+      EcoTerm.samplingEffortValue,
+      EcoTerm.samplingEffortUnit,
+      GbifInternalTerm.humboldtEventDurationValueInMinutes);
+
+  public static final List<Term> EXCLUSION_DOWNLOAD_HUMBOLDT =
+      List.of(GbifInternalTerm.humboldtEventDurationValueInMinutes);
+
+  public static final List<Term> DOWNLOAD_HUMBOLDT_TERMS = downloadHumboldtTerms();
 
   private TermUtils() {
     // private constructor
+  }
+
+  private static List<Term> downloadHumboldtTerms() {
+    List<Term> terms = new ArrayList<>(INTERPRETED_HUMBOLDT_TERMS);
+    terms.add(DwcTerm.kingdom);
+    terms.add(GbifTerm.kingdomKey);
+    terms.add(DwcTerm.phylum);
+    terms.add(GbifTerm.phylumKey);
+    terms.add(DwcTerm.class_);
+    terms.add(GbifTerm.classKey);
+    terms.add(DwcTerm.order);
+    terms.add(GbifTerm.orderKey);
+    terms.add(DwcTerm.family);
+    terms.add(GbifTerm.familyKey);
+    terms.add(DwcTerm.genus);
+    terms.add(GbifTerm.genusKey);
+    terms.add(DwcTerm.subgenus);
+    terms.add(GbifTerm.subgenusKey);
+    terms.add(GbifTerm.species);
+    terms.add(GbifTerm.speciesKey);
+    terms.add(DwcTerm.taxonRank);
+    terms.add(GbifTerm.taxonKey);
+    terms.add(GbifTerm.taxonomicIssue);
+    EXCLUSION_DOWNLOAD_HUMBOLDT.forEach(terms::remove);
+    return terms;
   }
 
   /**
@@ -468,6 +553,14 @@ public class TermUtils {
    */
   public static Iterable<Term> multimediaTerms() {
     return Iterables.concat(Collections.singletonList(GbifTerm.gbifID), MULTIMEDIA_TERMS);
+  }
+
+  /**
+   * Lists all terms relevant for a humboldt extension record.
+   * gbifID is included and comes first as it is the foreign key to the core record.
+   */
+  public static Iterable<Term> humboldtTerms() {
+    return Iterables.concat(Collections.singletonList(GbifTerm.gbifID), DOWNLOAD_HUMBOLDT_TERMS);
   }
 
   /**

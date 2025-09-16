@@ -13,19 +13,19 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import static org.gbif.occurrence.common.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
 import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.ImmutableMap;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.EcoTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
 
 /**
  * Utilities related to the actual queries executed at runtime.
@@ -103,6 +103,46 @@ public abstract class Queries {
    */
   public Map<String, InitializableField> selectMultimediaFields(boolean useInitializers) {
     return selectDownloadFields(DownloadTerms.DOWNLOAD_MULTIMEDIA_TERMS, useInitializers);
+  }
+
+  /**
+   * @param useInitializers whether to convert dates, arrays etc to strings
+   * @return the select fields for the interpreted multimedia extension fields
+   */
+  public Map<String, InitializableField> selectHumboldtFields(
+      boolean useInitializers, String checklistKey) {
+    Map<String, InitializableField> result = new LinkedHashMap<>();
+
+    // always add the GBIF ID
+    result.put(GbifTerm.gbifID.simpleName(), selectGbifId());
+
+    for (Term term : DOWNLOAD_HUMBOLDT_TERMS) {
+      if (GbifTerm.gbifID == term) {
+        continue; // for safety, we code defensively as it may be added
+      }
+
+      String columnName = toHiveInitializer(term);
+      if (useInitializers) {
+        if (term == EcoTerm.targetTaxonomicScope
+            || term == EcoTerm.excludedTaxonomicScope
+            || term == EcoTerm.absentTaxa
+            || term == EcoTerm.nonTargetTaxa) {
+          columnName =
+              toTaxonomicHiveInitializer(
+                  term, checklistKey, term.simpleName().toLowerCase(), "usagename", term.simpleName());
+        } else if (TermUtils.isTaxonomic(term)) {
+          columnName =
+              toTaxonomicHiveInitializer(
+                  term, checklistKey, EcoTerm.targetTaxonomicScope.simpleName().toLowerCase());
+        } else {
+          columnName = toInterpretedHiveInitializer(term, checklistKey);
+        }
+      }
+
+      result.put(term.simpleName(), new InitializableField(term, columnName, toHiveDataType(term)));
+    }
+
+    return result;
   }
 
   /**
@@ -269,4 +309,31 @@ public abstract class Queries {
 
     return result;
   }
+
+  protected static String toTaxonomicHiveInitializer(
+    Term term, String checklistKey, String column) {
+    return toTaxonomicHiveInitializer(
+        term, checklistKey, column, HiveColumns.columnFor(term), term.simpleName().toLowerCase());
+  }
+
+  protected static String toTaxonomicHiveInitializer(
+    Term term, String checklistKey, String column, String subColumn, String alias) {
+    if (checklistKey == null || checklistKey.isEmpty()) {
+      throw new IllegalArgumentException("checklistKey must not be null or empty");
+    }
+
+    if (term == DwcTerm.order) {
+      // Special case for keyword order
+      return String.format(
+          "array_join(element_at(element_at(" + column + ", '%s'), 'order'),'\\;') AS `order`",
+          checklistKey);
+    }
+
+    return String.format(
+        "array_join(element_at(element_at(" + column + ", '%s'), '%s'),'\\;') AS %s",
+        checklistKey,
+        subColumn,
+        alias);
+  }
+
 }

@@ -44,6 +44,10 @@ public class DownloadQueryParameters {
 
   private String userSqlHeader;
 
+  private boolean isHumboldtSearch;
+
+  private String checklistKey;
+
   @SneakyThrows
   public static DownloadQueryParameters from(
       Download download,
@@ -70,6 +74,17 @@ public class DownloadQueryParameters {
           .userSqlHeader(String.join("\t", sqlQuery.getSqlSelectColumnNames()))
           .whereClause(sqlQuery.getSqlWhere());
     }
+
+    if (download.getRequest().toString().contains("HUMBOLDT_")) {
+      builder.isHumboldtSearch(true);
+    }
+
+    builder
+        .checklistKey(
+            download.getRequest().getChecklistKey() != null
+                ? download.getRequest().getChecklistKey()
+                : workflowConfiguration.getDefaultChecklistKey());
+
     return builder.build();
   }
 
@@ -97,6 +112,7 @@ public class DownloadQueryParameters {
     parameters.put("interpretedTable", downloadTableName + "_interpreted");
     parameters.put("citationTable", downloadTableName + "_citation");
     parameters.put("multimediaTable", downloadTableName + "_multimedia");
+    parameters.put("humboldtTable", downloadTableName + "_humboldt");
     return parameters;
   }
 }

@@ -13,8 +13,8 @@
  */
 package org.gbif.event.ws;
 
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.gbif.occurrence.download.service.OccurrenceDownloadRequestService;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -28,7 +28,6 @@ import org.gbif.ws.security.GbifAuthServiceImpl;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -41,8 +40,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootApplication(
     exclude = {
@@ -60,6 +57,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
       "org.gbif.ws.security",
       "org.gbif.event.search",
       "org.gbif.event.ws",
+      "org.gbif.event.download.service",
       "org.gbif.occurrence.download.service",
       "org.gbif.occurrence.mail",
       "org.gbif.occurrence.search",
@@ -75,7 +73,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
             AppIdentityFilter.class,
             GbifAuthenticationManagerImpl.class,
             GbifAuthServiceImpl.class,
-            WebMvcAutoConfiguration.class
+            WebMvcAutoConfiguration.class,
+            OccurrenceDownloadRequestService.class
           })
     })
 public class EventWsApplication {

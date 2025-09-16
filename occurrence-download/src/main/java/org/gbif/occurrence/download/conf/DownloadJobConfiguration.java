@@ -121,12 +121,15 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * Returns the string representation of a download base on the download format: Json Predicate or Sql clause.
+   * Returns the string representation of a download base on the download format: Json Predicate or
+   * Sql clause.
    */
   private static String getDownloadFilter(Download download) {
     return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
         ? ((SqlDownloadRequest) download.getRequest()).getSql()
-        : toSqlQuery(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+        : toSqlQuery(
+            ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
+            download.getRequest().getChecklistKey());
   }
 
   public OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
@@ -186,6 +189,17 @@ public class DownloadJobConfiguration {
   }
 
   /**
+   * Humboldt table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_humboldt/ - small downloads
+   * format: sourceDir/downloadKey/humboldt
+   */
+  public String getHumboldtDataFileName() {
+    return isSmallDownload
+        ? getDownloadTempDir() + DwcDownloadsConstants.HUMBOLDT_FILENAME
+        : getDownloadTempDir(TableSuffixes.HUMBOLDT_SUFFIX);
+  }
+
+  /**
    * Directory where downloads files will be temporary stored. The output varies for small and big
    * downloads: - small downloads: sourceDir/downloadKey(suffix)/ - big downloads:
    * sourceDir/downloadTableName(suffix)/
@@ -217,7 +231,7 @@ public class DownloadJobConfiguration {
   }
 
   @SneakyThrows
-  private static String toSqlQuery(Predicate predicate) {
-    return QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate);
+  private static String toSqlQuery(Predicate predicate, String defaultChecklistKey) {
+    return QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey).buildQuery(predicate);
   }
 }

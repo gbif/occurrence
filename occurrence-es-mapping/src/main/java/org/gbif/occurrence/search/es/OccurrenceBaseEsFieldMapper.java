@@ -13,26 +13,21 @@
  */
 package org.gbif.occurrence.search.es;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import lombok.Builder;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.dwc.terms.Term;
 import org.gbif.event.search.es.EventEsField;
 import org.gbif.predicate.query.EsFieldMapper;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
-
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 
 @Data
 @Slf4j
@@ -61,6 +56,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
 
   private final List<FieldSortBuilder> defaultSort;
 
+  // FIXME: this shouldn't be an Optional
   private final Optional<QueryBuilder> defaultFilter;
 
   private final String defaulChecklistKey;
@@ -235,5 +231,15 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     }
 
     return esField.getSearchFieldName();
+  }
+
+  @Override
+  public String getNestedPath(OccurrenceSearchParameter searchParameter) {
+    EsField esField = getEsField(searchParameter);
+    if (esField == null) {
+      throw new IllegalArgumentException("No mapping for search parameter " + searchParameter);
+    }
+
+    return esField.getNestedPath();
   }
 }

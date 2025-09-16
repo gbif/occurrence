@@ -8,6 +8,10 @@ public class ChecklistEsField extends BaseEsField {
     super(searchFieldName, term);
   }
 
+  public ChecklistEsField(String searchFieldName, Term term, String nestedPath) {
+    super(searchFieldName, term, nestedPath);
+  }
+
   public String getSearchFieldName(String checklistKey) {
     return String.format(getSearchFieldName(), checklistKey);
   }

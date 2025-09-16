@@ -13,25 +13,22 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.api.vocabulary.Extension;
-import org.gbif.dwc.terms.*;
+import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersArrayInitializer;
+import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
+import static org.gbif.occurrence.download.hive.HiveColumns.columnFor;
+import static org.gbif.occurrence.download.hive.HiveColumns.getVerbatimColPrefix;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-
 import lombok.experimental.UtilityClass;
-
-import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersArrayInitializer;
-import static org.gbif.occurrence.download.hive.HiveColumns.cleanDelimitersInitializer;
-import static org.gbif.occurrence.download.hive.HiveColumns.columnFor;
-import static org.gbif.occurrence.download.hive.HiveColumns.getVerbatimColPrefix;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.*;
 
 /**
  * This provides the definition required to construct the occurrence HDFS table, for use as a Hive table.
@@ -160,16 +157,26 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static List<InitializableField> extensions() {
     // only MULTIMEDIA is supported, but coded for future use
-    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA);
+    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA, Extension.HUMBOLDT);
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Extension e : extensions) {
-      builder.add(new InitializableField(GbifTerm.Multimedia,
+      builder.add(new InitializableField(extensionTerm(e),
                                          columnFor(e),
                                          HiveDataTypes.TYPE_STRING
                                          //always, as it has a custom serialization
                   ));
     }
     return builder.build();
+  }
+
+  private static Term extensionTerm(Extension extension) {
+    if (Extension.MULTIMEDIA == extension) {
+      return GbifTerm.Multimedia;
+    } else if (Extension.HUMBOLDT == extension) {
+      return GbifTerm.Humboldt;
+    } else {
+      return UnknownTerm.build(extension.name());
+    }
   }
 
   /**

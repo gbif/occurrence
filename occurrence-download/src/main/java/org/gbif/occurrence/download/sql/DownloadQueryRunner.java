@@ -17,7 +17,6 @@ public class DownloadQueryRunner {
   private final Supplier<SparkQueryExecutor> queryExecutorSupplier;
   private final Download download;
   private final DownloadQueryParameters queryParameters;
-  private final String checklistKey;
 
   public void runDownloadQuery() {
     String downloadQuery = downloadQuery();
@@ -48,14 +47,14 @@ public class DownloadQueryRunner {
   @SneakyThrows
   private String downloadQuery() {
     return switch (download.getRequest().getFormat()) {
-      case DWCA -> GenerateHQL.generateDwcaQueryHQL(checklistKey);
+      case DWCA -> GenerateHQL.generateDwcaQueryHQL(queryParameters);
       case SPECIES_LIST -> GenerateHQL.speciesListQueryHQL();
-      case SIMPLE_CSV -> GenerateHQL.simpleCsvQueryHQL(checklistKey);
-      case SIMPLE_AVRO -> GenerateHQL.simpleAvroQueryHQL(checklistKey);
+      case SIMPLE_CSV -> GenerateHQL.simpleCsvQueryHQL(queryParameters);
+      case SIMPLE_AVRO -> GenerateHQL.simpleAvroQueryHQL(queryParameters);
       case SIMPLE_WITH_VERBATIM_AVRO -> GenerateHQL.simpleWithVerbatimAvroQueryHQL();
-      case SIMPLE_PARQUET -> GenerateHQL.simpleParquetQueryHQL(checklistKey);
+      case SIMPLE_PARQUET -> GenerateHQL.simpleParquetQueryHQL(queryParameters);
       case BIONOMIA -> GenerateHQL.bionomiaQueryHQL();
-      case MAP_OF_LIFE -> GenerateHQL.mapOfLifeQueryHQL(checklistKey);
+      case MAP_OF_LIFE -> GenerateHQL.mapOfLifeQueryHQL(queryParameters);
       case SQL_TSV_ZIP -> GenerateHQL.sqlQueryHQL();
       default ->
         throw new IllegalArgumentException(

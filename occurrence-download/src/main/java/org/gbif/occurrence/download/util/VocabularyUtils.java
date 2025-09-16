@@ -3,7 +3,7 @@ package org.gbif.occurrence.download.util;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.occurrence.search.es.VocabularyFieldTranslator;
+import org.gbif.occurrence.search.es.RequestFieldsTranslator;
 import org.gbif.vocabulary.client.ConceptClient;
 
 public class VocabularyUtils {
@@ -13,7 +13,7 @@ public class VocabularyUtils {
       PredicateDownloadRequest predicateDownloadRequest =
           (PredicateDownloadRequest) download.getRequest();
       Predicate translatedPredicate =
-          VocabularyFieldTranslator.translateVocabs(
+          RequestFieldsTranslator.translateVocabs(
               predicateDownloadRequest.getPredicate(), conceptClient);
       predicateDownloadRequest.setPredicate(translatedPredicate);
     }

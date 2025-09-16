@@ -65,9 +65,6 @@ public class SparkDownloadWorkflow {
             .download(download)
             .queryExecutorSupplier(queryExecutorSupplier)
             .queryParameters(queryParameters)
-            .checklistKey(download.getRequest().getChecklistKey() !=null ?
-              download.getRequest().getChecklistKey()
-              : workflowConfiguration.getDefaultChecklistKey())
             .build()
             .runDownloadQuery();
       }

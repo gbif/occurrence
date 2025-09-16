@@ -27,6 +27,10 @@ public class QueryVisitorsFactory {
     return new SQLQueryVisitor<>(new OccurrenceTermsMapper());
   }
 
+  public static SQLQueryVisitor<SearchParameter> createSqlQueryVisitor(String defaultChecklistKey) {
+    return new SQLQueryVisitor<>(new OccurrenceTermsMapper(), defaultChecklistKey);
+  }
+
   public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
       OccurrenceBaseEsFieldMapper fieldMapper) {
     return EsQueryVisitorFactory.createEsQueryVisitor(fieldMapper);
