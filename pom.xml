@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>1.1.5-humboldt-SNAPSHOT</version>
+  <version>1.1.6-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -213,10 +213,10 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
-    <download-query-tools.version>2.0.3</download-query-tools.version>
-    <dwc-api.version>2.1.7-humboldt-SNAPSHOT</dwc-api.version>
+    <download-query-tools.version>2.0.4-java11-SNAPSHOT</download-query-tools.version>
+    <dwc-api.version>2.1.7-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.1-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>2.1.16-humboldt-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>2.1.17-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -232,7 +232,7 @@
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>3.0</gbif.kvs.version>
     <gbif-cli.version>3.0</gbif-cli.version>
-    <gbif-predicates.version>2.1.2-humboldt-SNAPSHOT</gbif-predicates.version>
+    <gbif-predicates.version>2.1.2-SNAPSHOT</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.0</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 

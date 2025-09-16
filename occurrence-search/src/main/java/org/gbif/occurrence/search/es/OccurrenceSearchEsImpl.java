@@ -35,6 +35,7 @@ import org.gbif.vocabulary.client.ConceptClient;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
@@ -181,7 +182,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
             + " + "
             + request.getLimit());
 
-    if (!hasReplaceableScientificNames(request)) {
+    if (!replaceScientificNamesWithTaxonKeys(request)) {
       SearchResponse<Occurrence, OccurrenceSearchParameter> emptyResponse = new SearchResponse<>(request);
       emptyResponse.setCount(0L);
       return emptyResponse;
@@ -345,7 +346,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
    * @return true: if the request doesn't contain any scientific_name parameter or if any scientific
    * name was found false: if none scientific name was found
    */
-  private boolean hasReplaceableScientificNames(OccurrenceSearchRequest request) {
+  private boolean replaceScientificNamesWithTaxonKeys(OccurrenceSearchRequest request) {
     boolean hasValidReplaces = true;
     if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
@@ -357,6 +358,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
         checklistKey = checklistKeys.iterator().next();
       }
 
+      List<String> scientificNamesToBeRemoved = new ArrayList<>();
+
       for (String scientificName : scientificNames) {
 
         NameUsageMatchResponse nameUsageMatch = nameUsageMatchingService.match(NameUsageMatchRequest.builder()
@@ -367,7 +370,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
           .build());
         if (nameUsageMatch.getDiagnostics().getMatchType() == NameUsageMatchResponse.MatchType.EXACT && Objects.nonNull(nameUsageMatch.getUsage())) {
           hasValidReplaces = true;
-          scientificNames.remove(scientificName);
+          scientificNamesToBeRemoved.add(scientificName);
           if (nameUsageMatch.getAcceptedUsage() != null) {
             request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getAcceptedUsage().getKey());
           } else {
@@ -375,6 +378,9 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
           }
         }
       }
+
+      // remove all scientific names that were replaced by taxonKey
+      scientificNames.removeAll(scientificNamesToBeRemoved);
     }
     return hasValidReplaces;
   }
