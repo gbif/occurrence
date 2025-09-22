@@ -360,7 +360,8 @@ public class TermUtils {
       DwcTerm.maximumDepthInMeters,
       DwcTerm.minimumElevationInMeters,
       DwcTerm.maximumElevationInMeters,
-      DwcTerm.associatedMedia)
+      DwcTerm.associatedMedia,
+      DwcTerm.eventType)
     .build();
 
   /**
