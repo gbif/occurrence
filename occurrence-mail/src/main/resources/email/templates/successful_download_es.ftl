@@ -15,7 +15,7 @@
   Cuando haga uso de este conjunto de datos, <strong>por favor, use la siguiente cita:</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
@@ -41,11 +41,11 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   La información sobre esta descarga estará siempre disponible en <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
-  y <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  y <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  El archivo <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> se guardará durante 6 meses (hasta ${download.eraseAfter?date}).  Puede solicitarnos guardar el archivo por más tiempo en <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  El archivo <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> se guardará durante 6 meses (hasta ${download.eraseAfter?date}).  Puede solicitarnos guardar el archivo por más tiempo en <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">

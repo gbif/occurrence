@@ -26,7 +26,7 @@
 <#list downloads as d>
   <li><p>DOI: <a href="${d.download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${d.download.doi.getUrl()}</a>
     <br>
-    Download page: <a href="${portal}occurrence/download/${d.download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${d.download.key}</a>
+    Download page: <a href="${portal}${download.request.type?lower_case}/download/${d.download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${d.download.key}</a>
     <br>
     Time download requested: ${d.download.created?datetime}
     <#if d.download.totalRecords &gt; 0>

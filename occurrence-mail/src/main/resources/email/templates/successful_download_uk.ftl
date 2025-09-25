@@ -15,7 +15,7 @@
   Використовуючи цей набір, будь ласка, <strong>вживайте таку форму цитування:</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
@@ -41,11 +41,11 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   Інформація про це завантаження завжди буде доступною в <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.Url()}</a>
-  та <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}currence/download/${download.key}</a>
+  та <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}currence/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <#if download.request.format == "SIMPLE_CSV">прості значення, розділені знаком табуляції (TSV)<#else>${download.request.format}</#if> зберігатимуться впродовж шести місяців (до ${download.eraseAfter?date}).  Ви можете попросити зберегти файл довше від <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  <#if download.request.format == "SIMPLE_CSV">прості значення, розділені знаком табуляції (TSV)<#else>${download.request.format}</#if> зберігатимуться впродовж шести місяців (до ${download.eraseAfter?date}).  Ви можете попросити зберегти файл довше від <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
@@ -60,7 +60,7 @@
 <h5 style="margin: 0 0 20px;padding: 0;font-size: 16px;line-height: 1.25;">Інформація / часті запитання</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Щоб отримати допомогу з відкриванням завантажених файлів, див. 
+  Щоб отримати допомогу з відкриванням завантажених файлів, див.
   <a href="${portal}faq?question=opening-gbif-csv-in-excel" style="color: #4ba2ce;text-decoration: none;">${portal}faq?question=opening-gbif-csv-in-excel</a>
   або інші розділи Частих запитань на сайті GBIF:
   <a href="${portal}faq" style="color: #4ba2ce;text-decoration: none;">${portal}faq</a>

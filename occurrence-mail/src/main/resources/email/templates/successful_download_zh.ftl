@@ -15,7 +15,7 @@
   当使用此数据集时，<strong>请使用以下引用：</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
@@ -41,11 +41,11 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   有关此下载的信息可以通过 <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
-  和 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> 获得。
+  和 <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a> 获得。
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <#if download.request.format == "SIMPLE_CSV">简单的tab分隔的值 (TSV)<#else>${download.request.format}</#if>文件将保留6个月（直到${download.eraseAfter?date}）。  您可以从 <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a> 要求我们将文件保留更长时间
+  <#if download.request.format == "SIMPLE_CSV">简单的tab分隔的值 (TSV)<#else>${download.request.format}</#if>文件将保留6个月（直到${download.eraseAfter?date}）。  您可以从 <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a> 要求我们将文件保留更长时间
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
