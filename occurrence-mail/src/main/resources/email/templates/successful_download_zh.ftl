@@ -15,7 +15,7 @@
   当使用此数据集时，<strong>请使用以下引用：</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm().simpleName()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
