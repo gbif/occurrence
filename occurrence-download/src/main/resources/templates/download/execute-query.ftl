@@ -74,19 +74,21 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 
 
-CREATE TABLE ${r"${humboldtTable}"} (
-<#list humboldtFields as field>
-  ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
-</#list>
-) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+<#if downloadType == "EVENT">
+  CREATE TABLE ${r"${humboldtTable}"} (
+  <#list humboldtFields as field>
+    ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+  </#list>
+  ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
-INSERT INTO TABLE ${r"${humboldtTable}"}
-SELECT
-<#list humboldtSelectFields as field>
-    <#if field.hiveField == "gbifid">h.</#if>${field.hiveField}<#if field_has_next>,</#if>
-</#list>
-FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h
-JOIN ${r"${interpretedTable}"} i ON h.gbifId = i.gbifId;
+  INSERT INTO TABLE ${r"${humboldtTable}"}
+  SELECT
+  <#list humboldtSelectFields as field>
+      <#if field.hiveField == "gbifid">h.</#if>${field.hiveField}<#if field_has_next>,</#if>
+  </#list>
+  FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h
+  JOIN ${r"${interpretedTable}"} i ON h.gbifId = i.gbifId;
+</#if>
 
 SET hive.auto.convert.join=true;
 

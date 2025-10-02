@@ -20,7 +20,9 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.util.SqlValidation;
@@ -48,6 +50,8 @@ public class DownloadQueryParameters {
 
   private String checklistKey;
 
+  private DownloadType downloadType;
+
   @SneakyThrows
   public static DownloadQueryParameters from(
       Download download,
@@ -60,7 +64,11 @@ public class DownloadQueryParameters {
             .whereClause(jobConfiguration.getFilter())
             .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
             .database(workflowConfiguration.getHiveDb())
-            .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
+            .warehouseDir(workflowConfiguration.getHiveWarehouseDir())
+            .downloadType(
+                jobConfiguration.getCoreTerm() == DwcTerm.Event
+                    ? DownloadType.EVENT
+                    : DownloadType.OCCURRENCE);
 
     if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
       SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
