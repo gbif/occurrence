@@ -61,11 +61,8 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#list initializedInterpretedFields as field>
     <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
-  WHERE ${r"${whereClause}"};
+  WHERE ${r"${whereClause}"}
 <#if downloadType == "EVENT">
-  <#if isHumboldtSearch>
-    LEFT JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h ON h.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
-  </#if>
   INSERT INTO TABLE ${r"${eventIdsTable}"}
   SELECT DISTINCT eventid
   WHERE ${r"${whereClause}"};
