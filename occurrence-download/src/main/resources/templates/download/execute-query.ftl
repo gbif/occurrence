@@ -75,6 +75,7 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 
 
 <#if downloadType == "EVENT">
+  -- Humboldt interpreted table
   CREATE TABLE ${r"${humboldtTable}"} (
   <#list humboldtFields as field>
     ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
@@ -88,6 +89,22 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
   </#list>
   FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h
   JOIN ${r"${interpretedTable}"} i ON h.gbifId = i.gbifId;
+
+   -- occurrence extension interpreted table
+   CREATE TABLE ${r"${occurrenceExtensionTable}"} (
+   <#list interpretedFields as field>
+     ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+   </#list>
+   ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+   FROM iceberg.${r"${hiveDB}"}.occurrence o
+   INSERT INTO TABLE ${r"${occurrenceExtensionTable}"}
+   SELECT
+   <#list initializedInterpretedFields as field>
+     ${field.hiveField}<#if field_has_next>,</#if>
+   </#list>
+   JOIN ${r"${interpretedTable}"} i ON o.eventid = i.eventid;
+
 </#if>
 
 SET hive.auto.convert.join=true;
