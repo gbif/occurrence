@@ -153,12 +153,22 @@ public class DwcArchiveUtils {
     downloadArchive.addExtension(multimedia);
 
     if (DwcTerm.Event == coreTerm) {
+      // humboldt interpreted extension
       ArchiveFile humboldt =
           createArchiveFile(
               HUMBOLDT_FILENAME,
               UnknownTerm.build(Extension.HUMBOLDT.getRowType()),
               TermUtils.humboldtTerms());
       downloadArchive.addExtension(humboldt);
+
+      // occurrence interpreted extension
+      ArchiveFile occurrence =
+          createArchiveFile(
+              OCCURRENCE_INTERPRETED_FILENAME,
+              DwcTerm.Occurrence,
+              DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID,
+              TermUtils.identicalInterpretedTerms());
+      downloadArchive.addExtension(occurrence);
     }
 
     addVerbatimExtensionsFiles(verbatimExtensions, downloadArchive);

@@ -200,6 +200,17 @@ public class DownloadJobConfiguration {
   }
 
   /**
+   * Occurrence extension table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_occurrence/ - small downloads
+   * format: sourceDir/downloadKey/occurrence
+   */
+  public String getOccurrenceExtDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME
+      : getDownloadTempDir(TableSuffixes.OCCURRENCE_EXT_SUFFIX);
+  }
+
+  /**
    * Directory where downloads files will be temporary stored. The output varies for small and big
    * downloads: - small downloads: sourceDir/downloadKey(suffix)/ - big downloads:
    * sourceDir/downloadTableName(suffix)/

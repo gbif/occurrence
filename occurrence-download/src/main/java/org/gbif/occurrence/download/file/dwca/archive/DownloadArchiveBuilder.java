@@ -184,6 +184,12 @@ public class DownloadArchiveBuilder {
           new Path(configuration.getHumboldtDataFileName()),
           HUMBOLDT_FILENAME,
           HeadersFileUtil.getHumboldtTableHeader());
+
+      appendPreCompressedFile(
+        out,
+        new Path(configuration.getOccurrenceExtDataFileName()),
+        OCCURRENCE_INTERPRETED_FILENAME,
+        HeadersFileUtil.getInterpretedTableHeader());
     }
 
     appendExtensionFiles(out);
