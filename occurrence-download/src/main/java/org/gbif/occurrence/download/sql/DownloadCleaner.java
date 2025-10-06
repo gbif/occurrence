@@ -30,6 +30,8 @@ public class DownloadCleaner {
       dropTableFn.accept("_verbatim");
       dropTableFn.accept("_multimedia");
       dropTableFn.accept("_humboldt");
+      dropTableFn.accept("_occurrence");
+      dropTableFn.accept("_event_ids");
       dropTableFn.accept("_citation");
       dropTableFn.accept("_tmp");
       dropTableFn.accept("_count");

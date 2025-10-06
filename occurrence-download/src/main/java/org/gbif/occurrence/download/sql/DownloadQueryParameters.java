@@ -121,6 +121,7 @@ public class DownloadQueryParameters {
     parameters.put("citationTable", downloadTableName + "_citation");
     parameters.put("multimediaTable", downloadTableName + "_multimedia");
     parameters.put("humboldtTable", downloadTableName + "_humboldt");
+    parameters.put("eventIdsTable", downloadTableName + "_event_ids");
     parameters.put("occurrenceExtensionTable", downloadTableName + "_occurrence");
     return parameters;
   }
