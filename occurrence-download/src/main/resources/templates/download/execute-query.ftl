@@ -97,12 +97,12 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
    </#list>
    ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
-   FROM iceberg.${r"${hiveDB}"}.occurrence o
    INSERT INTO TABLE ${r"${occurrenceExtensionTable}"}
    SELECT
    <#list initializedInterpretedFields as field>
      ${field.hiveField}<#if field_has_next>,</#if>
    </#list>
+   FROM iceberg.${r"${hiveDB}"}.occurrence o
    JOIN ${r"${interpretedTable}"} i ON o.eventid = i.eventid;
 
 </#if>
