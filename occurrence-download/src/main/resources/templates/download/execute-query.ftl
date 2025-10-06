@@ -63,6 +63,9 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 </#list>
   WHERE ${r"${whereClause}"};
 <#if downloadType == "EVENT">
+  <#if isHumboldtSearch>
+    LEFT JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h ON h.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
+  </#if>
   INSERT INTO TABLE ${r"${eventIdsTable}"}
   SELECT DISTINCT eventid
   WHERE ${r"${whereClause}"};
