@@ -39,7 +39,7 @@ CREATE TABLE ${r"${interpretedTable}"} (
 ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
 <#if downloadType == "EVENT">
-  CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING)
+  CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING);
 </#if>
 
 --
