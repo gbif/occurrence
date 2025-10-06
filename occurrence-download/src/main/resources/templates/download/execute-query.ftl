@@ -38,6 +38,10 @@ CREATE TABLE ${r"${interpretedTable}"} (
 </#list>
 ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
+<#if downloadType == "EVENT">
+  CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING)
+</#if>
+
 --
 -- Uses multi-table inserts format to reduce to a single scan of the source table.
 --
@@ -58,6 +62,11 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
     <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
   WHERE ${r"${whereClause}"};
+<#if downloadType == "EVENT">
+  INSERT INTO TABLE ${r"${eventIdsTable}"}
+  SELECT DISTINCT eventid
+  WHERE ${r"${whereClause}"};
+</#if>
 
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
@@ -100,10 +109,10 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
    INSERT INTO TABLE ${r"${occurrenceExtensionTable}"}
    SELECT
    <#list initializedInterpretedFields as field>
-     o.${field.hiveField}<#if field_has_next>,</#if>
+     ${field.hiveField}<#if field_has_next>,</#if>
    </#list>
-   FROM iceberg.${r"${hiveDB}"}.occurrence o
-   JOIN ${r"${interpretedTable}"} i ON o.eventid = i.eventid;
+   FROM iceberg.${r"${hiveDB}"}.occurrence
+   JOIN ${r"${eventIdsTable}"} ON eventid = event_id;
 
 </#if>
 
