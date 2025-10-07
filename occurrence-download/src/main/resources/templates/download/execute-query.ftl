@@ -63,12 +63,12 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
     <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
   WHERE ${r"${whereClause}"}
-<#if downloadType != "EVENT">;</#if>
 <#if downloadType == "EVENT">
   INSERT INTO TABLE ${r"${eventIdsTable}"}
   SELECT DISTINCT eventid
   WHERE ${r"${whereClause}"}
 </#if>
+; -- End multi-insert
 
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
