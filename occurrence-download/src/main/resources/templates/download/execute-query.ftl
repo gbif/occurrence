@@ -66,7 +66,7 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#if downloadType == "EVENT">
   INSERT INTO TABLE ${r"${eventIdsTable}"}
   SELECT DISTINCT eventid
-  WHERE ${r"${whereClause}"}
+  WHERE ${r"${whereClause}"};
 </#if>
 
 
