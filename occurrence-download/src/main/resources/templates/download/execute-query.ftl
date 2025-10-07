@@ -66,8 +66,9 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#if downloadType == "EVENT">
   INSERT INTO TABLE ${r"${eventIdsTable}"}
   SELECT DISTINCT eventid
-  WHERE ${r"${whereClause}"};
+  WHERE ${r"${whereClause}"}
 </#if>
+; -- End multi-insert
 
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
