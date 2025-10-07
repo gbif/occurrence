@@ -62,7 +62,8 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#list initializedInterpretedFields as field>
     <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
-  WHERE ${r"${whereClause}"}<#if downloadType != "EVENT">;</#if>
+  WHERE ${r"${whereClause}"}
+<#if downloadType != "EVENT">;</#if>
 <#if downloadType == "EVENT">
   INSERT INTO TABLE ${r"${eventIdsTable}"}
   SELECT DISTINCT eventid
