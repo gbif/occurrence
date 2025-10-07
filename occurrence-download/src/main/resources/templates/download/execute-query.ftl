@@ -39,6 +39,7 @@ CREATE TABLE ${r"${interpretedTable}"} (
 ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
 <#if downloadType == "EVENT">
+  -- aux table to avoid clashes between column names in the joins since changing that in the code is pretty invasive
   CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING);
 </#if>
 
