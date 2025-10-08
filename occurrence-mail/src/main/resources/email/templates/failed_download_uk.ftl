@@ -10,7 +10,7 @@
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">
-  Будь ласка, перегляньте подробиці на <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>, а також перевірте <a href="${portal}system-health" style="color: #4ba2ce;text-decoration: none;">${portal}system-health</a> поточний стан системи GBIF.org, і спробуйте знову за кілька хвилин.
+  Будь ласка, перегляньте подробиці на <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>, а також перевірте <a href="${portal}system-health" style="color: #4ba2ce;text-decoration: none;">${portal}system-health</a> поточний стан системи GBIF.org, і спробуйте знову за кілька хвилин.
 </p>
 
 <p style="padding: 0;margin-bottom: 20px;line-height: 1.65;">

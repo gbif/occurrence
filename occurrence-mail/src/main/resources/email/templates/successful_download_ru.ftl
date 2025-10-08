@@ -15,7 +15,7 @@
   При использовании этого набора данных <strong>используйте следующую цитату:</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm().simpleName()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
@@ -40,11 +40,11 @@
 <h5 style="margin: 20px 0;padding: 0;font-size: 16px;line-height: 1.25;">Хранение скачанного файла</h5>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Информация об этом файле всегда будет доступна по адресам <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a> и <a href="${portal}ru/occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}ru/occurrence/download/${download.key}</a>
+  Информация об этом файле всегда будет доступна по адресам <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a> и <a href="${portal}ru/${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}ru/${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  <#if download.request.format == "SIMPLE_CSV">TSV (простые значения, разделенные табуляцией)<#else>${download.request.format}</#if> файл, будет храниться в течение шести месяцев (до ${download.eraseAfter?date}).  Вы можете попросить нас хранить файл дольше <a href="${portal}ru/occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}ru/occurrence/download/${download.key}</a>
+  <#if download.request.format == "SIMPLE_CSV">TSV (простые значения, разделенные табуляцией)<#else>${download.request.format}</#if> файл, будет храниться в течение шести месяцев (до ${download.eraseAfter?date}).  Вы можете попросить нас хранить файл дольше <a href="${portal}ru/${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}ru/${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">

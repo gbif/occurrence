@@ -307,7 +307,9 @@ public class TermUtils {
       DwcTerm.formation,
       DwcTerm.member,
       DwcTerm.bed,
-      GbifTerm.projectId);
+      GbifTerm.projectId,
+      DwcTerm.eventType
+    );
 
   /**
    * The list of terms that are subject to interpretation and <strong>may</strong> not be present in the

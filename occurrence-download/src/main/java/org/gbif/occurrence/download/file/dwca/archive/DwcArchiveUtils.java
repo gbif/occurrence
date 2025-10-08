@@ -37,6 +37,7 @@ import org.gbif.dwc.MetaDescriptorWriter;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
@@ -153,7 +154,10 @@ public class DwcArchiveUtils {
 
     if (DwcTerm.Event == coreTerm) {
       ArchiveFile humboldt =
-          createArchiveFile(HUMBOLDT_FILENAME, GbifTerm.Humboldt, TermUtils.humboldtTerms());
+          createArchiveFile(
+              HUMBOLDT_FILENAME,
+              UnknownTerm.build(Extension.HUMBOLDT.getRowType()),
+              TermUtils.humboldtTerms());
       downloadArchive.addExtension(humboldt);
     }
 

@@ -15,7 +15,7 @@
   Lorsque vous utilisez ce jeu de données <strong>veuillez utiliser la citation suivante :</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm().simpleName()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
@@ -41,11 +41,11 @@ Format de téléchargement: <#if download.request.format == "SIMPLE_CSV">simple 
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   Les informations à propos de ce téléchargement seront toujours disponibles à <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
-  et <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  et <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
-  Le fichier <#if download.request.format == "SIMPLE_CSV"> à valeurs séparées par des tabulations (tab-separated values - TSV) <#else>${download.request.format}</#if> sera conservé pendant six mois (jusqu'au ${download.eraseAfter?date}).  Vous pouvez nous demander de conserver le fichier plus longtemps sur <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  Le fichier <#if download.request.format == "SIMPLE_CSV"> à valeurs séparées par des tabulations (tab-separated values - TSV) <#else>${download.request.format}</#if> sera conservé pendant six mois (jusqu'au ${download.eraseAfter?date}).  Vous pouvez nous demander de conserver le fichier plus longtemps sur <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">

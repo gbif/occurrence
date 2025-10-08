@@ -63,6 +63,7 @@ public class GenerateHQL {
 
   private static final String FIELDS = "fields";
   private static final String IS_HUMBOLDT_SEARCH = "isHumboldtSearch";
+  private static final String DOWNLOAD_TYPE = "downloadType";
 
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
   private static final AvroQueries AVRO_QUERIES = new AvroQueries();
@@ -219,6 +220,7 @@ public class GenerateHQL {
             .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
             .put("extensions", ExtensionTable.tableExtensions())
             .put(IS_HUMBOLDT_SEARCH, queryParameters.isHumboldtSearch())
+            .put(DOWNLOAD_TYPE, queryParameters.getDownloadType())
             .put(
                 "humboldtFields",
                 HIVE_QUERIES
