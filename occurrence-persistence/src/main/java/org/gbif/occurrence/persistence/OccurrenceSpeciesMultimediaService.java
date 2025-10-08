@@ -33,6 +33,7 @@ public class OccurrenceSpeciesMultimediaService {
   private final Connection connection;
   private final TableName tableName;
   private final int splits;
+  private String paddingFormat;
 
   @Autowired
   public OccurrenceSpeciesMultimediaService(Connection connection,
@@ -41,6 +42,7 @@ public class OccurrenceSpeciesMultimediaService {
     this.connection = connection;
     this.tableName = TableName.valueOf(tableName);
     this.splits = splits;
+    paddingFormat = "%0" + Integer.toString(splits - 1).length() + 'd';
   }
 
   @SneakyThrows
@@ -53,9 +55,8 @@ public class OccurrenceSpeciesMultimediaService {
     try (Table table = connection.getTable(tableName)) {
       Long totalCount = null;
       List<String> results = new ArrayList<>();
-      for (int salt = 0; salt < splits; salt++) {
-        String saltedPrefix = String.format("%02d", salt) + speciesKey + mediaType;
-        byte[] prefix = saltedPrefix.getBytes(StandardCharsets.UTF_8);
+      //for (int salt = 0; salt < splits; salt++) {
+        byte[] prefix = computeKey(speciesKey + mediaType);
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(prefix));
@@ -89,10 +90,21 @@ public class OccurrenceSpeciesMultimediaService {
             }
             if (results.size() >= limit) break;
           }
-        }
       }
       return new PagingResponse<>(offset, limit, totalCount,
                                  List.of(new SpeciesMediaType(speciesKey, mediaType, results)));
     }
+  }
+
+  /**
+   * Computes a salted key based on a expected number of buckets. The produced key is padded with
+   * zeros to the left + logicalKey.hasCode*numOfBuckets + logicalKey.
+   *
+   * @param logicalKey logical identifier
+   * @return a zeros left-padded string {0*}+bucketNumber+logicalKey
+   */
+  public byte[] computeKey(String logicalKey) {
+    return (String.format(paddingFormat, Math.abs(logicalKey.hashCode() % splits)) + logicalKey)
+      .getBytes(StandardCharsets.UTF_8);
   }
 }
