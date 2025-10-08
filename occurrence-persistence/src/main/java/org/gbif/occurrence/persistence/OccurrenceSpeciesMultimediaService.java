@@ -36,8 +36,8 @@ public class OccurrenceSpeciesMultimediaService {
 
   @Autowired
   public OccurrenceSpeciesMultimediaService(Connection connection,
-                                            @Value("${occurrence.db.occurrenceSpeciesMediaTable}") String tableName,
-                                            @Value("${occurrence.db.occurrenceSpeciesMediaTableSplits}") int splits) {
+                                            @Value("${occurrence.occurrenceSpeciesMediaTable}") String tableName,
+                                            @Value("${occurrence.occurrenceSpeciesMediaTableSplits}") int splits) {
     this.connection = connection;
     this.tableName = TableName.valueOf(tableName);
     this.splits = splits;
