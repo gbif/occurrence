@@ -10,13 +10,13 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-@Service
+@Component
 public class OccurrenceSpeciesMultimediaService {
   private static final byte[] MEDIA_CF = Bytes.toBytes("media");
   private static final byte[] IDENTIFIERS_QUALIFIER = Bytes.toBytes("identifiers");
