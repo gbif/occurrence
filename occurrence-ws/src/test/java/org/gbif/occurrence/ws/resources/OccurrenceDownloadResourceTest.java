@@ -127,9 +127,11 @@ public class OccurrenceDownloadResourceTest {
             true,
             DownloadFormat.DWCA,
             DownloadType.OCCURRENCE,
-          "testDescription",
-          null,
-            Collections.singleton(Extension.AUDUBON), null);
+            "testDescription",
+            null,
+            Collections.singleton(Extension.AUDUBON),
+            null,
+            null);
     sqlDl =
         new SqlDownloadRequest(
            "SELECT gbifid FROM occurrence",
