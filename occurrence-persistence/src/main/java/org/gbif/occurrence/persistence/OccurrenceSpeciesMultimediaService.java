@@ -26,7 +26,7 @@ public class OccurrenceSpeciesMultimediaService {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
-  public record SpeciesMediaType(String speciesKey, String mediaType, List<Map<String,Object>> identifiers) {}
+  public record SpeciesMediaType(String speciesKey, String mediaType, List<Map<String,Object>> media) {}
 
   private final Connection connection;
   private final TableName tableName;
@@ -60,7 +60,7 @@ public class OccurrenceSpeciesMultimediaService {
       Long totalCount = null;
       List<Map<String,Object>> results = new ArrayList<>();
       //for (int salt = 0; salt < splits; salt++) {
-        byte[] prefix = computeKey(speciesKey + mediaType.toLowerCase(Locale.ROOT));
+        byte[] prefix = (speciesKey + mediaType.toLowerCase(Locale.ROOT)).getBytes();
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(prefix));
@@ -96,17 +96,5 @@ public class OccurrenceSpeciesMultimediaService {
       return new PagingResponse<>(offset, limit, totalCount,
                                  List.of(new SpeciesMediaType(speciesKey, mediaType, results)));
     }
-  }
-
-  /**
-   * Computes a salted key based on a expected number of buckets. The produced key is padded with
-   * zeros to the left + logicalKey.hasCode*numOfBuckets + logicalKey.
-   *
-   * @param logicalKey logical identifier
-   * @return a zeros left-padded string {0*}+bucketNumber+logicalKey
-   */
-  public byte[] computeKey(String logicalKey) {
-    return (String.format(paddingFormat, Math.abs(logicalKey.hashCode() % splits)) + logicalKey)
-      .getBytes(StandardCharsets.UTF_8);
   }
 }
