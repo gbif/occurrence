@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Component
@@ -59,7 +60,7 @@ public class OccurrenceSpeciesMultimediaService {
       Long totalCount = null;
       List<Map<String,Object>> results = new ArrayList<>();
       //for (int salt = 0; salt < splits; salt++) {
-        byte[] prefix = computeKey(speciesKey + mediaType);
+        byte[] prefix = computeKey(speciesKey + mediaType.toLowerCase(Locale.ROOT));
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(prefix));
