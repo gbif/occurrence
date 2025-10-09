@@ -92,7 +92,7 @@ public class ElasticDownloadWorkflow {
             .isSmallDownload(true)
             .downloadFormat(configuration.getDownloadFormat())
             .coreTerm(coreDwcTerm)
-            .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
             .build());
 
     updateTotalRecordsCount(download, recordCount);
