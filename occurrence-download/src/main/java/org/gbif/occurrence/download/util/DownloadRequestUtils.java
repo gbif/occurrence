@@ -30,6 +30,12 @@ public class DownloadRequestUtils {
         : null;
   }
 
+  public static Set<Extension> getInterpretedExtensions(DownloadRequest request) {
+    return request instanceof PredicateDownloadRequest
+        ? ((PredicateDownloadRequest) request).getInterpretedExtensions()
+        : null;
+  }
+
   public static boolean hasVerbatimExtensions(DownloadRequest request) {
     if (!(request instanceof PredicateDownloadRequest)) {
       return false;
