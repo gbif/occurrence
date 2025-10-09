@@ -111,7 +111,7 @@ public class SparkDownloadWorkflowModuleTestIT {
              .sourceDir("/tmp/")
              .user("testUser")
              .searchQuery("*")
-             .extensions(Collections.singleton(Extension.CHRONOMETRIC_AGE))
+             .verbatimExtensions(Collections.singleton(Extension.CHRONOMETRIC_AGE))
              .build();
   }
 
