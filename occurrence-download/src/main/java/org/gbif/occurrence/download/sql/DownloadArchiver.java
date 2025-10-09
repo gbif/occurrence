@@ -56,7 +56,7 @@ public class DownloadArchiver {
             .sourceDir(workflowConfiguration.getHiveDBPath())
             .downloadFormat(workflowConfiguration.getDownloadFormat())
             .coreTerm(download.getRequest().getType().getCoreTerm())
-            .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
             .build();
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
