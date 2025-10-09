@@ -1,7 +1,7 @@
 package org.gbif.occurrence.persistence;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
 import lombok.SneakyThrows;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -15,81 +15,82 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class OccurrenceSpeciesMultimediaService {
   private static final byte[] MEDIA_CF = Bytes.toBytes("media");
-  private static final byte[] IDENTIFIERS_QUALIFIER = Bytes.toBytes("identifiers");
-  private static final byte[] TOTAL_IDENTIFIERS_QUALIFIER = Bytes.toBytes("total_identifiers_count");
+  private static final byte[] TOTAL_MULTIMEDIA_COUNTS = Bytes.toBytes("total_multimedia_count");
+  private static final byte[] MEDIA_INFOS = Bytes.toBytes("media_infos");
+  private static final ObjectMapper MAPPER = new ObjectMapper();
 
-  @Data
-  @AllArgsConstructor
-  public static class SpeciesMediaType {
-    private final String speciesKey;
-    private final String mediaType;
-    private final List<String> identifiers;
-  }
+
+  public record SpeciesMediaType(String speciesKey, String mediaType, List<Map<String,Object>> identifiers) {}
 
   private final Connection connection;
   private final TableName tableName;
   private final int splits;
-  private String paddingFormat;
+  private final String paddingFormat;
+  private final int maxOffset;
+  private final int maxLimit;
 
   @Autowired
   public OccurrenceSpeciesMultimediaService(Connection connection,
                                             @Value("${occurrence.occurrenceSpeciesMediaTable}") String tableName,
-                                            @Value("${occurrence.occurrenceSpeciesMediaTableSplits}") int splits) {
+                                            @Value("${occurrence.occurrenceSpeciesMediaTableSplits}") int splits,
+                                            @Value("${occurrence.search.max.offset}") int maxOffset,
+                                            @Value("${occurrence.search.max.limit}") int maxLimit) {
     this.connection = connection;
     this.tableName = TableName.valueOf(tableName);
     this.splits = splits;
     paddingFormat = "%0" + Integer.toString(splits - 1).length() + 'd';
+    this.maxLimit = maxLimit;
+    this.maxOffset = maxOffset;
   }
 
   @SneakyThrows
-  public PagingResponse<SpeciesMediaType> queryIdentifiers(
-    String speciesKey,
-    String mediaType,
-    int limit,
-    int offset
-  )  {
+  public PagingResponse<SpeciesMediaType> queryIdentifiers(String speciesKey, String mediaType, int limitRequest, int offset) {
+    // Validate and adjust limit and offset
+    int limit = Math.min(limitRequest, maxLimit);
+    Preconditions.checkArgument(offset + limit <= maxOffset, "Max offset of " + maxOffset
+      + " exceeded: " + offset + " + " + limit);
+
     try (Table table = connection.getTable(tableName)) {
       Long totalCount = null;
-      List<String> results = new ArrayList<>();
+      List<Map<String,Object>> results = new ArrayList<>();
       //for (int salt = 0; salt < splits; salt++) {
         byte[] prefix = computeKey(speciesKey + mediaType);
 
         Scan scan = new Scan();
         scan.setFilter(new PrefixFilter(prefix));
-        scan.addColumn(MEDIA_CF, IDENTIFIERS_QUALIFIER);
-        scan.addColumn(MEDIA_CF, TOTAL_IDENTIFIERS_QUALIFIER);
+        scan.addColumn(MEDIA_CF, MEDIA_INFOS);
+        scan.addColumn(MEDIA_CF, TOTAL_MULTIMEDIA_COUNTS);
 
         try (ResultScanner scanner = table.getScanner(scan)) {
-          int skippedIdentifiers = 0;
+          int skipped = 0;
           for (Result result : scanner) {
-            byte[] value = result.getValue(MEDIA_CF, IDENTIFIERS_QUALIFIER);
+            byte[] value = result.getValue(MEDIA_CF, MEDIA_INFOS);
             if (totalCount == null) {
-              byte[] byteTotalCount = result.getValue(MEDIA_CF, TOTAL_IDENTIFIERS_QUALIFIER);
+              byte[] byteTotalCount = result.getValue(MEDIA_CF, TOTAL_MULTIMEDIA_COUNTS);
               if (byteTotalCount != null) {
-                totalCount = (long)Bytes.toInt(byteTotalCount);
+                totalCount = (long) Bytes.toInt(byteTotalCount);
               }
             }
             if (value != null && results.size() < limit) {
-              String identifiersStr = Bytes.toString(value);
-              String[] identifiersArr = identifiersStr.split(",");
-              for (String identifier : identifiersArr) {
-                if (skippedIdentifiers < offset) {
-                  skippedIdentifiers++;
+              List<Map<String, Object>> mediaInfos = MAPPER.readValue(Bytes.toString(value), List.class);
+              for (Map<String, Object> mediaInfo : mediaInfos) {
+                if (skipped < offset) {
+                  skipped++;
                   continue;
                 }
                 if (results.size() < limit) {
-                  results.add(identifier);
+                  results.add(mediaInfo);
                 } else {
                   break;
                 }
               }
-            }
-            if (results.size() >= limit) break;
           }
+        }
       }
       return new PagingResponse<>(offset, limit, totalCount,
                                  List.of(new SpeciesMediaType(speciesKey, mediaType, results)));
