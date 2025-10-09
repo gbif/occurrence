@@ -46,6 +46,7 @@ public class ExtensionsQueryTest {
       null,
       null,
       Extension.availableExtensions(),
+      null,
       Constants.NUB_DATASET_KEY.toString()
     );
 
