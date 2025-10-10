@@ -57,6 +57,7 @@ public class DownloadArchiver {
             .downloadFormat(workflowConfiguration.getDownloadFormat())
             .coreTerm(download.getRequest().getType().getCoreTerm())
             .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
             .build();
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
