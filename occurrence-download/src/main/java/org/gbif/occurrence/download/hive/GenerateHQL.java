@@ -31,6 +31,7 @@ import lombok.SneakyThrows;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.gbif.api.model.Constants;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 
 /**
@@ -63,7 +64,8 @@ public class GenerateHQL {
 
   private static final String FIELDS = "fields";
   private static final String IS_HUMBOLDT_SEARCH = "isHumboldtSearch";
-  private static final String DOWNLOAD_TYPE = "downloadType";
+  private static final String INCLUDE_HUMBOLDT_INTERPRETED = "includeHumboldtInterpreted";
+  private static final String INCLUDE_OCCURRENCE_EXT_INTERPRETED = "includeOccurrenceExtInterpreted";
 
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
   private static final AvroQueries AVRO_QUERIES = new AvroQueries();
@@ -220,7 +222,8 @@ public class GenerateHQL {
             .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
             .put("extensions", ExtensionTable.tableExtensions())
             .put(IS_HUMBOLDT_SEARCH, queryParameters.isHumboldtSearch())
-            .put(DOWNLOAD_TYPE, queryParameters.getDownloadType())
+            .put(INCLUDE_HUMBOLDT_INTERPRETED, queryParameters.getInterpretedExtensions().contains(Extension.HUMBOLDT))
+            .put(INCLUDE_OCCURRENCE_EXT_INTERPRETED, queryParameters.getInterpretedExtensions().contains(Extension.OCCURRENCE))
             .put(
                 "humboldtFields",
                 HIVE_QUERIES

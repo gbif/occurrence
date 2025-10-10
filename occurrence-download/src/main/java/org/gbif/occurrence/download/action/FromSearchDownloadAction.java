@@ -84,7 +84,7 @@ public class FromSearchDownloadAction {
           .downloadFormat(workflowConfiguration.getDownloadFormat())
           .user(args[5])
           .coreTerm(coreTerm)
-          .extensions(extensions)
+          .verbatimExtensions(extensions)
           .build());
 
   }

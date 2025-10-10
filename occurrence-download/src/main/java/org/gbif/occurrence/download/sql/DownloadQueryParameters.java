@@ -15,16 +15,21 @@ package org.gbif.occurrence.download.sql;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
+import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
@@ -50,7 +55,7 @@ public class DownloadQueryParameters {
 
   private String checklistKey;
 
-  private DownloadType downloadType;
+  private Set<Extension> interpretedExtensions;
 
   @SneakyThrows
   public static DownloadQueryParameters from(
@@ -64,11 +69,10 @@ public class DownloadQueryParameters {
             .whereClause(jobConfiguration.getFilter())
             .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
             .database(workflowConfiguration.getHiveDb())
-            .warehouseDir(workflowConfiguration.getHiveWarehouseDir())
-            .downloadType(
-                jobConfiguration.getCoreTerm() == DwcTerm.Event
-                    ? DownloadType.EVENT
-                    : DownloadType.OCCURRENCE);
+            .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
+
+    builder.interpretedExtensions(
+        DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
 
     if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
       SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
@@ -121,6 +125,8 @@ public class DownloadQueryParameters {
     parameters.put("citationTable", downloadTableName + "_citation");
     parameters.put("multimediaTable", downloadTableName + "_multimedia");
     parameters.put("humboldtTable", downloadTableName + "_humboldt");
+    parameters.put("eventIdsTable", downloadTableName + "_event_ids");
+    parameters.put("occurrenceExtensionTable", downloadTableName + "_occurrence");
     return parameters;
   }
 }
