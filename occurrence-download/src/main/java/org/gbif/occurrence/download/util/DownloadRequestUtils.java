@@ -17,6 +17,7 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.vocabulary.Extension;
 
+import java.util.Collections;
 import java.util.Set;
 
 import lombok.experimental.UtilityClass;
@@ -27,13 +28,13 @@ public class DownloadRequestUtils {
   public static Set<Extension> getVerbatimExtensions(DownloadRequest request) {
     return request instanceof PredicateDownloadRequest
         ? ((PredicateDownloadRequest) request).getVerbatimExtensions()
-        : null;
+        : Collections.emptySet();
   }
 
   public static Set<Extension> getInterpretedExtensions(DownloadRequest request) {
     return request instanceof PredicateDownloadRequest
         ? ((PredicateDownloadRequest) request).getInterpretedExtensions()
-        : null;
+        : Collections.emptySet();
   }
 
   public static boolean hasVerbatimExtensions(DownloadRequest request) {
