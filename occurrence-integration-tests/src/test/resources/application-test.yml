@@ -2,8 +2,12 @@ defaultChecklistKey: d7dddbf4-2cf0-4f39-9b2a-bb099caae36c
 appkeys:
   file: @appkeys.testfile@
 occurrence:
-  occurrenceSpeciesMediaTable: occurrence_species_multimedia
-  occurrenceSpeciesMediaTableSplits: 30
+  db:
+    speciesMultimedia:
+      table: occurrence_species_multimedia
+      splits: 30
+      chunkSize: 300
+      maxLimit: 300
   download:
     disabled: false
     downloads_hard_limit: 1,1000
