@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Service to query species multimedia information stored in HBase.
+ */
 @Component
 public class OccurrenceSpeciesMultimediaService {
   private static final byte[] MEDIA_CF = Bytes.toBytes("media");
@@ -24,6 +27,9 @@ public class OccurrenceSpeciesMultimediaService {
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
+  /**
+   * Simple DTO to hold multimedia information for a given species and media type.
+   */
   public record SpeciesMediaType(String speciesKey, String mediaType, List<Map<String,Object>> media) {}
 
   private final Connection connection;
@@ -47,8 +53,17 @@ public class OccurrenceSpeciesMultimediaService {
     this.chunkSize = chunkSize;
   }
 
+  /**
+   * Queries multimedia information for a given species and media type with pagination support.
+   *
+   * @param speciesKey   the species identifier
+   * @param mediaType    the type of media (e.g., image, video)
+   * @param limitRequest maximum number of records to return
+   * @param offset       starting point for records to return
+   * @return a paginated response containing multimedia information
+   */
   @SneakyThrows
-  public PagingResponse<SpeciesMediaType> queryIdentifiers(String speciesKey, String mediaType, int limitRequest, int offset) {
+  public PagingResponse<SpeciesMediaType> queryMedianInfo(String speciesKey, String mediaType, int limitRequest, int offset) {
     // Validate and adjust limit and offset
     int limit = Math.min(limitRequest, maxLimit);
 
@@ -68,7 +83,7 @@ public class OccurrenceSpeciesMultimediaService {
         if (totalCount == null) {
           byte[] byteTotalCount = result.getValue(MEDIA_CF, TOTAL_MULTIMEDIA_COUNTS);
           if (byteTotalCount != null) {
-            totalCount = (long) Bytes.toInt(byteTotalCount);
+            totalCount = Bytes.toLong(byteTotalCount);
           }
         }
         if (value != null) {
@@ -84,6 +99,15 @@ public class OccurrenceSpeciesMultimediaService {
     }
   }
 
+  /**
+   * Generates a list of HBase Get operations for the specified species key, media type, and chunk range.
+   *
+   * @param speciesKey the species identifier
+   * @param mediaType  the type of media (e.g., image, video)
+   * @param startChunk the starting chunk index
+   * @param endChunk   the ending chunk index
+   * @return a list of Get operations for HBase
+   */
   private List<Get> getGets(String speciesKey, String mediaType, int startChunk, int endChunk) {
     List<Get> gets = new ArrayList<>();
     for (int chunkIndex = startChunk; chunkIndex <= endChunk; chunkIndex++) {
