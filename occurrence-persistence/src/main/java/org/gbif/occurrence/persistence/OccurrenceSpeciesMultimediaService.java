@@ -79,7 +79,7 @@ public class OccurrenceSpeciesMultimediaService {
           currentOffset = 0; // Only apply offset to the first chunk
         }
       }
-      return new PagingResponse<>(offset, limit, totalCount,
+      return new PagingResponse<>(offset, results.size(), totalCount,
                                  List.of(new SpeciesMediaType(speciesKey, mediaType, results)));
     }
   }
