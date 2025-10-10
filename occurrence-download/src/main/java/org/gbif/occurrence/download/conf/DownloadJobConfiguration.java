@@ -71,8 +71,11 @@ public class DownloadJobConfiguration {
   /** Requested download core. */
   private final DwcTerm coreTerm;
 
-  /** Requested extensions. */
-  private final Set<Extension> extensions;
+  /** Requested verbatim extensions. */
+  private final Set<Extension> verbatimExtensions;
+
+  /** Requested interpreted extensions. */
+  private final Set<Extension> interpretedExtensions;
 
   /** Requested extensions. */
   private final String checklistKey;
@@ -88,7 +91,8 @@ public class DownloadJobConfiguration {
       String searchQuery,
       DownloadFormat downloadFormat,
       DwcTerm coreTerm,
-      Set<Extension> extensions,
+      Set<Extension> verbatimExtensions,
+      Set<Extension> interpretedExtensions,
       String checklistKey) {
     this.downloadKey = downloadKey;
     this.filter = filter;
@@ -99,7 +103,8 @@ public class DownloadJobConfiguration {
     this.downloadTableName = downloadTableName;
     this.downloadFormat = downloadFormat;
     this.coreTerm = coreTerm;
-    this.extensions = extensions;
+    this.verbatimExtensions = verbatimExtensions;
+    this.interpretedExtensions = interpretedExtensions;
     this.checklistKey = checklistKey;
   }
 
@@ -109,7 +114,8 @@ public class DownloadJobConfiguration {
         .downloadKey(download.getKey())
         .downloadFormat(download.getRequest().getFormat())
         .coreTerm(download.getRequest().getType().getCoreTerm())
-        .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+        .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+        .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
         .filter(getDownloadFilter(download))
         .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
         .isSmallDownload(false)
@@ -197,6 +203,17 @@ public class DownloadJobConfiguration {
     return isSmallDownload
         ? getDownloadTempDir() + DwcDownloadsConstants.HUMBOLDT_FILENAME
         : getDownloadTempDir(TableSuffixes.HUMBOLDT_SUFFIX);
+  }
+
+  /**
+   * Occurrence extension table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_occurrence/ - small downloads
+   * format: sourceDir/downloadKey/occurrence
+   */
+  public String getOccurrenceExtDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME
+      : getDownloadTempDir(TableSuffixes.OCCURRENCE_EXT_SUFFIX);
   }
 
   /**

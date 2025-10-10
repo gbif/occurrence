@@ -22,7 +22,7 @@ SET hive.merge.mapredfiles=false;
 --
 -- Create the download gbifId join table
 
-CACHE TABLE ${downloadTableName}_occurrence_gbifId
+CACHE TABLE ${downloadTableName}_${tableName}_gbifId
 SELECT gbifid FROM ${interpretedTable};
 
 --
@@ -45,8 +45,8 @@ INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
   <#list verbatim_extension.verbatimFields as field>
       ext.${field}<#if field_has_next>,</#if>
   </#list>
-    FROM ${downloadTableName}_occurrence_gbifId f
-    JOIN iceberg.${r"${hiveDB}"}.occurrence_ext_${verbatim_extension.hiveTableName} ext
+    FROM ${downloadTableName}_${tableName}_gbifId f
+    JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ext
     ON f.gbifid = ext.gbifid
     WHERE ext.gbifid IS NOT NULL;
 </#list>

@@ -128,17 +128,26 @@ public class DwcArchiveUtils {
    * Creates a meta.xml occurrence descriptor file in the directory parameter.
    */
   public static void createOccurrenceArchiveDescriptor(File directory, Set<Extension> extensions) {
-    createArchiveDescriptor(directory, OCCURRENCE_INTERPRETED_FILENAME, DwcTerm.Occurrence, extensions);
+    createArchiveDescriptor(
+        directory,
+        OCCURRENCE_INTERPRETED_FILENAME,
+        DwcTerm.Occurrence,
+        extensions,
+        Collections.emptySet());
   }
 
-  /**
-   * Creates a meta.xml event descriptor file in the directory parameter.
-   */
-  public static void createEventArchiveDescriptor(File directory, Set<Extension> verbatimExtensions) {
-    createArchiveDescriptor(directory, EVENT_INTERPRETED_FILENAME, DwcTerm.Event, verbatimExtensions);
+  /** Creates a meta.xml event descriptor file in the directory parameter. */
+  public static void createEventArchiveDescriptor(
+      File directory, Set<Extension> verbatimExtensions, Set<Extension> interpretedExtensions) {
+    createArchiveDescriptor(
+        directory,
+        EVENT_INTERPRETED_FILENAME,
+        DwcTerm.Event,
+        verbatimExtensions,
+        interpretedExtensions);
   }
 
-  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm, Set<Extension> verbatimExtensions) {
+  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm, Set<Extension> verbatimExtensions, Set<Extension> interpretedExtensions) {
     log.info("Creating archive meta.xml descriptor");
 
     Archive downloadArchive = new Archive();
@@ -153,12 +162,26 @@ public class DwcArchiveUtils {
     downloadArchive.addExtension(multimedia);
 
     if (DwcTerm.Event == coreTerm) {
-      ArchiveFile humboldt =
-          createArchiveFile(
-              HUMBOLDT_FILENAME,
-              UnknownTerm.build(Extension.HUMBOLDT.getRowType()),
-              TermUtils.humboldtTerms());
-      downloadArchive.addExtension(humboldt);
+      if (interpretedExtensions.contains(Extension.HUMBOLDT)) {
+        // humboldt interpreted extension
+        ArchiveFile humboldt =
+            createArchiveFile(
+                HUMBOLDT_FILENAME,
+                UnknownTerm.build(Extension.HUMBOLDT.getRowType()),
+                TermUtils.humboldtTerms());
+        downloadArchive.addExtension(humboldt);
+      }
+
+      if (interpretedExtensions.contains(Extension.OCCURRENCE)) {
+        // occurrence interpreted extension
+        ArchiveFile occurrence =
+            createArchiveFile(
+                OCCURRENCE_INTERPRETED_FILENAME,
+                DwcTerm.Occurrence,
+                DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID,
+                TermUtils.identicalInterpretedTerms());
+        downloadArchive.addExtension(occurrence);
+      }
     }
 
     addVerbatimExtensionsFiles(verbatimExtensions, downloadArchive);

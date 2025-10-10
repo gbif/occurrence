@@ -38,6 +38,11 @@ CREATE TABLE ${r"${interpretedTable}"} (
 </#list>
 ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
+<#if includeOccurrenceExtInterpreted>
+  -- aux table to avoid clashes between column names in the joins since changing that in the code is pretty invasive
+  CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING);
+</#if>
+
 --
 -- Uses multi-table inserts format to reduce to a single scan of the source table.
 --
@@ -57,7 +62,12 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#list initializedInterpretedFields as field>
     <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
+  WHERE ${r"${whereClause}"}<#if !includeOccurrenceExtInterpreted>;</#if>
+<#if includeOccurrenceExtInterpreted>
+  INSERT INTO TABLE ${r"${eventIdsTable}"}
+  SELECT DISTINCT eventid
   WHERE ${r"${whereClause}"};
+</#if>
 
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
@@ -74,7 +84,8 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 
 
-<#if downloadType == "EVENT">
+<#if includeHumboldtInterpreted>
+  -- Humboldt interpreted table
   CREATE TABLE ${r"${humboldtTable}"} (
   <#list humboldtFields as field>
     ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
@@ -88,6 +99,22 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
   </#list>
   FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h
   JOIN ${r"${interpretedTable}"} i ON h.gbifId = i.gbifId;
+</#if>
+<#if includeOccurrenceExtInterpreted>
+   -- occurrence extension interpreted table
+   CREATE TABLE ${r"${occurrenceExtensionTable}"} (
+   <#list interpretedFields as field>
+     ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+   </#list>
+   ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+   INSERT INTO TABLE ${r"${occurrenceExtensionTable}"}
+   SELECT
+   <#list initializedInterpretedFields as field>
+     ${field.hiveField}<#if field_has_next>,</#if>
+   </#list>
+   FROM iceberg.${r"${hiveDB}"}.occurrence
+   JOIN ${r"${eventIdsTable}"} ON eventid = event_id;
 </#if>
 
 SET hive.auto.convert.join=true;

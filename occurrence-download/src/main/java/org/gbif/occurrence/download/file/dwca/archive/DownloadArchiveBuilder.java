@@ -61,7 +61,9 @@ public class DownloadArchiveBuilder {
   private void createDescriptor() {
     if (DwcTerm.Event == configuration.getCoreTerm()) {
       DwcArchiveUtils.createEventArchiveDescriptor(
-          archiveDir, DownloadRequestUtils.getVerbatimExtensions(download.getRequest()));
+          archiveDir,
+          DownloadRequestUtils.getVerbatimExtensions(download.getRequest()),
+          DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
     } else {
       DwcArchiveUtils.createOccurrenceArchiveDescriptor(
           archiveDir, DownloadRequestUtils.getVerbatimExtensions(download.getRequest()));
@@ -179,11 +181,21 @@ public class DownloadArchiveBuilder {
         HeadersFileUtil.getMultimediaTableHeader());
 
     if (DwcTerm.Event == configuration.getCoreTerm()) {
-      appendPreCompressedFile(
-          out,
-          new Path(configuration.getHumboldtDataFileName()),
-          HUMBOLDT_FILENAME,
-          HeadersFileUtil.getHumboldtTableHeader());
+      if (configuration.getInterpretedExtensions().contains(Extension.HUMBOLDT)) {
+        appendPreCompressedFile(
+            out,
+            new Path(configuration.getHumboldtDataFileName()),
+            HUMBOLDT_FILENAME,
+            HeadersFileUtil.getHumboldtTableHeader());
+      }
+
+      if (configuration.getInterpretedExtensions().contains(Extension.OCCURRENCE)) {
+        appendPreCompressedFile(
+            out,
+            new Path(configuration.getOccurrenceExtDataFileName()),
+            OCCURRENCE_INTERPRETED_FILENAME,
+            HeadersFileUtil.getInterpretedTableHeader());
+      }
     }
 
     appendExtensionFiles(out);

@@ -274,7 +274,7 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
                                                      lock,
                                                      esClient,
                                                      esIndex,
-                                                     jobConfiguration.getExtensions());
+                                                     jobConfiguration.getVerbatimExtensions());
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work);
         lock.lock();
