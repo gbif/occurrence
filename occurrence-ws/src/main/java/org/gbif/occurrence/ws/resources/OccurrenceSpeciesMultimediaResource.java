@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(
-  value = "occurrence/multimedia/",
+  value = "occurrence/experimental/multimedia/",
   produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"}
 )
 public class OccurrenceSpeciesMultimediaResource {
@@ -22,6 +22,6 @@ public class OccurrenceSpeciesMultimediaResource {
                                                                                                   @RequestParam("mediaType") String mediaType,
                                                                                                   @RequestParam("limit") int limit,
                                                                                                   @RequestParam("offset") int offset)  {
-    return occurrenceSpeciesMultimediaService.queryIdentifiers(speciesKey, mediaType, limit, offset);
+    return occurrenceSpeciesMultimediaService.queryIdentifiers(speciesKey, mediaType, Math.max(limit,0), Math.max(offset,0));
   }
 }

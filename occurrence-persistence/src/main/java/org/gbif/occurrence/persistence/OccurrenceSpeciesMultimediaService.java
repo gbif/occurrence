@@ -54,8 +54,8 @@ public class OccurrenceSpeciesMultimediaService {
 
     int startChunk = offset / chunkSize;
     int endChunk = (offset + limit - 1) / chunkSize;
-
-    var gets = getGets(speciesKey, mediaType, startChunk, endChunk);
+    String mediaTypeValue = mediaType !=null? mediaType.toLowerCase(Locale.ROOT) : "";
+    var gets = getGets(speciesKey, mediaTypeValue, startChunk, endChunk);
     try (Table table = connection.getTable(tableName)) {
       Long totalCount = null;
       List<Map<String,Object>> results = new ArrayList<>();
@@ -86,9 +86,8 @@ public class OccurrenceSpeciesMultimediaService {
 
   private List<Get> getGets(String speciesKey, String mediaType, int startChunk, int endChunk) {
     List<Get> gets = new ArrayList<>();
-    String mediaTypeValue = mediaType !=null? mediaType.toLowerCase(Locale.ROOT) : "";
     for (int chunkIndex = startChunk; chunkIndex <= endChunk; chunkIndex++) {
-      String logicalKey = speciesKey + mediaTypeValue +  chunkIndex;
+      String logicalKey = speciesKey + mediaType +  chunkIndex;
       byte[] rowKey = computeKey(logicalKey);
       gets.add(new Get(rowKey));
     }
