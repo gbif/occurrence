@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Service to query species multimedia information stored in HBase.
+ * Service to query species/taxon multimedia information stored in HBase.
  */
 @Component
 public class OccurrenceSpeciesMultimediaService {
@@ -63,14 +63,14 @@ public class OccurrenceSpeciesMultimediaService {
    * @return a paginated response containing multimedia information
    */
   @SneakyThrows
-  public PagingResponse<SpeciesMediaType> queryMedianInfo(String speciesKey, String mediaType, int limitRequest, int offset) {
+  public PagingResponse<SpeciesMediaType> queryMedianInfo(String taxonKey, String mediaType, int limitRequest, int offset) {
     // Validate and adjust limit and offset
     int limit = Math.min(limitRequest, maxLimit);
 
     int startChunk = offset / chunkSize;
     int endChunk = (offset + limit - 1) / chunkSize;
     String mediaTypeValue = mediaType !=null? mediaType.toLowerCase(Locale.ROOT) : "";
-    var gets = getGets(speciesKey, mediaTypeValue, startChunk, endChunk);
+    var gets = getGets(taxonKey, mediaTypeValue, startChunk, endChunk);
     try (Table table = connection.getTable(tableName)) {
       Long totalCount = null;
       List<Map<String,Object>> results = new ArrayList<>();
@@ -95,23 +95,23 @@ public class OccurrenceSpeciesMultimediaService {
         }
       }
       return new PagingResponse<>(offset, results.size(), totalCount,
-                                 List.of(new SpeciesMediaType(speciesKey, mediaType, results)));
+                                 List.of(new SpeciesMediaType(taxonKey, mediaType, results)));
     }
   }
 
   /**
    * Generates a list of HBase Get operations for the specified species key, media type, and chunk range.
    *
-   * @param speciesKey the species identifier
+   * @param taxonKey the taxon identifier
    * @param mediaType  the type of media (e.g., image, video)
    * @param startChunk the starting chunk index
    * @param endChunk   the ending chunk index
    * @return a list of Get operations for HBase
    */
-  private List<Get> getGets(String speciesKey, String mediaType, int startChunk, int endChunk) {
+  private List<Get> getGets(String taxonKey, String mediaType, int startChunk, int endChunk) {
     List<Get> gets = new ArrayList<>();
     for (int chunkIndex = startChunk; chunkIndex <= endChunk; chunkIndex++) {
-      String logicalKey = speciesKey + mediaType +  chunkIndex;
+      String logicalKey = taxonKey + mediaType +  chunkIndex;
       byte[] rowKey = computeKey(logicalKey);
       gets.add(new Get(rowKey));
     }

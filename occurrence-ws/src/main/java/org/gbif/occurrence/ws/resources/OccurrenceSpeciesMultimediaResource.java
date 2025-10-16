@@ -29,11 +29,11 @@ public class OccurrenceSpeciesMultimediaResource {
    * @param offset     the starting point in the collection of results
    * @return a paginated response containing multimedia information for the specified species and media type
    */
-  @GetMapping(value = "species/{speciesKey}")
-  public PagingResponse<OccurrenceSpeciesMultimediaService.SpeciesMediaType> listMultimediaBySpecies(@PathVariable("speciesKey") String speciesKey,
+  @GetMapping(value = "species/{taxonKey}")
+  public PagingResponse<OccurrenceSpeciesMultimediaService.SpeciesMediaType> listMultimediaBySpecies(@PathVariable("taxonKey") String taxonKey,
                                                                                                     @RequestParam("mediaType") String mediaType,
                                                                                                     @RequestParam("limit") int limit,
                                                                                                     @RequestParam("offset") int offset)  {
-    return occurrenceSpeciesMultimediaService.queryMedianInfo(speciesKey, mediaType, Math.max(limit,0), Math.max(offset,0));
+    return occurrenceSpeciesMultimediaService.queryMedianInfo(taxonKey, mediaType, Math.max(limit,0), Math.max(offset,0));
   }
 }
