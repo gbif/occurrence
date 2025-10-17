@@ -19,7 +19,7 @@ import org.gbif.occurrence.search.cache.DefaultInMemoryPredicateCacheService;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.cache2k.config.Cache2kConfig;
 import org.junit.jupiter.api.Test;
