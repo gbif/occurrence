@@ -1,6 +1,9 @@
 package org.gbif.occurrence.persistence;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -26,11 +29,24 @@ public class OccurrenceSpeciesMultimediaService {
   private static final byte[] MEDIA_INFOS = Bytes.toBytes("media_infos");
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
-
   /**
-   * Simple DTO to hold multimedia information for a given species and media type.
+   * Response class for taxon multimedia search results with pagination.
    */
-  public record SpeciesMediaType(String speciesKey, String mediaType, List<Map<String,Object>> media) {}
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  @JsonPropertyOrder({"taxonKey", "mediaType", "offset", "limit", "count", "endOfRecords", "results"})
+  public static class TaxonMultimediaSearchResponse extends PagingResponse<Map<String,Object>> {
+
+    private String taxonKey;
+    private String mediaType;
+
+    public TaxonMultimediaSearchResponse(int offset, int limit, Long count, String taxonKey, String mediaType, List<Map<String,Object>> results) {
+      super(offset, limit, count, results);
+      this.mediaType = mediaType;
+      this.taxonKey = taxonKey;
+    }
+  }
+
 
   private final Connection connection;
   private final TableName tableName;
@@ -63,7 +79,7 @@ public class OccurrenceSpeciesMultimediaService {
    * @return a paginated response containing multimedia information
    */
   @SneakyThrows
-  public PagingResponse<SpeciesMediaType> queryMedianInfo(String taxonKey, String mediaType, int limitRequest, int offset) {
+  public TaxonMultimediaSearchResponse queryMedianInfo(String taxonKey, String mediaType, int limitRequest, int offset) {
     // Validate and adjust limit and offset
     int limit = Math.min(limitRequest, maxLimit);
 
@@ -94,8 +110,7 @@ public class OccurrenceSpeciesMultimediaService {
           currentOffset = 0; // Only apply offset to the first chunk
         }
       }
-      return new PagingResponse<>(offset, results.size(), totalCount,
-                                 List.of(new SpeciesMediaType(taxonKey, mediaType, results)));
+      return new TaxonMultimediaSearchResponse(offset, results.size(), totalCount, taxonKey, mediaType, results);
     }
   }
 

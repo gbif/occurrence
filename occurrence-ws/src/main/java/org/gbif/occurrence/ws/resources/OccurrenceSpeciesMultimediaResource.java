@@ -30,7 +30,7 @@ public class OccurrenceSpeciesMultimediaResource {
    * @return a paginated response containing multimedia information for the specified species and media type
    */
   @GetMapping(value = "species/{taxonKey}")
-  public PagingResponse<OccurrenceSpeciesMultimediaService.SpeciesMediaType> listMultimediaBySpecies(@PathVariable("taxonKey") String taxonKey,
+  public OccurrenceSpeciesMultimediaService.TaxonMultimediaSearchResponse listMultimediaBySpecies(@PathVariable("taxonKey") String taxonKey,
                                                                                                     @RequestParam("mediaType") String mediaType,
                                                                                                     @RequestParam("limit") int limit,
                                                                                                     @RequestParam("offset") int offset)  {
