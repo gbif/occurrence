@@ -244,6 +244,23 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
     // take all paths till the field name
     String[] paths = fieldName.split("\\.");
     for (int i = 0; i < paths.length - 1 && fields.get(paths[i]) != null; i++) {
+      Object values = fields.get(paths[i]);
+
+      if (values instanceof List<?> listValues) {
+        if (!listValues.isEmpty() && listValues.get(0) instanceof Map) {
+          // we convert the list of maps into a map of lists
+          List<Map<String, Object>> mapsList = (List<Map<String, Object>>) listValues;
+          Map<String, List<Object>> listAsMap = new HashMap<>();
+          mapsList.forEach(
+              mapItem ->
+                  mapItem.forEach(
+                      (k, v) -> listAsMap.computeIfAbsent(k, key -> new ArrayList<>()).add(v)));
+
+          fields = new HashMap<>(listAsMap);
+          continue;
+          }
+      }
+
       // update the fields with the current path
       fields = (Map<String, Object>) fields.get(paths[i]);
     }
