@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import com.google.common.base.Throwables;
 
 /**
  * A convenience module to include the OccurrencePersistenceServiceImpl via Guice. See the README for needed
@@ -40,6 +39,7 @@ public class OccurrencePersistenceConfiguration {
     return new OccHBaseConfiguration();
   }
 
+
   @Bean
   public Connection hBaseConnection(@Autowired(required = false) @Qualifier("hbaseConfiguration") Configuration hbaseConfiguration) {
     try {
@@ -48,7 +48,7 @@ public class OccurrencePersistenceConfiguration {
       }
       return ConnectionFactory.createConnection(HBaseConfiguration.create());
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 }

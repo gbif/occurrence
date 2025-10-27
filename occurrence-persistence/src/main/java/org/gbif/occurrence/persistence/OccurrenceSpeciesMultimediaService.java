@@ -1,17 +1,20 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gbif.occurrence.persistence;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.SneakyThrows;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.gbif.api.model.common.paging.PagingResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.gbif.occurrence.persistence.meta.ZKMetastore;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -19,10 +22,28 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.curator.framework.recipes.cache.ChildData;
+import org.apache.curator.framework.recipes.cache.NodeCache;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Service to query species/taxon multimedia information stored in HBase.
  */
 @Component
+@Slf4j
 public class OccurrenceSpeciesMultimediaService {
   private static final byte[] MEDIA_CF = Bytes.toBytes("media");
   private static final byte[] TOTAL_MULTIMEDIA_COUNTS = Bytes.toBytes("total_multimedia_count");
@@ -49,30 +70,46 @@ public class OccurrenceSpeciesMultimediaService {
 
 
   private final Connection connection;
-  private final TableName tableName;
-  private final int splits;
-  private final String paddingFormat;
+  private TableName tableName;
+  private int splits;
+  private String paddingFormat;
   private final int chunkSize;
   private final int maxLimit;
+  private final ZKMetastore zkMetastore;
 
   @Autowired
+  @SneakyThrows
   public OccurrenceSpeciesMultimediaService(Connection connection,
-                                            @Value("${occurrence.db.speciesMultimedia.table}") String tableName,
-                                            @Value("${occurrence.db.speciesMultimedia.splits}") int splits,
                                             @Value("${occurrence.db.speciesMultimedia.chunkSize}") int chunkSize,
-                                            @Value("${occurrence.db.speciesMultimedia.maxLimit}") int maxLimit) {
+                                            @Value("${occurrence.db.speciesMultimedia.maxLimit}") int maxLimit,
+                                            @Value("${occurrence.db.zkConnectionString}") String zkEnsemble,
+                                            @Value("${occurrence.db.meta.retryIntervalMs}") int retryIntervalMs,
+                                            @Value("${occurrence.db.meta.zkNodePath}")String zkNodePath) {
     this.connection = connection;
-    this.tableName = TableName.valueOf(tableName);
-    this.splits = splits;
-    paddingFormat = "%0" + Integer.toString(splits - 1).length() + 'd';
     this.maxLimit = maxLimit;
     this.chunkSize = chunkSize;
+    this.zkMetastore = new ZKMetastore(zkEnsemble, retryIntervalMs, zkNodePath, this::updateInternal);
+  }
+
+  /**
+   * Reads ZK node data and if not null sets the internal object.
+   */
+  void updateInternal(NodeCache cache) {
+    try {
+      ChildData child = cache.getCurrentData();
+      this.tableName = TableName.valueOf(new String(child.getData()));
+      this.splits = connection.getAdmin().getRegions(this.tableName).size();
+      this.paddingFormat = "%0" + Integer.toString(splits - 1).length() + 'd';
+      log.info("Table metadata for {}", cache.getPath());
+    } catch(Exception e) {
+      log.error("Unable to update table metadata from ZooKeeper (Metastore may return state data until recovered).", e);
+    }
   }
 
   /**
    * Queries multimedia information for a given species and media type with pagination support.
    *
-   * @param speciesKey   the species identifier
+   * @param taxonKey   the species identifier
    * @param mediaType    the type of media (e.g., image, video)
    * @param limitRequest maximum number of records to return
    * @param offset       starting point for records to return
@@ -87,7 +124,7 @@ public class OccurrenceSpeciesMultimediaService {
     int endChunk = (offset + limit - 1) / chunkSize;
     String mediaTypeValue = mediaType !=null? mediaType.toLowerCase(Locale.ROOT) : "";
     var gets = getGets(taxonKey, mediaTypeValue, startChunk, endChunk);
-    try (Table table = connection.getTable(tableName)) {
+    try (Table table = connection.getTable(this.tableName)) {
       Long totalCount = null;
       List<Map<String,Object>> results = new ArrayList<>();
 
