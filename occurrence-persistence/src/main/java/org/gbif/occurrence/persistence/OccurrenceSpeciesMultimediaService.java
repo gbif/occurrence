@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.NodeCache;
@@ -45,6 +46,22 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class OccurrenceSpeciesMultimediaService {
+
+  // add inside the class
+  private static class TableMeta {
+    final TableName tableName;
+    final int splits;
+    final String paddingFormat;
+
+    TableMeta(TableName tableName, int splits, String paddingFormat) {
+      this.tableName = tableName;
+      this.splits = splits;
+      this.paddingFormat = paddingFormat;
+    }
+  }
+
+  private final AtomicReference<TableMeta> tableMetaRef = new AtomicReference<>();
+
   private static final byte[] MEDIA_CF = Bytes.toBytes("media");
   private static final byte[] TOTAL_MULTIMEDIA_COUNTS = Bytes.toBytes("total_multimedia_count");
   private static final byte[] MEDIA_INFOS = Bytes.toBytes("media_infos");
@@ -70,9 +87,6 @@ public class OccurrenceSpeciesMultimediaService {
 
 
   private final Connection connection;
-  private TableName tableName;
-  private int splits;
-  private String paddingFormat;
   private final int chunkSize;
   private final int maxLimit;
   private final ZKMetastore zkMetastore;
@@ -92,16 +106,24 @@ public class OccurrenceSpeciesMultimediaService {
   }
 
   /**
-   * Reads ZK node data and if not null sets the internal object.
+   * Thread-safe update: construct an immutable snapshot and publish it atomically.
    */
   void updateInternal(NodeCache cache) {
     try {
       ChildData child = cache.getCurrentData();
-      this.tableName = TableName.valueOf(new String(child.getData()));
-      this.splits = connection.getAdmin().getRegions(this.tableName).size();
-      this.paddingFormat = "%0" + Integer.toString(splits - 1).length() + 'd';
-      log.info("Table metadata for {}", cache.getPath());
-    } catch(Exception e) {
+      if (child == null || child.getData() == null) {
+        log.error("No data available at {} (node missing or empty).", cache.getPath());
+        throw new IllegalStateException("Table metadata not initialized");
+      }
+
+      TableName tn = TableName.valueOf(new String(child.getData(), StandardCharsets.UTF_8));
+      int regions = connection.getAdmin().getRegions(tn).size();
+      String pf = "%0" + Integer.toString(regions - 1).length() + 'd';
+
+      // publish new immutable snapshot
+      tableMetaRef.set(new TableMeta(tn, regions, pf));
+      log.info("Table metadata for {} updated {}", cache.getPath(), tn);
+    } catch (Exception e) {
       log.error("Unable to update table metadata from ZooKeeper (Metastore may return state data until recovered).", e);
     }
   }
@@ -117,6 +139,11 @@ public class OccurrenceSpeciesMultimediaService {
    */
   @SneakyThrows
   public TaxonMultimediaSearchResponse queryMedianInfo(String taxonKey, String mediaType, int limitRequest, int offset) {
+    TableMeta meta = tableMetaRef.get();
+    if (meta == null) {
+      throw new IllegalStateException("Table metadata not initialized");
+    }
+
     // Validate and adjust limit and offset
     int limit = Math.min(limitRequest, maxLimit);
 
@@ -124,7 +151,7 @@ public class OccurrenceSpeciesMultimediaService {
     int endChunk = (offset + limit - 1) / chunkSize;
     String mediaTypeValue = mediaType !=null? mediaType.toLowerCase(Locale.ROOT) : "";
     var gets = getGets(taxonKey, mediaTypeValue, startChunk, endChunk);
-    try (Table table = connection.getTable(this.tableName)) {
+    try (Table table = connection.getTable(meta.tableName)) {
       Long totalCount = null;
       List<Map<String,Object>> results = new ArrayList<>();
 
@@ -179,7 +206,11 @@ public class OccurrenceSpeciesMultimediaService {
    * @return a zeros left-padded string {0*}+bucketNumber+logicalKey
    */
   public byte[] computeKey(String logicalKey) {
-    return (String.format(paddingFormat, Math.abs(logicalKey.hashCode() % splits)) + logicalKey)
+    TableMeta meta = tableMetaRef.get();
+    if (meta == null) {
+      throw new IllegalStateException("Table metadata not initialized");
+    }
+    return (String.format(meta.paddingFormat, Math.abs(logicalKey.hashCode() % meta.splits)) + logicalKey)
       .getBytes(StandardCharsets.UTF_8);
   }
 }
