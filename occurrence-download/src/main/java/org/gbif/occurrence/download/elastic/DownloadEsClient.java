@@ -29,7 +29,7 @@ import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.occurrence.search.es.EsPredicateUtil;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Builder
 @Slf4j
@@ -46,7 +46,7 @@ public class DownloadEsClient implements Closeable {
 
   private final String esIndex;
 
-  private final OccurrenceBaseEsFieldMapper esFieldMapper;
+  private final OccurrenceEsFieldMapper esFieldMapper;
 
   /**
    * Executes the ElasticSearch query and returns the number of records found.

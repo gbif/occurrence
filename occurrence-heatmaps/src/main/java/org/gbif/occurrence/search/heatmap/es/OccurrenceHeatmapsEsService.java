@@ -14,7 +14,7 @@
 package org.gbif.occurrence.search.heatmap.es;
 
 import org.gbif.occurrence.search.SearchException;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
 import org.gbif.rest.client.species.NameUsageMatchingService;
@@ -36,7 +36,6 @@ import org.elasticsearch.search.aggregations.metrics.ParsedGeoCentroid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
@@ -57,12 +56,12 @@ public class OccurrenceHeatmapsEsService
   public OccurrenceHeatmapsEsService(
       RestHighLevelClient esClient,
       String esIndex,
-      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+      OccurrenceEsFieldMapper occurrenceEsFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService) {
     this.esIndex = esIndex;
     this.esClient = esClient;
-    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper,
+    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceEsFieldMapper,
       conceptClient, nameUsageMatchingService);
   }
 

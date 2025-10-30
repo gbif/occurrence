@@ -44,21 +44,25 @@ import org.elasticsearch.search.sort.ScriptSortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
+import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchConstants;
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.event.search.es.EventEsField;
-import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
+import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.rest.client.species.Metadata;
 import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.search.es.BaseEsField;
+import org.gbif.search.es.ChecklistEsField;
+import org.gbif.search.es.EsField;
+import org.gbif.search.es.event.EventEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -66,7 +70,8 @@ import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
-public class EsSearchRequestBuilder {
+public abstract class BaseEsSearchRequestBuilder<
+    P extends SearchParameter, S extends FacetedSearchRequest<P>> {
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
   private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
@@ -74,20 +79,20 @@ public class EsSearchRequestBuilder {
   public static String[] SOURCE_EXCLUDE =
       new String[] {"all", "notIssues", "*.verbatim", "*.suggest"};
 
-  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
-  private final ConceptClient conceptClient;
+  private final EsFieldMapper<P> esFieldMapper;
   private final NameUsageMatchingService nameUsageMatchingService;
+  protected final ConceptClient conceptClient;
 
-  public EsSearchRequestBuilder(
-      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+  public BaseEsSearchRequestBuilder(
+      EsFieldMapper<P> esFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService) {
-    this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
+    this.esFieldMapper = esFieldMapper;
     this.conceptClient = conceptClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
-  public SearchRequest buildSearchRequest(OccurrenceSearchRequest searchRequest, String index) {
+  public SearchRequest buildSearchRequest(S searchRequest, String index) {
 
     SearchRequest esRequest = new SearchRequest();
     esRequest.indices(index);
@@ -102,7 +107,7 @@ public class EsSearchRequestBuilder {
     searchSourceBuilder.fetchSource(null, SOURCE_EXCLUDE);
 
     // group params
-    GroupedParams groupedParams = groupParameters(searchRequest);
+    GroupedParams<P> groupedParams = groupParameters(searchRequest);
 
     // checklistKey to be used later
     String checklistKey = getChecklistKey(searchRequest.getParameters());
@@ -112,7 +117,11 @@ public class EsSearchRequestBuilder {
       buildQuery((OccurrencePredicateSearchRequest) searchRequest)
           .ifPresent(searchSourceBuilder::query);
     } else {
-      buildQuery(groupedParams.queryParams, searchRequest.getQ(), searchRequest.isMatchCase(), checklistKey)
+      buildQuery(
+              groupedParams.queryParams,
+              searchRequest.getQ(),
+              searchRequest.isMatchCase(),
+              checklistKey)
           .ifPresent(searchSourceBuilder::query);
     }
 
@@ -128,7 +137,7 @@ public class EsSearchRequestBuilder {
                   Collections.singletonMap("seed", searchRequest.getShuffle())),
               ScriptSortBuilder.ScriptSortType.NUMBER));
     } else if (Strings.isNullOrEmpty(searchRequest.getQ())) {
-      occurrenceBaseEsFieldMapper.getDefaultSort().forEach(searchSourceBuilder::sort);
+      esFieldMapper.getDefaultSort().forEach(searchSourceBuilder::sort);
     } else {
       searchSourceBuilder.sort(SortBuilders.scoreSort());
     }
@@ -144,7 +153,7 @@ public class EsSearchRequestBuilder {
     return esRequest;
   }
 
-  public Optional<QueryBuilder> buildQueryNode(OccurrenceSearchRequest searchRequest) {
+  public Optional<QueryBuilder> buildQueryNode(S searchRequest) {
     return buildQuery(
         searchRequest.getParameters(),
         searchRequest.getQ(),
@@ -152,15 +161,14 @@ public class EsSearchRequestBuilder {
         getChecklistKey(searchRequest.getParameters()));
   }
 
-  SearchRequest buildSuggestQuery(
-      String prefix, OccurrenceSearchParameter parameter, Integer limit, String index) {
+  SearchRequest buildSuggestQuery(String prefix, P parameter, Integer limit, String index) {
     SearchRequest request = new SearchRequest();
     request.indices(index);
 
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     request.source(searchSourceBuilder);
 
-    EsField esField = occurrenceBaseEsFieldMapper.getEsField(parameter);
+    EsField esField = getEsField(parameter);
 
     // create suggest query
     searchSourceBuilder.suggest(
@@ -178,22 +186,25 @@ public class EsSearchRequestBuilder {
     return request;
   }
 
+  protected abstract EsField getEsField(P parameter);
+
+  protected abstract EsField getEsFacetField(P parameter);
+
   // Method to build and add a nested checklist query
-  private void addChecklistKeyParamToQuery(Map<OccurrenceSearchParameter, Set<String>> params,
-                                           BoolQueryBuilder bool,
-                                           OccurrenceSearchParameter taxonParam) {
+  private void addChecklistKeyParamToQuery(
+      Map<P, Set<String>> params, BoolQueryBuilder bool, P taxonParam) {
 
-    if (params.containsKey(taxonParam) &&
-        params.get(taxonParam) != null &&
-        !params.get(taxonParam).isEmpty()) {
+    if (params.containsKey(taxonParam)
+        && params.get(taxonParam) != null
+        && !params.get(taxonParam).isEmpty()) {
       String checklistKey = getChecklistKey(params);
-      String esFieldToUse = occurrenceBaseEsFieldMapper.getChecklistField(checklistKey, taxonParam);
+      String esFieldToUse = esFieldMapper.getChecklistField(checklistKey, taxonParam);
       // Build the query
-      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-          .must(QueryBuilders.termsQuery(esFieldToUse, params.get(taxonParam))
-        );
+      BoolQueryBuilder checklistQuery =
+          QueryBuilders.boolQuery()
+              .must(QueryBuilders.termsQuery(esFieldToUse, params.get(taxonParam)));
 
-      EsField esField = occurrenceBaseEsFieldMapper.getEsField(taxonParam);
+      EsField esField = getEsField(taxonParam);
       // TODO: this has to be with the other nested queries
       if (esField.isNestedField()) {
         bool.filter()
@@ -207,24 +218,24 @@ public class EsSearchRequestBuilder {
 
   /**
    * Add a taxon key query to the builder
+   *
    * @param rank
    * @param bool
    * @param params
    */
-  private void addTaxonKeyQuery(
-      String rank,
-      BoolQueryBuilder bool,
-      Map<OccurrenceSearchParameter, Set<String>> params) {
+  private void addTaxonKeyQuery(String rank, BoolQueryBuilder bool, Map<P, Set<String>> params) {
 
     String checklistKey = getChecklistKey(params);
 
-    OccurrenceSearchParameter dynamicRankParam = new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class);
+    P dynamicRankParam = createSearchParam(rank.toUpperCase() + "_KEY", String.class);
     if (params.containsKey(dynamicRankParam)) {
-      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termsQuery(
-          ((ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField()).getSearchFieldName(checklistKey),
-          params.get(dynamicRankParam)
-        ));
+      BoolQueryBuilder checklistQuery =
+          QueryBuilders.boolQuery()
+              .must(
+                  QueryBuilders.termsQuery(
+                      ((ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField())
+                          .getSearchFieldName(checklistKey),
+                      params.get(dynamicRankParam)));
       params.remove(dynamicRankParam);
       bool.filter().add(checklistQuery);
     }
@@ -232,15 +243,15 @@ public class EsSearchRequestBuilder {
 
   @VisibleForTesting
   Optional<QueryBuilder> buildQuery(
-      Map<OccurrenceSearchParameter, Set<String>> params, String qParam, boolean matchCase, String checklistKey) {
-    RequestFieldsTranslator.translateVocabs(params, conceptClient);
+      Map<P, Set<String>> params, String qParam, boolean matchCase, String checklistKey) {
+    translateVocabs(params);
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(occurrenceBaseEsFieldMapper.getFullTextField(), qParam));
+      bool.must(QueryBuilders.matchQuery(esFieldMapper.getFullTextField(), qParam));
     }
 
     if (params != null && !params.isEmpty()) {
@@ -252,45 +263,50 @@ public class EsSearchRequestBuilder {
       handleIssueQueries(params, bool);
 
       // adding geometry to bool
-      if (params.containsKey(OccurrenceSearchParameter.GEOMETRY)) {
-        BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
-        shouldGeometry
-            .should()
-            .addAll(
-                params.get(OccurrenceSearchParameter.GEOMETRY).stream()
-                    .map(this::buildGeoShapeQuery)
-                    .collect(Collectors.toList()));
-        bool.filter().add(shouldGeometry);
-      }
+      getParam("GEOMETRY")
+          .filter(params::containsKey)
+          .ifPresent(
+              param -> {
+                BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
+                shouldGeometry
+                    .should()
+                    .addAll(params.get(param).stream().map(this::buildGeoShapeQuery).toList());
+                bool.filter().add(shouldGeometry);
+              });
 
-      if (params.containsKey(OccurrenceSearchParameter.GEO_DISTANCE)) {
-        BoolQueryBuilder shouldGeoDistance = QueryBuilders.boolQuery();
-        shouldGeoDistance
-            .should()
-            .addAll(
-                params.get(OccurrenceSearchParameter.GEO_DISTANCE).stream()
-                    .map(this::buildGeoDistanceQuery)
-                    .collect(Collectors.toList()));
-        bool.filter().add(shouldGeoDistance);
-      }
+      getParam("GEO_DISTANCE")
+          .filter(params::containsKey)
+          .ifPresent(
+              param -> {
+                BoolQueryBuilder shouldGeoDistance = QueryBuilders.boolQuery();
+                shouldGeoDistance
+                    .should()
+                    .addAll(params.get(param).stream().map(this::buildGeoDistanceQuery).toList());
+                bool.filter().add(shouldGeoDistance);
+              });
 
       // adding term queries to bool
       bool.filter().addAll(createQueries(params, matchCase, checklistKey));
     }
-    occurrenceBaseEsFieldMapper.getDefaultFilter().ifPresent(df -> bool.filter().add(df));
+    esFieldMapper.getDefaultFilter().ifPresent(df -> bool.filter().add(df));
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 
-  private List<QueryBuilder> createQueries(Map<OccurrenceSearchParameter, Set<String>> params, boolean matchCase, String checklistKey) {
+  private List<QueryBuilder> createQueries(
+      Map<P, Set<String>> params, boolean matchCase, String checklistKey) {
     return createQueries(params, matchCase, true, checklistKey);
   }
 
-  private List<QueryBuilder> createQueries(Map<OccurrenceSearchParameter, Set<String>> params, boolean matchCase, boolean wrappedChildrenQueries, String checklistKey) {
+  private List<QueryBuilder> createQueries(
+      Map<P, Set<String>> params,
+      boolean matchCase,
+      boolean wrappedChildrenQueries,
+      String checklistKey) {
     Map<String, List<QueryBuilder>> queriesByNestedPath = new HashMap<>();
     List<QueryBuilder> nonNestedQueries = new ArrayList<>();
-    for (Map.Entry<OccurrenceSearchParameter, Set<String>> e : params.entrySet()) {
-      EsField esField = occurrenceBaseEsFieldMapper.getEsField(e.getKey());
+    for (Map.Entry<P, Set<String>> e : params.entrySet()) {
+      EsField esField = getEsField(e.getKey());
       if (esField == null) {
         continue;
       }
@@ -298,13 +314,15 @@ public class EsSearchRequestBuilder {
           buildTermQuery(
               e.getValue(),
               e.getKey(),
-              occurrenceBaseEsFieldMapper.getEsField(e.getKey()),
+              getEsField(e.getKey()),
               matchCase,
               wrappedChildrenQueries,
               checklistKey);
 
       if (esField.isNestedField()) {
-        queriesByNestedPath.computeIfAbsent(esField.getNestedPath(), k -> new ArrayList<>()).addAll(queryBuilders);
+        queriesByNestedPath
+            .computeIfAbsent(esField.getNestedPath(), k -> new ArrayList<>())
+            .addAll(queryBuilders);
       } else {
         nonNestedQueries.addAll(queryBuilders);
       }
@@ -325,33 +343,37 @@ public class EsSearchRequestBuilder {
 
   /**
    * If a user specifies a checklistKey and an Issue query, then we use the new NON_TAXONOMIC_ISSUE
-   * which doesnt contain taxonomic issues, which are now stored in a separate array, one per checklist.
+   * which doesnt contain taxonomic issues, which are now stored in a separate array, one per
+   * checklist.
    *
    * @param params the search parameters
    * @param bool the bool query builder
    */
-  private void handleIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
-
-    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
-      && params.containsKey(OccurrenceSearchParameter.ISSUE)) {
+  private void handleIssueQueries(Map<P, Set<String>> params, BoolQueryBuilder bool) {
+    Optional<P> checklistKeyParam = getParam("CHECKLIST_KEY");
+    Optional<P> issueParam = getParam("ISSUE");
+    if (checklistKeyParam.isPresent() && issueParam.isPresent()) {
       String esFieldToUse = OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName();
 
       // validate the value  - make sure it isn't taxonomic, otherwise throw an error
-      params.get(OccurrenceSearchParameter.ISSUE).forEach(issue -> {
-        OccurrenceIssue occurrenceIssue = OccurrenceIssue.valueOf(issue);
-        if (OccurrenceIssue.TAXONOMIC_RULES.contains(occurrenceIssue)) {
-          throw new IllegalArgumentException(
-            "Please use TAXONOMIC_ISSUE parameter instead of ISSUE parameter " +
-            " when using a checklistKey");
-        }
-      });
+      params
+          .get(issueParam.get())
+          .forEach(
+              issue -> {
+                OccurrenceIssue occurrenceIssue = OccurrenceIssue.valueOf(issue);
+                if (OccurrenceIssue.TAXONOMIC_RULES.contains(occurrenceIssue)) {
+                  throw new IllegalArgumentException(
+                      "Please use TAXONOMIC_ISSUE parameter instead of ISSUE parameter "
+                          + " when using a checklistKey");
+                }
+              });
 
       // Build the query
-      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termsQuery(esFieldToUse, params.get(OccurrenceSearchParameter.ISSUE))
-      );
+      BoolQueryBuilder checklistQuery =
+          QueryBuilders.boolQuery()
+              .must(QueryBuilders.termsQuery(esFieldToUse, params.get(issueParam.get())));
       bool.filter().add(checklistQuery);
-      params.remove(OccurrenceSearchParameter.ISSUE);
+      params.remove(issueParam.get());
     }
   }
 
@@ -361,37 +383,41 @@ public class EsSearchRequestBuilder {
    * @param params
    * @return
    */
-  public String getChecklistKey(Map<OccurrenceSearchParameter, Set<String>> params) {
-    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
-      return params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
-    }
-    return occurrenceBaseEsFieldMapper.getDefaulChecklistKey();
+  public String getChecklistKey(Map<P, Set<String>> params) {
+    return getParam("CHECKLIST_KEY")
+        .filter(params::containsKey)
+        .map(p -> params.get(p).iterator().next())
+        .orElse(esFieldMapper.getDefaultChecklistKey());
   }
 
   /**
-   * Checks the request parameters for any dynamic ranks and adds them to the query
-   * e.g. SUBPHYLUM_KEY=XXXXX
+   * Checks the request parameters for any dynamic ranks and adds them to the query e.g.
+   * SUBPHYLUM_KEY=XXXXX
    *
    * @param params
    * @param bool
    */
-  private void addChecklistDynamicRanks(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+  private void addChecklistDynamicRanks(Map<P, Set<String>> params, BoolQueryBuilder bool) {
     if (nameUsageMatchingService != null) {
       Optional.ofNullable(nameUsageMatchingService.getMetadata(getChecklistKey(params)))
-        .ifPresent( metadata -> metadata.getMainIndex().getNameUsageByRankCount().keySet().forEach(rank -> {
-          addTaxonKeyQuery(
-            rank,
-            bool,
-            params
-          );
-        }));
+          .ifPresent(
+              metadata ->
+                  metadata
+                      .getMainIndex()
+                      .getNameUsageByRankCount()
+                      .keySet()
+                      .forEach(
+                          rank -> {
+                            addTaxonKeyQuery(rank, bool, params);
+                          }));
     }
   }
 
   @SneakyThrows
   public Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
     searchRequest.setPredicate(
-        RequestFieldsTranslator.translateVocabs(searchRequest.getPredicate(), conceptClient));
+        RequestFieldsTranslator.translatePredicateFields(
+            searchRequest.getPredicate(), conceptClient));
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
@@ -399,24 +425,22 @@ public class EsSearchRequestBuilder {
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(occurrenceBaseEsFieldMapper.getFullTextField(), qParam));
+      bool.must(QueryBuilders.matchQuery(esFieldMapper.getFullTextField(), qParam));
     }
 
-    EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
-        EsQueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
+    EsQueryVisitor<P> esQueryVisitor = new EsQueryVisitor<>(esFieldMapper);
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
   }
 
   @VisibleForTesting
-  static GroupedParams groupParameters(OccurrenceSearchRequest searchRequest) {
+  GroupedParams<P> groupParameters(S searchRequest) {
     return groupParameters(searchRequest, searchRequest.isFacetMultiSelect());
   }
 
-  static GroupedParams groupParameters(
-      OccurrenceSearchRequest searchRequest, boolean groupFilters) {
-    GroupedParams groupedParams = new GroupedParams();
+  GroupedParams<P> groupParameters(S searchRequest, boolean groupFilters) {
+    GroupedParams<P> groupedParams = new GroupedParams<>();
 
     if (!groupFilters || searchRequest.getFacets() == null || searchRequest.getFacets().isEmpty()) {
       groupedParams.queryParams = searchRequest.getParameters();
@@ -441,7 +465,7 @@ public class EsSearchRequestBuilder {
   }
 
   private Optional<QueryBuilder> buildPostFilter(
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams, boolean matchCase, String checklistKey) {
+      Map<P, Set<String>> postFilterParams, boolean matchCase, String checklistKey) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
     }
@@ -453,8 +477,7 @@ public class EsSearchRequestBuilder {
   }
 
   private Optional<List<AggregationBuilder>> buildAggs(
-      OccurrenceSearchRequest searchRequest,
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
+      S searchRequest, Map<P, Set<String>> postFilterParams) {
     if (searchRequest.getFacets() == null || searchRequest.getFacets().isEmpty()) {
       return Optional.empty();
     }
@@ -470,13 +493,10 @@ public class EsSearchRequestBuilder {
 
   /** Creates a filter with all the filter in which the facet param is not present. */
   private BoolQueryBuilder getAggregationPostFilter(
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams,
-      OccurrenceSearchParameter facetParam,
-      boolean matchCase,
-      String checklistKey) {
+      Map<P, Set<String>> postFilterParams, P facetParam, boolean matchCase, String checklistKey) {
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
 
-    Map<OccurrenceSearchParameter, Set<String>> filteredParams =
+    Map<P, Set<String>> filteredParams =
         postFilterParams.entrySet().stream()
             .filter(entry -> entry.getKey() != facetParam)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -487,8 +507,8 @@ public class EsSearchRequestBuilder {
 
   /** Creates a filter with all the filter in which the facet param is not present. */
   private BoolQueryBuilder getAggregationFilter(
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams,
-      OccurrenceSearchParameter facetParam,
+      Map<P, Set<String>> postFilterParams,
+      P facetParam,
       boolean matchCase,
       boolean wrappedChildrenQueries,
       String checklistKey) {
@@ -507,8 +527,7 @@ public class EsSearchRequestBuilder {
   }
 
   private List<AggregationBuilder> buildFacetsMultiselect(
-      OccurrenceSearchRequest searchRequest,
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams) {
+      S searchRequest, Map<P, Set<String>> postFilterParams) {
 
     if (searchRequest.getFacets().size() == 1) {
       // same case as normal facets
@@ -516,7 +535,7 @@ public class EsSearchRequestBuilder {
     }
 
     return searchRequest.getFacets().stream()
-        .filter(p -> occurrenceBaseEsFieldMapper.getEsField(p) != null)
+        .filter(p -> getEsField(p) != null)
         .map(
             facetParam -> {
 
@@ -529,7 +548,7 @@ public class EsSearchRequestBuilder {
                       getChecklistKey(searchRequest.getParameters()));
 
               // add filter to the aggs
-              EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
+              EsField esField = getEsFacetField(facetParam);
               FilterAggregationBuilder filterAggs =
                   AggregationBuilders.filter(esField.getSearchFieldName(), bool);
 
@@ -553,36 +572,36 @@ public class EsSearchRequestBuilder {
         .collect(Collectors.toList());
   }
 
-  boolean isDynamicRankParam(OccurrenceSearchRequest searchRequest, OccurrenceSearchParameter p){
-
-    if (searchRequest.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
-      String checklistKey = searchRequest.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
-      if (nameUsageMatchingService != null) {
-        // get the metadata for the checklistKey
-        Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
-        if (metadata != null) {
-          Set<String> ranks = metadata.getMainIndex().getNameUsageByRankCount().keySet();
-          for (String rank : ranks) {
-            if (p.equals(new OccurrenceSearchParameter(rank.toUpperCase() + "_KEY", String.class))) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
+  boolean isDynamicRankParam(S searchRequest, P p) {
+    return getParam("CHECKLIST_KEY")
+        .filter(param -> searchRequest.getParameters().containsKey(param))
+        .map(
+            param -> {
+              String checklistKey = searchRequest.getParameters().get(param).iterator().next();
+              if (nameUsageMatchingService != null) {
+                // get the metadata for the checklistKey
+                Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
+                if (metadata != null) {
+                  Set<String> ranks = metadata.getMainIndex().getNameUsageByRankCount().keySet();
+                  for (String rank : ranks) {
+                    if (p.equals(createSearchParam(rank.toUpperCase() + "_KEY", String.class))) {
+                      return true;
+                    }
+                  }
+                }
+              }
+              return false;
+            })
+        .orElse(false);
   }
 
-  private List<AggregationBuilder> buildFacets(OccurrenceSearchRequest searchRequest) {
-    final AtomicReference<GroupedParams> groupedParams = new AtomicReference<>();
+  private List<AggregationBuilder> buildFacets(S searchRequest) {
+    final AtomicReference<GroupedParams<P>> groupedParams = new AtomicReference<>();
     return searchRequest.getFacets().stream()
-        .filter(
-            p ->
-                occurrenceBaseEsFieldMapper.getEsField(p) != null
-                    || isDynamicRankParam(searchRequest, p))
+        .filter(p -> getEsField(p) != null || isDynamicRankParam(searchRequest, p))
         .map(
             facetParam -> {
-              EsField esField = occurrenceBaseEsFieldMapper.getEsFacetField(facetParam);
+              EsField esField = getEsFacetField(facetParam);
               if (esField != null && esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
@@ -592,10 +611,10 @@ public class EsSearchRequestBuilder {
               }
 
               // if a checklist has been supplied, then use the non taxonomic issues field
-              if (facetParam.equals(OccurrenceSearchParameter.ISSUE)
-                  && searchRequest
-                      .getParameters()
-                      .containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
+              if (getParam("ISSUE").map(facetParam::equals).orElse(false)
+                  && getParam("CHECKLIST_KEY")
+                      .map(p -> searchRequest.getParameters().containsKey(p))
+                      .orElse(false)) {
                 return buildTermsAggs(
                     OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName(),
                     OccurrenceEsField.NON_TAXONOMIC_ISSUE,
@@ -631,8 +650,8 @@ public class EsSearchRequestBuilder {
                         "classifications.%s.classificationKeys.%s",
                         getChecklistKey(searchRequest.getParameters()),
                         facetParam
-                            .getName()
-                            .substring(0, facetParam.getName().length() - 4)
+                            .name()
+                            .substring(0, facetParam.name().length() - 4)
                             .toUpperCase());
 
                 return buildTermsAggs(facetParam.name(), esFieldToUse, searchRequest, facetParam);
@@ -644,15 +663,12 @@ public class EsSearchRequestBuilder {
         .collect(Collectors.toList());
   }
 
-  private boolean isTaxonomic(OccurrenceSearchParameter param) {
-    return occurrenceBaseEsFieldMapper.isTaxonomic(param);
+  private boolean isTaxonomic(P param) {
+    return esFieldMapper.isTaxonomic(param);
   }
 
   private ChildrenAggregationBuilder getChildrenAggregationBuilder(
-      OccurrenceSearchRequest searchRequest,
-      Map<OccurrenceSearchParameter, Set<String>> postFilterParams,
-      OccurrenceSearchParameter facetParam,
-      EsField esField) {
+      S searchRequest, Map<P, Set<String>> postFilterParams, P facetParam, EsField esField) {
     if (postFilterParams.containsKey(facetParam)) {
       return new ChildrenAggregationBuilder(
               esField.getSearchFieldName(), esField.childrenRelation())
@@ -675,39 +691,32 @@ public class EsSearchRequestBuilder {
   }
 
   private AggregationBuilder buildTermsAggs(
-      String aggName,
-      EsField esField,
-      OccurrenceSearchRequest searchRequest,
-      OccurrenceSearchParameter facetParam) {
+      String aggName, EsField esField, S searchRequest, P facetParam) {
 
     String fieldName = null;
     if (esField instanceof ChecklistEsField) {
-      fieldName = ((ChecklistEsField) esField).getSearchFieldName(getChecklistKey(searchRequest.getParameters()));
+      fieldName =
+          ((ChecklistEsField) esField)
+              .getSearchFieldName(getChecklistKey(searchRequest.getParameters()));
     } else {
-      fieldName = searchRequest.isMatchCase() ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+      fieldName =
+          searchRequest.isMatchCase()
+              ? esField.getVerbatimFieldName()
+              : esField.getExactMatchFieldName();
     }
 
     return buildTermsAggs(aggName, fieldName, searchRequest, facetParam, esField);
   }
 
-  private static AggregationBuilder buildTermsAggs(
-    String aggName,
-    String fieldName,
-    OccurrenceSearchRequest searchRequest,
-    OccurrenceSearchParameter facetParam) {
+  private AggregationBuilder buildTermsAggs(
+      String aggName, String fieldName, S searchRequest, P facetParam) {
     return buildTermsAggs(aggName, fieldName, searchRequest, facetParam, null);
   }
 
-  private static AggregationBuilder buildTermsAggs(
-      String aggName,
-      String fieldName,
-      OccurrenceSearchRequest searchRequest,
-      OccurrenceSearchParameter facetParam,
-      EsField esField) {
+  private AggregationBuilder buildTermsAggs(
+      String aggName, String fieldName, S searchRequest, P facetParam, EsField esField) {
     // build aggs for the field
-    TermsAggregationBuilder termsAggsBuilder =
-        AggregationBuilders.terms(aggName)
-            .field(fieldName);
+    TermsAggregationBuilder termsAggsBuilder = AggregationBuilders.terms(aggName).field(fieldName);
 
     // min count
     Optional.ofNullable(searchRequest.getFacetMinCount()).ifPresent(termsAggsBuilder::minDocCount);
@@ -726,14 +735,13 @@ public class EsSearchRequestBuilder {
 
     if (esField != null && esField.isNestedField()) {
       return AggregationBuilders.nested(facetParam.name(), esField.getNestedPath())
-        .subAggregation(termsAggsBuilder);
+          .subAggregation(termsAggsBuilder);
     } else {
       return termsAggsBuilder;
     }
   }
 
-  private static int calculateAggsSize(
-      OccurrenceSearchParameter facetParam, int facetOffset, int facetLimit) {
+  private int calculateAggsSize(P facetParam, int facetOffset, int facetLimit) {
     int maxCardinality = CARDINALITIES.getOrDefault(facetParam, Integer.MAX_VALUE);
 
     // the limit is bounded by the max cardinality of the field
@@ -751,7 +759,7 @@ public class EsSearchRequestBuilder {
    * Mapping parameter values into know values for Enums. Non-enum parameter values are passed using
    * its raw value.
    */
-  private String parseParamValue(String value, OccurrenceSearchParameter parameter) {
+  private String parseParamValue(String value, P parameter) {
     if (Enum.class.isAssignableFrom(parameter.type())
         && !Country.class.isAssignableFrom(parameter.type())) {
       return VocabularyUtils.lookup(value, (Class<Enum<?>>) parameter.type())
@@ -766,7 +774,7 @@ public class EsSearchRequestBuilder {
 
   private List<QueryBuilder> buildTermQuery(
       Collection<String> values,
-      OccurrenceSearchParameter param,
+      P param,
       EsField esField,
       boolean matchCase,
       boolean wrappedChildrenQueries,
@@ -778,10 +786,10 @@ public class EsSearchRequestBuilder {
 
     List<QueryBuilder> queryBuilders = new ArrayList<>();
     for (String value : values) {
-      if (isNumericRange(value) || occurrenceBaseEsFieldMapper.isDateField(esField)) {
+      if (isNumericRange(value) || isDateField(esField)) {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
         queryBuilders.add(rangeQueryBuilder);
-        if (occurrenceBaseEsFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
+        if (esFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
           queryBuilders.add(
               QueryBuilders.boolQuery()
                   .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName())));
@@ -800,10 +808,9 @@ public class EsSearchRequestBuilder {
     // get the field name based on the taxonomy and the matchCase
     String fieldName = null;
     if (isTaxonomic(param)) {
-      fieldName = occurrenceBaseEsFieldMapper.getChecklistField(checklistKey, param);
+      fieldName = esFieldMapper.getChecklistField(checklistKey, param);
     } else {
-      fieldName =
-        matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
+      fieldName = matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
     }
 
     if (parsedValues.size() == 1) {
@@ -826,7 +833,7 @@ public class EsSearchRequestBuilder {
   private RangeQueryBuilder buildRangeQuery(EsField esField, String value) {
     RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
 
-    if (occurrenceBaseEsFieldMapper.isDateField(esField)) {
+    if (isDateField(esField)) {
       Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(value);
 
       if (dateRange.hasLowerBound()) {
@@ -867,8 +874,7 @@ public class EsSearchRequestBuilder {
   }
 
   public GeoDistanceQueryBuilder buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
-    return QueryBuilders.geoDistanceQuery(
-            occurrenceBaseEsFieldMapper.getGeoDistanceEsField().getSearchFieldName())
+    return QueryBuilders.geoDistanceQuery(getGeoDistanceEsField().getSearchFieldName())
         .distance(geoDistance.getDistance().toString())
         .point(geoDistance.getLatitude(), geoDistance.getLongitude());
   }
@@ -924,13 +930,24 @@ public class EsSearchRequestBuilder {
 
     try {
       return QueryBuilders.geoShapeQuery(
-              occurrenceBaseEsFieldMapper.getGeoShapeEsField().getSearchFieldName(),
-              shapeBuilder.buildGeometry())
+              getGeoShapeEsField().getSearchFieldName(), shapeBuilder.buildGeometry())
           .relation(ShapeRelation.WITHIN);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
     }
   }
+
+  protected abstract Optional<P> getParam(String name);
+
+  protected abstract P createSearchParam(String name, Class<?> type);
+
+  protected abstract boolean isDateField(EsField esField);
+
+  protected abstract EsField getGeoDistanceEsField();
+
+  protected abstract EsField getGeoShapeEsField();
+
+  protected abstract void translateVocabs(Map<P, Set<String>> params);
 
   /** Eliminates consecutive duplicates. The order is preserved. */
   @VisibleForTesting
@@ -951,8 +968,8 @@ public class EsSearchRequestBuilder {
   }
 
   @VisibleForTesting
-  static class GroupedParams {
-    Map<OccurrenceSearchParameter, Set<String>> postFilterParams;
-    Map<OccurrenceSearchParameter, Set<String>> queryParams;
+  static class GroupedParams<T extends SearchParameter> {
+    Map<T, Set<String>> postFilterParams;
+    Map<T, Set<String>> queryParams;
   }
 }

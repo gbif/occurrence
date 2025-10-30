@@ -27,12 +27,14 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import lombok.Builder;
 import lombok.Data;
+import org.gbif.search.es.EsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Data
 @Builder
 public class EsFulltextSuggestBuilder {
 
-  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
+  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
 
   private static boolean isPhraseQuery(String query) {
     return query.contains(" ");
@@ -51,25 +53,25 @@ public class EsFulltextSuggestBuilder {
 
     suggestQuery.minimumShouldMatch(1);
 
-    occurrenceBaseEsFieldMapper.getDefaultFilter().ifPresent(dq -> suggestQuery.filter().add(dq));
+    occurrenceEsFieldMapper.getDefaultFilter().ifPresent(dq -> suggestQuery.filter().add(dq));
 
     return suggestQuery;
   }
 
   SearchSourceBuilder buildSuggestFullTextQuery(String query, OccurrenceSearchParameter parameter, Integer limit) {
-    EsField esField = occurrenceBaseEsFieldMapper.getEsField(parameter);
+    EsField esField = occurrenceEsFieldMapper.getEsField(parameter);
 
     return new SearchSourceBuilder()
       .size(0)
       .fetchSource(false)
-      .query(buildSuggestQuery(occurrenceBaseEsFieldMapper.getEsField(parameter), query))
+      .query(buildSuggestQuery(occurrenceEsFieldMapper.getEsField(parameter), query))
       .aggregation(AggregationBuilders.terms(esField.getSearchFieldName()).field(esField.getExactMatchFieldName()).size(limit));
 
   }
 
   List<String> buildSuggestFullTextResponse(OccurrenceSearchParameter occurrenceSearchParameter, SearchResponse response) {
     return
-    ((Terms)response.getAggregations().get(occurrenceBaseEsFieldMapper.getSearchFieldName(occurrenceSearchParameter)))
+    ((Terms)response.getAggregations().get(occurrenceEsFieldMapper.getSearchFieldName(occurrenceSearchParameter)))
       .getBuckets().stream()
       .map(Terms.Bucket::getKeyAsString)
       .collect(Collectors.toList());

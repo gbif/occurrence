@@ -16,7 +16,7 @@ package org.gbif.occurrence.download.file.common;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.occurrence.download.file.DownloadFileWork;
-import org.gbif.occurrence.search.es.EsResponseParser;
+import org.gbif.search.es.occurrence.EsResponseParser;
 
 import java.io.IOException;
 import java.util.function.Consumer;

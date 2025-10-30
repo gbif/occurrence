@@ -20,27 +20,27 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.rest.client.species.Metadata;
 import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
+import org.gbif.ws.server.provider.EventSearchRequestHandlerMethodArgumentResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 
-/**
- * FIXME: duplicated from occurrence-ws until finding a common place to put it.
- */
+/** FIXME: duplicated from occurrence-ws until finding a common place to put it. */
 @Component
 @Slf4j
 public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
-  extends OccurrenceSearchRequestHandlerMethodArgumentResolver {
+    extends EventSearchRequestHandlerMethodArgumentResolver {
 
   protected final NameUsageMatchingService nameUsageMatchingService;
 
-  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver(NameUsageMatchingService nameUsageMatchingService) {
+  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver(
+      NameUsageMatchingService nameUsageMatchingService) {
     super();
     this.nameUsageMatchingService = nameUsageMatchingService;
   }
 
   @Override
-  protected OccurrenceSearchRequest getSearchRequest(WebRequest webRequest, OccurrenceSearchRequest searchRequest) {
+  protected OccurrenceSearchRequest getSearchRequest(
+      WebRequest webRequest, OccurrenceSearchRequest searchRequest) {
     OccurrenceSearchRequest request = super.getSearchRequest(webRequest, searchRequest);
 
     // add support for dynamic facets for ranks ....
@@ -67,8 +67,8 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       searchRequest.setFacetOffset(Integer.parseInt(facetOffset));
     }
 
-    List<String> facets = params.get("facet") != null ? Arrays.asList(params.get("facet"))
-      : Collections.emptyList();
+    List<String> facets =
+        params.get("facet") != null ? Arrays.asList(params.get("facet")) : Collections.emptyList();
     if (!facets.isEmpty()) {
 
       for (String f : facets) {
@@ -83,7 +83,8 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
           String pFacetLimit = getFirstIgnoringCase(f + ".facetLimit", params);
           if (pFacetLimit != null) {
             if (pFacetOffset != null) {
-              searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));
+              searchRequest.addFacetPage(
+                  p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));
             } else {
               searchRequest.addFacetPage(p, 0, Integer.parseInt(pFacetLimit));
             }
@@ -106,7 +107,10 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     for (Map.Entry<String, String[]> entry : params.entrySet()) {
       String normedType = entry.getKey().toUpperCase().replaceAll("[. _-]", "");
       // check if this is a checklist parameter
-      if (OccurrenceSearchParameter.CHECKLIST_KEY.name().replaceAll("[. _-]", "").equalsIgnoreCase(normedType)) {
+      if (OccurrenceSearchParameter.CHECKLIST_KEY
+          .name()
+          .replaceAll("[. _-]", "")
+          .equalsIgnoreCase(normedType)) {
         checklistKey = entry.getValue()[0];
         break;
       }
@@ -117,15 +121,22 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     return checklistParameters;
   }
 
-  private void loadChecklistRankParams(String checklistKey, List<OccurrenceSearchParameter> checklistParameters) {
+  private void loadChecklistRankParams(
+      String checklistKey, List<OccurrenceSearchParameter> checklistParameters) {
     if (checklistKey != null) {
       try {
         // get a list of recognised ranks for this checklist
         Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
-        metadata.getMainIndex().getNameUsageByRankCount().keySet().forEach(rank -> {
-          checklistParameters.add(new OccurrenceSearchParameter(rank, String.class));
-          checklistParameters.add(new OccurrenceSearchParameter(rank + "_KEY", String.class));
-        });
+        metadata
+            .getMainIndex()
+            .getNameUsageByRankCount()
+            .keySet()
+            .forEach(
+                rank -> {
+                  checklistParameters.add(new OccurrenceSearchParameter(rank, String.class));
+                  checklistParameters.add(
+                      new OccurrenceSearchParameter(rank + "_KEY", String.class));
+                });
       } catch (Exception e) {
         log.error("Failed to get metadata for checklist {}", checklistKey, e);
       }
@@ -137,9 +148,10 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
 
     // add support for dynamic facets for ranks
-    if (request.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
+    if (request.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
       // get a list of recognised ranks for this checklist
-      Set<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
+      Set<String> checklistKeys =
+          request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
       if (!checklistKeys.isEmpty()) {
         loadChecklistRankParams(checklistKeys.iterator().next(), checklistParameters);
       }
@@ -148,12 +160,13 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
   }
 
   /**
-   * Iterates over the params map and adds to the search request the recognized parameters (i.e.: those that have a
-   * correspondent value in the P generic parameter).
-   * Empty (of all size) and null parameters are discarded.
+   * Iterates over the params map and adds to the search request the recognized parameters (i.e.:
+   * those that have a correspondent value in the P generic parameter). Empty (of all size) and null
+   * parameters are discarded.
    */
   @Override
-  protected void setSearchParams(OccurrenceSearchRequest searchRequest, Map<String, String[]> params) {
+  protected void setSearchParams(
+      OccurrenceSearchRequest searchRequest, Map<String, String[]> params) {
 
     // look for a checklist param first....
     List<OccurrenceSearchParameter> checklistParameters = getChecklistParameters(params);
@@ -169,7 +182,7 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
 
       if (p != null) {
         final List<String> list =
-          entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
+            entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
         for (String val : removeEmptyParameters(list)) {
           // validate value for certain types
           SearchTypeValidator.validate(p, val);
@@ -179,7 +192,10 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     }
   }
 
-  private OccurrenceSearchParameter getOccurrenceSearchParameter(List<OccurrenceSearchParameter> checklistParameters, String param, OccurrenceSearchParameter p) {
+  private OccurrenceSearchParameter getOccurrenceSearchParameter(
+      List<OccurrenceSearchParameter> checklistParameters,
+      String param,
+      OccurrenceSearchParameter p) {
     if (p == null) {
       String normedType = param.toUpperCase().replaceAll("[. _-]", "");
       // check if this is a checklist parameter

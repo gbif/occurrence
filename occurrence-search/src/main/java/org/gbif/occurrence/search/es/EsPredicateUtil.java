@@ -24,7 +24,8 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
-import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
+import org.gbif.search.es.EsQueryVisitorFactory;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 
 @UtilityClass
@@ -40,7 +41,7 @@ public class EsPredicateUtil {
 
   @SneakyThrows
   public static QueryBuilder searchQuery(
-      Predicate predicate, OccurrenceBaseEsFieldMapper esFieldMapper) {
+      Predicate predicate, OccurrenceEsFieldMapper esFieldMapper) {
     Optional<QueryBuilder> queryBuilder =
         EsQueryVisitorFactory.createEsQueryVisitor(esFieldMapper).getQueryBuilder(predicate);
     if (queryBuilder.isPresent()) {

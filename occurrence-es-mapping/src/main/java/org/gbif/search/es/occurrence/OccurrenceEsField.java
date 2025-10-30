@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.es;
+package org.gbif.search.es.occurrence;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -28,6 +28,9 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.search.es.BaseEsField;
+import org.gbif.search.es.ChecklistEsField;
+import org.gbif.search.es.EsField;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEsField implements EsField {
@@ -427,8 +430,8 @@ public enum OccurrenceEsField implements EsField {
       .build();
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, EVENT_DATE_GTE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
-  public static OccurrenceBaseEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
-      return OccurrenceBaseEsFieldMapper.builder()
+  public static OccurrenceEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
+      return OccurrenceEsFieldMapper.builder()
         .fullTextField(FULL_TEXT)
         .geoShapeField(COORDINATE_SHAPE)
         .geoDistanceField(COORDINATE_POINT)

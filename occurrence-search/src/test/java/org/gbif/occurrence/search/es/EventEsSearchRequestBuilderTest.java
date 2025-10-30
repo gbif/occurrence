@@ -13,9 +13,8 @@
  */
 package org.gbif.occurrence.search.es;
 
-import static org.gbif.event.search.es.EventEsField.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY;
+import static org.gbif.search.es.event.EventEsField.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,7 +32,7 @@ import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.predicate.InPredicate;
 import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.event.search.es.EventEsField;
+import org.gbif.search.es.event.EventEsField;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

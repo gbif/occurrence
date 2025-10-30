@@ -40,19 +40,24 @@ import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.event.Lineage;
+import org.gbif.api.model.event.search.EventSearchParameter;
+import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.common.SearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
-import org.gbif.occurrence.search.es.EsResponseParser;
+import org.gbif.search.es.event.EventEsFieldMapper;
+import org.gbif.search.es.event.EventEsResponseParser;
+import org.gbif.search.es.occurrence.EsResponseParser;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.SearchHitConverter;
-import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.search.es.event.EventEsField;
+import org.gbif.search.es.event.OccurrenceEventEsField;
+import org.gbif.search.es.event.SearchHitEventConverter;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +65,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EventSearchEs implements SearchService<Event, OccurrenceSearchParameter, OccurrenceSearchRequest> {
+public class EventSearchEs implements SearchService<Event, EventSearchParameter, EventSearchRequest> {
 
   private static final Logger LOG = LoggerFactory.getLogger(EventSearchEs.class);
 
@@ -69,16 +74,16 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   private final RestHighLevelClient esClient;
   private final String esIndex;
   @Getter
-  private final EsSearchRequestBuilder esSearchRequestBuilder;
-  private final EsResponseParser<Event> esResponseParser;
+  private final EventEsSearchRequestBuilder esSearchRequestBuilder;
+  private final EventEsResponseParser esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
-  private final OccurrenceBaseEsFieldMapper eventEsFieldMapper;
-  private final OccurrenceBaseEsFieldMapper occurrenceEsFieldMapper;
+  private final EventEsFieldMapper eventEsFieldMapper;
+  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
   private final SearchHitConverter<Event> searchHitEventConverter;
 
   private final SearchHitConverter<Occurrence> searchHitOccurrenceConverter;
 
-  private static final SearchResponse<Event, OccurrenceSearchParameter> EMPTY_RESPONSE = new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
+  private static final SearchResponse<Event, EventSearchParameter> EMPTY_RESPONSE = new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
 
   private static final String SUB_OCCURRENCES_QUERY =  "{\"parent_id\":{\"type\":\"occurrence\",\"id\":\"%s\"}}";
 
@@ -101,10 +106,10 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
     this.nameUsageMatchingService = nameUsageMatchingService;
     eventEsFieldMapper = EventEsField.buildFieldMapper(defaultChecklistKey);
     occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper(defaultChecklistKey);
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(eventEsFieldMapper, conceptClient, nameUsageMatchingService);
+    this.esSearchRequestBuilder = new EventEsSearchRequestBuilder(eventEsFieldMapper, conceptClient, nameUsageMatchingService);
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true);
-    this.esResponseParser = new EsResponseParser<>(eventEsFieldMapper, searchHitEventConverter);
+    this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
   }
 
   private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
@@ -213,6 +218,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   }
 
   public PagingResponse<Occurrence> occurrences(String id, PagingRequest pagingRequest) {
+    // TODO: call the occurrence API
     return occurrences(get(id), pagingRequest);
   }
 
@@ -230,6 +236,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   }
 
   private List<Lineage> lineage(Event event) {
+    // TODO: no need to do the loop. The lineage is stored in ES
     List<Lineage> lineage = new ArrayList<>();
     Optional<Event> parent = event.getParentEventID() == null? Optional.empty() : Optional.ofNullable(get(event.getDatasetKey().toString(), event.getParentEventID()));
     do {
@@ -257,7 +264,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
   }
 
   @Override
-  public SearchResponse<Event, OccurrenceSearchParameter> search(OccurrenceSearchRequest searchRequest) {
+  public SearchResponse<Event, EventSearchParameter> search(EventSearchRequest searchRequest) {
     if (searchRequest == null) {
       return EMPTY_RESPONSE;
     }
@@ -287,11 +294,11 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
    * @return true: if the request doesn't contain any scientific_name parameter or if any scientific
    * name was found false: if none scientific name was found
    */
-  private boolean hasReplaceableScientificNames(OccurrenceSearchRequest request) {
+  private boolean hasReplaceableScientificNames(EventSearchRequest request) {
     boolean hasValidReplaces = true;
-    if (request.getParameters().containsKey(OccurrenceSearchParameter.SCIENTIFIC_NAME)) {
+    if (request.getParameters().containsKey(EventSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
-      Collection<String> values = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
+      Collection<String> values = request.getParameters().get(EventSearchParameter.SCIENTIFIC_NAME);
       for (String value : values) {
         NameUsageMatchResponse nameUsageMatch = nameUsageMatchingService.match(NameUsageMatchRequest.builder()
           .withScientificName(value)
@@ -301,7 +308,7 @@ public class EventSearchEs implements SearchService<Event, OccurrenceSearchParam
         if (nameUsageMatch.getDiagnostics().getMatchType() == NameUsageMatchResponse.MatchType.EXACT) {
           hasValidReplaces = true;
           values.remove(value);
-          request.addParameter(OccurrenceSearchParameter.TAXON_KEY, nameUsageMatch.getUsage().getKey());
+          request.addParameter(EventSearchParameter.TAXON_KEY, nameUsageMatch.getUsage().getKey());
         }
       }
     }

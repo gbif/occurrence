@@ -15,8 +15,8 @@ package org.gbif.occurrence.download.query;
 
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.EsQueryVisitorFactory;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.predicate.query.SQLQueryVisitor;
 import org.gbif.predicate.query.occurrence.OccurrenceTermsMapper;
@@ -32,7 +32,7 @@ public class QueryVisitorsFactory {
   }
 
   public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
-      OccurrenceBaseEsFieldMapper fieldMapper) {
+      OccurrenceEsFieldMapper fieldMapper) {
     return EsQueryVisitorFactory.createEsQueryVisitor(fieldMapper);
   }
 }

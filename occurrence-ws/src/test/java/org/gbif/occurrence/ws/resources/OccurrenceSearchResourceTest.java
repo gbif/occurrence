@@ -44,6 +44,7 @@ public class OccurrenceSearchResourceTest {
             .collect(Collectors.toSet());
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      // TODO: delete when creating param specific for events
       if (param == OccurrenceSearchParameter.EVENT_ID_HIERARCHY
         || param == OccurrenceSearchParameter.EVENT_TYPE
         || param == OccurrenceSearchParameter.VERBATIM_EVENT_TYPE

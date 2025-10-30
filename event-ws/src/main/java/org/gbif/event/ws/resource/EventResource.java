@@ -13,27 +13,45 @@
  */
 package org.gbif.event.ws.resource;
 
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+
 import io.swagger.v3.oas.annotations.Hidden;
-
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.List;
+import java.util.UUID;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import org.elasticsearch.index.query.AbstractQueryBuilder;
-
 import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.event.Lineage;
+import org.gbif.api.model.event.search.EventPredicateSearchRequest;
+import org.gbif.api.model.event.search.EventSearchParameter;
+import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.event.search.es.EventSearchEs;
-
-import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -44,11 +62,39 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@OpenAPIDefinition(
+    info =
+        @Info(
+            title = "Occurrence API",
+            version = "v1",
+            description =
+                "This API works against the GBIF Event Store, which handles event records and makes them available "
+                    + "through the web service and download files.\n",
+            termsOfService = "https://www.gbif.org/terms"),
+    servers = {@Server(url = "https://api.gbif-uat.org/v1/", description = "User testing")},
+    tags = {
+      // This is an additional tag to allow the statistics methods implemented in the
+      // registry to belong in their own section.
+      // They are annotated with @Tag(name = "Occurrence download statistics").
+      @Tag(
+          name = "Occurrence download statistics",
+          description = "This API provides statistics about occurrence downloads.",
+          extensions =
+              @Extension(
+                  name = "Order",
+                  properties = @ExtensionProperty(name = "Order", value = "0500")))
+    })
+@Tag(
+    name = "Events",
+    description = "This API provides services related to the retrieval of single event records.",
+    extensions =
+        @io.swagger.v3.oas.annotations.extensions.Extension(
+            name = "Order",
+            properties = @ExtensionProperty(name = "Order", value = "0100")))
 @RestController
 @RequestMapping(
-  value = "event",
-  produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"}
-)
+    value = "event",
+    produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"})
 public class EventResource {
 
   private final EventSearchEs eventSearchEs;
@@ -58,76 +104,271 @@ public class EventResource {
     this.eventSearchEs = eventSearchEs;
   }
 
+  /** Documentation for the id path parameter. */
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
+  @Parameter(
+      name = "id",
+      description = "Internal ID of the record",
+      example = "5e48baa446c2a463bc76a13c1cef60c2b08fb1cf",
+      schema = @Schema(implementation = String.class, minimum = "1"),
+      in = ParameterIn.PATH)
+  @interface IdPathParameter {}
+
+  /** Documentation for the event id path parameter. */
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
+  @Parameter(
+      name = "eventId",
+      description = "Event ID of the record",
+      example = "FISHINGTRIP_day1_PM",
+      schema = @Schema(implementation = String.class, minimum = "1"),
+      in = ParameterIn.PATH)
+  @interface EventIdPathParameter {}
+
+  /** Documentation for the event id path parameter. */
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
+  @Parameter(
+      name = "datasetKey",
+      description = "Dataset key of the record",
+      example = "7b4b54bf-4a2f-4181-b28a-6f1943bdd782",
+      schema = @Schema(implementation = UUID.class, minimum = "1"),
+      in = ParameterIn.PATH)
+  @interface DatasetKeyPathParameter {}
+
+  /** Error responses for documentation. */
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid identifier supplied",
+            content = @Content),
+        @ApiResponse(responseCode = "404", description = "Record not found", content = @Content)
+      })
+  @interface EventErrorResponses {}
+
+  @Operation(
+      operationId = "getEventById",
+      summary = "Event by id",
+      description =
+          "Retrieve details for a single, interpreted event.\n\n"
+              + "The returned event includes additional fields, not shown in the response below.  They are verbatim "
+              + "fields which are not interpreted by GBIF's system. The names are the short Darwin Core "
+              + "Term names.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0100")))
+  @IdPathParameter
+  @ApiResponse(responseCode = "200", description = "Event found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{id}")
   public Event get(@PathVariable("id") String id) {
     return eventSearchEs.get(id);
   }
 
+  @Operation(
+      operationId = "getEventByDatasetKeyAndEventId",
+      summary = "Event by dataset key and event id",
+      description =
+          "Retrieve details for a single, interpreted event.\n\n"
+              + "The returned event includes additional fields, not shown in the response below.  They are verbatim "
+              + "fields which are not interpreted by GBIF's system. The names are the short Darwin Core "
+              + "Term names.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0200")))
+  @DatasetKeyPathParameter
+  @EventIdPathParameter
+  @ApiResponse(responseCode = "200", description = "Event found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{datasetKey}/{eventId}")
-  public Event get(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
+  public Event get(
+      @PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
     return eventSearchEs.get(datasetKey, eventId);
   }
 
+  @Operation(
+      operationId = "getParentEventById",
+      summary = "Parent event by id",
+      description =
+          "Retrieve details for a single, interpreted event.\n\n"
+              + "The returned event is the parent of the event whose ID has been specified and includes additional fields, "
+              + "not shown in the response below.  They are verbatim fields which are not interpreted by GBIF's system. "
+              + "The names are the short Darwin Core Term names.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0300")))
+  @IdPathParameter
+  @ApiResponse(responseCode = "200", description = "Event found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{id}/parent")
   public Event getParentEvent(@PathVariable("id") String id) {
     return eventSearchEs.getParentEvent(id).orElse(null);
   }
 
+  @Operation(
+      operationId = "getParentEventByDatasetKeyAndEventId",
+      summary = "Parent event by dataset key and event id",
+      description =
+          "Retrieve details for a single, interpreted event.\n\n"
+              + "The returned event is the parent of the event whose dataset key and event ID has been specified and includes "
+              + " additional fields, not shown in the response below.  They are verbatim fields which are not interpreted by GBIF's system. "
+              + "The names are the short Darwin Core Term names.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0400")))
+  @DatasetKeyPathParameter
+  @EventIdPathParameter
+  @ApiResponse(responseCode = "200", description = "Event found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{datasetKey}/{eventId}/parent")
-  public Event getParentEvent(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
+  public Event getParentEvent(
+      @PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
     return eventSearchEs.getParentEvent(datasetKey, eventId).orElse(null);
   }
 
+  @Operation(
+      operationId = "getLineageById",
+      summary = "Lineage of the event by id",
+      description = "Retrieves all the parent events of an event.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0500")))
+  @IdPathParameter
+  @ApiResponse(responseCode = "200", description = "Lineage found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{id}/lineage")
   public List<Lineage> getLineage(@PathVariable("id") String id) {
     return eventSearchEs.lineage(id);
   }
 
+  @Operation(
+      operationId = "getLineageByDatasetKeyAndEventId",
+      summary = "Lineage of the event by dataset key and event id",
+      description = "Retrieves all the parent events of an event.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0600")))
+  @DatasetKeyPathParameter
+  @EventIdPathParameter
+  @ApiResponse(responseCode = "200", description = "Lineage found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{datasetKey}/{eventId}/lineage")
-  public List<Lineage> getLineage(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
+  public List<Lineage> getLineage(
+      @PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId) {
     return eventSearchEs.lineage(datasetKey, eventId);
   }
 
+  @Operation(
+      operationId = "getOccurrencesById",
+      summary = "Occurrences of an event by id",
+      description = "Retrieves all the interpreted occurrences an event.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0700")))
+  @IdPathParameter
+  @ApiResponse(responseCode = "200", description = "Occurrences found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{id}/occurrences")
-  public PagingResponse<Occurrence> getOccurrences(@PathVariable("id") String id, @NotNull @Valid PagingRequest pagingRequest) {
+  public PagingResponse<Occurrence> getOccurrences(
+      @PathVariable("id") String id, @NotNull @Valid PagingRequest pagingRequest) {
     return eventSearchEs.occurrences(id, pagingRequest);
   }
 
+  @Operation(
+      operationId = "getOccurrencesByDatasetKeyAndEventId",
+      summary = "Occurrences of an event by dataset key and event id",
+      description = "Retrieves all the interpreted occurrences of an event.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0800")))
+  @DatasetKeyPathParameter
+  @EventIdPathParameter
+  @ApiResponse(responseCode = "200", description = "Event found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{datasetKey}/{eventId}/occurrences")
-  public PagingResponse<Occurrence> getOccurrences(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId, @NotNull @Valid PagingRequest pagingRequest) {
+  public PagingResponse<Occurrence> getOccurrences(
+      @PathVariable("datasetKey") String datasetKey,
+      @PathVariable("eventId") String eventId,
+      @NotNull @Valid PagingRequest pagingRequest) {
     return eventSearchEs.occurrences(datasetKey, eventId, pagingRequest);
   }
 
+  @Operation(
+      operationId = "getSubeventsById",
+      summary = "Subevents of an event by id",
+      description = "Retrieves all the children events of an event.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0900")))
+  @IdPathParameter
+  @ApiResponse(responseCode = "200", description = "Subevents found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{id}/subEvents")
-  public PagingResponse<Event> subEvents(@PathVariable("id") String id, @NotNull @Valid PagingRequest pagingRequest) {
+  public PagingResponse<Event> subEvents(
+      @PathVariable("id") String id, @NotNull @Valid PagingRequest pagingRequest) {
     return eventSearchEs.subEvents(id, pagingRequest);
   }
 
+  @Operation(
+      operationId = "getSubeventsByDatasetKeyAndEventId",
+      summary = "Subevents of an event by dataset key and event id",
+      description = "Retrieves all the children events of an event.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "1000")))
+  @DatasetKeyPathParameter
+  @EventIdPathParameter
+  @ApiResponse(responseCode = "200", description = "Subevents found")
+  @EventErrorResponses
   @NullToNotFound
   @GetMapping("{datasetKey}/{eventId}/subEvents")
-  public PagingResponse<Event> subEvents(@PathVariable("datasetKey") String datasetKey, @PathVariable("eventId") String eventId, @NotNull @Valid PagingRequest pagingRequest) {
+  public PagingResponse<Event> subEvents(
+      @PathVariable("datasetKey") String datasetKey,
+      @PathVariable("eventId") String eventId,
+      @NotNull @Valid PagingRequest pagingRequest) {
     return eventSearchEs.subEvents(datasetKey, eventId, pagingRequest);
   }
 
+  // TODO
   @NullToNotFound
   @GetMapping("search")
-  public SearchResponse<Event, OccurrenceSearchParameter> search(@NotNull @Valid OccurrenceSearchRequest searchRequest) {
+  public SearchResponse<Event, EventSearchParameter> search(
+      @NotNull @Valid EventSearchRequest searchRequest) {
+    // TODO: events needs it own request and enum not to show event things in docs
     return eventSearchEs.search(searchRequest);
   }
 
   @Hidden
   @PostMapping("search/predicate/toesquery")
   public String predicateToEsQuery(
-      @NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
+      @NotNull @Valid @RequestBody EventPredicateSearchRequest request) {
     return eventSearchEs
         .getEsSearchRequestBuilder()
         .buildQuery(request)
@@ -137,7 +378,7 @@ public class EventResource {
 
   @Hidden
   @GetMapping("search/rest/toesquery")
-  public String restToEsQuery(@NotNull @Valid @ParameterObject OccurrenceSearchRequest request) {
+  public String restToEsQuery(@NotNull @Valid @ParameterObject EventSearchRequest request) {
     return eventSearchEs
         .getEsSearchRequestBuilder()
         .buildSearchRequest(request, "test")

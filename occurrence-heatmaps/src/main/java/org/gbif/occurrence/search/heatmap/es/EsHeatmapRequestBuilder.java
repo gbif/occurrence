@@ -15,7 +15,7 @@ package org.gbif.occurrence.search.heatmap.es;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -31,7 +31,6 @@ import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuild
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.springframework.beans.factory.annotation.Value;
 
 class EsHeatmapRequestBuilder {
 
@@ -41,14 +40,14 @@ class EsHeatmapRequestBuilder {
   //Mapping of predefined zoom levels
   private static final int[] PRECISION_LOOKUP = new int[]{2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
 
-  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
+  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
 
-  EsHeatmapRequestBuilder(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+  EsHeatmapRequestBuilder(OccurrenceEsFieldMapper occurrenceEsFieldMapper,
                           ConceptClient conceptClient,
                           NameUsageMatchingService nameUsageMatchingService) {
-    this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceBaseEsFieldMapper,
+    this.occurrenceEsFieldMapper = occurrenceEsFieldMapper;
+    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceEsFieldMapper,
       conceptClient, nameUsageMatchingService);
   }
 
@@ -73,10 +72,10 @@ class EsHeatmapRequestBuilder {
     double right = Double.parseDouble(coords[2]);
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(occurrenceBaseEsFieldMapper.getGeoDistanceField())
+    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(occurrenceEsFieldMapper.getGeoDistanceField())
       .setCorners(top, left, bottom, right));
     bool.filter().add(QueryBuilders.termQuery(
-      occurrenceBaseEsFieldMapper.getSearchFieldName(OccurrenceSearchParameter.HAS_COORDINATE), true));
+      occurrenceEsFieldMapper.getSearchFieldName(OccurrenceSearchParameter.HAS_COORDINATE), true));
 
     // add query
     if (request.getPredicate() != null) { //is a predicate search
@@ -95,7 +94,7 @@ class EsHeatmapRequestBuilder {
   }
 
   private AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
-    String geoDistanceField = occurrenceBaseEsFieldMapper.getGeoDistanceField();
+    String geoDistanceField = occurrenceEsFieldMapper.getGeoDistanceField();
     GeoGridAggregationBuilder geoGridAggs =
         AggregationBuilders.geohashGrid(HEATMAP_AGGS)
             .field(geoDistanceField)

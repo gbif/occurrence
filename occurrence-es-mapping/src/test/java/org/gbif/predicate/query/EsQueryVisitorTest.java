@@ -32,8 +32,8 @@ import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.util.IsoDateInterval;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -1586,7 +1586,7 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testVocabularyEqualsPredicate() {
-    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
+    OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
     Arrays.stream(OccurrenceSearchParameter.values())
         .filter(esFieldMapper::isVocabulary)
         .forEach(
@@ -1624,6 +1624,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testAllParametersMapped() {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      // TODO: delete
       if (param == OccurrenceSearchParameter.EVENT_ID_HIERARCHY
           || param == OccurrenceSearchParameter.EVENT_TYPE
           || param == OccurrenceSearchParameter.VERBATIM_EVENT_TYPE

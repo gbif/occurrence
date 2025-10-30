@@ -13,7 +13,7 @@
  */
 package org.gbif.event.search.es;
 
-import org.gbif.occurrence.search.es.EsField;
+import org.gbif.search.es.EsField;
 
 import java.util.Map;
 
@@ -21,19 +21,19 @@ import com.google.common.collect.ImmutableMap;
 
 import lombok.experimental.UtilityClass;
 
-import static org.gbif.event.search.es.EventEsField.CLASS_KEY;
-import static org.gbif.event.search.es.EventEsField.FAMILY_KEY;
-import static org.gbif.event.search.es.EventEsField.GENUS_KEY;
-import static org.gbif.event.search.es.EventEsField.KINGDOM_KEY;
-import static org.gbif.event.search.es.EventEsField.ORDER_KEY;
-import static org.gbif.event.search.es.EventEsField.PHYLUM_KEY;
-import static org.gbif.event.search.es.EventEsField.SCIENTIFIC_NAME;
-import static org.gbif.event.search.es.EventEsField.SPECIES_KEY;
-import static org.gbif.event.search.es.EventEsField.SUBGENUS_KEY;
-import static org.gbif.event.search.es.EventEsField.TAXON_ID;
-import static org.gbif.event.search.es.EventEsField.TAXON_KEY;
-import static org.gbif.event.search.es.EventEsField.TYPE_STATUS;
-import static org.gbif.event.search.es.EventEsField.VERBATIM_SCIENTIFIC_NAME;
+import static org.gbif.search.es.event.EventEsField.CLASS_KEY;
+import static org.gbif.search.es.event.EventEsField.FAMILY_KEY;
+import static org.gbif.search.es.event.EventEsField.GENUS_KEY;
+import static org.gbif.search.es.event.EventEsField.KINGDOM_KEY;
+import static org.gbif.search.es.event.EventEsField.ORDER_KEY;
+import static org.gbif.search.es.event.EventEsField.PHYLUM_KEY;
+import static org.gbif.search.es.event.EventEsField.SCIENTIFIC_NAME;
+import static org.gbif.search.es.event.EventEsField.SPECIES_KEY;
+import static org.gbif.search.es.event.EventEsField.SUBGENUS_KEY;
+import static org.gbif.search.es.event.EventEsField.TAXON_ID;
+import static org.gbif.search.es.event.EventEsField.TAXON_KEY;
+import static org.gbif.search.es.event.EventEsField.TYPE_STATUS;
+import static org.gbif.search.es.event.EventEsField.VERBATIM_SCIENTIFIC_NAME;
 
 @UtilityClass
 public class ChildrenFieldsMapping {

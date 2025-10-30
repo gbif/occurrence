@@ -13,15 +13,14 @@
  */
 package org.gbif.occurrence.download.action;
 
-import org.gbif.api.model.Constants;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.event.search.es.EventEsField;
-import org.gbif.event.search.es.SearchHitEventConverter;
+import org.gbif.search.es.event.EventEsField;
+import org.gbif.search.es.event.SearchHitEventConverter;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
@@ -30,13 +29,13 @@ import org.gbif.occurrence.download.file.OccurrenceMapReader;
 import org.gbif.occurrence.download.file.dwca.akka.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
-import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.gbif.occurrence.search.es.SearchHitConverter;
-import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
+import org.gbif.occurrence.search.es.*;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.wrangler.lock.Mutex;
 import org.gbif.wrangler.lock.ReadWriteMutexFactory;
@@ -213,7 +212,7 @@ public class DownloadWorkflowModule  {
   }
 
 
-  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType, String checklistKey) {
+  public static OccurrenceEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType, String checklistKey) {
     return WorkflowConfiguration.SearchType.OCCURRENCE == searchType ?
       OccurrenceEsField.buildFieldMapper(checklistKey) : EventEsField.buildFieldMapper(checklistKey);
   }

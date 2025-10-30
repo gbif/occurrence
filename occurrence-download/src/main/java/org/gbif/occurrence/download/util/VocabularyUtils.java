@@ -13,7 +13,7 @@ public class VocabularyUtils {
       PredicateDownloadRequest predicateDownloadRequest =
           (PredicateDownloadRequest) download.getRequest();
       Predicate translatedPredicate =
-          RequestFieldsTranslator.translateVocabs(
+          RequestFieldsTranslator.translatePredicateFields(
               predicateDownloadRequest.getPredicate(), conceptClient);
       predicateDownloadRequest.setPredicate(translatedPredicate);
     }

@@ -25,6 +25,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.elasticsearch.common.Strings;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
@@ -48,7 +49,7 @@ public class RequestFieldsTranslator {
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @SneakyThrows
-  public static Predicate translateVocabs(Predicate predicate, ConceptClient conceptClient) {
+  public static Predicate translatePredicateFields(Predicate predicate, ConceptClient conceptClient) {
     if (conceptClient == null || predicate == null) {
       return predicate;
     }
@@ -67,7 +68,7 @@ public class RequestFieldsTranslator {
               } else if (parent
                   .findValue("key")
                   .asText()
-                  .equals(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION.name())) {
+                  .equals(EventSearchParameter.HUMBOLDT_EVENT_DURATION.name())) {
                 String translatedParam =
                     processHumboldtEventDurationParam(parent.findValue("value").asText());
                 ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
@@ -75,39 +76,44 @@ public class RequestFieldsTranslator {
                     .replace(
                         "key",
                         new TextNode(
-                            OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES
-                                .name()));
+                            EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES.name()));
               }
             });
 
     return objectMapper.treeToValue(node, Predicate.class);
   }
 
-  public static void translateVocabs(
+  public static void translateOccurrenceFields(
       OccurrenceSearchRequest searchRequest, ConceptClient conceptClient) {
-    translateVocabs(searchRequest.getParameters(), conceptClient);
+    translateOccurrenceFields(searchRequest.getParameters(), conceptClient);
   }
 
-  public static void translateVocabs(
+  public static void translateOccurrenceFields(
       Map<OccurrenceSearchParameter, Set<String>> params, ConceptClient conceptClient) {
     if (conceptClient == null) {
       return;
-    }
-
-    if (params.containsKey(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION)) {
-      String durationParam =
-          params.get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next();
-      String translatedParam = processHumboldtEventDurationParam(durationParam);
-      params.put(
-          OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES,
-          Set.of(translatedParam));
-      params.remove(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION);
     }
 
     if (params.containsKey(OccurrenceSearchParameter.GEOLOGICAL_TIME)) {
       String geoTimeParam = params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next();
       String translatedParam = processGeoTimeParam(geoTimeParam, conceptClient);
       params.replace(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of(translatedParam));
+    }
+  }
+
+  public static void translateEventFields(
+      Map<EventSearchParameter, Set<String>> params, ConceptClient conceptClient) {
+    if (conceptClient == null) {
+      return;
+    }
+
+    if (params.containsKey(EventSearchParameter.HUMBOLDT_EVENT_DURATION)) {
+      String durationParam =
+          params.get(EventSearchParameter.HUMBOLDT_EVENT_DURATION).iterator().next();
+      String translatedParam = processHumboldtEventDurationParam(durationParam);
+      params.put(
+          EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES, Set.of(translatedParam));
+      params.remove(EventSearchParameter.HUMBOLDT_EVENT_DURATION);
     }
   }
 

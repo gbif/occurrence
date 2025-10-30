@@ -1,4 +1,4 @@
-package org.gbif.occurrence.search.es;
+package org.gbif.search.es;
 
 import org.gbif.dwc.terms.Term;
 

@@ -11,19 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.event.search.es;
+package org.gbif.search.es.event;
 
-import static org.gbif.event.search.es.EventEsField.*;
-import static org.gbif.event.search.es.EventEsField.CRAWL_ID;
-import static org.gbif.event.search.es.EventEsField.HOSTING_ORGANIZATION_KEY;
-import static org.gbif.event.search.es.EventEsField.LAST_CRAWLED;
-import static org.gbif.event.search.es.EventEsField.LAST_INTERPRETED;
-import static org.gbif.event.search.es.EventEsField.LAST_PARSED;
-import static org.gbif.event.search.es.EventEsField.MEDIA_ITEMS;
-import static org.gbif.event.search.es.EventEsField.NETWORK_KEY;
-import static org.gbif.event.search.es.EventEsField.PROTOCOL;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.IDENTIFIED_BY_ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.RECORDED_BY_ID;
+import static org.gbif.search.es.event.EventEsField.*;
+import static org.gbif.search.es.event.EventEsField.CRAWL_ID;
+import static org.gbif.search.es.event.EventEsField.HOSTING_ORGANIZATION_KEY;
+import static org.gbif.search.es.event.EventEsField.LAST_CRAWLED;
+import static org.gbif.search.es.event.EventEsField.LAST_INTERPRETED;
+import static org.gbif.search.es.event.EventEsField.LAST_PARSED;
+import static org.gbif.search.es.event.EventEsField.MEDIA_ITEMS;
+import static org.gbif.search.es.event.EventEsField.NETWORK_KEY;
+import static org.gbif.search.es.event.EventEsField.PROTOCOL;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -39,7 +37,6 @@ import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.event.Humboldt;
-import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Gadm;
 import org.gbif.api.model.occurrence.GadmFeature;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
@@ -47,23 +44,20 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.v2.RankedName;
-import org.gbif.api.vocabulary.AgentIdentifierType;
-import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Continent;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.EventIssue;
 import org.gbif.api.vocabulary.License;
 import org.gbif.api.vocabulary.MediaType;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.api.vocabulary.OccurrenceStatus;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.search.es.EsField;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.SearchHitConverter;
+import org.gbif.search.es.EsField;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
@@ -73,9 +67,8 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
   private final boolean excludeInterpretedFromVerbatim;
 
   public SearchHitEventConverter(
-      OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
-      boolean excludeInterpretedFromVerbatim) {
-    super(occurrenceBaseEsFieldMapper);
+      EventEsFieldMapper EventEsSearchRequestBuilder, boolean excludeInterpretedFromVerbatim) {
+    super(EventEsSearchRequestBuilder);
     this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
   }
 
@@ -90,7 +83,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     setTemporalFields(hit, event);
     setCrawlingFields(hit, event);
     setDatasetFields(hit, event);
-    setGrscicollFields(hit, event);
 
     // issues
     getListValue(hit, ISSUE)
@@ -98,7 +90,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
             v ->
                 event.setIssues(
                     v.stream()
-                        .map(issue -> VocabularyUtils.lookup(issue, OccurrenceIssue.class))
+                        .map(issue -> VocabularyUtils.lookup(issue, EventIssue.class))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(Collectors.toSet())));
@@ -108,8 +100,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
     // humboldt extension
     parseHumboldtItems(hit, event);
-
-    parseAgentIds(hit, event);
 
     // add verbatim fields
     event.getVerbatimFields().putAll(extractVerbatimFields(hit));
@@ -254,15 +244,9 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
               event.setKey(id);
               event.getVerbatimFields().put(GbifTerm.gbifID, String.valueOf(id));
             });
-    getValue(hit, BASIS_OF_RECORD, BasisOfRecord::valueOf).ifPresent(event::setBasisOfRecord);
-    getStringValue(hit, ESTABLISHMENT_MEANS).ifPresent(event::setEstablishmentMeans);
-    getStringValue(hit, LIFE_STAGE).ifPresent(event::setLifeStage);
-    getStringValue(hit, DEGREE_OF_ESTABLISHMENT_MEANS).ifPresent(event::setDegreeOfEstablishment);
-    getStringValue(hit, PATHWAY).ifPresent(event::setPathway);
+
     getDateValue(hit, MODIFIED).ifPresent(event::setModified);
     getValue(hit, REFERENCES, URI::create).ifPresent(event::setReferences);
-    getStringValue(hit, SEX).ifPresent(event::setSex);
-    getValue(hit, INDIVIDUAL_COUNT, Integer::valueOf).ifPresent(event::setIndividualCount);
     getStringValue(hit, IDENTIFIER)
         .ifPresent(
             v -> {
@@ -286,36 +270,12 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getDoubleValue(hit, ORGANISM_QUANTITY).ifPresent(event::setOrganismQuantity);
     getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(event::setOrganismQuantityType);
     getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(event::setRelativeOrganismQuantity);
-
-    getValue(hit, OCCURRENCE_STATUS, OccurrenceStatus::valueOf)
-        .ifPresent(event::setOccurrenceStatus);
-    getBooleanValue(hit, IS_IN_CLUSTER).ifPresent(event::setInCluster);
     getListValueAsString(hit, DATASET_ID).ifPresent(event::setDatasetID);
     getListValueAsString(hit, DATASET_NAME).ifPresent(event::setDatasetName);
-    getListValueAsString(hit, RECORDED_BY).ifPresent(event::setRecordedBy);
-    getListValueAsString(hit, IDENTIFIED_BY).ifPresent(event::setIdentifiedBy);
     getListValueAsString(hit, PREPARATIONS).ifPresent(event::setPreparations);
     getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(event::setSamplingProtocol);
     getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(event::setOtherCatalogNumbers);
     setEventLineageData(hit, event);
-  }
-
-  private void parseAgentIds(SearchHit hit, Event event) {
-    Function<Map<String, Object>, AgentIdentifier> mapFn =
-        m -> {
-          AgentIdentifier ai = new AgentIdentifier();
-          extractStringValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
-          extractStringValue(m, "value").ifPresent(ai::setValue);
-          return ai;
-        };
-
-    getObjectsListValue(hit, RECORDED_BY_ID.getSearchFieldName().replace(".value", ""))
-        .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
-        .ifPresent(event::setRecordedByIds);
-
-    getObjectsListValue(hit, IDENTIFIED_BY_ID.getSearchFieldName().replace(".value", ""))
-        .map(i -> i.stream().map(mapFn).collect(Collectors.toList()))
-        .ifPresent(event::setIdentifiedByIds);
   }
 
   private void setTemporalFields(SearchHit hit, Event event) {
@@ -384,11 +344,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getStringValue(hit, GADM_LEVEL_3_NAME).ifPresent(name -> g.getLevel3().setName(name));
 
     event.setGadm(g);
-  }
-
-  private void setGrscicollFields(SearchHit hit, Event event) {
-    getStringValue(hit, INSTITUTION_KEY).ifPresent(event::setInstitutionKey);
-    getStringValue(hit, COLLECTION_KEY).ifPresent(event::setCollectionKey);
   }
 
   private void setDatasetFields(SearchHit hit, Event event) {

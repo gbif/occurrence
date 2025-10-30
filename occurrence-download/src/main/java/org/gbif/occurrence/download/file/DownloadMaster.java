@@ -22,9 +22,9 @@ import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.file.dwca.akka.DownloadDwcaActor;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
-import org.gbif.occurrence.search.es.EsResponseParser;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.SearchHitConverter;
+import org.gbif.search.es.occurrence.EsResponseParser;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.SearchHitConverter;
 import org.gbif.utils.file.FileUtils;
 import org.gbif.wrangler.lock.Lock;
 import org.gbif.wrangler.lock.LockFactory;
@@ -81,7 +81,7 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
   private int calcNrOfWorkers;
   private int nrOfResults;
 
-  private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
+  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
   private final Function<T,Map<String,String>> verbatimMapper;
   private final Function<T,Map<String,String>> interpretedMapper;
   private final SearchHitConverter<T> searchHitConverter;
@@ -114,7 +114,7 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
-    this.occurrenceBaseEsFieldMapper = DownloadWorkflowModule.esFieldMapper(
+    this.occurrenceEsFieldMapper = DownloadWorkflowModule.esFieldMapper(
       workflowConfiguration.getEsIndexType(), jobConfiguration.getChecklistKey()
     );
     this.interpretedMapper = interpretedMapper;
@@ -300,7 +300,7 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
     DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();
     SearchQueryProcessor<T> queryProcessor =
         new SearchQueryProcessor<>(
-            new EsResponseParser<>(occurrenceBaseEsFieldMapper, searchHitConverter));
+            new EsResponseParser<>(occurrenceEsFieldMapper, searchHitConverter));
 
     Props props;
     switch (downloadFormat) {

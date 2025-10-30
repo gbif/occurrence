@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.event.search.es;
+package org.gbif.search.es.event;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
@@ -21,10 +21,10 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.search.es.BaseEsField;
-import org.gbif.occurrence.search.es.ChecklistEsField;
-import org.gbif.occurrence.search.es.EsField;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.search.es.BaseEsField;
+import org.gbif.search.es.ChecklistEsField;
+import org.gbif.search.es.EsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.util.Optional;
 import java.util.Set;
@@ -383,8 +383,8 @@ public enum OccurrenceEventEsField implements EsField {
 
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED,LAST_PARSED);
 
-  public static OccurrenceBaseEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
-      return OccurrenceBaseEsFieldMapper.builder()
+  public static OccurrenceEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
+      return OccurrenceEsFieldMapper.builder()
         .fullTextField(FULL_TEXT)
         .geoShapeField(COORDINATE_SHAPE)
         .geoDistanceField(COORDINATE_POINT)

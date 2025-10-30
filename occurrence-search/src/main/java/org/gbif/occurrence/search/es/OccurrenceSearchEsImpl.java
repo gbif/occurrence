@@ -30,6 +30,9 @@ import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
+import org.gbif.search.es.occurrence.EsResponseParser;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import java.io.IOException;
@@ -74,7 +77,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final int maxLimit;
   private final int maxOffset;
   private final EsFulltextSuggestBuilder esFulltextSuggestBuilder;
-  private final OccurrenceBaseEsFieldMapper esFieldMapper;
+  private final OccurrenceEsFieldMapper esFieldMapper;
   private final EsSearchRequestBuilder esSearchRequestBuilder;
   private final EsResponseParser<Occurrence> esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
@@ -87,7 +90,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
     @Value("${occurrence.search.es.index}") String esIndex,
-    OccurrenceBaseEsFieldMapper esFieldMapper,
+    OccurrenceEsFieldMapper esFieldMapper,
     ConceptClient conceptClient,
     @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
@@ -99,7 +102,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
     this.esFieldMapper = esFieldMapper;
-    this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceBaseEsFieldMapper(esFieldMapper).build();
+    this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceEsFieldMapper(esFieldMapper).build();
     this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient, nameUsageMatchingService);
     this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);

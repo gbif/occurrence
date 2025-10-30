@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.search.heatmap.es;
 
-import org.gbif.occurrence.search.es.ChecklistEsField;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.search.es.ChecklistEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
 
 import java.io.IOException;

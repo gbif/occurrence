@@ -25,6 +25,9 @@ import java.util.Set;
 
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.gbif.search.es.EsField;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.*;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class OccurrenceEsSearchRequestBuilderTest {
@@ -743,7 +746,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
+    OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
     EsField esField = esFieldMapper.getEsField(param);
 
     assertEquals(

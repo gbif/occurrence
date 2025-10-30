@@ -18,8 +18,8 @@ import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfig
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -61,7 +61,7 @@ public class OccurrenceWsConfiguration {
     protected String defaultChecklistKey;
 
     @Bean
-    public OccurrenceBaseEsFieldMapper esFieldMapper() {
+    public OccurrenceEsFieldMapper esFieldMapper() {
       return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
     }
   }

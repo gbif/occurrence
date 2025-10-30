@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search;
+package org.gbif.search.es.occurrence;
 
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Country;
@@ -21,9 +21,8 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.search.es.EsField;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.SearchHitConverter;
+import org.gbif.search.es.EsField;
+import org.gbif.search.es.SearchHitConverter;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -41,29 +40,30 @@ import org.elasticsearch.search.SearchHit;
 
 import com.google.common.collect.Maps;
 
-import static org.gbif.occurrence.search.es.OccurrenceEsField.CRAWL_ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.DATASET_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.GBIF_ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.HOSTING_ORGANIZATION_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.ID;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.INSTALLATION_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_CRAWLED;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.LAST_PARSED;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.NETWORK_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.PROTOCOL;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.PUBLISHING_COUNTRY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY;
-import static org.gbif.occurrence.search.es.OccurrenceEsField.VERBATIM;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.CRAWL_ID;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.DATASET_KEY;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.GBIF_ID;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.HOSTING_ORGANIZATION_KEY;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.ID;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.INSTALLATION_KEY;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.LAST_CRAWLED;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.LAST_PARSED;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.NETWORK_KEY;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.PROTOCOL;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.PUBLISHING_COUNTRY;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.VERBATIM;
 
+// FIXME: is this class used?
 public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccurrence> {
 
   private final boolean excludeInterpretedFromVerbatim;
   private final EsField verbatimField;
 
-  public VerbatimSearchHitConverter(OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
+  public VerbatimSearchHitConverter(OccurrenceEsFieldMapper occurrenceEsFieldMapper,
                                     EsField verbatimField,
                                     boolean excludeInterpretedFromVerbatim) {
-    super(occurrenceBaseEsFieldMapper);
+    super(occurrenceEsFieldMapper);
     this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
     this.verbatimField = verbatimField;
 

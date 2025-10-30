@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.es;
+package org.gbif.search.es;
 
 import com.google.common.base.Strings;
 import java.time.*;
@@ -28,6 +28,7 @@ import org.elasticsearch.search.SearchHit;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Slf4j
 @Data
@@ -107,10 +108,10 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
         return dateParsed;
       };
 
-  protected final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
+  protected final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
 
   protected Optional<String> getChecklistStringValue(
-      SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
+    SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
     String fieldName = esField.getSearchFieldName(defaultChecklistKey);
     Map<String, Object> fields = hit.getSourceAsMap();
     fields = getNestedFieldValue(fields, fieldName);
