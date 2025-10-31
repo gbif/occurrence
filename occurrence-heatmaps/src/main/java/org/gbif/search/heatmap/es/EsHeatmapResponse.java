@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.heatmap.es;
+package org.gbif.search.heatmap.es;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,7 +19,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** ElasticSearch GeoHashGrid response object. */
-public class EsOccurrenceHeatmapResponse {
+public class EsHeatmapResponse {
 
   /** Latitude and longitude coordinates. */
   public static class Coordinate {

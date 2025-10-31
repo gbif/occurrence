@@ -11,15 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.heatmap.es;
+package org.gbif.search.heatmap.es;
 
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
-import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.vocabulary.client.ConceptClient;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -30,29 +24,39 @@ import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder
 import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.PredicateSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
+import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.search.heatmap.HeatmapRequest;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+import org.gbif.predicate.query.EsFieldMapper;
 
-class EsHeatmapRequestBuilder {
+import java.util.Optional;
+
+public abstract class EsHeatmapRequestBuilder<
+    P extends SearchParameter, R extends FacetedSearchRequest<P> & HeatmapRequest & PredicateSearchRequest> {
 
   static final String HEATMAP_AGGS = "heatmap";
   static final String CELL_AGGS = "cell";
 
-  //Mapping of predefined zoom levels
-  private static final int[] PRECISION_LOOKUP = new int[]{2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
+  // Mapping of predefined zoom levels
+  private static final int[] PRECISION_LOOKUP =
+      new int[] {2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
 
-  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
-  private final EsSearchRequestBuilder esSearchRequestBuilder;
+  private final EsFieldMapper<P> esFieldMapper;
+  private final EsSearchRequestBuilder<P, R> esSearchRequestBuilder;
 
-  EsHeatmapRequestBuilder(OccurrenceEsFieldMapper occurrenceEsFieldMapper,
-                          ConceptClient conceptClient,
-                          NameUsageMatchingService nameUsageMatchingService) {
-    this.occurrenceEsFieldMapper = occurrenceEsFieldMapper;
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(occurrenceEsFieldMapper,
-      conceptClient, nameUsageMatchingService);
+  protected EsHeatmapRequestBuilder(
+      EsFieldMapper<P> esFieldMapper, BaseEsSearchRequestBuilder<P, R> esSearchRequestBuilder) {
+    this.esFieldMapper = esFieldMapper;
+    this.esSearchRequestBuilder = esSearchRequestBuilder;
   }
 
   @VisibleForTesting
-  SearchRequest buildRequest(OccurrenceHeatmapRequest request, String index) {
+  SearchRequest buildRequest(R request, String index) {
     // build request body
     SearchRequest esRequest = new SearchRequest();
     esRequest.indices(index);
@@ -72,13 +76,20 @@ class EsHeatmapRequestBuilder {
     double right = Double.parseDouble(coords[2]);
 
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter().add(QueryBuilders.geoBoundingBoxQuery(occurrenceEsFieldMapper.getGeoDistanceField())
-      .setCorners(top, left, bottom, right));
-    bool.filter().add(QueryBuilders.termQuery(
-      occurrenceEsFieldMapper.getSearchFieldName(OccurrenceSearchParameter.HAS_COORDINATE), true));
+    bool.filter()
+        .add(
+            QueryBuilders.geoBoundingBoxQuery(esFieldMapper.getGeoDistanceField())
+                .setCorners(top, left, bottom, right));
+
+    getParam(OccurrenceSearchParameter.HAS_COORDINATE.name())
+        .ifPresent(
+            param -> {
+              bool.filter()
+                  .add(QueryBuilders.termQuery(esFieldMapper.getSearchFieldName(param), true));
+            });
 
     // add query
-    if (request.getPredicate() != null) { //is a predicate search
+    if (request.getPredicate() != null) { // is a predicate search
       esSearchRequestBuilder.buildQuery(request).ifPresent(bool.filter()::add);
     } else {
       // add hasCoordinate to the filter and create query
@@ -93,8 +104,8 @@ class EsHeatmapRequestBuilder {
     return esRequest;
   }
 
-  private AggregationBuilder buildAggs(OccurrenceHeatmapRequest request) {
-    String geoDistanceField = occurrenceEsFieldMapper.getGeoDistanceField();
+  private AggregationBuilder buildAggs(R request) {
+    String geoDistanceField = esFieldMapper.getGeoDistanceField();
     GeoGridAggregationBuilder geoGridAggs =
         AggregationBuilders.geohashGrid(HEATMAP_AGGS)
             .field(geoDistanceField)
@@ -102,15 +113,17 @@ class EsHeatmapRequestBuilder {
             .size(Math.max(request.getBucketLimit(), 50000));
 
     if (OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()) {
-      GeoCentroidAggregationBuilder geoCentroidAggs = AggregationBuilders.geoCentroid(CELL_AGGS)
-                                                        .field(geoDistanceField);
+      GeoCentroidAggregationBuilder geoCentroidAggs =
+          AggregationBuilders.geoCentroid(CELL_AGGS).field(geoDistanceField);
       geoGridAggs.subAggregation(geoCentroidAggs);
     } else {
-      GeoBoundsAggregationBuilder geoBoundsAggs = AggregationBuilders.geoBounds(CELL_AGGS)
-                                                    .field(geoDistanceField);
+      GeoBoundsAggregationBuilder geoBoundsAggs =
+          AggregationBuilders.geoBounds(CELL_AGGS).field(geoDistanceField);
       geoGridAggs.subAggregation(geoBoundsAggs);
     }
 
     return geoGridAggs;
   }
+
+  protected abstract Optional<P> getParam(String name);
 }

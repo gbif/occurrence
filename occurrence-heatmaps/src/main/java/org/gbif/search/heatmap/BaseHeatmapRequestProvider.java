@@ -11,23 +11,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.heatmap;
+package org.gbif.search.heatmap;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import jakarta.servlet.http.HttpServletRequest;
+
+import org.gbif.api.model.common.search.PredicateSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.common.search.SearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.search.cache.PredicateCacheService;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 import org.gbif.ws.util.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OccurrenceHeatmapRequestProvider {
+public abstract class BaseHeatmapRequestProvider<
+        P extends SearchParameter,
+        R extends HeatmapRequest & PredicateSearchRequest & SearchRequest<P>>
+    implements HeatmapRequestProvider<R> {
 
   public static final String POLYGON_PATTERN = "POLYGON((%s))";
   public static final String PARAM_QUERY_STRING = "q";
@@ -38,22 +46,23 @@ public class OccurrenceHeatmapRequestProvider {
   public static final String PARAM_PREDICATE_HASH = "predicateHash";
   private static final int DEFAULT_ZOOM_LEVEL = 3;
   public static final int DEFAULT_BUCKET_LIMIT = 15000;
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapRequestProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseHeatmapRequestProvider.class);
 
   private final PredicateCacheService predicateCacheService;
 
   /** Making constructor private. */
-  public OccurrenceHeatmapRequestProvider(PredicateCacheService predicateCacheService) {
+  public BaseHeatmapRequestProvider(PredicateCacheService predicateCacheService) {
     this.predicateCacheService = predicateCacheService;
   }
 
   /** Translate the raw value into value that API understands. */
-  private static String translateFilterValue(OccurrenceSearchParameter param, String value) {
-    if (param == OccurrenceSearchParameter.GEOMETRY) {
-      try { //checks if the parameters is in WKT format
-        SearchTypeValidator.validate(OccurrenceSearchParameter.GEOMETRY, value);
+  private String translateFilterValue(P param, String value) {
+    Optional<P> geometryParam = findSearchParam(OccurrenceSearchParameter.GEOMETRY.name());
+    if (geometryParam.isPresent() && param == geometryParam.get()) {
+      try { // checks if the parameters is in WKT format
+        SearchTypeValidator.validate(geometryParam.get(), value);
         return value;
-      } catch (IllegalArgumentException ex) { //if not is WKT, assumes to be a POLYGON
+      } catch (IllegalArgumentException ex) { // if not is WKT, assumes to be a POLYGON
         return String.format(POLYGON_PATTERN, value);
       }
     }
@@ -63,20 +72,21 @@ public class OccurrenceHeatmapRequestProvider {
     return value;
   }
 
-  public OccurrenceHeatmapRequest buildOccurrenceHeatmapRequest(HttpServletRequest request) {
-    OccurrenceHeatmapRequest occurrenceHeatmapSearchRequest = new OccurrenceHeatmapRequest();
+  @Override
+  public R buildOccurrenceHeatmapRequest(HttpServletRequest request) {
+    R heatmapSearchRequest = createEmptyRequest();
 
     String q = request.getParameter(PARAM_QUERY_STRING);
 
     if (!Strings.isNullOrEmpty(q)) {
-      occurrenceHeatmapSearchRequest.setQ(q);
+      heatmapSearchRequest.setQ(q);
     }
     // find search parameter enum based filters
-    setSearchParams(occurrenceHeatmapSearchRequest, request);
+    setSearchParams(heatmapSearchRequest, request);
 
     String predicateHash = request.getParameter(PARAM_PREDICATE_HASH);
     if (!Strings.isNullOrEmpty(predicateHash)) {
-      occurrenceHeatmapSearchRequest.setPredicate(
+      heatmapSearchRequest.setPredicate(
           Optional.ofNullable(predicateCacheService.get(Integer.parseInt(predicateHash)))
               .orElseThrow(
                   () ->
@@ -84,40 +94,39 @@ public class OccurrenceHeatmapRequestProvider {
                           PARAM_PREDICATE_HASH + " " + predicateHash + " not found")));
     }
 
-    return occurrenceHeatmapSearchRequest;
+    return heatmapSearchRequest;
   }
+
+  protected abstract R createEmptyRequest();
 
   /**
    * Iterates over the params map and adds to the search request the recognized parameters (i.e.:
    * those that have a correspondent value in the P generic parameter). Empty (of all size) and null
    * parameters are discarded.
    */
-  private static void setSearchParams(
-      OccurrenceHeatmapRequest occurrenceHeatmapSearchRequest, HttpServletRequest request) {
+  protected void setSearchParams(R heatmapSearchRequest, HttpServletRequest request) {
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
       findSearchParam(entry.getKey())
           .ifPresent(
               p -> {
-        for (String val : removeEmptyParameters(entry.getValue())) {
+                for (String val : removeEmptyParameters(entry.getValue())) {
                   String translatedVal =
                       translateFilterValue(p, val); // this transformation is require
-          SearchTypeValidator.validate(p, translatedVal);
-          occurrenceHeatmapSearchRequest.addParameter(p, translatedVal);
-        }
-      });
+                  SearchTypeValidator.validate(p, translatedVal);
+                  heatmapSearchRequest.addParameter(p, translatedVal);
+                }
+              });
     }
 
-    occurrenceHeatmapSearchRequest.setZoom(getIntParam(request, ZOOM_PARAM, DEFAULT_ZOOM_LEVEL));
+    heatmapSearchRequest.setZoom(getIntParam(request, ZOOM_PARAM, DEFAULT_ZOOM_LEVEL));
     if (request.getParameterMap().containsKey(GEOM_PARAM)) {
-      occurrenceHeatmapSearchRequest.setGeometry(request.getParameterMap().get(GEOM_PARAM)[0]);
+      heatmapSearchRequest.setGeometry(request.getParameterMap().get(GEOM_PARAM)[0]);
     }
-    occurrenceHeatmapSearchRequest.setMode(getMode(request));
-    occurrenceHeatmapSearchRequest.setBucketLimit(
+    heatmapSearchRequest.setMode(getMode(request));
+    heatmapSearchRequest.setBucketLimit(
         getIntParam(request, BUCKET_LIMIT_PARAM, DEFAULT_BUCKET_LIMIT));
 
-    ParamUtils.convertDnaSequenceParam(request.getParameterMap(), occurrenceHeatmapSearchRequest);
-
-    LOG.debug("Querying using Geometry {}", occurrenceHeatmapSearchRequest.getGeometry());
+    LOG.debug("Querying using Geometry {}", heatmapSearchRequest.getGeometry());
   }
 
   /**
@@ -126,18 +135,11 @@ public class OccurrenceHeatmapRequestProvider {
    */
   private static OccurrenceHeatmapRequest.Mode getMode(HttpServletRequest request) {
     return Optional.ofNullable(request.getParameter(MODE_PARAM))
-            .map(mode -> VocabularyUtils.lookupEnum(mode, OccurrenceHeatmapRequest.Mode.class))
-          .orElse(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
+        .map(mode -> VocabularyUtils.lookupEnum(mode, OccurrenceHeatmapRequest.Mode.class))
+        .orElse(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
   }
 
-  private static Optional<OccurrenceSearchParameter> findSearchParam(String name) {
-    try {
-      return OccurrenceSearchParameter.lookup(name);
-    } catch (IllegalArgumentException e) {
-      // we have all params here, not only the enum ones, so this is ok to end up here a few times
-    }
-    return Optional.empty();
-  }
+  protected abstract Optional<P> findSearchParam(String name);
 
   /**
    * Removes all empty and null parameters from the list. Each value is trimmed(String.trim()) in

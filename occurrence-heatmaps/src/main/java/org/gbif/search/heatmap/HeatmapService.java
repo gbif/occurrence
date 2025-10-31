@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.heatmap;
+package org.gbif.search.heatmap;
 
-import org.gbif.occurrence.search.heatmap.es.EsOccurrenceHeatmapResponse;
+import org.gbif.search.heatmap.es.EsHeatmapResponse;
 
 import javax.annotation.Nullable;
 
@@ -21,8 +21,9 @@ import javax.annotation.Nullable;
  * Generic interface for Heatmap services.
  * @param <S> search engine search request type
  * @param <R> search engine search response type
+ * @param <HR> HeatmapRequest that will be converted into an engine search request
  */
-public interface OccurrenceHeatmapService<S,R> {
+public interface HeatmapService<S,R,HR extends HeatmapRequest> {
 
   /**
    * Provides a HeatMap aggregation based on GeoBounds.
@@ -47,7 +48,7 @@ public interface OccurrenceHeatmapService<S,R> {
    * gaps) anyway, then a GeoCentroid response will be smaller.  I don't think ES supports generating the no-gaps
    * aggregaion itself.</p>
    */
-  EsOccurrenceHeatmapResponse.GeoBoundsResponse searchHeatMapGeoBounds(@Nullable OccurrenceHeatmapRequest request);
+  EsHeatmapResponse.GeoBoundsResponse searchHeatMapGeoBounds(@Nullable HR request);
 
   /**
    * Provides a HeatMap aggregation based on a GeoCentroid.
@@ -68,7 +69,7 @@ public interface OccurrenceHeatmapService<S,R> {
    * └────┴────┘
    * </pre>
    */
-  EsOccurrenceHeatmapResponse.GeoCentroidResponse searchHeatMapGeoCentroid(@Nullable OccurrenceHeatmapRequest request);
+  EsHeatmapResponse.GeoCentroidResponse searchHeatMapGeoCentroid(@Nullable HR request);
 
   /**
    * Performs a search using the request and response types supported by the SearchEngine.

@@ -46,18 +46,17 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.service.common.SearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
-import org.gbif.search.es.event.EventEsFieldMapper;
-import org.gbif.search.es.event.EventEsResponseParser;
-import org.gbif.search.es.occurrence.EsResponseParser;
-import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.search.es.SearchHitConverter;
-import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
+import org.gbif.predicate.query.EventEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.search.es.SearchHitConverter;
 import org.gbif.search.es.event.EventEsField;
+import org.gbif.search.es.event.EventEsFieldMapper;
+import org.gbif.search.es.event.EventEsResponseParser;
 import org.gbif.search.es.event.OccurrenceEventEsField;
 import org.gbif.search.es.event.SearchHitEventConverter;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +105,12 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     this.nameUsageMatchingService = nameUsageMatchingService;
     eventEsFieldMapper = EventEsField.buildFieldMapper(defaultChecklistKey);
     occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper(defaultChecklistKey);
-    this.esSearchRequestBuilder = new EventEsSearchRequestBuilder(eventEsFieldMapper, conceptClient, nameUsageMatchingService);
+    this.esSearchRequestBuilder =
+        new EventEsSearchRequestBuilder(
+            eventEsFieldMapper,
+            conceptClient,
+            nameUsageMatchingService,
+            new EventEsQueryVisitor(eventEsFieldMapper));
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true);
     this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
@@ -117,7 +121,7 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.size(1);
-    searchSourceBuilder.fetchSource(null, EsSearchRequestBuilder.SOURCE_EXCLUDE);
+    searchSourceBuilder.fetchSource(null, EventEsSearchRequestBuilder.SOURCE_EXCLUDE);
     searchRequest.indices(esIndex);
     searchSourceBuilder.query(query);
     searchRequest.source(searchSourceBuilder);
@@ -139,7 +143,7 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     searchSourceBuilder.from((int)request.getOffset());
     searchSourceBuilder.size(request.getLimit());
     searchSourceBuilder.trackTotalHits(true);
-    searchSourceBuilder.fetchSource(null, EsSearchRequestBuilder.SOURCE_EXCLUDE);
+    searchSourceBuilder.fetchSource(null, EventEsSearchRequestBuilder.SOURCE_EXCLUDE);
     searchRequest.indices(esIndex);
     searchSourceBuilder.query(query);
     searchRequest.source(searchSourceBuilder);

@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.EsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
@@ -16,10 +17,12 @@ public class OccurrenceEsSearchRequestBuilder
   private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
 
   public OccurrenceEsSearchRequestBuilder(
-      OccurrenceEsFieldMapper occurrenceEsFieldMapper,
-      ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
-    super(occurrenceEsFieldMapper, conceptClient, nameUsageMatchingService);
+    OccurrenceEsFieldMapper occurrenceEsFieldMapper,
+    ConceptClient conceptClient,
+    NameUsageMatchingService nameUsageMatchingService,
+    OccurrenceEsQueryVisitor occurrenceEsQueryVisitor) {
+    super(
+        occurrenceEsFieldMapper, conceptClient, nameUsageMatchingService, occurrenceEsQueryVisitor);
     this.occurrenceEsFieldMapper = occurrenceEsFieldMapper;
   }
 

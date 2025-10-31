@@ -45,6 +45,7 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.suggest.SuggestBuilder;
 import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
@@ -71,7 +72,8 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
 public abstract class BaseEsSearchRequestBuilder<
-    P extends SearchParameter, S extends FacetedSearchRequest<P>> {
+        P extends SearchParameter, S extends FacetedSearchRequest<P> & PredicateSearchRequest>
+    implements EsSearchRequestBuilder<P, S> {
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
   private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
@@ -82,14 +84,17 @@ public abstract class BaseEsSearchRequestBuilder<
   private final EsFieldMapper<P> esFieldMapper;
   private final NameUsageMatchingService nameUsageMatchingService;
   protected final ConceptClient conceptClient;
+  protected final EsQueryVisitor<P> esQueryVisitor;
 
   public BaseEsSearchRequestBuilder(
       EsFieldMapper<P> esFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
+      NameUsageMatchingService nameUsageMatchingService,
+      EsQueryVisitor<P> esQueryVisitor) {
     this.esFieldMapper = esFieldMapper;
     this.conceptClient = conceptClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
+    this.esQueryVisitor = esQueryVisitor;
   }
 
   public SearchRequest buildSearchRequest(S searchRequest, String index) {
@@ -153,6 +158,7 @@ public abstract class BaseEsSearchRequestBuilder<
     return esRequest;
   }
 
+  @Override
   public Optional<QueryBuilder> buildQueryNode(S searchRequest) {
     return buildQuery(
         searchRequest.getParameters(),
@@ -413,8 +419,9 @@ public abstract class BaseEsSearchRequestBuilder<
     }
   }
 
+  @Override
   @SneakyThrows
-  public Optional<BoolQueryBuilder> buildQuery(OccurrencePredicateSearchRequest searchRequest) {
+  public Optional<BoolQueryBuilder> buildQuery(S searchRequest) {
     searchRequest.setPredicate(
         RequestFieldsTranslator.translatePredicateFields(
             searchRequest.getPredicate(), conceptClient));
@@ -428,7 +435,6 @@ public abstract class BaseEsSearchRequestBuilder<
       bool.must(QueryBuilders.matchQuery(esFieldMapper.getFullTextField(), qParam));
     }
 
-    EsQueryVisitor<P> esQueryVisitor = new EsQueryVisitor<>(esFieldMapper);
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
@@ -573,6 +579,7 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   boolean isDynamicRankParam(S searchRequest, P p) {
+    // TODO: Use the one from the enum so it doesn't compile if changes
     return getParam("CHECKLIST_KEY")
         .filter(param -> searchRequest.getParameters().containsKey(param))
         .map(

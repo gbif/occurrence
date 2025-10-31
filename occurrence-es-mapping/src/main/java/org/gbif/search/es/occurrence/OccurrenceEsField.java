@@ -436,7 +436,6 @@ public enum OccurrenceEsField implements EsField {
         .geoShapeField(COORDINATE_SHAPE)
         .geoDistanceField(COORDINATE_POINT)
         .uniqueIdField(ID)
-        .defaultFilter(Optional.empty())
         .defaultSort(ImmutableList.of(SortBuilders.fieldSort("yearMonthGbifIdSort").order(SortOrder.ASC)))
         .searchToEsMapping(SEARCH_TO_ES_MAPPING)
         .dateFields(DATE_FIELDS)

@@ -16,6 +16,7 @@ package org.gbif.occurrence.search.heatmap.es;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.gbif.search.heatmap.es.EsHeatmapResponse;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Test class for serialization and deserialization of heatmap responses.
  */
-public class EsOccurrenceHeatmapResponseSerDeserTest {
+public class EsHeatmapResponseSerDeserTest {
 
   private static final String TEST_JSON_FILE = "/json/es-heatmap.json";
 
@@ -39,9 +40,9 @@ public class EsOccurrenceHeatmapResponseSerDeserTest {
    */
   @Test
   public void deserializationTest() throws IOException {
-    try (InputStream  testFile = EsOccurrenceHeatmapResponseSerDeserTest.class.getResourceAsStream(TEST_JSON_FILE)) {
+    try (InputStream  testFile = EsHeatmapResponseSerDeserTest.class.getResourceAsStream(TEST_JSON_FILE)) {
       JsonNode json = MAPPER.readTree(testFile);
-      EsOccurrenceHeatmapResponse.GeoBoundsResponse esOccurrenceHeatmapResponse = MAPPER.treeToValue(json.path("aggregations").path("heatmap"), EsOccurrenceHeatmapResponse.GeoBoundsResponse.class);
+      EsHeatmapResponse.GeoBoundsResponse esOccurrenceHeatmapResponse = MAPPER.treeToValue(json.path("aggregations").path("heatmap"), EsHeatmapResponse.GeoBoundsResponse.class);
       assertEquals(esOccurrenceHeatmapResponse.getBuckets().size(), 10);
     }
   }

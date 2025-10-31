@@ -25,10 +25,11 @@ import java.util.regex.Pattern;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.SearchHit;
+
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Slf4j
 @Data
@@ -108,8 +109,6 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
         return dateParsed;
       };
 
-  protected final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
-
   protected Optional<String> getChecklistStringValue(
     SearchHit hit, ChecklistEsField esField, String defaultChecklistKey) {
     String fieldName = esField.getSearchFieldName(defaultChecklistKey);
@@ -130,7 +129,7 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
       try {
         return Optional.of(Integer.valueOf(strOpt.get()));
       } catch (NumberFormatException e) {
-        log.error("Error parsing int value for field {} with value {}", fieldName, strOpt.get());
+        log.info("Error parsing int value for field {} with value {}", fieldName, strOpt.get());
       }
     }
     return Optional.empty();
@@ -164,8 +163,8 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
     return getValue(fields, fieldName, Boolean::valueOf);
   }
 
-  public String getValueFieldName(EsField occurrenceEsField) {
-    return occurrenceEsField.getValueFieldName();
+  public String getValueFieldName(EsField esField) {
+    return esField.getValueFieldName();
   }
 
   protected Optional<List<String>> getListValue(Map<String, Object> fields, String fieldName) {

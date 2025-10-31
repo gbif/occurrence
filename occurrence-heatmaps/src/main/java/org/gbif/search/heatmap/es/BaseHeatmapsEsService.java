@@ -11,63 +11,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.heatmap.es;
+package org.gbif.search.heatmap.es;
 
-import org.gbif.occurrence.search.SearchException;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapRequest;
-import org.gbif.occurrence.search.heatmap.OccurrenceHeatmapService;
-import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.vocabulary.client.ConceptClient;
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
+import static org.gbif.search.heatmap.es.EsHeatmapRequestBuilder.*;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nullable;
-
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.aggregations.bucket.geogrid.ParsedGeoHashGrid;
 import org.elasticsearch.search.aggregations.metrics.ParsedGeoBounds;
 import org.elasticsearch.search.aggregations.metrics.ParsedGeoCentroid;
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.PredicateSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.occurrence.search.SearchException;
+import org.gbif.search.heatmap.HeatmapRequest;
+import org.gbif.search.heatmap.HeatmapService;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-import static org.gbif.occurrence.search.heatmap.es.EsHeatmapRequestBuilder.*;
 
 /** Elasticsearch heatmap service. */
-@Component
-public class OccurrenceHeatmapsEsService
-    implements OccurrenceHeatmapService<SearchRequest, SearchResponse> {
+public abstract class BaseHeatmapsEsService<
+        P extends SearchParameter,
+        HR extends FacetedSearchRequest<P> & HeatmapRequest & PredicateSearchRequest>
+    implements HeatmapService<SearchRequest, SearchResponse, HR> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsEsService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseHeatmapsEsService.class);
 
   private final RestHighLevelClient esClient;
   private final String esIndex;
-  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder;
+  private final EsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder;
 
   @Autowired
-  public OccurrenceHeatmapsEsService(
+  public BaseHeatmapsEsService(
       RestHighLevelClient esClient,
       String esIndex,
-      OccurrenceEsFieldMapper occurrenceEsFieldMapper,
-      ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
+      EsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder) {
     this.esIndex = esIndex;
     this.esClient = esClient;
-    this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceEsFieldMapper,
-      conceptClient, nameUsageMatchingService);
+    this.esHeatmapRequestBuilder = esHeatmapRequestBuilder;
   }
 
   @Override
-  public EsOccurrenceHeatmapResponse.GeoBoundsResponse searchHeatMapGeoBounds(
-      @Nullable OccurrenceHeatmapRequest request) {
+  public EsHeatmapResponse.GeoBoundsResponse searchHeatMapGeoBounds(@Nullable HR request) {
     Objects.requireNonNull(request);
 
     // build request, ensure mode is set.
@@ -84,8 +78,7 @@ public class OccurrenceHeatmapsEsService
   }
 
   @Override
-  public EsOccurrenceHeatmapResponse.GeoCentroidResponse searchHeatMapGeoCentroid(
-      @Nullable OccurrenceHeatmapRequest request) {
+  public EsHeatmapResponse.GeoCentroidResponse searchHeatMapGeoCentroid(@Nullable HR request) {
     Objects.requireNonNull(request);
 
     // build request, ensure mode is set.
@@ -111,45 +104,39 @@ public class OccurrenceHeatmapsEsService
     }
   }
 
-  /**
-   * Transforms the {@link SearchResponse} into a {@link
-   * org.gbif.occurrence.search.heatmap.es.EsOccurrenceHeatmapResponse.GeoBoundsResponse}.
-   */
-  private static EsOccurrenceHeatmapResponse.GeoBoundsResponse parseGeoBoundsResponse(
+  /** Transforms the {@link SearchResponse} into a {@link EsHeatmapResponse.GeoBoundsResponse}. */
+  private static EsHeatmapResponse.GeoBoundsResponse parseGeoBoundsResponse(
       SearchResponse response) {
     ParsedGeoHashGrid heatmapAggs = response.getAggregations().get(HEATMAP_AGGS);
 
-    List<EsOccurrenceHeatmapResponse.GeoBoundsGridBucket> buckets =
+    List<EsHeatmapResponse.GeoBoundsGridBucket> buckets =
         heatmapAggs.getBuckets().stream()
             .map(
                 b -> {
                   // build bucket
-                  EsOccurrenceHeatmapResponse.GeoBoundsGridBucket bucket =
-                      new EsOccurrenceHeatmapResponse.GeoBoundsGridBucket();
+                  EsHeatmapResponse.GeoBoundsGridBucket bucket =
+                      new EsHeatmapResponse.GeoBoundsGridBucket();
                   bucket.setKey(b.getKeyAsString());
                   bucket.setDocCount(b.getDocCount());
 
                   // build bounds
-                  EsOccurrenceHeatmapResponse.Bounds bounds =
-                      new EsOccurrenceHeatmapResponse.Bounds();
+                  EsHeatmapResponse.Bounds bounds = new EsHeatmapResponse.Bounds();
                   ParsedGeoBounds cellAggs = b.getAggregations().get(CELL_AGGS);
 
                   // topLeft
-                  EsOccurrenceHeatmapResponse.Coordinate topLeft =
-                      new EsOccurrenceHeatmapResponse.Coordinate();
+                  EsHeatmapResponse.Coordinate topLeft = new EsHeatmapResponse.Coordinate();
                   topLeft.setLat(cellAggs.topLeft().getLat());
                   topLeft.setLon(cellAggs.topLeft().getLon());
                   bounds.setTopLeft(topLeft);
 
                   // bottomRight
-                  EsOccurrenceHeatmapResponse.Coordinate bottomRight =
-                      new EsOccurrenceHeatmapResponse.Coordinate();
+                  EsHeatmapResponse.Coordinate bottomRight = new EsHeatmapResponse.Coordinate();
                   bottomRight.setLat(cellAggs.bottomRight().getLat());
                   bottomRight.setLon(cellAggs.bottomRight().getLon());
                   bounds.setBottomRight(bottomRight);
 
                   // build cell
-                  EsOccurrenceHeatmapResponse.Cell cell = new EsOccurrenceHeatmapResponse.Cell();
+                  EsHeatmapResponse.Cell cell = new EsHeatmapResponse.Cell();
                   cell.setBounds(bounds);
                   bucket.setCell(cell);
 
@@ -158,36 +145,31 @@ public class OccurrenceHeatmapsEsService
             .collect(Collectors.toList());
 
     // build result
-    EsOccurrenceHeatmapResponse.GeoBoundsResponse result =
-        new EsOccurrenceHeatmapResponse.GeoBoundsResponse();
+    EsHeatmapResponse.GeoBoundsResponse result = new EsHeatmapResponse.GeoBoundsResponse();
     result.setBuckets(buckets);
 
     return result;
   }
 
-  /**
-   * Transforms a {@link SearchResponse} into a {@link
-   * org.gbif.occurrence.search.heatmap.es.EsOccurrenceHeatmapResponse.GeoCentroidResponse}.
-   */
-  private static EsOccurrenceHeatmapResponse.GeoCentroidResponse parseGeoCentroidResponse(
+  /** Transforms a {@link SearchResponse} into a {@link EsHeatmapResponse.GeoCentroidResponse}. */
+  private static EsHeatmapResponse.GeoCentroidResponse parseGeoCentroidResponse(
       SearchResponse response) {
     ParsedGeoHashGrid heatmapAggs = response.getAggregations().get(HEATMAP_AGGS);
 
-    List<EsOccurrenceHeatmapResponse.GeoCentroidGridBucket> buckets =
+    List<EsHeatmapResponse.GeoCentroidGridBucket> buckets =
         heatmapAggs.getBuckets().stream()
             .map(
                 b -> {
                   // build bucket
-                  EsOccurrenceHeatmapResponse.GeoCentroidGridBucket bucket =
-                      new EsOccurrenceHeatmapResponse.GeoCentroidGridBucket();
+                  EsHeatmapResponse.GeoCentroidGridBucket bucket =
+                      new EsHeatmapResponse.GeoCentroidGridBucket();
                   bucket.setKey(b.getKeyAsString());
                   bucket.setDocCount(b.getDocCount());
 
                   ParsedGeoCentroid centroidAggs = b.getAggregations().get(CELL_AGGS);
 
                   // topLeft
-                  EsOccurrenceHeatmapResponse.Coordinate centroid =
-                      new EsOccurrenceHeatmapResponse.Coordinate();
+                  EsHeatmapResponse.Coordinate centroid = new EsHeatmapResponse.Coordinate();
                   centroid.setLat(centroidAggs.centroid().getLat());
                   centroid.setLon(centroidAggs.centroid().getLon());
 
@@ -198,8 +180,7 @@ public class OccurrenceHeatmapsEsService
             .collect(Collectors.toList());
 
     // build result
-    EsOccurrenceHeatmapResponse.GeoCentroidResponse result =
-        new EsOccurrenceHeatmapResponse.GeoCentroidResponse();
+    EsHeatmapResponse.GeoCentroidResponse result = new EsHeatmapResponse.GeoCentroidResponse();
     result.setBuckets(buckets);
 
     return result;

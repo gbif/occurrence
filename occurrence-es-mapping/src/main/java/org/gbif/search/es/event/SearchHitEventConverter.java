@@ -57,18 +57,18 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.search.es.EsField;
 import org.gbif.search.es.SearchHitConverter;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
   private static final Set<Term> EVENT_INTERPRETED_TERMS =
       ImmutableSet.of(DwcTerm.eventID, DwcTerm.parentEventID);
 
+  private final EventEsFieldMapper eventEsFieldMapper;
   private final boolean excludeInterpretedFromVerbatim;
 
   public SearchHitEventConverter(
-      EventEsFieldMapper EventEsSearchRequestBuilder, boolean excludeInterpretedFromVerbatim) {
-    super(EventEsSearchRequestBuilder);
+      EventEsFieldMapper eventEsFieldMapper, boolean excludeInterpretedFromVerbatim) {
+    this.eventEsFieldMapper = eventEsFieldMapper;
     this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
   }
 

@@ -7,6 +7,7 @@ import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.RequestFieldsTranslator;
+import org.gbif.predicate.query.EventEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.EsField;
 import org.gbif.search.es.event.EventEsFieldMapper;
@@ -20,8 +21,9 @@ public class EventEsSearchRequestBuilder
   public EventEsSearchRequestBuilder(
       EventEsFieldMapper eventEsFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
-    super(eventEsFieldMapper, conceptClient, nameUsageMatchingService);
+      NameUsageMatchingService nameUsageMatchingService,
+      EventEsQueryVisitor esQueryVisitor) {
+    super(eventEsFieldMapper, conceptClient, nameUsageMatchingService, esQueryVisitor);
     this.eventEsFieldMapper = eventEsFieldMapper;
   }
 
