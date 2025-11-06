@@ -218,8 +218,7 @@ public class OccurrenceWsItConfiguration {
 
   @Bean
   public OccurrenceSpeciesMultimediaService occurrenceSpeciesMultimediaService(Connection connection) {
-    return new OccurrenceSpeciesMultimediaService(connection, 10, 1000,
-      "localhost:2181", 1000, "/hbase");
+    return new OccurrenceSpeciesMultimediaServiceMock();
   }
 
   @Bean
