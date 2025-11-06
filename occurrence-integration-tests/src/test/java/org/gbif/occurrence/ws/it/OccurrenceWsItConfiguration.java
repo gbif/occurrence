@@ -19,6 +19,7 @@ import org.gbif.api.vocabulary.UserRole;
 import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
+import org.gbif.occurrence.persistence.OccurrenceSpeciesMultimediaService;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
@@ -213,6 +214,12 @@ public class OccurrenceWsItConfiguration {
     occHBaseConfiguration.setRelationshipSalt(1);
     occHBaseConfiguration.setFragmenterSalt(1);
     return occHBaseConfiguration;
+  }
+
+  @Bean
+  public OccurrenceSpeciesMultimediaService occurrenceSpeciesMultimediaService(Connection connection) {
+    return new OccurrenceSpeciesMultimediaService(connection, 10, 1000,
+      "localhost:2181", 1000, "/hbase");
   }
 
   @Bean
