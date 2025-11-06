@@ -53,7 +53,8 @@ public final class HiveDataTypes {
       "STRUCT<concept: STRING,lineage: ARRAY<STRING>>";
   public static final String TYPE_VOCABULARY_ARRAY_STRUCT =
       "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
-  public static final String TYPE_MAP_STRUCT = "MAP<STRING, ARRAY<STRING>>";
+  public static final String TYPE_MAP_STRUCT = "MAP<STRING, STRING>";
+  public static final String TYPE_MAP_OF_ARRAY_STRUCT = "MAP<STRING, ARRAY<STRING>>";
   public static final String TYPE_MAP_OF_MAP_STRUCT = "MAP<STRING, MAP<STRING, STRING>>";
   public static final String TYPE_MAP_OF_MAP_ARRAY_STRUCT = "MAP<STRING, MAP<STRING, ARRAY<STRING>>>";
   public static final String TYPE_ARRAY_PARENT_STRUCT =
@@ -223,7 +224,11 @@ public final class HiveDataTypes {
         return TYPE_VOCABULARY_STRUCT;
       }
     } else if (term.equals(GbifInternalTerm.classifications)) {
+      return TYPE_MAP_OF_ARRAY_STRUCT;
+    } else if (term.equals(GbifInternalTerm.taxonomicStatuses)) {
       return TYPE_MAP_STRUCT;
+    } else if (term.equals(GbifTerm.taxonomicIssue)) {
+      return TYPE_MAP_OF_ARRAY_STRUCT;
     } else if (term.equals(GbifInternalTerm.classificationDetails)) {
       return TYPE_MAP_OF_MAP_STRUCT;
     } else {
