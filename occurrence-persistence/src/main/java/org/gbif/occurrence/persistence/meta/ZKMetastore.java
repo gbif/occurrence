@@ -35,10 +35,8 @@ public class ZKMetastore implements Closeable {
 
   private final CuratorFramework client;
   private final NodeCache zkNodeCache;
-  private final String zkNodePath;
 
   public ZKMetastore(String zkEnsemble, int retryIntervalMs, String zkNodePath, Consumer<NodeCache> onChange) throws Exception {
-    this.zkNodePath = zkNodePath;
     client = CuratorFrameworkFactory.newClient(zkEnsemble, new RetryNTimes(Integer.MAX_VALUE, retryIntervalMs));
     client.start();
 

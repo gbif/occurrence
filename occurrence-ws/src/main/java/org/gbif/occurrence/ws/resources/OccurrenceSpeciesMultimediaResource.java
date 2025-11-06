@@ -1,7 +1,7 @@
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.occurrence.persistence.OccurrenceSpeciesMultimediaService;
+import org.gbif.occurrence.persistence.experimental.OccurrenceSpeciesMultimediaServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -30,10 +30,10 @@ public class OccurrenceSpeciesMultimediaResource {
    * @return a paginated response containing multimedia information for the specified species and media type
    */
   @GetMapping(value = "species/{taxonKey}")
-  public OccurrenceSpeciesMultimediaService.TaxonMultimediaSearchResponse listMultimediaBySpecies(@PathVariable("taxonKey") String taxonKey,
-                                                                                                    @RequestParam("mediaType") String mediaType,
-                                                                                                    @RequestParam("limit") int limit,
-                                                                                                    @RequestParam("offset") int offset)  {
-    return occurrenceSpeciesMultimediaService.queryMedianInfo(taxonKey, mediaType, Math.max(limit,0), Math.max(offset,0));
+  public OccurrenceSpeciesMultimediaServiceImpl.TaxonMultimediaSearchResponse listMultimediaBySpecies(@PathVariable("taxonKey") String taxonKey,
+                                                                                                      @RequestParam("mediaType") String mediaType,
+                                                                                                      @RequestParam("limit") int limit,
+                                                                                                      @RequestParam("offset") int offset)  {
+    return occurrenceSpeciesMultimediaService.queryMediaInfo(taxonKey, mediaType, Math.max(limit,0), Math.max(offset,0));
   }
 }

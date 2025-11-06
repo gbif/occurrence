@@ -39,7 +39,6 @@ public class OccurrencePersistenceConfiguration {
     return new OccHBaseConfiguration();
   }
 
-
   @Bean
   public Connection hBaseConnection(@Autowired(required = false) @Qualifier("hbaseConfiguration") Configuration hbaseConfiguration) {
     try {
