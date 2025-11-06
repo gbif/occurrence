@@ -20,6 +20,7 @@ import org.gbif.occurrence.common.config.OccHBaseConfiguration;
 import org.gbif.occurrence.download.service.CallbackService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.persistence.OccurrenceSpeciesMultimediaService;
+import org.gbif.occurrence.persistence.experimental.OccurrenceSpeciesMultimediaServiceImpl;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
 import org.gbif.occurrence.search.es.OccurrenceEsField;
@@ -96,7 +97,8 @@ import org.springframework.test.context.ActiveProfiles;
             IdentityFilter.class,
             AppIdentityFilter.class,
             GbifAuthenticationManagerImpl.class,
-            GbifAuthServiceImpl.class
+            GbifAuthServiceImpl.class,
+            OccurrenceSpeciesMultimediaServiceImpl.class
           })
     })
 @PropertySource(OccurrenceWsItConfiguration.TEST_PROPERTIES)
