@@ -17,12 +17,11 @@ import java.util.function.Function;
 import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.search.es.BaseEsFieldMapper;
 import org.gbif.search.es.EsResponseParser;
 
 public class OccurrenceEsResponseParser
-    extends EsResponseParser<Occurrence, OccurrenceSearchParameter, OccurrenceSearchRequest> {
+    extends EsResponseParser<Occurrence, OccurrenceSearchParameter> {
 
   /**
    * Private constructor.

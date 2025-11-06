@@ -18,6 +18,9 @@ import org.gbif.dwc.terms.Term;
 import lombok.Data;
 import lombok.Getter;
 
+import org.gbif.occurrence.common.TermUtils;
+import org.gbif.predicate.query.EsField;
+
 @Data
 public class BaseEsField implements EsField {
 
@@ -83,5 +86,15 @@ public class BaseEsField implements EsField {
   @Override
   public boolean isNestedField() {
     return nestedPath != null && !nestedPath.isEmpty();
+  }
+
+  @Override
+  public boolean isVocabulary() {
+    return TermUtils.isVocabulary(getTerm());
+  }
+
+  @Override
+  public String childrenRelation() {
+    return "occurrence";
   }
 }

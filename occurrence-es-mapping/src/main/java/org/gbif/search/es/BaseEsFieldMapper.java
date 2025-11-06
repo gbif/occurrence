@@ -23,13 +23,14 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.dwc.terms.Term;
+import org.gbif.predicate.query.EsField;
+import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
-import org.gbif.predicate.query.EsFieldMapper;
 
 @Data
 @Slf4j
-public abstract class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapper<P> {
+public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapper<P> {
 
   private final Map<String, P> esToSearchMapping;
 
@@ -58,7 +59,6 @@ public abstract class BaseEsFieldMapper<P extends SearchParameter> implements Es
 
   private final String defaultChecklistKey;
 
-  @Builder
   public BaseEsFieldMapper(Map<P,EsField> searchToEsMapping,
                            Set<EsField> dateFields,
                            EsField fullTextField,

@@ -15,10 +15,12 @@ package org.gbif.occurrence.download.conf;
 
 import lombok.SneakyThrows;
 
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.TableSuffixes;
@@ -138,7 +140,7 @@ public class DownloadJobConfiguration {
             download.getRequest().getChecklistKey());
   }
 
-  public OccurrenceEsFieldMapper esFieldMapper(Download download) {
+  public EsFieldMapper<? extends SearchParameter> esFieldMapper(Download download) {
     return DownloadType.OCCURRENCE == download.getRequest().getType()
         ? OccurrenceEsField.buildFieldMapper(checklistKey)
         : EventEsField.buildFieldMapper(checklistKey);

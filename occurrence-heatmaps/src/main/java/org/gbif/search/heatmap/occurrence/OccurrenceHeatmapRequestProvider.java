@@ -11,13 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.search.heatmap;
+package org.gbif.search.heatmap.occurrence;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.cache.PredicateCacheService;
-import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+import org.gbif.search.heatmap.BaseHeatmapRequestProvider;
 import org.gbif.ws.util.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

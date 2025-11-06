@@ -13,40 +13,35 @@
  */
 package org.gbif.occurrence.search.heatmap.es;
 
-import org.gbif.search.es.ChecklistEsField;
-import org.gbif.search.es.occurrence.OccurrenceEsField;
-import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
-
 import org.elasticsearch.action.search.SearchRequest;
-
-import org.gbif.search.heatmap.es.EsHeatmapRequestBuilder;
-
+import org.gbif.search.es.ChecklistEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.heatmap.es.occurrence.OccurrenceEsHeatmapRequestBuilder;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.search.heatmap.es.EsHeatmapRequestBuilder.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 /** Tests for ElasticSearch heatmap request builders. */
-public class EsHeatmapRequestBuilderTest {
+public class OccurrenceEsHeatmapRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
-  private final EsHeatmapRequestBuilder esHeatmapRequestBuilder =
-      new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper("defaultChecklistKey"),
-        null, null);
+  private final OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder =
+      new OccurrenceEsHeatmapRequestBuilder(
+          OccurrenceEsField.buildFieldMapper("defaultChecklistKey"), null, null);
 
   @Test
   public void heatmapRequestTest() throws IOException {
@@ -54,7 +49,7 @@ public class EsHeatmapRequestBuilderTest {
     request.setGeometry("-44, 30, -32, 54");
     request.setZoom(1);
 
-    SearchRequest query = esHeatmapRequestBuilder.buildRequest(request, INDEX);
+    SearchRequest query = esHeatmapRequestBuilder.buildHeatmapRequest(request, INDEX);
     JsonNode json = MAPPER.readTree(query.source().toString());
 
     assertEquals(0, json.get(SIZE).asInt());
@@ -101,7 +96,8 @@ public class EsHeatmapRequestBuilderTest {
   }
 
   /** Tries to find a field in the list of term filters. */
-  private static Optional<String> findTermFilter(JsonNode node, ChecklistEsField field, String defaultChecklistKey) {
+  private static Optional<String> findTermFilter(
+      JsonNode node, ChecklistEsField field, String defaultChecklistKey) {
     String fieldName = field.getSearchFieldName(defaultChecklistKey);
     ArrayNode arrayNode =
         (ArrayNode) node.path(QUERY).path(BOOL).path(FILTER).get(2).path(BOOL).path(FILTER);
@@ -119,7 +115,7 @@ public class EsHeatmapRequestBuilderTest {
     request.setGeometry("-44, 30, -32, 54");
     request.setZoom(1);
 
-    SearchRequest query = esHeatmapRequestBuilder.buildRequest(request, INDEX);
+    SearchRequest query = esHeatmapRequestBuilder.buildHeatmapRequest(request, INDEX);
     JsonNode json = MAPPER.readTree(query.source().toString());
 
     assertEquals(0, json.get(SIZE).asInt());
@@ -127,8 +123,11 @@ public class EsHeatmapRequestBuilderTest {
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).get(1).has(TERM));
 
     // taxon key
-    Optional<String> taxaValue = findTermFilter(json,
-      (ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField(), "defaultChecklistKey");
+    Optional<String> taxaValue =
+        findTermFilter(
+            json,
+            (ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField(),
+            "defaultChecklistKey");
 
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));

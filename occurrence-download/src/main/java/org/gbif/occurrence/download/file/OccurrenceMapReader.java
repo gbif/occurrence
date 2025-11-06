@@ -13,27 +13,9 @@
  */
 package org.gbif.occurrence.download.file;
 
-import org.gbif.api.model.common.Classification;
-import org.gbif.api.model.common.MediaObject;
-import org.gbif.api.model.event.Event;
-import org.gbif.api.model.occurrence.AgentIdentifier;
-import org.gbif.api.model.occurrence.GadmFeature;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.util.IsoDateInterval;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.OccurrenceIssue;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GadmTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.IucnTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.hive.DownloadTerms;
+import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
+import com.google.common.collect.ImmutableSet;
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.Collection;
@@ -47,12 +29,28 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.ImmutableSet;
-
-import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
+import org.gbif.api.model.common.Classification;
+import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.event.Event;
+import org.gbif.api.model.occurrence.AgentIdentifier;
+import org.gbif.api.model.occurrence.GadmFeature;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.IsoDateInterval;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EventIssue;
+import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GadmTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.hive.DownloadTerms;
 
 /**
  * Reads an occurrence record from Elasticsearch and return it in a Map<String,Object>.
@@ -222,22 +220,12 @@ public class OccurrenceMapReader {
 
     //Basic record terms
     interpretedEvent.put(GbifTerm.gbifID.simpleName(), getSimpleValue(event.getKey()));
-    interpretedEvent.put(DwcTerm.basisOfRecord.simpleName(), getSimpleValue(event.getBasisOfRecord()));
-    interpretedEvent.put(DwcTerm.establishmentMeans.simpleName(), getSimpleValue(event.getEstablishmentMeans()));
-    interpretedEvent.put(DwcTerm.individualCount.simpleName(), getSimpleValue(event.getIndividualCount()));
-    interpretedEvent.put(DwcTerm.lifeStage.simpleName(), getSimpleValue(event.getLifeStage()));
-    interpretedEvent.put(DwcTerm.pathway.simpleName(), getSimpleValue(event.getPathway()));
-    interpretedEvent.put(DwcTerm.degreeOfEstablishment.simpleName(), getSimpleValue(event.getDegreeOfEstablishment()));
     interpretedEvent.put(DcTerm.references.simpleName(), getSimpleValue(event.getReferences()));
-    interpretedEvent.put(DwcTerm.sex.simpleName(), getSimpleValue(event.getSex()));
     interpretedEvent.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(event.getLastParsed()));
     interpretedEvent.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(event.getLastInterpreted()));
-    interpretedEvent.put(DwcTerm.occurrenceStatus.simpleName(), getSimpleValue(event.getOccurrenceStatus()));
     interpretedEvent.put(DwcTerm.datasetID.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getDatasetID()));
     interpretedEvent.put(DwcTerm.datasetName.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getDatasetName()));
     interpretedEvent.put(DwcTerm.otherCatalogNumbers.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getOtherCatalogNumbers()));
-    interpretedEvent.put(DwcTerm.recordedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getRecordedBy()));
-    interpretedEvent.put(DwcTerm.identifiedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getIdentifiedBy()));
     interpretedEvent.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getPreparations()));
     interpretedEvent.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getSamplingProtocol()));
 
@@ -286,14 +274,10 @@ public class OccurrenceMapReader {
     putGadmFeature(interpretedEvent, GadmTerm.level2Name, GadmTerm.level2Gid, event.getGadm().getLevel2());
     putGadmFeature(interpretedEvent, GadmTerm.level3Name, GadmTerm.level3Gid, event.getGadm().getLevel3());
 
-    extractOccurrenceIssues(event.getIssues())
+    extractEventIssues(event.getIssues())
       .ifPresent(issues -> interpretedEvent.put(GbifTerm.issue.simpleName(), issues));
     extractMediaTypes(event.getMedia())
       .ifPresent(mediaTypes -> interpretedEvent.put(GbifTerm.mediaType.simpleName(), mediaTypes));
-    extractAgentIds(event.getRecordedByIds())
-      .ifPresent(uids -> interpretedEvent.put(DwcTerm.recordedByID.simpleName(), uids));
-    extractAgentIds(event.getIdentifiedByIds())
-      .ifPresent(uids -> interpretedEvent.put(DwcTerm.identifiedByID.simpleName(), uids));
 
     // Sampling
     interpretedEvent.put(DwcTerm.sampleSizeUnit.simpleName(), event.getSampleSizeUnit());
@@ -483,6 +467,15 @@ public class OccurrenceMapReader {
     return  Optional.ofNullable(issues)
                 .map(issuesSet -> issuesSet.stream().map(OccurrenceIssue::name)
                                  .collect(Collectors.joining(";")));
+  }
+
+  /**
+   * Extracts the spatial issues from the record.
+   */
+  private static Optional<String> extractEventIssues(Set<EventIssue> issues) {
+    return  Optional.ofNullable(issues)
+      .map(issuesSet -> issuesSet.stream().map(EventIssue::name)
+        .collect(Collectors.joining(";")));
   }
 
   /**

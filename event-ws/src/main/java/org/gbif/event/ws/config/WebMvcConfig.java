@@ -59,7 +59,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 public class WebMvcConfig implements WebMvcConfigurer {
 
   @Autowired
-  protected ChecklistAwareSearchRequestHandlerMethodArgumentResolver resolver;
+  protected ChecklistAwareEventSearchRequestHandlerMethodArgumentResolver resolver;
 
   @Override
   public void configurePathMatch(PathMatchConfigurer configurer) {

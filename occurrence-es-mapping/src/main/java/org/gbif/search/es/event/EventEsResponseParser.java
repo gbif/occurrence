@@ -22,7 +22,7 @@ import org.gbif.search.es.BaseEsFieldMapper;
 import org.gbif.search.es.EsResponseParser;
 
 public class EventEsResponseParser
-    extends EsResponseParser<Event, EventSearchParameter, EventSearchRequest> {
+    extends EsResponseParser<Event, EventSearchParameter> {
 
   /**
    * Private constructor.

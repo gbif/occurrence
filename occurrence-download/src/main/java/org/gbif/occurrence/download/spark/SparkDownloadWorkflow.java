@@ -89,7 +89,11 @@ public class SparkDownloadWorkflow {
         DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
     Download download = downloadService.get(downloadKey);
     ConceptClient conceptClient = DownloadWorkflowModule.conceptClient(workflowConfiguration);
-    translateVocabs(download, conceptClient);
+    if (DwcTerm.Event == coreDwcTerm) {
+      translateEventPredicateFields(download, conceptClient);
+    } else {
+      translateOccurrencePredicateFields(download, conceptClient);
+    }
     return download;
   }
 

@@ -43,20 +43,20 @@ import org.gbif.api.model.event.Lineage;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.common.SearchService;
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
+import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
-import org.gbif.predicate.query.EventEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.SearchHitConverter;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.event.EventEsFieldMapper;
 import org.gbif.search.es.event.EventEsResponseParser;
-import org.gbif.search.es.event.OccurrenceEventEsField;
 import org.gbif.search.es.event.SearchHitEventConverter;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +64,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EventSearchEs implements SearchService<Event, EventSearchParameter, EventSearchRequest> {
+public class EventSearchEs
+    implements SearchService<Event, EventSearchParameter, EventSearchRequest> {
 
   private static final Logger LOG = LoggerFactory.getLogger(EventSearchEs.class);
 
@@ -72,29 +73,28 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
   private final int maxOffset;
   private final RestHighLevelClient esClient;
   private final String esIndex;
-  @Getter
-  private final EventEsSearchRequestBuilder esSearchRequestBuilder;
+  @Getter private final EventEsSearchRequestBuilder esSearchRequestBuilder;
   private final EventEsResponseParser esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
   private final EventEsFieldMapper eventEsFieldMapper;
-  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
   private final SearchHitConverter<Event> searchHitEventConverter;
+  private final OccurrenceSearchService occurrenceSearchService;
 
-  private final SearchHitConverter<Occurrence> searchHitOccurrenceConverter;
+  private static final SearchResponse<Event, EventSearchParameter> EMPTY_RESPONSE =
+      new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
 
-  private static final SearchResponse<Event, EventSearchParameter> EMPTY_RESPONSE = new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
-
-  private static final String SUB_OCCURRENCES_QUERY =  "{\"parent_id\":{\"type\":\"occurrence\",\"id\":\"%s\"}}";
+  private static final String SUB_OCCURRENCES_QUERY =
+      "{\"parent_id\":{\"type\":\"occurrence\",\"id\":\"%s\"}}";
 
   public EventSearchEs(
-    RestHighLevelClient esClient,
-    NameUsageMatchingService nameUsageMatchingService,
-    @Value("${occurrence.search.max.offset}") int maxOffset,
-    @Value("${occurrence.search.max.limit}") int maxLimit,
-    @Value("${occurrence.search.es.index}") String esIndex,
-    ConceptClient conceptClient,
-    @Value("${defaultChecklistKey}") String defaultChecklistKey
-  ) {
+      RestHighLevelClient esClient,
+      NameUsageMatchingService nameUsageMatchingService,
+      @Value("${occurrence.search.max.offset}") int maxOffset,
+      @Value("${occurrence.search.max.limit}") int maxLimit,
+      @Value("${occurrence.search.es.index}") String esIndex,
+      ConceptClient conceptClient,
+      @Value("${defaultChecklistKey}") String defaultChecklistKey,
+      OccurrenceSearchService occurrenceSearchService) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -104,20 +104,16 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
     eventEsFieldMapper = EventEsField.buildFieldMapper(defaultChecklistKey);
-    occurrenceEsFieldMapper = OccurrenceEventEsField.buildFieldMapper(defaultChecklistKey);
     this.esSearchRequestBuilder =
         new EventEsSearchRequestBuilder(
-            eventEsFieldMapper,
-            conceptClient,
-            nameUsageMatchingService,
-            new EventEsQueryVisitor(eventEsFieldMapper));
+            eventEsFieldMapper, conceptClient, nameUsageMatchingService);
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
-    searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(occurrenceEsFieldMapper, true);
     this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
+    this.occurrenceSearchService = occurrenceSearchService;
   }
 
-  private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
-    //This should be changed to use GetRequest once ElasticSearch stores id correctly
+  private <T> T getByQuery(QueryBuilder query, Function<SearchHit, T> mapper) {
+    // This should be changed to use GetRequest once ElasticSearch stores id correctly
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.size(1);
@@ -136,11 +132,12 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     }
   }
 
-  private <T> PagingResponse<T> pageByQuery(QueryBuilder query, PagingRequest request, Function<SearchHit,T> mapper) {
-    //This should be changed to use GetRequest once ElasticSearch stores id correctly
+  private <T> PagingResponse<T> pageByQuery(
+      QueryBuilder query, PagingRequest request, Function<SearchHit, T> mapper) {
+    // This should be changed to use GetRequest once ElasticSearch stores id correctly
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.from((int)request.getOffset());
+    searchSourceBuilder.from((int) request.getOffset());
     searchSourceBuilder.size(request.getLimit());
     searchSourceBuilder.trackTotalHits(true);
     searchSourceBuilder.fetchSource(null, EventEsSearchRequestBuilder.SOURCE_EXCLUDE);
@@ -148,10 +145,13 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     searchSourceBuilder.query(query);
     searchRequest.source(searchSourceBuilder);
     try {
-      org.elasticsearch.action.search.SearchResponse esResponse = esClient.search(searchRequest, HEADERS.get());
+      org.elasticsearch.action.search.SearchResponse esResponse =
+          esClient.search(searchRequest, HEADERS.get());
       SearchHits hits = esResponse.getHits();
       if (hits != null && hits.getTotalHits().value > 0) {
-        PagingResponse<T> response = new PagingResponse<>(request.getOffset(), hits.getHits().length, hits.getTotalHits().value);
+        PagingResponse<T> response =
+            new PagingResponse<>(
+                request.getOffset(), hits.getHits().length, hits.getTotalHits().value);
         response.setResults(Arrays.stream(hits.getHits()).map(mapper).collect(Collectors.toList()));
         return response;
       }
@@ -162,7 +162,8 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
   }
 
   private <T> T searchByKey(String key, Function<SearchHit, T> mapper) {
-    return getByQuery(QueryBuilders.boolQuery().filter(QueryBuilders.idsQuery().addIds(key)), mapper);
+    return getByQuery(
+        QueryBuilders.boolQuery().filter(QueryBuilders.idsQuery().addIds(key)), mapper);
   }
 
   public Event get(String key) {
@@ -170,17 +171,18 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
   }
 
   public Event get(String datasetKey, String eventId) {
-    return getByQuery(QueryBuilders.boolQuery()
-                        .filter(QueryBuilders.termQuery("type", "event"))
-                        .filter(QueryBuilders.termQuery("metadata.datasetKey", datasetKey))
-                        .filter(QueryBuilders.termQuery("event.eventID.keyword", eventId)), searchHitEventConverter);
+    return getByQuery(
+        QueryBuilders.boolQuery()
+            .filter(QueryBuilders.termQuery("type", "event"))
+            .filter(QueryBuilders.termQuery("metadata.datasetKey", datasetKey))
+            .filter(QueryBuilders.termQuery("event.eventID.keyword", eventId)),
+        searchHitEventConverter);
   }
-
 
   private Optional<Event> getParent(Event event) {
     return Optional.ofNullable(event)
-            .filter(e -> e.getParentEventID() != null)
-            .map(e -> get(e.getDatasetKey().toString(), e.getParentEventID()));
+        .filter(e -> e.getParentEventID() != null)
+        .map(e -> get(e.getDatasetKey().toString(), e.getParentEventID()));
   }
 
   public Optional<Event> getParentEvent(String key) {
@@ -196,7 +198,8 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     return subEvents(get(id), pagingRequest);
   }
 
-  public PagingResponse<Event> subEvents(String datasetKey, String eventId, PagingRequest pagingRequest) {
+  public PagingResponse<Event> subEvents(
+      String datasetKey, String eventId, PagingRequest pagingRequest) {
     validatePagingRequest(pagingRequest);
     return subEvents(get(datasetKey, eventId), pagingRequest);
   }
@@ -205,12 +208,14 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     if (Objects.isNull(event)) {
       return null;
     }
-    return pageByQuery(QueryBuilders.boolQuery()
-                         .filter(QueryBuilders.termQuery("type", "event"))
-                         .filter(QueryBuilders.termQuery("event.parentEventID.keyword", event.getEventID()))
-                         .filter(QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString())),
-                       pagingRequest,
-                       searchHitEventConverter);
+    return pageByQuery(
+        QueryBuilders.boolQuery()
+            .filter(QueryBuilders.termQuery("type", "event"))
+            .filter(QueryBuilders.termQuery("event.parentEventID.keyword", event.getEventID()))
+            .filter(
+                QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString())),
+        pagingRequest,
+        searchHitEventConverter);
   }
 
   public List<Lineage> lineage(String id) {
@@ -226,7 +231,8 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     return occurrences(get(id), pagingRequest);
   }
 
-  public PagingResponse<Occurrence> occurrences(String datasetKey, String eventId, PagingRequest pagingRequest) {
+  public PagingResponse<Occurrence> occurrences(
+      String datasetKey, String eventId, PagingRequest pagingRequest) {
     return occurrences(get(datasetKey, eventId), pagingRequest);
   }
 
@@ -234,19 +240,26 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     if (Objects.isNull(event)) {
       return null;
     }
-    return pageByQuery(QueryBuilders.wrapperQuery(String.format(SUB_OCCURRENCES_QUERY, event.getId())),
-                       pagingRequest,
-                       searchHitOccurrenceConverter);
+
+    OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_ID, event.getId());
+    return occurrenceSearchService.search(occurrenceSearchRequest);
   }
 
   private List<Lineage> lineage(Event event) {
     // TODO: no need to do the loop. The lineage is stored in ES
     List<Lineage> lineage = new ArrayList<>();
-    Optional<Event> parent = event.getParentEventID() == null? Optional.empty() : Optional.ofNullable(get(event.getDatasetKey().toString(), event.getParentEventID()));
+    Optional<Event> parent =
+        event.getParentEventID() == null
+            ? Optional.empty()
+            : Optional.ofNullable(get(event.getDatasetKey().toString(), event.getParentEventID()));
     do {
-      parent.ifPresent(p -> lineage.add(new Lineage(p.getId(), p.getEventID(), p.getParentEventID())));
-      parent = parent.filter(p -> p.getParentEventID() != null)
-                     .flatMap(p -> getParentEvent(p.getDatasetKey().toString(), p.getParentEventID()));
+      parent.ifPresent(
+          p -> lineage.add(new Lineage(p.getId(), p.getEventID(), p.getParentEventID())));
+      parent =
+          parent
+              .filter(p -> p.getParentEventID() != null)
+              .flatMap(p -> getParentEvent(p.getDatasetKey().toString(), p.getParentEventID()));
     } while (parent.isPresent());
     return lineage;
   }
@@ -258,13 +271,13 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     }
 
     Preconditions.checkArgument(
-      pagingRequest.getOffset() + pagingRequest.getLimit() <= maxOffset,
-      "Max offset of "
-      + maxOffset
-      + " exceeded: "
-      + pagingRequest.getOffset()
-      + " + "
-      + pagingRequest.getLimit());
+        pagingRequest.getOffset() + pagingRequest.getLimit() <= maxOffset,
+        "Max offset of "
+            + maxOffset
+            + " exceeded: "
+            + pagingRequest.getOffset()
+            + " + "
+            + pagingRequest.getLimit());
   }
 
   @Override
@@ -280,12 +293,13 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
     }
 
     // build request
-    SearchRequest esRequest =  esSearchRequestBuilder.buildSearchRequest(searchRequest, esIndex);
+    SearchRequest esRequest = esSearchRequestBuilder.buildSearchRequest(searchRequest, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search
     try {
-      return esResponseParser.buildSearchResponse(esClient.search(esRequest, HEADERS.get()), searchRequest);
+      return esResponseParser.buildSearchResponse(
+          esClient.search(esRequest, HEADERS.get()), searchRequest);
     } catch (Exception e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
@@ -296,7 +310,7 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
    * Tries to get the corresponding name usage keys from the scientific_name parameter values.
    *
    * @return true: if the request doesn't contain any scientific_name parameter or if any scientific
-   * name was found false: if none scientific name was found
+   *     name was found false: if none scientific name was found
    */
   private boolean hasReplaceableScientificNames(EventSearchRequest request) {
     boolean hasValidReplaces = true;
@@ -304,12 +318,15 @@ public class EventSearchEs implements SearchService<Event, EventSearchParameter,
       hasValidReplaces = false;
       Collection<String> values = request.getParameters().get(EventSearchParameter.SCIENTIFIC_NAME);
       for (String value : values) {
-        NameUsageMatchResponse nameUsageMatch = nameUsageMatchingService.match(NameUsageMatchRequest.builder()
-          .withScientificName(value)
-          .withStrict(false)
-          .withVerbose(false)
-          .build());
-        if (nameUsageMatch.getDiagnostics().getMatchType() == NameUsageMatchResponse.MatchType.EXACT) {
+        NameUsageMatchResponse nameUsageMatch =
+            nameUsageMatchingService.match(
+                NameUsageMatchRequest.builder()
+                    .withScientificName(value)
+                    .withStrict(false)
+                    .withVerbose(false)
+                    .build());
+        if (nameUsageMatch.getDiagnostics().getMatchType()
+            == NameUsageMatchResponse.MatchType.EXACT) {
           hasValidReplaces = true;
           values.remove(value);
           request.addParameter(EventSearchParameter.TAXON_KEY, nameUsageMatch.getUsage().getKey());

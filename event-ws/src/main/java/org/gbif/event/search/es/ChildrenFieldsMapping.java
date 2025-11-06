@@ -13,14 +13,6 @@
  */
 package org.gbif.event.search.es;
 
-import org.gbif.search.es.EsField;
-
-import java.util.Map;
-
-import com.google.common.collect.ImmutableMap;
-
-import lombok.experimental.UtilityClass;
-
 import static org.gbif.search.es.event.EventEsField.CLASS_KEY;
 import static org.gbif.search.es.event.EventEsField.FAMILY_KEY;
 import static org.gbif.search.es.event.EventEsField.GENUS_KEY;
@@ -34,6 +26,11 @@ import static org.gbif.search.es.event.EventEsField.TAXON_ID;
 import static org.gbif.search.es.event.EventEsField.TAXON_KEY;
 import static org.gbif.search.es.event.EventEsField.TYPE_STATUS;
 import static org.gbif.search.es.event.EventEsField.VERBATIM_SCIENTIFIC_NAME;
+
+import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+import lombok.experimental.UtilityClass;
+import org.gbif.predicate.query.EsField;
 
 @UtilityClass
 public class ChildrenFieldsMapping {

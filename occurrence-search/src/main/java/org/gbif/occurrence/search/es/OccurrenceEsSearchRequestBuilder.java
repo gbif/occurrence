@@ -5,35 +5,24 @@ import java.util.Optional;
 import java.util.Set;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.search.es.EsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.vocabulary.client.ConceptClient;
 
 public class OccurrenceEsSearchRequestBuilder
     extends BaseEsSearchRequestBuilder<OccurrenceSearchParameter, OccurrenceSearchRequest> {
 
-  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
-
   public OccurrenceEsSearchRequestBuilder(
-    OccurrenceEsFieldMapper occurrenceEsFieldMapper,
-    ConceptClient conceptClient,
-    NameUsageMatchingService nameUsageMatchingService,
-    OccurrenceEsQueryVisitor occurrenceEsQueryVisitor) {
+      OccurrenceEsFieldMapper occurrenceEsFieldMapper,
+      ConceptClient conceptClient,
+      NameUsageMatchingService nameUsageMatchingService) {
     super(
-        occurrenceEsFieldMapper, conceptClient, nameUsageMatchingService, occurrenceEsQueryVisitor);
-    this.occurrenceEsFieldMapper = occurrenceEsFieldMapper;
-  }
-
-  @Override
-  protected EsField getEsField(OccurrenceSearchParameter parameter) {
-    return occurrenceEsFieldMapper.getEsField(parameter);
-  }
-
-  @Override
-  protected EsField getEsFacetField(OccurrenceSearchParameter parameter) {
-    return occurrenceEsFieldMapper.getEsFacetField(parameter);
+        occurrenceEsFieldMapper,
+        conceptClient,
+        nameUsageMatchingService,
+        new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper));
   }
 
   @Override
@@ -47,22 +36,12 @@ public class OccurrenceEsSearchRequestBuilder
   }
 
   @Override
-  protected boolean isDateField(EsField esField) {
-    return occurrenceEsFieldMapper.isDateField(esField);
-  }
-
-  @Override
-  protected EsField getGeoDistanceEsField() {
-    return occurrenceEsFieldMapper.getGeoDistanceEsField();
-  }
-
-  @Override
-  protected EsField getGeoShapeEsField() {
-    return occurrenceEsFieldMapper.getGeoShapeEsField();
-  }
-
-  @Override
-  protected void translateVocabs(Map<OccurrenceSearchParameter, Set<String>> params) {
+  protected void translateFields(Map<OccurrenceSearchParameter, Set<String>> params) {
     RequestFieldsTranslator.translateOccurrenceFields(params, conceptClient);
+  }
+
+  @Override
+  protected Predicate translatePredicateFields(Predicate predicate) {
+    return RequestFieldsTranslator.translateOccurrencePredicateFields(predicate, conceptClient);
   }
 }

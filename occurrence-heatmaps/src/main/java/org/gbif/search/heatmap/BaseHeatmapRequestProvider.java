@@ -19,7 +19,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.common.search.SearchRequest;
@@ -28,7 +27,6 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.search.cache.PredicateCacheService;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
-import org.gbif.ws.util.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

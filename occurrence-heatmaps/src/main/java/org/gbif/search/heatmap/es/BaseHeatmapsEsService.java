@@ -14,7 +14,7 @@
 package org.gbif.search.heatmap.es;
 
 import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-import static org.gbif.search.heatmap.es.EsHeatmapRequestBuilder.*;
+import static org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,13 +48,13 @@ public abstract class BaseHeatmapsEsService<
 
   private final RestHighLevelClient esClient;
   private final String esIndex;
-  private final EsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder;
+  private final BaseEsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder;
 
   @Autowired
   public BaseHeatmapsEsService(
       RestHighLevelClient esClient,
       String esIndex,
-      EsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder) {
+      BaseEsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder) {
     this.esIndex = esIndex;
     this.esClient = esClient;
     this.esHeatmapRequestBuilder = esHeatmapRequestBuilder;
@@ -66,7 +66,7 @@ public abstract class BaseHeatmapsEsService<
 
     // build request, ensure mode is set.
     request.setMode(OccurrenceHeatmapRequest.Mode.GEO_BOUNDS);
-    SearchRequest searchRequest = esHeatmapRequestBuilder.buildRequest(request, esIndex);
+    SearchRequest searchRequest = esHeatmapRequestBuilder.buildHeatmapRequest(request, esIndex);
     LOG.debug("ES query: {}", searchRequest);
 
     try {
@@ -83,7 +83,7 @@ public abstract class BaseHeatmapsEsService<
 
     // build request, ensure mode is set.
     request.setMode(OccurrenceHeatmapRequest.Mode.GEO_CENTROID);
-    SearchRequest searchRequest = esHeatmapRequestBuilder.buildRequest(request, esIndex);
+    SearchRequest searchRequest = esHeatmapRequestBuilder.buildHeatmapRequest(request, esIndex);
     LOG.debug("ES query: {}", searchRequest);
 
     try {

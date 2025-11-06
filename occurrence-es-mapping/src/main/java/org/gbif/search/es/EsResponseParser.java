@@ -37,7 +37,7 @@ import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 
 public abstract class EsResponseParser<
-    T extends VerbatimOccurrence, P extends SearchParameter, R extends FacetedSearchRequest<P>> {
+    T extends VerbatimOccurrence, P extends SearchParameter> {
 
   // defaults
   private static final int DEFAULT_FACET_OFFSET = 0;
@@ -59,7 +59,7 @@ public abstract class EsResponseParser<
    * @return a new instance of a SearchResponse.
    */
   public SearchResponse<T, P> buildSearchResponse(
-      org.elasticsearch.action.search.SearchResponse esResponse, R request) {
+      org.elasticsearch.action.search.SearchResponse esResponse, FacetedSearchRequest<P> request) {
 
     SearchResponse<T, P> response = new SearchResponse<>(request);
     response.setCount(esResponse.getHits().getTotalHits().value);
@@ -112,7 +112,7 @@ public abstract class EsResponseParser<
   }
 
   private Optional<List<Facet<P>>> parseFacets(
-      org.elasticsearch.action.search.SearchResponse esResponse, R request) {
+      org.elasticsearch.action.search.SearchResponse esResponse, FacetedSearchRequest<P> request) {
 
     Function<Aggregation, Facet<P>> mapFn =
         aggs -> {
@@ -146,13 +146,13 @@ public abstract class EsResponseParser<
 
   protected abstract P createSearchParameter(String name, Class<?> type);
 
-  int extractFacetLimit(R request, P facet) {
+  <R extends FacetedSearchRequest<P>> int extractFacetLimit(R request, P facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(Pageable::getLimit)
         .orElse(request.getFacetLimit() != null ? request.getFacetLimit() : DEFAULT_FACET_LIMIT);
   }
 
-  int extractFacetOffset(R request, P facet) {
+  <R extends FacetedSearchRequest<P>>  int extractFacetOffset(R request, P facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(v -> (int) v.getOffset())
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);

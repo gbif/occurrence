@@ -71,7 +71,6 @@ import org.gbif.api.util.Range;
 import org.gbif.api.vocabulary.*;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.occurrence.search.es.OccurrenceEsSearchRequestBuilder;
-import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
@@ -129,10 +128,7 @@ public class OccurrenceSearchResource {
     OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
     this.esSearchRequestBuilder =
         new OccurrenceEsSearchRequestBuilder(
-            esFieldMapper,
-            conceptClient,
-            nameUsageMatchingService,
-            new OccurrenceEsQueryVisitor(esFieldMapper));
+            esFieldMapper, conceptClient, nameUsageMatchingService);
   }
 
   /**

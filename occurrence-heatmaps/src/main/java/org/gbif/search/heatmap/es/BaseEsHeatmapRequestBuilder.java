@@ -23,40 +23,40 @@ import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBu
 import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
-import org.gbif.occurrence.search.es.EsSearchRequestBuilder;
+import org.gbif.predicate.query.EsFieldMapper;
+import org.gbif.predicate.query.EsQueryVisitor;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.heatmap.HeatmapRequest;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
-import org.gbif.predicate.query.EsFieldMapper;
+import org.gbif.vocabulary.client.ConceptClient;
 
-import java.util.Optional;
+public abstract class BaseEsHeatmapRequestBuilder<
+        P extends SearchParameter,
+        R extends FacetedSearchRequest<P> & HeatmapRequest & PredicateSearchRequest>
+    extends BaseEsSearchRequestBuilder<P, R> {
 
-public abstract class EsHeatmapRequestBuilder<
-    P extends SearchParameter, R extends FacetedSearchRequest<P> & HeatmapRequest & PredicateSearchRequest> {
-
-  static final String HEATMAP_AGGS = "heatmap";
-  static final String CELL_AGGS = "cell";
+  public static final String HEATMAP_AGGS = "heatmap";
+  public static final String CELL_AGGS = "cell";
 
   // Mapping of predefined zoom levels
   private static final int[] PRECISION_LOOKUP =
       new int[] {2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
 
-  private final EsFieldMapper<P> esFieldMapper;
-  private final EsSearchRequestBuilder<P, R> esSearchRequestBuilder;
-
-  protected EsHeatmapRequestBuilder(
-      EsFieldMapper<P> esFieldMapper, BaseEsSearchRequestBuilder<P, R> esSearchRequestBuilder) {
-    this.esFieldMapper = esFieldMapper;
-    this.esSearchRequestBuilder = esSearchRequestBuilder;
+  public BaseEsHeatmapRequestBuilder(
+      EsFieldMapper<P> esFieldMapper,
+      ConceptClient conceptClient,
+      NameUsageMatchingService nameUsageMatchingService,
+      EsQueryVisitor<P> esQueryVisitor) {
+    super(esFieldMapper, conceptClient, nameUsageMatchingService, esQueryVisitor);
   }
 
   @VisibleForTesting
-  SearchRequest buildRequest(R request, String index) {
+  public SearchRequest buildHeatmapRequest(R request, String index) {
     // build request body
     SearchRequest esRequest = new SearchRequest();
     esRequest.indices(index);
@@ -90,10 +90,10 @@ public abstract class EsHeatmapRequestBuilder<
 
     // add query
     if (request.getPredicate() != null) { // is a predicate search
-      esSearchRequestBuilder.buildQuery(request).ifPresent(bool.filter()::add);
+      buildQuery(request).ifPresent(bool.filter()::add);
     } else {
       // add hasCoordinate to the filter and create query
-      esSearchRequestBuilder.buildQueryNode(request).ifPresent(bool.filter()::add);
+      buildQueryNode(request).ifPresent(bool.filter()::add);
     }
 
     searchSourceBuilder.query(bool);
@@ -124,6 +124,4 @@ public abstract class EsHeatmapRequestBuilder<
 
     return geoGridAggs;
   }
-
-  protected abstract Optional<P> getParam(String name);
 }

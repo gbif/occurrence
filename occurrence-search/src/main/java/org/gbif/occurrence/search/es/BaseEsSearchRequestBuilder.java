@@ -49,19 +49,19 @@ import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchConstants;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
-import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.util.IsoDateParsingUtils;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.predicate.query.EsField;
 import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.rest.client.species.Metadata;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.BaseEsField;
 import org.gbif.search.es.ChecklistEsField;
-import org.gbif.search.es.EsField;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -72,8 +72,7 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
 public abstract class BaseEsSearchRequestBuilder<
-        P extends SearchParameter, S extends FacetedSearchRequest<P> & PredicateSearchRequest>
-    implements EsSearchRequestBuilder<P, S> {
+    P extends SearchParameter, S extends FacetedSearchRequest<P>> {
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
   private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
@@ -81,8 +80,8 @@ public abstract class BaseEsSearchRequestBuilder<
   public static String[] SOURCE_EXCLUDE =
       new String[] {"all", "notIssues", "*.verbatim", "*.suggest"};
 
-  private final EsFieldMapper<P> esFieldMapper;
-  private final NameUsageMatchingService nameUsageMatchingService;
+  protected final EsFieldMapper<P> esFieldMapper;
+  protected final NameUsageMatchingService nameUsageMatchingService;
   protected final ConceptClient conceptClient;
   protected final EsQueryVisitor<P> esQueryVisitor;
 
@@ -118,9 +117,8 @@ public abstract class BaseEsSearchRequestBuilder<
     String checklistKey = getChecklistKey(searchRequest.getParameters());
 
     // add query
-    if (searchRequest instanceof OccurrencePredicateSearchRequest) {
-      buildQuery((OccurrencePredicateSearchRequest) searchRequest)
-          .ifPresent(searchSourceBuilder::query);
+    if (searchRequest instanceof PredicateSearchRequest) {
+      buildQuery((PredicateSearchRequest) searchRequest).ifPresent(searchSourceBuilder::query);
     } else {
       buildQuery(
               groupedParams.queryParams,
@@ -158,7 +156,6 @@ public abstract class BaseEsSearchRequestBuilder<
     return esRequest;
   }
 
-  @Override
   public Optional<QueryBuilder> buildQueryNode(S searchRequest) {
     return buildQuery(
         searchRequest.getParameters(),
@@ -174,7 +171,7 @@ public abstract class BaseEsSearchRequestBuilder<
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     request.source(searchSourceBuilder);
 
-    EsField esField = getEsField(parameter);
+    EsField esField = esFieldMapper.getEsField(parameter);
 
     // create suggest query
     searchSourceBuilder.suggest(
@@ -192,10 +189,6 @@ public abstract class BaseEsSearchRequestBuilder<
     return request;
   }
 
-  protected abstract EsField getEsField(P parameter);
-
-  protected abstract EsField getEsFacetField(P parameter);
-
   // Method to build and add a nested checklist query
   private void addChecklistKeyParamToQuery(
       Map<P, Set<String>> params, BoolQueryBuilder bool, P taxonParam) {
@@ -210,7 +203,7 @@ public abstract class BaseEsSearchRequestBuilder<
           QueryBuilders.boolQuery()
               .must(QueryBuilders.termsQuery(esFieldToUse, params.get(taxonParam)));
 
-      EsField esField = getEsField(taxonParam);
+      EsField esField = esFieldMapper.getEsField(taxonParam);
       // TODO: this has to be with the other nested queries
       if (esField.isNestedField()) {
         bool.filter()
@@ -250,7 +243,7 @@ public abstract class BaseEsSearchRequestBuilder<
   @VisibleForTesting
   Optional<QueryBuilder> buildQuery(
       Map<P, Set<String>> params, String qParam, boolean matchCase, String checklistKey) {
-    translateVocabs(params);
+    translateFields(params);
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
@@ -312,7 +305,7 @@ public abstract class BaseEsSearchRequestBuilder<
     Map<String, List<QueryBuilder>> queriesByNestedPath = new HashMap<>();
     List<QueryBuilder> nonNestedQueries = new ArrayList<>();
     for (Map.Entry<P, Set<String>> e : params.entrySet()) {
-      EsField esField = getEsField(e.getKey());
+      EsField esField = esFieldMapper.getEsField(e.getKey());
       if (esField == null) {
         continue;
       }
@@ -320,7 +313,7 @@ public abstract class BaseEsSearchRequestBuilder<
           buildTermQuery(
               e.getValue(),
               e.getKey(),
-              getEsField(e.getKey()),
+              esFieldMapper.getEsField(e.getKey()),
               matchCase,
               wrappedChildrenQueries,
               checklistKey);
@@ -358,7 +351,10 @@ public abstract class BaseEsSearchRequestBuilder<
   private void handleIssueQueries(Map<P, Set<String>> params, BoolQueryBuilder bool) {
     Optional<P> checklistKeyParam = getParam("CHECKLIST_KEY");
     Optional<P> issueParam = getParam("ISSUE");
-    if (checklistKeyParam.isPresent() && issueParam.isPresent()) {
+    if (checklistKeyParam.isPresent()
+        && params.containsKey(checklistKeyParam.get())
+        && issueParam.isPresent()
+        && params.containsKey(issueParam.get())) {
       String esFieldToUse = OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName();
 
       // validate the value  - make sure it isn't taxonomic, otherwise throw an error
@@ -419,12 +415,9 @@ public abstract class BaseEsSearchRequestBuilder<
     }
   }
 
-  @Override
   @SneakyThrows
-  public Optional<BoolQueryBuilder> buildQuery(S searchRequest) {
-    searchRequest.setPredicate(
-        RequestFieldsTranslator.translatePredicateFields(
-            searchRequest.getPredicate(), conceptClient));
+  public Optional<BoolQueryBuilder> buildQuery(PredicateSearchRequest searchRequest) {
+    searchRequest.setPredicate(translatePredicateFields(searchRequest.getPredicate()));
 
     // create bool node
     BoolQueryBuilder bool = QueryBuilders.boolQuery();
@@ -541,7 +534,7 @@ public abstract class BaseEsSearchRequestBuilder<
     }
 
     return searchRequest.getFacets().stream()
-        .filter(p -> getEsField(p) != null)
+        .filter(p -> esFieldMapper.getEsField(p) != null)
         .map(
             facetParam -> {
 
@@ -554,7 +547,7 @@ public abstract class BaseEsSearchRequestBuilder<
                       getChecklistKey(searchRequest.getParameters()));
 
               // add filter to the aggs
-              EsField esField = getEsFacetField(facetParam);
+              EsField esField = esFieldMapper.getEsFacetField(facetParam);
               FilterAggregationBuilder filterAggs =
                   AggregationBuilders.filter(esField.getSearchFieldName(), bool);
 
@@ -605,10 +598,10 @@ public abstract class BaseEsSearchRequestBuilder<
   private List<AggregationBuilder> buildFacets(S searchRequest) {
     final AtomicReference<GroupedParams<P>> groupedParams = new AtomicReference<>();
     return searchRequest.getFacets().stream()
-        .filter(p -> getEsField(p) != null || isDynamicRankParam(searchRequest, p))
+        .filter(p -> esFieldMapper.getEsField(p) != null || isDynamicRankParam(searchRequest, p))
         .map(
             facetParam -> {
-              EsField esField = getEsFacetField(facetParam);
+              EsField esField = esFieldMapper.getEsFacetField(facetParam);
               if (esField != null && esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
@@ -793,7 +786,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
     List<QueryBuilder> queryBuilders = new ArrayList<>();
     for (String value : values) {
-      if (isNumericRange(value) || isDateField(esField)) {
+      if (isNumericRange(value) || esFieldMapper.isDateField(esField)) {
         RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
         queryBuilders.add(rangeQueryBuilder);
         if (esFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
@@ -840,7 +833,7 @@ public abstract class BaseEsSearchRequestBuilder<
   private RangeQueryBuilder buildRangeQuery(EsField esField, String value) {
     RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
 
-    if (isDateField(esField)) {
+    if (esFieldMapper.isDateField(esField)) {
       Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(value);
 
       if (dateRange.hasLowerBound()) {
@@ -881,7 +874,8 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   public GeoDistanceQueryBuilder buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
-    return QueryBuilders.geoDistanceQuery(getGeoDistanceEsField().getSearchFieldName())
+    return QueryBuilders.geoDistanceQuery(
+            esFieldMapper.getGeoDistanceEsField().getSearchFieldName())
         .distance(geoDistance.getDistance().toString())
         .point(geoDistance.getLatitude(), geoDistance.getLongitude());
   }
@@ -937,7 +931,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
     try {
       return QueryBuilders.geoShapeQuery(
-              getGeoShapeEsField().getSearchFieldName(), shapeBuilder.buildGeometry())
+              esFieldMapper.getGeoShapeEsField().getSearchFieldName(), shapeBuilder.buildGeometry())
           .relation(ShapeRelation.WITHIN);
     } catch (IOException e) {
       throw new IllegalStateException(e.getMessage(), e);
@@ -948,13 +942,8 @@ public abstract class BaseEsSearchRequestBuilder<
 
   protected abstract P createSearchParam(String name, Class<?> type);
 
-  protected abstract boolean isDateField(EsField esField);
-
-  protected abstract EsField getGeoDistanceEsField();
-
-  protected abstract EsField getGeoShapeEsField();
-
-  protected abstract void translateVocabs(Map<P, Set<String>> params);
+  protected abstract void translateFields(Map<P, Set<String>> params);
+  protected abstract Predicate translatePredicateFields(Predicate predicate);
 
   /** Eliminates consecutive duplicates. The order is preserved. */
   @VisibleForTesting

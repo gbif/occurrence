@@ -25,11 +25,10 @@ import java.util.regex.Pattern;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.search.SearchHit;
-
-import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.predicate.query.EsField;
 
 @Slf4j
 @Data

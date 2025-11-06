@@ -13,8 +13,6 @@
  */
 package org.gbif.search.heatmap.es.occurrence;
 
-import static org.gbif.search.heatmap.es.EsHeatmapRequestBuilder.*;
-
 import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.search.heatmap.es.BaseHeatmapsEsService;

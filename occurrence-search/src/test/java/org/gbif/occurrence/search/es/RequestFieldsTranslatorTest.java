@@ -80,7 +80,8 @@ public class RequestFieldsTranslatorTest {
     EqualsPredicate<OccurrenceSearchParameter> equalsPredicate =
         new EqualsPredicate<>(OccurrenceSearchParameter.GEOLOGICAL_TIME, "neogene", false);
     Predicate translatedPredicate =
-        RequestFieldsTranslator.translatePredicateFields(equalsPredicate, new ConceptClientMock());
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
+            equalsPredicate, new ConceptClientMock());
     assertTrue(translatedPredicate instanceof EqualsPredicate);
     EqualsPredicate<OccurrenceSearchParameter> tep =
         (EqualsPredicate<OccurrenceSearchParameter>) translatedPredicate;
@@ -91,7 +92,7 @@ public class RequestFieldsTranslatorTest {
         new EqualsPredicate<>(
             OccurrenceSearchParameter.GEOLOGICAL_TIME, "mesozoic,cenozoic", false);
     Predicate rangeTranslatedPredicate =
-        RequestFieldsTranslator.translatePredicateFields(
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
             rangeEqualsPredicate, new ConceptClientMock());
     assertTrue(rangeTranslatedPredicate instanceof EqualsPredicate);
     EqualsPredicate<OccurrenceSearchParameter> trp =
@@ -102,7 +103,7 @@ public class RequestFieldsTranslatorTest {
     DisjunctionPredicate disjunctionPredicate =
         new DisjunctionPredicate(Arrays.asList(equalsPredicate, rangeEqualsPredicate));
     Predicate translatedDisjunctionPredicate =
-        RequestFieldsTranslator.translatePredicateFields(
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
             disjunctionPredicate, new ConceptClientMock());
     assertTrue(translatedDisjunctionPredicate instanceof DisjunctionPredicate);
     DisjunctionPredicate tdp = (DisjunctionPredicate) translatedDisjunctionPredicate;

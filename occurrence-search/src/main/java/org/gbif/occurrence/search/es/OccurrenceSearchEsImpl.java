@@ -13,10 +13,29 @@
  */
 package org.gbif.occurrence.search.es;
 
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
+
+import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.Function;
+import javax.annotation.Nullable;
+import javax.validation.constraints.Min;
+import lombok.SneakyThrows;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
-
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -30,40 +49,17 @@ import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
-import org.gbif.search.es.occurrence.EsResponseParser;
+import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.search.es.EsResponseParser;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
 import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
 import org.gbif.vocabulary.client.ConceptClient;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.function.Function;
-
-import javax.annotation.Nullable;
-import javax.validation.constraints.Min;
-
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.gbif.rest.client.species.NameUsageMatchingService;
-import com.google.common.base.Preconditions;
-
-import lombok.SneakyThrows;
-
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 
 /** Occurrence search service. */
 @Component
@@ -78,8 +74,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final int maxOffset;
   private final EsFulltextSuggestBuilder esFulltextSuggestBuilder;
   private final OccurrenceEsFieldMapper esFieldMapper;
-  private final EsSearchRequestBuilder esSearchRequestBuilder;
-  private final EsResponseParser<Occurrence> esResponseParser;
+  private final OccurrenceEsSearchRequestBuilder esSearchRequestBuilder;
+  private final OccurrenceEsResponseParser esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
   private final String defaultChecklistKey;
 
@@ -103,9 +99,11 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.nameUsageMatchingService = nameUsageMatchingService;
     this.esFieldMapper = esFieldMapper;
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceEsFieldMapper(esFieldMapper).build();
-    this.esSearchRequestBuilder = new EsSearchRequestBuilder(esFieldMapper, conceptClient, nameUsageMatchingService);
+    this.esSearchRequestBuilder =
+        new OccurrenceEsSearchRequestBuilder(
+            esFieldMapper, conceptClient, nameUsageMatchingService);
     this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
-    this.esResponseParser = new EsResponseParser<>(esFieldMapper, searchHitOccurrenceConverter);
+    this.esResponseParser = new OccurrenceEsResponseParser(esFieldMapper, searchHitOccurrenceConverter);
     this.defaultChecklistKey = defaultChecklistKey;
   }
 
@@ -114,7 +112,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     SearchRequest searchRequest = new SearchRequest();
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
     searchSourceBuilder.size(1);
-    searchSourceBuilder.fetchSource(null, EsSearchRequestBuilder.SOURCE_EXCLUDE);
+    searchSourceBuilder.fetchSource(null, BaseEsSearchRequestBuilder.SOURCE_EXCLUDE);
     searchRequest.indices(esIndex);
     searchSourceBuilder.query(query);
     searchRequest.source(searchSourceBuilder);

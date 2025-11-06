@@ -11,10 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.search.es;
+package org.gbif.event.search.es;
 
-import static org.gbif.search.es.event.EventEsField.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.search.es.event.EventEsField.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,9 +23,9 @@ import java.util.Arrays;
 import java.util.List;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.model.event.search.EventPredicateSearchRequest;
+import org.gbif.api.model.event.search.EventSearchParameter;
+import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
 import org.gbif.api.model.predicate.DisjunctionPredicate;
 import org.gbif.api.model.predicate.EqualsPredicate;
@@ -45,17 +45,17 @@ public class EventEsSearchRequestBuilderTest {
   private static final String INDEX = "index";
   public static final String DEFAULT_CHECKLIST_KEY = "defaultChecklistKey";
 
-  private final EsSearchRequestBuilder esSearchRequestBuilder =
-      new EsSearchRequestBuilder(
+  private final EventEsSearchRequestBuilder esSearchRequestBuilder =
+      new EventEsSearchRequestBuilder(
           EventEsField.buildFieldMapper(DEFAULT_CHECKLIST_KEY), new ConceptClientMock(), null);
 
   @Test
   public void humboldtTaxonomyTest() throws Exception {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    EventSearchRequest searchRequest = new EventSearchRequest();
     searchRequest.addParameter(
-        OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
+        EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
     searchRequest.addParameter(
-        OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk");
+        EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -85,8 +85,8 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void humboldtTaxonomicIssueTest() throws Exception {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addParameter(OccurrenceSearchParameter.TAXONOMIC_ISSUE, "iss");
+    EventSearchRequest searchRequest = new EventSearchRequest();
+    searchRequest.addParameter(EventSearchParameter.TAXONOMIC_ISSUE, "iss");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -108,10 +108,10 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void humboldtDifferentChecklistKeyTest() throws Exception {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    EventSearchRequest searchRequest = new EventSearchRequest();
     searchRequest.addParameter(
-        OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
-    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "key2");
+        EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
+    searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "key2");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -130,10 +130,10 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void humboldtTaxonomyFacetTest() throws Exception {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addFacets(OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY);
+    EventSearchRequest searchRequest = new EventSearchRequest();
+    searchRequest.addFacets(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY);
     searchRequest.addFacetPage(
-        OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, 0, 5);
+        EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, 0, 5);
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -162,8 +162,8 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void humboldtEventDurationTest() throws Exception {
-    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addParameter(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, "2");
+    EventSearchRequest searchRequest = new EventSearchRequest();
+    searchRequest.addParameter(EventSearchParameter.HUMBOLDT_EVENT_DURATION, "2");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -182,14 +182,14 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void conjunctionNestedPredicateTest() throws Exception {
-    Predicate p1 = new EqualsPredicate<>(OccurrenceSearchParameter.HUMBOLDT_SITE_COUNT, "1", false);
+    Predicate p1 = new EqualsPredicate<>(EventSearchParameter.HUMBOLDT_SITE_COUNT, "1", false);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
+            EventSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
             "kilometers distance not traveled",
             false);
     Predicate p3 = new ConjunctionPredicate(Arrays.asList(p1, p2));
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
     QueryBuilder query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
@@ -199,14 +199,14 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void conjunctionNestedMixedPredicateTest() throws Exception {
-    Predicate p1 = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_TYPE, "Event", false);
+    Predicate p1 = new EqualsPredicate<>(EventSearchParameter.EVENT_TYPE, "Event", false);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
+            EventSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
             "kilometers distance not traveled",
             false);
     Predicate p3 = new ConjunctionPredicate(Arrays.asList(p1, p2));
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
     QueryBuilder query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
@@ -217,14 +217,14 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void disjunctionNestedPredicateTest() throws Exception {
-    Predicate p1 = new EqualsPredicate<>(OccurrenceSearchParameter.HUMBOLDT_SITE_COUNT, "1", false);
+    Predicate p1 = new EqualsPredicate<>(EventSearchParameter.HUMBOLDT_SITE_COUNT, "1", false);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
+            EventSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
             "kilometers distance not traveled",
             false);
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p2));
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
     QueryBuilder query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
@@ -234,14 +234,14 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void disjunctionNestedMixedPredicateTest() throws Exception {
-    Predicate p1 = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_TYPE, "Event", false);
+    Predicate p1 = new EqualsPredicate<>(EventSearchParameter.EVENT_TYPE, "Event", false);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
+            EventSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
             "kilometers distance not traveled",
             false);
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p2));
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
     QueryBuilder query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
@@ -252,14 +252,14 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void notNestedPredicateTest() throws Exception {
-    Predicate p1 = new EqualsPredicate<>(OccurrenceSearchParameter.HUMBOLDT_SITE_COUNT, "1", false);
+    Predicate p1 = new EqualsPredicate<>(EventSearchParameter.HUMBOLDT_SITE_COUNT, "1", false);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
+            EventSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
             "kilometers distance not traveled",
             false);
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p2));
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new NotPredicate(p3));
     QueryBuilder query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
@@ -271,17 +271,17 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void notNestedMixedPredicateTest() throws Exception {
-    Predicate p1 = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_TYPE, "Event", false);
+    Predicate p1 = new EqualsPredicate<>(EventSearchParameter.EVENT_TYPE, "Event", false);
     Predicate p11 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_VERBATIM_SITE_NAMES, "L10510092", false);
+            EventSearchParameter.HUMBOLDT_VERBATIM_SITE_NAMES, "L10510092", false);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
+            EventSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
             "kilometers distance not traveled",
             false);
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p11, p2));
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new NotPredicate(p3));
     QueryBuilder query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
@@ -295,14 +295,14 @@ public class EventEsSearchRequestBuilderTest {
   @Test
   public void inNestedPredicateTest() throws Exception {
     Predicate p1 =
-        new InPredicate<>(OccurrenceSearchParameter.HUMBOLDT_SITE_COUNT, List.of("1", "3"), false);
+        new InPredicate<>(EventSearchParameter.HUMBOLDT_SITE_COUNT, List.of("1", "3"), false);
     Predicate p2 =
         new InPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
+            EventSearchParameter.HUMBOLDT_TOTAL_AREA_SAMPLED_UNIT,
             List.of("kilometers distance not traveled"),
             false);
     Predicate p3 = new ConjunctionPredicate(Arrays.asList(p1, p2));
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
     QueryBuilder query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
@@ -312,9 +312,8 @@ public class EventEsSearchRequestBuilderTest {
 
   @Test
   public void humboldtEventDurationPredicateTest() throws Exception {
-    Predicate p1 =
-        new EqualsPredicate<>(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, "2", false);
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+    Predicate p1 = new EqualsPredicate<>(EventSearchParameter.HUMBOLDT_EVENT_DURATION, "2", false);
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p1);
 
     QueryBuilder query =
@@ -334,11 +333,11 @@ public class EventEsSearchRequestBuilderTest {
   public void humboldtTaxonomyPredicateTest() throws Exception {
     Predicate p1 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk", false);
+            EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk", false);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk", false);
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+            EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk", false);
+    EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new ConjunctionPredicate(List.of(p1, p2)));
 
     QueryBuilder query =

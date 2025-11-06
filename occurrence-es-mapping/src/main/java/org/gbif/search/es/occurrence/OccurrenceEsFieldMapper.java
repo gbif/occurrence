@@ -15,7 +15,6 @@ package org.gbif.search.es.occurrence;
 
 import java.util.*;
 import javax.annotation.Nullable;
-
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -24,8 +23,8 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.SimplePredicate;
+import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.BaseEsFieldMapper;
-import org.gbif.search.es.EsField;
 
 @Slf4j
 public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchParameter> {
@@ -55,6 +54,11 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
         fieldEnumClass,
         facetToEsMapping,
         defaulChecklistKey);
+  }
+
+  @Override
+  public boolean isNestedField(OccurrenceSearchParameter searchParameter) {
+    return super.isNestedField(searchParameter);
   }
 
   @Override

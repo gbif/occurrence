@@ -13,6 +13,23 @@
  */
 package org.gbif.search.es.occurrence;
 
+import com.google.common.collect.Maps;
+import java.net.URI;
+import java.text.ParseException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.Identifier;
@@ -46,41 +63,21 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.occurrence.common.TermUtils;
+import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.ChecklistEsField;
-import org.gbif.search.es.EsField;
 import org.gbif.search.es.SearchHitConverter;
 import org.gbif.search.es.event.EventEsField;
-import org.gbif.search.es.event.OccurrenceEventEsField;
-import org.gbif.occurrence.common.TermUtils;
-
-import java.net.URI;
-import java.text.ParseException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
-
-import com.google.common.collect.Maps;
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
 
   private final boolean excludeInterpretedFromVerbatim;
+  private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
 
   public SearchHitOccurrenceConverter(
     OccurrenceEsFieldMapper occurrenceEsFieldMapper,
     boolean excludeInterpretedFromVerbatim) {
-    super(occurrenceEsFieldMapper);
+    this.occurrenceEsFieldMapper = occurrenceEsFieldMapper;
     this.excludeInterpretedFromVerbatim = excludeInterpretedFromVerbatim;
   }
 
@@ -432,9 +429,6 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       return (ChecklistEsField) field.getEsField();
     } else if (esField instanceof EventEsField) {
       EventEsField field = (EventEsField) esField;
-      return (ChecklistEsField) field.getEsField();
-    } else if (esField instanceof OccurrenceEventEsField) {
-      OccurrenceEventEsField field = (OccurrenceEventEsField) esField;
       return (ChecklistEsField) field.getEsField();
     }
 

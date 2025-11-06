@@ -14,8 +14,10 @@
 package org.gbif.occurrence.search.es;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import java.util.Map;
@@ -45,11 +47,15 @@ public class RequestFieldsTranslator {
               new SimpleModule()
                   .addDeserializer(
                       OccurrenceSearchParameter.class,
-                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()))
+                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
+                  .addDeserializer(
+                      EventSearchParameter.class,
+                      new EventSearchParameter.EventSearchParameterDeserializer()))
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @SneakyThrows
-  public static Predicate translatePredicateFields(Predicate predicate, ConceptClient conceptClient) {
+  public static Predicate translateOccurrencePredicateFields(
+      Predicate predicate, ConceptClient conceptClient) {
     if (conceptClient == null || predicate == null) {
       return predicate;
     }
@@ -58,29 +64,60 @@ public class RequestFieldsTranslator {
     node.findParents("key")
         .forEach(
             parent -> {
-              if (parent
-                  .findValue("key")
-                  .asText()
-                  .equals(OccurrenceSearchParameter.GEOLOGICAL_TIME.name())) {
+              JsonNode keyNode = parent.findValue("key");
+              if (containsParam(keyNode, OccurrenceSearchParameter.GEOLOGICAL_TIME.name())) {
                 String translatedParam =
                     processGeoTimeParam(parent.findValue("value").asText(), conceptClient);
                 ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
-              } else if (parent
-                  .findValue("key")
-                  .asText()
-                  .equals(EventSearchParameter.HUMBOLDT_EVENT_DURATION.name())) {
-                String translatedParam =
-                    processHumboldtEventDurationParam(parent.findValue("value").asText());
-                ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
-                ((ObjectNode) parent)
-                    .replace(
-                        "key",
-                        new TextNode(
-                            EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES.name()));
               }
             });
 
     return objectMapper.treeToValue(node, Predicate.class);
+  }
+
+  @SneakyThrows
+  public static Predicate translateEventPredicateFields(
+      Predicate predicate, ConceptClient conceptClient) {
+    if (conceptClient == null || predicate == null) {
+      return predicate;
+    }
+
+    ObjectNode node = objectMapper.valueToTree(predicate);
+    node.findParents("key")
+        .forEach(
+            parent -> {
+              JsonNode keyNode = parent.findValue("key");
+              if (containsParam(keyNode, EventSearchParameter.HUMBOLDT_EVENT_DURATION.name())) {
+                String translatedParam =
+                    processHumboldtEventDurationParam(parent.findValue("value").asText());
+                ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
+                replaceKeyParam(
+                    (ObjectNode) parent,
+                    EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES.getName());
+              }
+            });
+
+    return objectMapper.treeToValue(node, Predicate.class);
+  }
+
+  private static boolean containsParam(JsonNode node, String paramName) {
+    if (node instanceof ArrayNode) {
+      ArrayNode arrayNode = (ArrayNode) node;
+      // cases where the searchParameter is serialized with the type, e.g.: ["event",
+      // "HUMBOLDT_EVENT_DURATION"]
+      return arrayNode.size() == 2 && arrayNode.get(1).asText().equals(paramName);
+    } else {
+      return node.asText().contains(paramName);
+    }
+  }
+
+  private static void replaceKeyParam(ObjectNode node, String replacement) {
+    if (node.findValue("key") instanceof ArrayNode) {
+      ArrayNode arrayNode = (ArrayNode) node.findValue("key");
+      arrayNode.set(1, replacement);
+    } else {
+      node.replace("key", new TextNode(replacement));
+    }
   }
 
   public static void translateOccurrenceFields(

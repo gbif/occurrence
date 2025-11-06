@@ -16,7 +16,6 @@ package org.gbif.search.es.event;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import java.util.Optional;
 import java.util.Set;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -31,9 +30,10 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.occurrence.common.TermUtils;
+import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.BaseEsField;
 import org.gbif.search.es.ChecklistEsField;
-import org.gbif.search.es.EsField;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum EventEsField implements EsField {
@@ -347,7 +347,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.SAMPLE_SIZE_UNIT, SAMPLE_SIZE_UNIT)
       .put(EventSearchParameter.RELATIVE_ORGANISM_QUANTITY, RELATIVE_ORGANISM_QUANTITY)
       .put(EventSearchParameter.OCCURRENCE_STATUS, OCCURRENCE_STATUS)
-      .put(EventSearchParameter.LIFE_STAGE, LIFE_STAGE)
       .put(EventSearchParameter.IS_IN_CLUSTER, IS_IN_CLUSTER)
       .put(EventSearchParameter.DWCA_EXTENSION, EXTENSIONS)
       .put(EventSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
@@ -457,5 +456,15 @@ public enum EventEsField implements EsField {
   @Override
   public boolean isNestedField() {
     return esField.getSearchFieldName().startsWith("event.humboldt");
+  }
+
+  @Override
+  public boolean isVocabulary() {
+    return TermUtils.isVocabulary(getTerm());
+  }
+
+  @Override
+  public String childrenRelation() {
+    return "occurrence";
   }
 }

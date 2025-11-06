@@ -13,6 +13,13 @@
  */
 package org.gbif.predicate.query;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.UUID;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -32,18 +39,9 @@ import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.util.IsoDateInterval;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.UUID;
-
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test cases for the Elasticsearch query visitor.
@@ -58,13 +56,13 @@ public class EsQueryVisitorTest {
       OccurrenceSearchParameter.INSTITUTION_CODE;
 
   private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
-  private final EsQueryVisitor<OccurrenceSearchParameter> visitor =
-      new EsQueryVisitor<>(occurrenceEsFieldMapper);
+  private final EsQueryVisitor<OccurrenceSearchParameter> occurrenceVisitor =
+      new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper);
 
   @Test
   public void testEqualsPredicate() throws QueryBuildingException {
     Predicate p = new EqualsPredicate<>(PARAM, "value", false);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -88,7 +86,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testEqualsPredicateMatchVerbatim() throws QueryBuildingException {
     Predicate p = new EqualsPredicate<>(PARAM, "value", true);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -112,7 +110,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testEqualsDatePredicate() throws QueryBuildingException {
     Predicate p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2021-09-16", false);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -140,7 +138,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testEqualsRangePredicate() throws QueryBuildingException {
     Predicate p = new EqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "-20.0,600", false);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -164,7 +162,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "*,600", false);
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -188,7 +186,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "-20.0,*", false);
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -218,7 +216,7 @@ public class EsQueryVisitorTest {
     // *completely within* the query date or date range.
     Predicate p =
       new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-11", false);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
       "{\n"
         + "  \"bool\" : {\n"
@@ -243,7 +241,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
       "{\n"
         + "  \"bool\" : {\n"
@@ -268,7 +266,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980", false);
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
       "{\n"
         + "  \"bool\" : {\n"
@@ -293,7 +291,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01", false);
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
       "{\n"
         + "  \"bool\" : {\n"
@@ -318,7 +316,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-1", false);
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
       "{\n"
         + "  \"bool\" : {\n"
@@ -343,7 +341,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980,1990-05-06", false);
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
       "{\n"
         + "  \"bool\" : {\n"
@@ -371,7 +369,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testGreaterThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new GreaterThanOrEqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "222");
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -397,7 +395,7 @@ public class EsQueryVisitorTest {
     p =
         new GreaterThanOrEqualsPredicate<>(
             OccurrenceSearchParameter.LAST_INTERPRETED, "2021-09-16");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -421,7 +419,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new GreaterThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -448,7 +446,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testGreaterThanPredicate() throws QueryBuildingException {
     Predicate p = new GreaterThanPredicate<>(OccurrenceSearchParameter.ELEVATION, "1000");
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -472,7 +470,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new GreaterThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-09-16");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -496,7 +494,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new GreaterThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -523,7 +521,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testLessThanOrEqualPredicate() throws QueryBuildingException {
     Predicate p = new LessThanOrEqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "1000");
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -547,7 +545,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new LessThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -571,7 +569,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new LessThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -598,7 +596,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testLessThanPredicate() throws QueryBuildingException {
     Predicate p = new LessThanPredicate<>(OccurrenceSearchParameter.ELEVATION, "1000");
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -622,7 +620,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new LessThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -646,7 +644,7 @@ public class EsQueryVisitorTest {
     assertEquals(expectedQuery, query);
 
     p = new LessThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
-    query = visitor.buildQuery(p);
+    query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -676,7 +674,7 @@ public class EsQueryVisitorTest {
     Predicate p2 = new EqualsPredicate<>(PARAM2, "value_2", false);
     Predicate p3 = new GreaterThanOrEqualsPredicate<>(OccurrenceSearchParameter.MONTH, "12");
     Predicate p = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -747,7 +745,7 @@ public class EsQueryVisitorTest {
     Predicate p3 = new EqualsPredicate<>(PARAM, "value_3", false);
 
     DisjunctionPredicate p = new DisjunctionPredicate(Arrays.asList(p1, p2, p3));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -794,7 +792,7 @@ public class EsQueryVisitorTest {
     Predicate p4 = new EqualsPredicate<>(PARAM, "value_4", true);
 
     DisjunctionPredicate p = new DisjunctionPredicate(Arrays.asList(p1, p2, p3, p4));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -829,7 +827,7 @@ public class EsQueryVisitorTest {
   public void testInPredicate() throws QueryBuildingException {
     Predicate p =
         new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -859,7 +857,7 @@ public class EsQueryVisitorTest {
         new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
     Predicate p = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -925,7 +923,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testNotPredicate() throws QueryBuildingException {
     Predicate p = new NotPredicate(new EqualsPredicate<>(PARAM, "value", false));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -962,7 +960,7 @@ public class EsQueryVisitorTest {
     ConjunctionPredicate cp = new ConjunctionPredicate(Arrays.asList(p1, p2));
 
     Predicate p = new NotPredicate(cp);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1020,7 +1018,7 @@ public class EsQueryVisitorTest {
     // NB: ? and * are wildcards (as in ES).  SQL-like _ and % are literal.
     LikePredicate<OccurrenceSearchParameter> likePredicate =
         new LikePredicate<>(PARAM, "v?l*ue_%", false);
-    String query = visitor.buildQuery(likePredicate);
+    String query = occurrenceVisitor.buildQuery(likePredicate);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1045,7 +1043,7 @@ public class EsQueryVisitorTest {
   public void testLikeVerbatimPredicate() throws QueryBuildingException {
     LikePredicate<OccurrenceSearchParameter> likePredicate =
         new LikePredicate<>(PARAM, "v?l*ue_%", true);
-    String query = visitor.buildQuery(likePredicate);
+    String query = occurrenceVisitor.buildQuery(likePredicate);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1072,7 +1070,7 @@ public class EsQueryVisitorTest {
     Predicate p2 = new LikePredicate<>(PARAM, "value_1*", false);
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
     Predicate p = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1136,7 +1134,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testIsNotNullPredicate() throws QueryBuildingException {
     Predicate p = new IsNotNullPredicate<>(PARAM);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1158,7 +1156,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testIsNullPredicate() throws QueryBuildingException {
     Predicate p = new IsNullPredicate<>(PARAM);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1189,14 +1187,14 @@ public class EsQueryVisitorTest {
   public void testWithinPredicate() throws QueryBuildingException {
     final String wkt = "POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))";
     Predicate p = new WithinPredicate(wkt);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     assertNotNull(query);
   }
 
   @Test
   public void testGeoDistancePredicate() throws QueryBuildingException {
     Predicate p = new GeoDistancePredicate("10", "20", "10km");
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1230,7 +1228,7 @@ public class EsQueryVisitorTest {
     Predicate pcon = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
     Predicate pdis = new DisjunctionPredicate(Arrays.asList(p1, pcon));
     Predicate p = new NotPredicate(pdis);
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1333,7 +1331,7 @@ public class EsQueryVisitorTest {
     Predicate p5 = new ConjunctionPredicate(Arrays.asList(p1, p2));
 
     Predicate p = new ConjunctionPredicate(Arrays.asList(p4, new NotPredicate(p5)));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1447,7 +1445,7 @@ public class EsQueryVisitorTest {
     Predicate p6 = new ConjunctionPredicate(Arrays.asList(p1, p2));
 
     Predicate p = new ConjunctionPredicate(Arrays.asList(p5, p6));
-    String query = visitor.buildQuery(p);
+    String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
@@ -1594,7 +1592,7 @@ public class EsQueryVisitorTest {
               try {
                 Predicate p = new EqualsPredicate<>(param, "value", false);
                 String searchFieldName = occurrenceEsFieldMapper.getExactMatchFieldName(param);
-                String query = visitor.buildQuery(p);
+                String query = occurrenceVisitor.buildQuery(p);
                 String expectedQuery =
                     "{\n"
                         + "  \"bool\" : {\n"
@@ -1624,16 +1622,6 @@ public class EsQueryVisitorTest {
   @Test
   public void testAllParametersMapped() {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
-      // TODO: delete
-      if (param == OccurrenceSearchParameter.EVENT_ID_HIERARCHY
-          || param == OccurrenceSearchParameter.EVENT_TYPE
-          || param == OccurrenceSearchParameter.VERBATIM_EVENT_TYPE
-          || param.name().startsWith("HUMBOLDT")) {
-        // skip events-only parameters because this visitor uses the OccurrenceEsField but the params
-        // are shared with EventEsField
-        continue;
-      }
-
       try {
         Predicate p;
         Object value;
@@ -1660,7 +1648,7 @@ public class EsQueryVisitorTest {
           }
           p = new EqualsPredicate<>(param, value.toString(), false);
         }
-        visitor.buildQuery(p);
+        occurrenceVisitor.buildQuery(p);
       } catch (Exception e) {
         System.err.println(e.getMessage());
         e.printStackTrace();

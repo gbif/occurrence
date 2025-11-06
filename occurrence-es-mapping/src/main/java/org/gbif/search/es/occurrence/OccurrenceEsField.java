@@ -16,7 +16,6 @@ package org.gbif.search.es.occurrence;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import java.util.Optional;
 import java.util.Set;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -28,9 +27,10 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.TermUtils;
+import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.BaseEsField;
 import org.gbif.search.es.ChecklistEsField;
-import org.gbif.search.es.EsField;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEsField implements EsField {
@@ -478,5 +478,15 @@ public enum OccurrenceEsField implements EsField {
   @Override
   public boolean isNestedField() {
     return esField.isNestedField();
+  }
+
+  @Override
+  public boolean isVocabulary() {
+    return TermUtils.isVocabulary(getTerm());
+  }
+
+  @Override
+  public String childrenRelation() {
+    return "occurrence";
   }
 }

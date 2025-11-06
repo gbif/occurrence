@@ -13,23 +13,12 @@
  */
 package org.gbif.occurrence.download.file;
 
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
-import org.gbif.occurrence.download.file.dwca.akka.DownloadDwcaActor;
-import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
-import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
-import org.gbif.search.es.occurrence.EsResponseParser;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.search.es.SearchHitConverter;
-import org.gbif.utils.file.FileUtils;
-import org.gbif.wrangler.lock.Lock;
-import org.gbif.wrangler.lock.LockFactory;
-import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
-
+import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.routing.RoundRobinPool;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -37,7 +26,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
+import lombok.Builder;
+import lombok.Data;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
@@ -47,24 +37,32 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.download.file.dwca.akka.DownloadDwcaActor;
+import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
+import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
+import org.gbif.utils.file.FileUtils;
+import org.gbif.wrangler.lock.Lock;
+import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.routing.RoundRobinPool;
-import lombok.Builder;
-import lombok.Data;
 
 /**
  * Actor that controls the multithreaded creation of occurrence downloads.
  */
 @Data
-public class DownloadMaster<T extends Occurrence> extends AbstractActor {
+public class DownloadMaster extends AbstractActor {
 
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
@@ -82,9 +80,9 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
   private int nrOfResults;
 
   private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
-  private final Function<T,Map<String,String>> verbatimMapper;
-  private final Function<T,Map<String,String>> interpretedMapper;
-  private final SearchHitConverter<T> searchHitConverter;
+  private final Function<Occurrence,Map<String,String>> verbatimMapper;
+  private final Function<Occurrence,Map<String,String>> interpretedMapper;
+  private final SearchHitConverter<Occurrence> searchHitConverter;
 
   /**
    * Default constructor.
@@ -98,9 +96,9 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
     DownloadJobConfiguration jobConfiguration,
     DownloadAggregator aggregator,
     int maxGlobalJobs,
-    Function<T,Map<String,String>> verbatimMapper,
-    Function<T,Map<String,String>> interpretedMapper,
-    SearchHitConverter<T> searchHitConverter) {
+    Function<Occurrence,Map<String,String>> verbatimMapper,
+    Function<Occurrence,Map<String,String>> interpretedMapper,
+    SearchHitConverter<Occurrence> searchHitConverter) {
     conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
     DownloadWorkflowModule downloadWorkflowModule = DownloadWorkflowModule.builder()
@@ -114,9 +112,7 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
-    this.occurrenceEsFieldMapper = DownloadWorkflowModule.esFieldMapper(
-      workflowConfiguration.getEsIndexType(), jobConfiguration.getChecklistKey()
-    );
+    this.occurrenceEsFieldMapper = OccurrenceEsField.buildFieldMapper(jobConfiguration.getChecklistKey());
     this.interpretedMapper = interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;
@@ -298,9 +294,9 @@ public class DownloadMaster<T extends Occurrence> extends AbstractActor {
   private Props createDownloadActor() {
 
     DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();
-    SearchQueryProcessor<T> queryProcessor =
+    SearchQueryProcessor<Occurrence, OccurrenceSearchParameter> queryProcessor =
         new SearchQueryProcessor<>(
-            new EsResponseParser<>(occurrenceEsFieldMapper, searchHitConverter));
+            new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter));
 
     Props props;
     switch (downloadFormat) {
