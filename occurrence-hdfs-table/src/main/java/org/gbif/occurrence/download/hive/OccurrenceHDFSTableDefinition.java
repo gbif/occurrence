@@ -100,6 +100,7 @@ public class OccurrenceHDFSTableDefinition {
                                       .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
                                       .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
                                       .put(GbifInternalTerm.classifications, columnFor(GbifInternalTerm.classifications))
+                                      .put(GbifInternalTerm.taxonomicStatuses, columnFor(GbifInternalTerm.taxonomicStatuses))
                                       .put(GbifInternalTerm.classificationDetails, columnFor(GbifInternalTerm.classificationDetails))
                                       .put(GbifTerm.checklistKey, columnFor(GbifTerm.checklistKey))
                                       .build();
