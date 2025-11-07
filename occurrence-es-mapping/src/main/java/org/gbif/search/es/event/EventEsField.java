@@ -58,22 +58,18 @@ public enum EventEsField implements EsField {
   COLLECTION_CODE(new BaseEsField("event.collectionCode", DwcTerm.collectionCode, true, true)),
   CATALOG_NUMBER(new BaseEsField("event.catalogNumber", DwcTerm.catalogNumber, true, true)),
 
-  ORGANISM_ID(new BaseEsField("event.organismId", DwcTerm.organismID, true, true)),
-  OCCURRENCE_ID(new BaseEsField("event.occurrenceId", DwcTerm.occurrenceID, true, true)),
+
   RECORDED_BY(new BaseEsField("event.recordedBy", DwcTerm.recordedBy, true, true)),
   IDENTIFIED_BY(new BaseEsField("event.identifiedBy", DwcTerm.identifiedBy, true, true)),
   RECORDED_BY_ID(new BaseEsField("event.recordedByIds", "event.recordedByIds.value", DwcTerm.recordedByID)),
   IDENTIFIED_BY_ID(new BaseEsField("event.identifiedByIds", "event.identifiedByIds.value", DwcTerm.identifiedByID)),
   RECORD_NUMBER(new BaseEsField("event.recordNumber", DwcTerm.recordNumber, true, true)),
   BASIS_OF_RECORD(new BaseEsField("event.basisOfRecord", DwcTerm.basisOfRecord)),
-  TYPE_STATUS(new BaseEsField("event.typeStatus.lineage", "typeStatus.concept", DwcTerm.typeStatus)),
-  OCCURRENCE_STATUS(new BaseEsField("event.occurrenceStatus", DwcTerm.occurrenceStatus)),
-  IS_SEQUENCED(new BaseEsField("event.isSequenced", GbifTerm.isSequenced)),
   ASSOCIATED_SEQUENCES(new BaseEsField("event.associatedSequences", DwcTerm.associatedSequences)),
   DATASET_ID(new BaseEsField("event.datasetID", DwcTerm.datasetID)),
   DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true, true)),
   OTHER_CATALOG_NUMBERS(new BaseEsField("event.otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true, true)),
-  PREPARATIONS(new BaseEsField("event.preparations", DwcTerm.preparations, true, true)),
+  FIELD_NUMBER(new BaseEsField("event.fieldNumber", DwcTerm.fieldNumber)),
 
   //Temporal
   YEAR(new BaseEsField("event.year", DwcTerm.year)),
@@ -102,11 +98,10 @@ public enum EventEsField implements EsField {
   LOCALITY(new BaseEsField("event.locality", DwcTerm.locality, true, true)),
   COORDINATE_PRECISION(new BaseEsField("event.coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("event.coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
-  DISTANCE_FROM_CENTROID_IN_METERS(new BaseEsField("event.distanceFromCentroidInMeters", GbifTerm.distanceFromCentroidInMeters)),
   ISLAND(new BaseEsField("event.island", DwcTerm.island)),
   ISLAND_GROUP(new BaseEsField("event.islandGroup", DwcTerm.islandGroup)),
   HIGHER_GEOGRAPHY(new BaseEsField("event.higherGeography", DwcTerm.higherGeography)),
-  GEOREFERENCED_BY(new BaseEsField("event.georeferencedBy", DwcTerm.georeferencedBy)),
+  GEOREFERENCED_BY(new BaseEsField("event.HIGHER_GEOGRAPHY", DwcTerm.georeferencedBy)),
 
   GADM_GID(new BaseEsField("event.gadm.gids", null)),
   GADM_LEVEL_0_GID(new BaseEsField("event.gadm.level0Gid", GadmTerm.level0Gid)),
@@ -154,29 +149,21 @@ public enum EventEsField implements EsField {
   VERBATIM_SCIENTIFIC_NAME(new BaseEsField("derivedMetadata.taxonomicCoverage.verbatimScientificName", GbifTerm.verbatimScientificName)),
   IUCN_RED_LIST_CATEGORY(new BaseEsField("derivedMetadata.taxonomicCoverage.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
 
-  // GrSciColl
-  COLLECTION_KEY(new BaseEsField("event.collectionKey", GbifInternalTerm.collectionKey)),
-  INSTITUTION_KEY(new BaseEsField("event.institutionKey", GbifInternalTerm.institutionKey)),
 
   //Sampling
   EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true, true)),
   PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true,true)),
   EVENT_ID_HIERARCHY(new BaseEsField("event.eventHierarchy", null, true,true)),
   SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true,true)),
-  LIFE_STAGE(new BaseEsField("event.lifeStage.lineage", "lifeStage.concept", DwcTerm.lifeStage)),
   DATE_IDENTIFIED(new BaseEsField("event.dateIdentified", DwcTerm.dateIdentified)),
   MODIFIED(new BaseEsField("event.modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("event.references", DcTerm.references)),
-  SEX(new BaseEsField("event.sex.lineage", "sex.concept", DwcTerm.sex)),
   IDENTIFIER(new BaseEsField("event.identifier", DcTerm.identifier)),
   INDIVIDUAL_COUNT(new BaseEsField("event.individualCount", DwcTerm.individualCount)),
   RELATION(new BaseEsField("event.relation", DcTerm.relation)),
   TYPIFIED_NAME(new BaseEsField("event.typifiedName", GbifTerm.typifiedName)),
-  ORGANISM_QUANTITY(new BaseEsField("event.organismQuantity", DwcTerm.organismQuantity)),
-  ORGANISM_QUANTITY_TYPE(new BaseEsField("event.organismQuantityType", DwcTerm.organismQuantityType)),
   SAMPLE_SIZE_UNIT(new BaseEsField("event.sampleSizeUnit", DwcTerm.sampleSizeUnit)),
   SAMPLE_SIZE_VALUE(new BaseEsField("event.sampleSizeValue", DwcTerm.sampleSizeValue)),
-  RELATIVE_ORGANISM_QUANTITY(new BaseEsField("event.relativeOrganismQuantity", GbifTerm.relativeOrganismQuantity)),
 
   //Crawling
   CRAWL_ID(new BaseEsField("crawlId", GbifInternalTerm.crawlId)),
@@ -194,13 +181,9 @@ public enum EventEsField implements EsField {
   //Issues
   ISSUE(new BaseEsField("event.issues", GbifTerm.issue)),
 
-  ESTABLISHMENT_MEANS(new BaseEsField("event.establishmentMeans.lineage", "event.establishmentMeans.concept", DwcTerm.establishmentMeans)),
-  DEGREE_OF_ESTABLISHMENT_MEANS(new BaseEsField("event.degreeOfEstablishment.lineage", "event.degreeOfEstablishment.concept", DwcTerm.degreeOfEstablishment)),
-  PATHWAY(new BaseEsField("event.pathway.lineage", "event.pathway.concept", DwcTerm.pathway)),
   FACTS(new BaseEsField("event.measurementOrFactItems", null)),
   GBIF_ID(new BaseEsField("event.gbifId", GbifTerm.gbifID)),
   FULL_TEXT(new BaseEsField("all", null)),
-  IS_IN_CLUSTER(new BaseEsField("event.isClustered", GbifInternalTerm.isInCluster)),
   EXTENSIONS(new BaseEsField("event.extensions", GbifInternalTerm.dwcaExtension)),
 
   //Event
@@ -286,6 +269,8 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.YEAR, YEAR)
       .put(EventSearchParameter.MONTH, MONTH)
       .put(EventSearchParameter.DAY, DAY)
+      .put(EventSearchParameter.START_DAY_OF_YEAR, START_DAY_OF_YEAR)
+      .put(EventSearchParameter.END_DAY_OF_YEAR, END_DAY_OF_YEAR)
       .put(EventSearchParameter.CATALOG_NUMBER, CATALOG_NUMBER)
       .put(EventSearchParameter.RECORD_NUMBER, RECORD_NUMBER)
       .put(EventSearchParameter.COLLECTION_CODE, COLLECTION_CODE)
@@ -299,8 +284,13 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.MODIFIED, MODIFIED)
       .put(EventSearchParameter.LAST_INTERPRETED, LAST_INTERPRETED)
       .put(EventSearchParameter.COUNTRY, COUNTRY_CODE)
+      .put(EventSearchParameter.GBIF_REGION, GBIF_REGION)
       .put(EventSearchParameter.PUBLISHING_COUNTRY, PUBLISHING_COUNTRY)
       .put(EventSearchParameter.CONTINENT, CONTINENT)
+      .put(EventSearchParameter.ISLAND, ISLAND)
+      .put(EventSearchParameter.ISLAND_GROUP, ISLAND_GROUP)
+      .put(EventSearchParameter.HIGHER_GEOGRAPHY, HIGHER_GEOGRAPHY)
+      .put(EventSearchParameter.GEOREFERENCED_BY, GEOREFERENCED_BY)
       .put(EventSearchParameter.TAXON_KEY, TAXON_KEY)
       .put(EventSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
       .put(EventSearchParameter.PHYLUM_KEY, PHYLUM_KEY)
@@ -316,7 +306,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.TAXONOMIC_STATUS, TAXONOMIC_STATUS)
       .put(EventSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
       .put(EventSearchParameter.ISSUE, ISSUE)
-      .put(EventSearchParameter.OCCURRENCE_ID, OCCURRENCE_ID)
       .put(EventSearchParameter.REPATRIATED, REPATRIATED)
       .put(EventSearchParameter.LOCALITY, LOCALITY)
       .put(EventSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, COORDINATE_UNCERTAINTY_IN_METERS)
@@ -329,7 +318,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.WATER_BODY, WATER_BODY)
       .put(EventSearchParameter.LICENSE, LICENSE)
       .put(EventSearchParameter.PROTOCOL, PROTOCOL)
-      .put(EventSearchParameter.ORGANISM_ID, ORGANISM_ID)
       .put(EventSearchParameter.PUBLISHING_ORG, PUBLISHING_ORGANIZATION_KEY)
       .put(EventSearchParameter.HOSTING_ORGANIZATION_KEY, HOSTING_ORGANIZATION_KEY)
       .put(EventSearchParameter.CRAWL_ID, CRAWL_ID)
@@ -341,20 +329,14 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)
       .put(EventSearchParameter.PROJECT_ID, PROJECT_ID)
       .put(EventSearchParameter.PROGRAMME, PROGRAMME)
-      .put(EventSearchParameter.ORGANISM_QUANTITY, ORGANISM_QUANTITY)
-      .put(EventSearchParameter.ORGANISM_QUANTITY_TYPE, ORGANISM_QUANTITY_TYPE)
       .put(EventSearchParameter.SAMPLE_SIZE_VALUE, SAMPLE_SIZE_VALUE)
       .put(EventSearchParameter.SAMPLE_SIZE_UNIT, SAMPLE_SIZE_UNIT)
-      .put(EventSearchParameter.RELATIVE_ORGANISM_QUANTITY, RELATIVE_ORGANISM_QUANTITY)
-      .put(EventSearchParameter.OCCURRENCE_STATUS, OCCURRENCE_STATUS)
-      .put(EventSearchParameter.IS_IN_CLUSTER, IS_IN_CLUSTER)
       .put(EventSearchParameter.DWCA_EXTENSION, EXTENSIONS)
       .put(EventSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
       .put(EventSearchParameter.DATASET_ID, DATASET_ID)
       .put(EventSearchParameter.DATASET_NAME, DATASET_NAME)
       .put(EventSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
-      .put(EventSearchParameter.PREPARATIONS, PREPARATIONS)
-      .put(EventSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS, DISTANCE_FROM_CENTROID_IN_METERS)
+      .put(EventSearchParameter.FIELD_NUMBER, FIELD_NUMBER)
       .put(EventSearchParameter.GBIF_ID, GBIF_ID)
       .put(EventSearchParameter.EVENT_TYPE, EVENT_TYPE)
       .put(EventSearchParameter.VERBATIM_EVENT_TYPE, VERBATIM_EVENT_TYPE)
@@ -413,7 +395,7 @@ public enum EventEsField implements EsField {
       .geoDistanceField(COORDINATE_POINT)
       .uniqueIdField(ID)
       .defaultFilter(QueryBuilders.termQuery("type","event"))
-      .defaultSort(ImmutableList.of(SortBuilders.fieldSort("yearMonthGbifIdSort").order(SortOrder.ASC)))
+      .defaultSort(ImmutableList.of(SortBuilders.fieldSort("yearMonthEventIdSort").order(SortOrder.ASC)))
       .searchToEsMapping(SEARCH_TO_ES_MAPPING)
       .dateFields(DATE_FIELDS)
       .fieldEnumClass(EventEsField.class)

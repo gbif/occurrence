@@ -165,4 +165,9 @@ public abstract class BaseHeatmapRequestProvider<
     }
     return defaultVal;
   }
+
+  @Override
+  public PredicateCacheService getPredicateCacheService() {
+    return predicateCacheService;
+  }
 }

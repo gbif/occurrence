@@ -13,31 +13,20 @@
  */
 package org.gbif.event.ws.resource;
 
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
+import static org.gbif.event.ws.docs.OpenAPIUtils.*;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.List;
-import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.elasticsearch.index.query.AbstractQueryBuilder;
@@ -103,56 +92,6 @@ public class EventResource {
   public EventResource(EventSearchEs eventSearchEs) {
     this.eventSearchEs = eventSearchEs;
   }
-
-  /** Documentation for the id path parameter. */
-  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
-  @Inherited
-  @Parameter(
-      name = "id",
-      description = "Internal ID of the record",
-      example = "5e48baa446c2a463bc76a13c1cef60c2b08fb1cf",
-      schema = @Schema(implementation = String.class, minimum = "1"),
-      in = ParameterIn.PATH)
-  @interface IdPathParameter {}
-
-  /** Documentation for the event id path parameter. */
-  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
-  @Inherited
-  @Parameter(
-      name = "eventId",
-      description = "Event ID of the record",
-      example = "FISHINGTRIP_day1_PM",
-      schema = @Schema(implementation = String.class, minimum = "1"),
-      in = ParameterIn.PATH)
-  @interface EventIdPathParameter {}
-
-  /** Documentation for the event id path parameter. */
-  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
-  @Inherited
-  @Parameter(
-      name = "datasetKey",
-      description = "Dataset key of the record",
-      example = "7b4b54bf-4a2f-4181-b28a-6f1943bdd782",
-      schema = @Schema(implementation = UUID.class, minimum = "1"),
-      in = ParameterIn.PATH)
-  @interface DatasetKeyPathParameter {}
-
-  /** Error responses for documentation. */
-  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
-  @Inherited
-  @ApiResponses(
-      value = {
-        @ApiResponse(
-            responseCode = "400",
-            description = "Invalid identifier supplied",
-            content = @Content),
-        @ApiResponse(responseCode = "404", description = "Record not found", content = @Content)
-      })
-  @interface EventErrorResponses {}
 
   @Operation(
       operationId = "getEventById",
@@ -356,12 +295,30 @@ public class EventResource {
     return eventSearchEs.subEvents(datasetKey, eventId, pagingRequest);
   }
 
-  // TODO
+  @Operation(
+    operationId = "searchEvent",
+    summary = "Event search",
+    description = "Full search across all events.",
+    extensions =
+    @Extension(
+      name = "Order",
+      properties = @ExtensionProperty(name = "Order", value = "0000")))
+
+  @CommonOffsetLimitParameters
+  @CommonFacetParameters
+  @ApiResponses(
+    value = {
+      @ApiResponse(responseCode = "200", description = "Event search is valid"),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid query, e.g. invalid vocabulary values",
+        content = @Content)
+    })
+  @EventSearchParameters
   @NullToNotFound
   @GetMapping("search")
   public SearchResponse<Event, EventSearchParameter> search(
       @NotNull @Valid EventSearchRequest searchRequest) {
-    // TODO: events needs it own request and enum not to show event things in docs
     return eventSearchEs.search(searchRequest);
   }
 
