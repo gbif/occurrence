@@ -401,8 +401,7 @@ public enum EventEsField implements EsField {
         .defaultSort(
             ImmutableList.of(
                 SortBuilders.fieldSort(YEAR.getSearchFieldName()).order(SortOrder.DESC),
-                SortBuilders.fieldSort(MONTH.getSearchFieldName()).order(SortOrder.ASC),
-                SortBuilders.fieldSort(EVENT_ID.getSearchFieldName()).order(SortOrder.ASC)))
+                SortBuilders.fieldSort(MONTH.getSearchFieldName()).order(SortOrder.ASC)))
         .searchToEsMapping(SEARCH_TO_ES_MAPPING)
         .dateFields(DATE_FIELDS)
         .fieldEnumClass(EventEsField.class)
