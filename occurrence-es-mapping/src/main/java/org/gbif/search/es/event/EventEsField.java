@@ -395,7 +395,8 @@ public enum EventEsField implements EsField {
       .geoDistanceField(COORDINATE_POINT)
       .uniqueIdField(ID)
       .defaultFilter(QueryBuilders.termQuery("type","event"))
-      .defaultSort(ImmutableList.of(SortBuilders.fieldSort("event.yearMonthEventIdSort").order(SortOrder.ASC)))
+      // FIXME: remove comment when reindexed with changes in pipelines
+//      .defaultSort(ImmutableList.of(SortBuilders.fieldSort("event.yearMonthEventIdSort").order(SortOrder.ASC)))
       .searchToEsMapping(SEARCH_TO_ES_MAPPING)
       .dateFields(DATE_FIELDS)
       .fieldEnumClass(EventEsField.class)
