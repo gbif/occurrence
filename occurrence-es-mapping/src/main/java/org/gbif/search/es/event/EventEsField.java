@@ -390,18 +390,24 @@ public enum EventEsField implements EsField {
 
   public static EventEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
     return EventEsFieldMapper.builder()
-      .fullTextField(FULL_TEXT)
-      .geoShapeField(COORDINATE_SHAPE)
-      .geoDistanceField(COORDINATE_POINT)
-      .uniqueIdField(ID)
-      .defaultFilter(QueryBuilders.termQuery("type","event"))
-      // FIXME: remove comment when reindexed with changes in pipelines
-//      .defaultSort(ImmutableList.of(SortBuilders.fieldSort("event.yearMonthEventIdSort").order(SortOrder.ASC)))
-      .searchToEsMapping(SEARCH_TO_ES_MAPPING)
-      .dateFields(DATE_FIELDS)
-      .fieldEnumClass(EventEsField.class)
-      .defaulChecklistKey(defaultChecklistKey)
-      .build();
+        .fullTextField(FULL_TEXT)
+        .geoShapeField(COORDINATE_SHAPE)
+        .geoDistanceField(COORDINATE_POINT)
+        .uniqueIdField(ID)
+        .defaultFilter(QueryBuilders.termQuery("type", "event"))
+        // FIXME: remove comment when reindexed with changes in pipelines
+        //
+        // .defaultSort(ImmutableList.of(SortBuilders.fieldSort("event.yearMonthEventIdSort").order(SortOrder.ASC)))
+        .defaultSort(
+            ImmutableList.of(
+                SortBuilders.fieldSort(YEAR.getSearchFieldName()).order(SortOrder.DESC),
+                SortBuilders.fieldSort(MONTH.getSearchFieldName()).order(SortOrder.ASC),
+                SortBuilders.fieldSort(EVENT_ID.getSearchFieldName()).order(SortOrder.ASC)))
+        .searchToEsMapping(SEARCH_TO_ES_MAPPING)
+        .dateFields(DATE_FIELDS)
+        .fieldEnumClass(EventEsField.class)
+        .defaulChecklistKey(defaultChecklistKey)
+        .build();
   }
 
   @Override
