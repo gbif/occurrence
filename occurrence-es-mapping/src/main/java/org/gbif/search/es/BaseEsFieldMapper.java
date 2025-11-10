@@ -16,7 +16,6 @@ package org.gbif.search.es;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilder;

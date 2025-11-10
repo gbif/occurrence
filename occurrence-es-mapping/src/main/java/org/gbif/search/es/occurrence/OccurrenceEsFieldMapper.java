@@ -57,11 +57,6 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
   }
 
   @Override
-  public boolean isNestedField(OccurrenceSearchParameter searchParameter) {
-    return super.isNestedField(searchParameter);
-  }
-
-  @Override
   public boolean includeNullInPredicate(SimplePredicate<OccurrenceSearchParameter> predicate) {
     return OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == predicate.getKey()
         && predicate instanceof GreaterThanOrEqualsPredicate;

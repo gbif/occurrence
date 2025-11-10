@@ -55,17 +55,4 @@ public class EventEsFieldMapper extends BaseEsFieldMapper<EventSearchParameter> 
         facetToEsMapping,
         defaulChecklistKey);
   }
-
-  @Override
-  public boolean includeNullInPredicate(SimplePredicate<EventSearchParameter> predicate) {
-    return EventSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == predicate.getKey()
-        && predicate instanceof GreaterThanOrEqualsPredicate;
-  }
-
-  @Override
-  public boolean includeNullInRange(
-      EventSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
-    return EventSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == param
-        && Objects.isNull(rangeQueryBuilder.to());
-  }
 }
