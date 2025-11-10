@@ -267,12 +267,8 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
     getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(event::setSampleSizeUnit);
     getDoubleValue(hit, SAMPLE_SIZE_VALUE).ifPresent(event::setSampleSizeValue);
-    getDoubleValue(hit, ORGANISM_QUANTITY).ifPresent(event::setOrganismQuantity);
-    getStringValue(hit, ORGANISM_QUANTITY_TYPE).ifPresent(event::setOrganismQuantityType);
-    getDoubleValue(hit, RELATIVE_ORGANISM_QUANTITY).ifPresent(event::setRelativeOrganismQuantity);
     getListValueAsString(hit, DATASET_ID).ifPresent(event::setDatasetID);
     getListValueAsString(hit, DATASET_NAME).ifPresent(event::setDatasetName);
-    getListValueAsString(hit, PREPARATIONS).ifPresent(event::setPreparations);
     getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(event::setSamplingProtocol);
     getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(event::setOtherCatalogNumbers);
     setEventLineageData(hit, event);
@@ -310,8 +306,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getDoubleValue(hit, ELEVATION).ifPresent(event::setElevation);
     getDoubleValue(hit, ELEVATION_ACCURACY).ifPresent(event::setElevationAccuracy);
     getStringValue(hit, WATER_BODY).ifPresent(event::setWaterBody);
-    getDoubleValue(hit, DISTANCE_FROM_CENTROID_IN_METERS)
-        .ifPresent(event::setDistanceFromCentroidInMeters);
 
     Gadm g = new Gadm();
     getStringValue(hit, GADM_LEVEL_0_GID)
