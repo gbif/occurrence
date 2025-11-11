@@ -54,20 +54,20 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenAPIDefinition(
     info =
         @Info(
-            title = "Occurrence API",
+            title = "Event API",
             version = "v1",
             description =
                 "This API works against the GBIF Event Store, which handles event records and makes them available "
                     + "through the web service and download files.\n",
             termsOfService = "https://www.gbif.org/terms"),
-    servers = {@Server(url = "https://api.gbif-uat.org/v1/", description = "User testing")},
+    servers = {@Server(url = "https://api.gbif-test.org/v1/", description = "User testing")},
     tags = {
       // This is an additional tag to allow the statistics methods implemented in the
       // registry to belong in their own section.
-      // They are annotated with @Tag(name = "Occurrence download statistics").
+      // They are annotated with @Tag(name = "Event download statistics").
       @Tag(
-          name = "Occurrence download statistics",
-          description = "This API provides statistics about occurrence downloads.",
+          name = "Event download statistics",
+          description = "This API provides statistics about event downloads.",
           extensions =
               @Extension(
                   name = "Order",

@@ -3,6 +3,9 @@ package org.gbif.event.search.es;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import org.elasticsearch.index.query.BoolQueryBuilder;
+
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
@@ -25,6 +28,11 @@ public class EventEsSearchRequestBuilder
         conceptClient,
         nameUsageMatchingService,
         new EventEsQueryVisitor(eventEsFieldMapper));
+  }
+
+  @Override
+  protected void handleIssueQueries(Map<EventSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+    // do nothing
   }
 
   @Override

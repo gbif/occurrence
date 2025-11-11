@@ -340,44 +340,7 @@ public abstract class BaseEsSearchRequestBuilder<
     return allQueries;
   }
 
-  /**
-   * If a user specifies a checklistKey and an Issue query, then we use the new NON_TAXONOMIC_ISSUE
-   * which doesnt contain taxonomic issues, which are now stored in a separate array, one per
-   * checklist.
-   *
-   * @param params the search parameters
-   * @param bool the bool query builder
-   */
-  private void handleIssueQueries(Map<P, Set<String>> params, BoolQueryBuilder bool) {
-    Optional<P> checklistKeyParam = getParam("CHECKLIST_KEY");
-    Optional<P> issueParam = getParam("ISSUE");
-    if (checklistKeyParam.isPresent()
-        && params.containsKey(checklistKeyParam.get())
-        && issueParam.isPresent()
-        && params.containsKey(issueParam.get())) {
-      String esFieldToUse = OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName();
-
-      // validate the value  - make sure it isn't taxonomic, otherwise throw an error
-      params
-          .get(issueParam.get())
-          .forEach(
-              issue -> {
-                OccurrenceIssue occurrenceIssue = OccurrenceIssue.valueOf(issue);
-                if (OccurrenceIssue.TAXONOMIC_RULES.contains(occurrenceIssue)) {
-                  throw new IllegalArgumentException(
-                      "Please use TAXONOMIC_ISSUE parameter instead of ISSUE parameter "
-                          + " when using a checklistKey");
-                }
-              });
-
-      // Build the query
-      BoolQueryBuilder checklistQuery =
-          QueryBuilders.boolQuery()
-              .must(QueryBuilders.termsQuery(esFieldToUse, params.get(issueParam.get())));
-      bool.filter().add(checklistQuery);
-      params.remove(issueParam.get());
-    }
-  }
+  protected abstract void handleIssueQueries(Map<P, Set<String>> params, BoolQueryBuilder bool);
 
   /**
    * Retrieve the checklistKey from the request or fallback to the configured default.
