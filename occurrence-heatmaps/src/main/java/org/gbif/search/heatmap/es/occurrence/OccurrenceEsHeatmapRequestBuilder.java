@@ -3,6 +3,9 @@ package org.gbif.search.heatmap.es.occurrence;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import org.elasticsearch.index.query.BoolQueryBuilder;
+
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.search.es.RequestFieldsTranslator;
@@ -25,6 +28,11 @@ public class OccurrenceEsHeatmapRequestBuilder
         conceptClient,
         nameUsageMatchingService,
         new OccurrenceEsQueryVisitor(esFieldMapper));
+  }
+
+  @Override
+  protected void handleIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+    super.handleOccurrenceIssueQueries(params, bool);
   }
 
   @Override

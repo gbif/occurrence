@@ -59,26 +59,6 @@ public class OccurrenceEsSearchRequestBuilder
    */
   @Override
   protected void handleIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
-    if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
-      && params.containsKey(OccurrenceSearchParameter.ISSUE)) {
-      String esFieldToUse = OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName();
-
-      // validate the value  - make sure it isn't taxonomic, otherwise throw an error
-      params.get(OccurrenceSearchParameter.ISSUE).forEach(issue -> {
-        OccurrenceIssue occurrenceIssue = OccurrenceIssue.valueOf(issue);
-        if (OccurrenceIssue.TAXONOMIC_RULES.contains(occurrenceIssue)) {
-          throw new IllegalArgumentException(
-            "Please use TAXONOMIC_ISSUE parameter instead of ISSUE parameter " +
-              " when using a checklistKey");
-        }
-      });
-
-      // Build the query
-      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termsQuery(esFieldToUse, params.get(OccurrenceSearchParameter.ISSUE))
-        );
-      bool.filter().add(checklistQuery);
-      params.remove(OccurrenceSearchParameter.ISSUE);
-    }
+    super.handleOccurrenceIssueQueries(params, bool);
   }
 }

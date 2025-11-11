@@ -3,6 +3,7 @@ package org.gbif.search.heatmap.es.event;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.search.es.RequestFieldsTranslator;
@@ -25,6 +26,11 @@ public class EventEsHeatmapRequestBuilder
         conceptClient,
         nameUsageMatchingService,
         new EventEsQueryVisitor(esFieldMapper));
+  }
+
+  @Override
+  protected void handleIssueQueries(Map<EventSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+    // do nothing
   }
 
   @Override
