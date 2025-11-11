@@ -385,8 +385,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.HUMBOLDT_SAMPLING_EFFORT_UNIT, HUMBOLDT_SAMPLING_EFFORT_UNIT)
       .build();
 
-  // TODO: add checklistkey param
-
   private static final Set<EsField> DATE_FIELDS =
     ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 

@@ -86,7 +86,7 @@ public class EventEsSearchRequestBuilderTest {
   @Test
   public void humboldtTaxonomicIssueTest() throws Exception {
     EventSearchRequest searchRequest = new EventSearchRequest();
-    searchRequest.addParameter(EventSearchParameter.TAXONOMIC_ISSUE, "iss");
+    searchRequest.addParameter(EventSearchParameter.HUMBOLDT_TAXONOMIC_ISSUE, "TAXON_MATCH_NONE");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -96,7 +96,7 @@ public class EventEsSearchRequestBuilderTest {
     assertEquals(
         "event.humboldt", jsonQuery.path(BOOL).path(FILTER).findPath(NESTED).path(PATH).asText());
     assertEquals(
-        "iss",
+        "TAXON_MATCH_NONE",
         jsonQuery
             .path(BOOL)
             .path(FILTER)
