@@ -171,8 +171,8 @@ public class DownloadResource {
               properties = @ExtensionProperty(name = "Order", value = "0030")))
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Occurrence download cancelled."),
-        @ApiResponse(responseCode = "404", description = "Invalid occurrence download key.")
+        @ApiResponse(responseCode = "204", description = "Download cancelled."),
+        @ApiResponse(responseCode = "404", description = "Invalid download key.")
       })
   @DeleteMapping("{key}")
   public void delDownload(
@@ -211,11 +211,11 @@ public class DownloadResource {
         @ApiResponse(
             responseCode = "302",
             description =
-                "Occurrence download found, follow the redirect to the data file (e.g. zip file)."),
-        @ApiResponse(responseCode = "404", description = "Invalid occurrence download key."),
+                "Download found, follow the redirect to the data file (e.g. zip file)."),
+        @ApiResponse(responseCode = "404", description = "Invalid download key."),
         @ApiResponse(
             responseCode = "410",
-            description = "Occurrence download file was erased and is no longer available.")
+            description = "Download file was erased and is no longer available.")
       })
   @GetMapping(
       value = "{key}",
@@ -322,15 +322,14 @@ public class DownloadResource {
       value = {
         @ApiResponse(
             responseCode = "201",
-            description = "Occurrence download requested, key returned."),
+            description = "Download requested, key returned."),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid query, see [predicates](#operations-tag-Occurrence_downloads)."),
+            description = "Invalid query, see [predicates](#predicates)."),
         @ApiResponse(
             responseCode = "429",
             description =
-                "Too many downloads, wait for one of your downloads to complete. "
-                    + "See [limits](#operations-tag-Occurrence_downloads)")
+                "Too many downloads, wait for one of your downloads to complete. See [limits](#limits)")
       })
   @PostMapping(
       produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
@@ -358,7 +357,7 @@ public class DownloadResource {
   }
 
   /**
-   * Creates/Starts an occurrence download.
+   * Creates/Starts a download.
    *
    * <p>Non-admin users may be given an existing download key, where the monthly download user has
    * already created a suitable download.
