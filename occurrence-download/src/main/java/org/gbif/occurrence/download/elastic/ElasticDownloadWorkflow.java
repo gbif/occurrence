@@ -74,10 +74,7 @@ public class ElasticDownloadWorkflow {
                 EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
                         DownloadWorkflowModule.esFieldMapper(
-                          configuration.getEsIndexType(),
-                          download.getRequest().getChecklistKey() != null
-                              ? download.getRequest().getChecklistKey()
-                              : configuration.getDefaultChecklistKey()
+                          configuration.getEsIndexType()
                         ))
                     .toString()
             )
@@ -117,6 +114,7 @@ public class ElasticDownloadWorkflow {
     if (download.getTotalRecords() > 0){
       return download.getTotalRecords();
     }
+    log.info("Download records count: {}, re-querying ES for accurate count", download.getTotalRecords());
 
     // if set, dont recalculate
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
@@ -130,17 +128,17 @@ public class ElasticDownloadWorkflow {
 
   private DownloadEsClient downloadEsClient(WorkflowConfiguration workflowConfiguration) {
 
-
+    String taxonomyForDownload = download.getRequest().getChecklistKey() != null
+      ? download.getRequest().getChecklistKey()
+      : workflowConfiguration.getDefaultChecklistKey();
 
     return DownloadEsClient.builder()
         .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
         .esIndex(
-            workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
+            workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY)
+        )
         .esFieldMapper(DownloadWorkflowModule.esFieldMapper(
-          workflowConfiguration.getEsIndexType(),
-          download.getRequest().getChecklistKey() != null
-              ? download.getRequest().getChecklistKey()
-              : workflowConfiguration.getDefaultChecklistKey()
+          workflowConfiguration.getEsIndexType()
         ))
         .build();
   }

@@ -16,6 +16,8 @@ package org.gbif.occurrence.search.es;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +61,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   // FIXME: this shouldn't be an Optional
   private final Optional<QueryBuilder> defaultFilter;
 
-  private final String defaulChecklistKey;
+//  private final String defaultChecklistKey;
 
   @Builder
   public OccurrenceBaseEsFieldMapper(Map<OccurrenceSearchParameter,EsField> searchToEsMapping,
@@ -71,8 +73,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
                                      List<FieldSortBuilder> defaultSort,
                                      Optional<QueryBuilder> defaultFilter,
                                      Class<? extends Enum<? extends EsField>> fieldEnumClass,
-                                     @Nullable Map<OccurrenceSearchParameter,EsField> facetToEsMapping,
-                                     String defaulChecklistKey) {
+                                     @Nullable Map<OccurrenceSearchParameter,EsField> facetToEsMapping) {
     this.searchToEsMapping = searchToEsMapping;
     esToSearchMapping = searchToEsMapping.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getSearchFieldName(),
                                                                                             Map.Entry::getKey));
@@ -86,7 +87,6 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     this.defaultSort = defaultSort;
     this.defaultFilter = defaultFilter;
     this.facetToEsMapping = facetToEsMapping == null? new HashMap<>(): facetToEsMapping;
-    this.defaulChecklistKey = defaulChecklistKey;
   }
 
   public OccurrenceSearchParameter getSearchParameter(String searchFieldName) {
@@ -209,7 +209,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
    * @return the field name for the checklist field
    */
   @Override
-  public String getChecklistField(String checklistKey, OccurrenceSearchParameter searchParameter) {
+  public String getChecklistField(@NotNull String checklistKey, OccurrenceSearchParameter searchParameter) {
 
     EsField esField = getEsField(searchParameter);
     if (esField == null) {
@@ -226,8 +226,7 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
     }
 
     if (baseEsField instanceof ChecklistEsField) {
-      return ((ChecklistEsField) baseEsField)
-          .getSearchFieldName(checklistKey != null ? checklistKey : defaulChecklistKey);
+      return ((ChecklistEsField) baseEsField).getSearchFieldName(checklistKey);
     }
 
     return esField.getSearchFieldName();
