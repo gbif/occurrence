@@ -133,7 +133,7 @@ public class OccurrenceSearchResource {
     this.searchTermService = searchTermService;
     this.esSearchRequestBuilder =
         new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(defaultChecklistKey),
-          conceptClient, nameUsageMatchingService);
+          conceptClient, nameUsageMatchingService, defaultChecklistKey);
   }
 
   /**

@@ -114,6 +114,11 @@ public class ElasticDownloadWorkflow {
 
   private long recordCount(Download download) {
 
+    if (download.getTotalRecords() > 0){
+      return download.getTotalRecords();
+    }
+
+    // if set, dont recalculate
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
       return downloadEsClient.getRecordCount(
           ((PredicateDownloadRequest) download.getRequest()).getPredicate());
@@ -124,6 +129,9 @@ public class ElasticDownloadWorkflow {
   }
 
   private DownloadEsClient downloadEsClient(WorkflowConfiguration workflowConfiguration) {
+
+
+
     return DownloadEsClient.builder()
         .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
         .esIndex(

@@ -63,7 +63,7 @@ public class OccurrenceHeatmapsEsService
     this.esIndex = esIndex;
     this.esClient = esClient;
     this.esHeatmapRequestBuilder = new EsHeatmapRequestBuilder(occurrenceBaseEsFieldMapper,
-      conceptClient, nameUsageMatchingService);
+      conceptClient, nameUsageMatchingService, "defaultChecklistKey");
   }
 
   @Override
