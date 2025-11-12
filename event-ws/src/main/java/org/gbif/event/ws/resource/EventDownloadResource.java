@@ -13,6 +13,9 @@
  */
 package org.gbif.event.ws.resource;
 
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -25,6 +28,39 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(
+  name = "Event downloads",
+  description =
+    "**For a guide to making downloads through the API, see the [guide to API downloads](/en/data-use/api-downloads).** "
+      + "*The documentation here is automatically generated from the Java code.  It is always up-to-date, but the structure for the main "
+      + "download request method is complex.*\n\n"
+      + "This API provides services to request bulk downloads of event records and retrieve "
+      + "information about those downloads. You can also include verbatim and interpreted extensions such as the Humboldt or the occurrence extension\n\n"
+      + "Event downloads are created asynchronously — the user requests a download and, once complete, is sent an "
+      + "email with a link to the resulting file.\n\n"
+      + "It is necessary to register as a user at [GBIF.org](https://www.gbif.org/) to create a download request, "
+      + "and use HTTP authentication using the username (not the email) and password.\n\n"
+      + "### Event Download Predicates\n\n"
+      + "For the API reference for download predicates expand the “Schema” → `predicate` section of the request body schema on the "
+      + "[creation API call](#Event%20downloads/requestDownload) (the first one after this text).\n\n"
+      + "### Event Download Limits\n\n"
+      + "Event downloads demand significant computational resources, and are monitored and limited according to the "
+      + "GBIF platform load. In order to avoid that downloads requested by a single user utilize most of the resources "
+      + "two rules have been set:\n\n"
+      + "1. Download complexity limits:\n"
+      + "   * A download predicate may contain a maximum of 101,000 items \n"
+      + "   * A download predicate may contain a maximum of 10,000 points in any “within” predicate geometries.\n"
+      + "2. Limits on incomplete (preparing, running) downloads:\n"
+      + "   * If the total number of incomplete downloads is fewer than 100, any single user can have no more than 3 "
+      + "     incomplete downloads.\n"
+      + "   * If the total number of downloads is fewer than 1000 any single user may only have 1 download.\n\n"
+      + "The number of user downloads currently in progress can be seen on the "
+      + "[System Health page](https://www.gbif.org/system-health). Your own downloads can be seen on your "
+      + "[My Downloads](https://www.gbif.org/user/download) page.",
+  extensions =
+  @io.swagger.v3.oas.annotations.extensions.Extension(
+    name = "Order",
+    properties = @ExtensionProperty(name = "Order", value = "0300")))
 @RestController
 @Validated
 @RequestMapping(
