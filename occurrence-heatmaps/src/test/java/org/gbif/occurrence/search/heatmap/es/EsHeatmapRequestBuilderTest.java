@@ -42,7 +42,7 @@ public class EsHeatmapRequestBuilderTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
   private final EsHeatmapRequestBuilder esHeatmapRequestBuilder =
-      new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper("defaultChecklistKey"),
+      new EsHeatmapRequestBuilder(OccurrenceEsField.buildFieldMapper(),
         null, null, "defaultChecklistKey");
 
   @Test

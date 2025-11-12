@@ -57,7 +57,7 @@ public class EsQueryVisitorTest {
   private static final OccurrenceSearchParameter PARAM2 =
       OccurrenceSearchParameter.INSTITUTION_CODE;
 
-  private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
+  private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper = OccurrenceEsField.buildFieldMapper();
   private final EsQueryVisitor<OccurrenceSearchParameter> visitor =
       new EsQueryVisitor<>(occurrenceEsFieldMapper);
 
@@ -1586,7 +1586,7 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testVocabularyEqualsPredicate() {
-    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
+    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     Arrays.stream(OccurrenceSearchParameter.values())
         .filter(esFieldMapper::isVocabulary)
         .forEach(

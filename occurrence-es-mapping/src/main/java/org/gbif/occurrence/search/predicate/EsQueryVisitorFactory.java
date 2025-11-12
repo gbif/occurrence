@@ -23,7 +23,7 @@ public class EsQueryVisitorFactory {
 
   public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(OccurrenceBaseEsFieldMapper fieldMapper) {
     return new EsQueryVisitor<>(
-        new org.gbif.predicate.query.EsFieldMapper<OccurrenceSearchParameter>() {
+        new org.gbif.predicate.query.EsFieldMapper<>() {
 
           @Override
           public String getVerbatimFieldName(OccurrenceSearchParameter searchParameter) {

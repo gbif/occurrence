@@ -393,33 +393,35 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   @Deprecated
   private void setTaxonFields(SearchHit hit, Occurrence occ) {
 
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.kingdomKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setKingdomKey);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.kingdom), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setKingdom);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.phylumKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setPhylumKey);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.phylum), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setPhylum);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.classKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setClassKey);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.class_), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setClazz);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.orderKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setOrderKey);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.order), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setOrder);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.familyKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setFamilyKey);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.family), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setFamily);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.genusKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setGenusKey);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.genus), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setGenus);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.subgenusKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setSubgenusKey);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.subgenus), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setSubgenus);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.speciesKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setSpeciesKey);
-    getChecklistStringValue(hit, getChecklistField(GbifTerm.species), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setSpecies);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.scientificName), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setScientificName);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.scientificNameAuthorship), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setScientificNameAuthorship);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.specificEpithet), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setSpecificEpithet);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.infraspecificEpithet), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setInfraspecificEpithet);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.genericName), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setGenericName);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.taxonRank), Constants.NUB_DATASET_KEY.toString()).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.taxonKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setTaxonKey);
-    getChecklistIntValue(hit, getChecklistField(GbifTerm.acceptedTaxonKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setAcceptedTaxonKey);
-    getChecklistStringValue(hit, getChecklistField(GbifTerm.acceptedScientificName), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setAcceptedScientificName);
-    getChecklistStringValue(hit, getChecklistField(DwcTerm.taxonomicStatus), Constants.NUB_DATASET_KEY.toString()).ifPresent(v -> occ.setTaxonomicStatus(TaxonomicStatus.valueOf(v)));
-    getChecklistStringValue(hit, getChecklistField(IucnTerm.iucnRedListCategory), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setIucnRedListCategory);
+    String checklistKey =  Constants.NUB_DATASET_KEY.toString();
+
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.kingdomKey), checklistKey).ifPresent(occ::setKingdomKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.kingdom), checklistKey).ifPresent(occ::setKingdom);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.phylumKey), checklistKey).ifPresent(occ::setPhylumKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.phylum), checklistKey).ifPresent(occ::setPhylum);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.classKey), checklistKey).ifPresent(occ::setClassKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.class_), checklistKey).ifPresent(occ::setClazz);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.orderKey), checklistKey).ifPresent(occ::setOrderKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.order), checklistKey).ifPresent(occ::setOrder);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.familyKey), checklistKey).ifPresent(occ::setFamilyKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.family), checklistKey).ifPresent(occ::setFamily);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.genusKey), checklistKey).ifPresent(occ::setGenusKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.genus), checklistKey).ifPresent(occ::setGenus);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.subgenusKey), checklistKey).ifPresent(occ::setSubgenusKey);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.subgenus), checklistKey).ifPresent(occ::setSubgenus);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.speciesKey), checklistKey).ifPresent(occ::setSpeciesKey);
+    getChecklistStringValue(hit, getChecklistField(GbifTerm.species), checklistKey).ifPresent(occ::setSpecies);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.scientificName), checklistKey).ifPresent(occ::setScientificName);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.scientificNameAuthorship), checklistKey).ifPresent(occ::setScientificNameAuthorship);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.specificEpithet), checklistKey).ifPresent(occ::setSpecificEpithet);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.infraspecificEpithet), checklistKey).ifPresent(occ::setInfraspecificEpithet);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.genericName), checklistKey).ifPresent(occ::setGenericName);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.taxonRank), checklistKey).ifPresent(v -> occ.setTaxonRank(Rank.valueOf(v)));
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.taxonKey), checklistKey).ifPresent(occ::setTaxonKey);
+    getChecklistIntValue(hit, getChecklistField(GbifTerm.acceptedTaxonKey), checklistKey).ifPresent(occ::setAcceptedTaxonKey);
+    getChecklistStringValue(hit, getChecklistField(GbifTerm.acceptedScientificName), checklistKey).ifPresent(occ::setAcceptedScientificName);
+    getChecklistStringValue(hit, getChecklistField(DwcTerm.taxonomicStatus), checklistKey).ifPresent(v -> occ.setTaxonomicStatus(TaxonomicStatus.valueOf(v)));
+    getChecklistStringValue(hit, getChecklistField(IucnTerm.iucnRedListCategory), checklistKey).ifPresent(occ::setIucnRedListCategory);
   }
 
   private ChecklistEsField getChecklistField(Term term) {
