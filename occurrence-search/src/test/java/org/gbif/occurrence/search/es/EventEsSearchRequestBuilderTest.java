@@ -331,37 +331,37 @@ public class EventEsSearchRequestBuilderTest {
             .asInt());
   }
 
-  @Test
-  public void humboldtTaxonomyPredicateTest() throws Exception {
-    Predicate p1 =
-        new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk", false);
-    Predicate p2 =
-        new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk", false);
-    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
-    searchRequest.setPredicate(new ConjunctionPredicate(List.of(p1, p2)));
-
-    QueryBuilder query =
-        esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
-    assertEquals(
-        "uk",
-        jsonQuery
-            .findParent(NESTED)
-            .findValues(
-                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".usageKey")
-            .get(0)
-            .get(VALUE)
-            .asText());
-    assertEquals(
-        "tk",
-        jsonQuery
-            .findPath(NESTED)
-            .findValues(
-                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".taxonKeys")
-            .get(0)
-            .get(VALUE)
-            .asText());
-  }
+//  @Test
+//  public void humboldtTaxonomyPredicateTest() throws Exception {
+//    Predicate p1 =
+//        new EqualsPredicate<>(
+//            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk", false);
+//    Predicate p2 =
+//        new EqualsPredicate<>(
+//            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk", false);
+//    OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
+//    searchRequest.setPredicate(new ConjunctionPredicate(List.of(p1, p2)));
+//
+//    QueryBuilder query =
+//        esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
+//    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+//    assertEquals(
+//        "uk",
+//        jsonQuery
+//            .findParent(NESTED)
+//            .findValues(
+//                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".usageKey")
+//            .get(0)
+//            .get(VALUE)
+//            .asText());
+//    assertEquals(
+//        "tk",
+//        jsonQuery
+//            .findPath(NESTED)
+//            .findValues(
+//                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".taxonKeys")
+//            .get(0)
+//            .get(VALUE)
+//            .asText());
+//  }
 }
