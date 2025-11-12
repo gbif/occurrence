@@ -77,14 +77,17 @@ public class EsSearchRequestBuilder {
   private final OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper;
   private final ConceptClient conceptClient;
   private final NameUsageMatchingService nameUsageMatchingService;
+  private final String defaultChecklistKey;
 
   public EsSearchRequestBuilder(
       OccurrenceBaseEsFieldMapper occurrenceBaseEsFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
+      NameUsageMatchingService nameUsageMatchingService,
+      String defaultChecklistKey) {
     this.occurrenceBaseEsFieldMapper = occurrenceBaseEsFieldMapper;
     this.conceptClient = conceptClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   public SearchRequest buildSearchRequest(OccurrenceSearchRequest searchRequest, String index) {
@@ -176,33 +179,6 @@ public class EsSearchRequestBuilder {
     searchSourceBuilder.fetchSource(esField.getSearchFieldName(), null);
 
     return request;
-  }
-
-  // Method to build and add a nested checklist query
-  private void addChecklistKeyParamToQuery(Map<OccurrenceSearchParameter, Set<String>> params,
-                                           BoolQueryBuilder bool,
-                                           OccurrenceSearchParameter taxonParam) {
-
-    if (params.containsKey(taxonParam) &&
-        params.get(taxonParam) != null &&
-        !params.get(taxonParam).isEmpty()) {
-      String checklistKey = getChecklistKey(params);
-      String esFieldToUse = occurrenceBaseEsFieldMapper.getChecklistField(checklistKey, taxonParam);
-      // Build the query
-      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-          .must(QueryBuilders.termsQuery(esFieldToUse, params.get(taxonParam))
-        );
-
-      EsField esField = occurrenceBaseEsFieldMapper.getEsField(taxonParam);
-      // TODO: this has to be with the other nested queries
-      if (esField.isNestedField()) {
-        bool.filter()
-            .add(
-                QueryBuilders.nestedQuery(esField.getNestedPath(), checklistQuery, ScoreMode.None));
-      } else {
-        bool.filter().add(checklistQuery);
-      }
-    }
   }
 
   /**
@@ -365,7 +341,8 @@ public class EsSearchRequestBuilder {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)) {
       return params.get(OccurrenceSearchParameter.CHECKLIST_KEY).iterator().next();
     }
-    return occurrenceBaseEsFieldMapper.getDefaulChecklistKey();
+
+    return defaultChecklistKey;
   }
 
   /**
