@@ -227,6 +227,8 @@ public final class HiveDataTypes {
       return TYPE_MAP_OF_ARRAY_STRUCT;
     } else if (term.equals(GbifInternalTerm.taxonomicStatuses)) {
       return TYPE_MAP_STRUCT;
+    } else if (term.equals(GbifTerm.nonTaxonomicIssue)) {
+      return TYPE_ARRAY_STRING;
     } else if (term.equals(GbifTerm.taxonomicIssue)) {
       return TYPE_MAP_OF_ARRAY_STRUCT;
     } else if (term.equals(GbifInternalTerm.classificationDetails)) {
