@@ -71,7 +71,17 @@ import org.springframework.web.bind.annotation.RestController;
           extensions =
               @Extension(
                   name = "Order",
-                  properties = @ExtensionProperty(name = "Order", value = "0500")))
+                  properties = @ExtensionProperty(name = "Order", value = "0500"))),
+      // And this for the GADM methods from geocode-ws
+      @Tag(
+        name = "GADM regions",
+        description = "The [GADM Global Administrative Area Database](https://gadm.org) " +
+          "is a high-resolution database of administrative areas of countries.\n\n" +
+          "Within GBIF, it is used to index event data by administrative region.\n\n" +
+          "This API provides services to search and browse regions and sub-regions " +
+          "down to the third level sub-region.",
+        extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0800"))
+      )
     })
 @Tag(
     name = "Events",
@@ -303,7 +313,6 @@ public class EventResource {
     @Extension(
       name = "Order",
       properties = @ExtensionProperty(name = "Order", value = "0000")))
-
   @CommonOffsetLimitParameters
   @CommonFacetParameters
   @ApiResponses(
