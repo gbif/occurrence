@@ -18,6 +18,7 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -111,7 +112,7 @@ public class ExtensionTableTest {
   }
 
   /**
-   * Check the getInterpretedFields and getInterpretedFieldsAtTerms methods use the same order.
+   * Check the getInterpretedFields, getInterpretedFieldsAsTerms and getVerbatimFields methods use the same order.
    */
   @Test
   public void consistentFieldTermsOrderTest() {
@@ -120,20 +121,28 @@ public class ExtensionTableTest {
 
       Set<String> fields = extensionTable.getInterpretedFields();
       List<Term> terms = extensionTable.getInterpretedFieldsAsTerms();
+      Set<String> verbatims = extensionTable.getVerbatimFields();
       assertEquals(fields.size(), terms.size());
+      assertEquals(fields.size(), verbatims.size());
 
       int i = 0;
+      Iterator<String> verbatimsIterator = verbatims.iterator();
       for (String fieldString : fields) {
         Term term = terms.get(i++);
+        String verbatimString = verbatimsIterator.next();
 
         if (term.equals(GbifTerm.gbifID)) {
           assertEquals(ExtensionTable.GBIFID_FIELD, fieldString);
+          assertEquals(ExtensionTable.GBIFID_FIELD, verbatimString);
         } else if (term.equals(GbifTerm.datasetKey)) {
           assertEquals(ExtensionTable.DATASET_KEY_FIELD, fieldString);
+          assertEquals(ExtensionTable.DATASET_KEY_FIELD, verbatimString);
         } else {
           String unescapedFieldName = fieldString.replaceAll("`", "").replaceAll("^([0-9])", "_\\1");
           Schema.Field field = extensionTable.getSchema().getField(unescapedFieldName);
           assertEquals(TERM_FACTORY.findPropertyTerm(field.doc()), term);
+
+          assertEquals(unescapedFieldName.replaceAll("^_", ""), verbatimString.replace("v_", ""));
         }
       }
     }

@@ -118,6 +118,9 @@ public class ExtensionTable {
     return term;
   }
 
+  /*
+   * It is essential that these three methods return the columns in the same order!
+   */
   public Set<String> getInterpretedFields() {
     Set<String> interpretedFields = new LinkedHashSet<>();
     interpretedFields.add(GBIFID_FIELD);
@@ -128,7 +131,7 @@ public class ExtensionTable {
                                .filter(fieldName -> !fieldName.startsWith("v_")
                                                     && !fieldName.equalsIgnoreCase(GBIFID_FIELD)
                                                     && !fieldName.equalsIgnoreCase(DATASET_KEY_FIELD))
-                               .collect(Collectors.toList()));
+                               .toList());
     return interpretedFields;
   }
 
@@ -142,7 +145,7 @@ public class ExtensionTable {
         && !field.name().equalsIgnoreCase(GBIFID_FIELD)
         && !field.name().equalsIgnoreCase(DATASET_KEY_FIELD))
         .map(f -> TERM_FACTORY.findPropertyTerm(f.doc()))
-        .collect(Collectors.toList()));
+        .toList());
     return interpretedFields;
   }
 
@@ -156,7 +159,7 @@ public class ExtensionTable {
       .filter(fieldName -> fieldName.startsWith("v_")
         || fieldName.equalsIgnoreCase(GBIFID_FIELD)
         || fieldName.equalsIgnoreCase(DATASET_KEY_FIELD))
-      .collect(Collectors.toSet()));
+      .toList());
     return verbatimFields;
   }
 
