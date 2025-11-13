@@ -306,26 +306,26 @@ public class EventResource {
   }
 
   @Operation(
-    operationId = "searchEvent",
-    summary = "Event search",
-    description = "Full search across all events.",
-    extensions =
-    @Extension(
-      name = "Order",
-      properties = @ExtensionProperty(name = "Order", value = "0000")))
+      operationId = "searchEvent",
+      summary = "Event search",
+      description = "Full search across all events.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0000")))
   @EventSearchParameters
   @ApiResponses(
-    value = {
-      @ApiResponse(responseCode = "200", description = "Event search is valid"),
-      @ApiResponse(
-        responseCode = "400",
-        description = "Invalid query, e.g. invalid vocabulary values",
-        content = @Content)
-    })
+      value = {
+        @ApiResponse(responseCode = "200", description = "Event search is valid"),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid query, e.g. invalid vocabulary values",
+            content = @Content)
+      })
   @NullToNotFound
   @GetMapping("search")
   public SearchResponse<Event, EventSearchParameter> search(
-      @NotNull @Valid EventSearchRequest request) {
+      @NotNull @Valid @ParameterObject EventSearchRequest request) {
     return eventSearchEs.search(request);
   }
 
