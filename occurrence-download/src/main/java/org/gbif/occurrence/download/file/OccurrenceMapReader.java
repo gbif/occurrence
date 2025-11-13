@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -166,10 +167,14 @@ public class OccurrenceMapReader {
 
       // combine taxonomic issues for this classification, with non taxonomic issues
       List<String> nonTaxonomicIssues = occurrence.getIssues().stream()
-        .filter(oi -> !OccurrenceIssue.TAXONOMIC_RULES.contains(oi)).map(OccurrenceIssue::name).toList();
+        .filter(oi -> !OccurrenceIssue.TAXONOMIC_RULES.contains(oi)).map(OccurrenceIssue::name)
+        .toList();
 
-      nonTaxonomicIssues.addAll(classification.getIssues());
-      interpretedOccurrence.put(GbifTerm.issue.simpleName(), String.join(";", nonTaxonomicIssues));
+      List<String> taxonIssues = classification.getIssues() != null ? classification.getIssues() : List.of();
+      List<String> combinedIssues = Stream.concat(nonTaxonomicIssues.stream(), taxonIssues.stream())
+        .toList();
+
+      interpretedOccurrence.put(GbifTerm.issue.simpleName(), String.join(";", combinedIssues));
 
     } else {
 
