@@ -313,8 +313,7 @@ public class EventResource {
     @Extension(
       name = "Order",
       properties = @ExtensionProperty(name = "Order", value = "0000")))
-  @CommonOffsetLimitParameters
-  @CommonFacetParameters
+  @EventSearchParameters
   @ApiResponses(
     value = {
       @ApiResponse(responseCode = "200", description = "Event search is valid"),
@@ -323,7 +322,6 @@ public class EventResource {
         description = "Invalid query, e.g. invalid vocabulary values",
         content = @Content)
     })
-  @EventSearchParameters
   @NullToNotFound
   @GetMapping("search")
   public SearchResponse<Event, EventSearchParameter> search(
