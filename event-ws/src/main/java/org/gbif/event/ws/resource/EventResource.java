@@ -325,8 +325,8 @@ public class EventResource {
   @NullToNotFound
   @GetMapping("search")
   public SearchResponse<Event, EventSearchParameter> search(
-      @NotNull @Valid EventSearchRequest searchRequest) {
-    return eventSearchEs.search(searchRequest);
+      @NotNull @Valid EventSearchRequest request) {
+    return eventSearchEs.search(request);
   }
 
   @Hidden
