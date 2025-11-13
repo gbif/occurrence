@@ -153,6 +153,9 @@ public class OpenAPIUtils {
   )
   public @interface CommonFacetParameters {}
 
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
   @Parameters(
     value = {
       @Parameter(
