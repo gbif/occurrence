@@ -71,7 +71,7 @@ import org.springframework.web.bind.annotation.RestController;
           extensions =
               @Extension(
                   name = "Order",
-                  properties = @ExtensionProperty(name = "Order", value = "0100")))
+                  properties = @ExtensionProperty(name = "Order", value = "0500")))
     })
 @Tag(
     name = "Events",
