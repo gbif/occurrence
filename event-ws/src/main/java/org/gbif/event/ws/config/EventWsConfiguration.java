@@ -77,7 +77,7 @@ public class EventWsConfiguration {
 
     @Bean
     public OccurrenceBaseEsFieldMapper esFieldMapper() {
-      return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
+      return OccurrenceEsField.buildFieldMapper();
     }
   }
 }
