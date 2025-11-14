@@ -48,7 +48,7 @@ public class EventEsSearchRequestBuilderTest {
 
   private final EsSearchRequestBuilder esSearchRequestBuilder =
       new EsSearchRequestBuilder(
-          EventEsField.buildFieldMapper(DEFAULT_CHECKLIST_KEY), new ConceptClientMock(), null);
+          EventEsField.buildFieldMapper(), new ConceptClientMock(), null, DEFAULT_CHECKLIST_KEY);
 
   @Test
   public void humboldtTaxonomyTest() throws Exception {
@@ -335,10 +335,10 @@ public class EventEsSearchRequestBuilderTest {
   public void humboldtTaxonomyPredicateTest() throws Exception {
     Predicate p1 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk", false);
+            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk", false, DEFAULT_CHECKLIST_KEY);
     Predicate p2 =
         new EqualsPredicate<>(
-            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk", false);
+            OccurrenceSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk", false, DEFAULT_CHECKLIST_KEY);
     OccurrencePredicateSearchRequest searchRequest = new OccurrencePredicateSearchRequest();
     searchRequest.setPredicate(new ConjunctionPredicate(List.of(p1, p2)));
 

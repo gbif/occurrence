@@ -46,7 +46,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
   private static final String INDEX = "index";
 
   private final EsSearchRequestBuilder esSearchRequestBuilder =
-      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper("defaultChecklistKey"), new ConceptClientMock(), null);
+      new EsSearchRequestBuilder(OccurrenceEsField.buildFieldMapper(), new ConceptClientMock(), null,
+        "defaultChecklistKey");
 
   @Test
   public void termQueryTest() throws IOException {
@@ -743,7 +744,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
     LOG.debug("Query: {}", jsonQuery);
 
-    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper("defaultChecklistKey");
+    OccurrenceBaseEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     EsField esField = esFieldMapper.getEsField(param);
 
     assertEquals(

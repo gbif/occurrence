@@ -86,7 +86,9 @@ public class OccurrenceMapReaderTest {
         org.gbif.api.v2.RankedName.builder().name("Tapiridae").rank("FAMILY").key("1").build(),
         org.gbif.api.v2.RankedName.builder().name("Tapirus").rank("GENUS").key("1").build(),
         org.gbif.api.v2.RankedName.builder().name("bairdii").rank("SPECIES").key("1").build()
-    )).build();
+      ))
+      .issues(List.of(OccurrenceIssue.TAXON_MATCH_FUZZY.name()))
+      .build();
 
     occurrence.setClassifications(
       Map.of(Constants.NUB_DATASET_KEY.toString(), classification));

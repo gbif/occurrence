@@ -54,7 +54,9 @@ public class DownloadEsClient implements Closeable {
    */
   @SneakyThrows
   public long getRecordCount(Predicate predicate) {
-    CountResponse response = esClient.count(new CountRequest().indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
+    CountResponse response = esClient.count(new CountRequest()
+        .indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)
+      ),
       RequestOptions.DEFAULT);
     log.info("Download record count {}", response.getCount());
     return response.getCount();

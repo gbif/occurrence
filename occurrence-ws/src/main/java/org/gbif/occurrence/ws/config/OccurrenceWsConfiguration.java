@@ -57,12 +57,9 @@ public class OccurrenceWsConfiguration {
   @Configuration
   public static class OccurrenceSearchConfigurationWs extends OccurrenceSearchConfiguration {
 
-    @Value("${defaultChecklistKey}")
-    protected String defaultChecklistKey;
-
     @Bean
     public OccurrenceBaseEsFieldMapper esFieldMapper() {
-      return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
+      return OccurrenceEsField.buildFieldMapper();
     }
   }
 
