@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.HiveColumnsUtils;
@@ -37,6 +38,11 @@ public class HiveQueries extends TsvQueries {
         "concat(nontaxonomicissue, element_at(taxonomicissue, '%s')) as issue",
         checklistKey
       );
+    } else if (term == DwcTerm.taxonomicStatus) {
+        return String.format(
+          "element_at(taxonomicstatuses, '%s') as taxonomicstatus",
+          checklistKey
+        );
     } else if (TermUtils.isTaxonomic(term)) {
       return toTaxonomicHiveInitializer(term, checklistKey);
     } else if (TermUtils.isInterpretedLocalDateSeconds(term)) {
