@@ -61,8 +61,6 @@ public class OccurrenceBaseEsFieldMapper implements EsFieldMapper<OccurrenceSear
   // FIXME: this shouldn't be an Optional
   private final Optional<QueryBuilder> defaultFilter;
 
-//  private final String defaultChecklistKey;
-
   @Builder
   public OccurrenceBaseEsFieldMapper(Map<OccurrenceSearchParameter,EsField> searchToEsMapping,
                                      Set<EsField> dateFields,
