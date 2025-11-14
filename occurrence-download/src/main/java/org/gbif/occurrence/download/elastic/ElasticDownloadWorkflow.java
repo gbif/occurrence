@@ -111,12 +111,12 @@ public class ElasticDownloadWorkflow {
 
   private long recordCount(Download download) {
 
+    // if set, dont recalculate
     if (download.getTotalRecords() > 0){
       return download.getTotalRecords();
     }
-    log.info("Download records count: {}, re-querying ES for accurate count", download.getTotalRecords());
 
-    // if set, dont recalculate
+    log.info("Download records count: {}, re-querying ES for accurate count", download.getTotalRecords());
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
       return downloadEsClient.getRecordCount(
           ((PredicateDownloadRequest) download.getRequest()).getPredicate());
@@ -127,11 +127,6 @@ public class ElasticDownloadWorkflow {
   }
 
   private DownloadEsClient downloadEsClient(WorkflowConfiguration workflowConfiguration) {
-
-    String taxonomyForDownload = download.getRequest().getChecklistKey() != null
-      ? download.getRequest().getChecklistKey()
-      : workflowConfiguration.getDefaultChecklistKey();
-
     return DownloadEsClient.builder()
         .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
         .esIndex(
