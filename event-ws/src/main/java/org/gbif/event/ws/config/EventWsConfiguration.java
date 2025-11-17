@@ -13,6 +13,7 @@
  */
 package org.gbif.event.ws.config;
 
+import java.io.IOException;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.JsonMessagePublisher;
@@ -20,19 +21,15 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.registry.ws.client.EventDownloadClient;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 
 @Configuration
 public class EventWsConfiguration {
@@ -72,12 +69,9 @@ public class EventWsConfiguration {
   @Configuration
   public static class EventSearchConfigurationWs extends OccurrenceSearchConfiguration {
 
-    @Value("${defaultChecklistKey}")
-    protected String defaultChecklistKey;
-
     @Bean
     public OccurrenceEsFieldMapper esFieldMapper() {
-      return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
+      return OccurrenceEsField.buildFieldMapper();
     }
   }
 }

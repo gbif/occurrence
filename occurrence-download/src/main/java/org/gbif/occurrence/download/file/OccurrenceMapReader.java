@@ -29,6 +29,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.MediaObject;

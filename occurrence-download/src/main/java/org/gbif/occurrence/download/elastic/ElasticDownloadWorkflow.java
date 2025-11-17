@@ -74,7 +74,8 @@ public class ElasticDownloadWorkflow {
             .searchQuery(
                 EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
-                        OccurrenceEsField.buildFieldMapper())
+                        OccurrenceEsField.buildFieldMapper(),
+                        workflowConfiguration.getDefaultChecklistKey())
                     .toString())
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
