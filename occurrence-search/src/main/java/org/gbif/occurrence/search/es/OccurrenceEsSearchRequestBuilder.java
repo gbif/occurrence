@@ -4,14 +4,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.vocabulary.client.ConceptClient;
 
@@ -21,12 +18,14 @@ public class OccurrenceEsSearchRequestBuilder
   public OccurrenceEsSearchRequestBuilder(
       OccurrenceEsFieldMapper occurrenceEsFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
+      NameUsageMatchingService nameUsageMatchingService,
+      String defaultChecklistKey) {
     super(
         occurrenceEsFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper));
+        new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, defaultChecklistKey),
+        defaultChecklistKey);
   }
 
   @Override
@@ -58,7 +57,8 @@ public class OccurrenceEsSearchRequestBuilder
    * @param bool the bool query builder
    */
   @Override
-  protected void handleIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+  protected void handleIssueQueries(
+      Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
     super.handleOccurrenceIssueQueries(params, bool);
   }
 }

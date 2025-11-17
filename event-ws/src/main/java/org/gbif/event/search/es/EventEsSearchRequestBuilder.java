@@ -22,12 +22,14 @@ public class EventEsSearchRequestBuilder
   public EventEsSearchRequestBuilder(
       EventEsFieldMapper eventEsFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
+      NameUsageMatchingService nameUsageMatchingService,
+      String defaultChecklistKey) {
     super(
         eventEsFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new EventEsQueryVisitor(eventEsFieldMapper));
+        new EventEsQueryVisitor(eventEsFieldMapper, defaultChecklistKey),
+        defaultChecklistKey);
   }
 
   @Override

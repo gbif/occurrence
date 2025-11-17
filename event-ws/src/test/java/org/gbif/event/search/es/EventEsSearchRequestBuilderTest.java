@@ -47,7 +47,7 @@ public class EventEsSearchRequestBuilderTest {
 
   private final EventEsSearchRequestBuilder esSearchRequestBuilder =
       new EventEsSearchRequestBuilder(
-          EventEsField.buildFieldMapper(DEFAULT_CHECKLIST_KEY), new ConceptClientMock(), null);
+          EventEsField.buildFieldMapper(), new ConceptClientMock(), null, DEFAULT_CHECKLIST_KEY);
 
   @Test
   public void humboldtTaxonomyTest() throws Exception {

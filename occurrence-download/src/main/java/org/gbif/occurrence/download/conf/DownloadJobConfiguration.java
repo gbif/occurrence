@@ -142,8 +142,8 @@ public class DownloadJobConfiguration {
 
   public EsFieldMapper<? extends SearchParameter> esFieldMapper(Download download) {
     return DownloadType.OCCURRENCE == download.getRequest().getType()
-        ? OccurrenceEsField.buildFieldMapper(checklistKey)
-        : EventEsField.buildFieldMapper(checklistKey);
+        ? OccurrenceEsField.buildFieldMapper()
+        : EventEsField.buildFieldMapper();
   }
 
   /**

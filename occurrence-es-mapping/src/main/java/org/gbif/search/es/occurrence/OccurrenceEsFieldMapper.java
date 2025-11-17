@@ -40,8 +40,7 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
       List<FieldSortBuilder> defaultSort,
       QueryBuilder defaultFilter,
       Class<? extends Enum<? extends EsField>> fieldEnumClass,
-      @Nullable Map<OccurrenceSearchParameter, EsField> facetToEsMapping,
-      String defaulChecklistKey) {
+      @Nullable Map<OccurrenceSearchParameter, EsField> facetToEsMapping) {
     super(
         searchToEsMapping,
         dateFields,
@@ -52,8 +51,7 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
         defaultSort,
         defaultFilter,
         fieldEnumClass,
-        facetToEsMapping,
-        defaulChecklistKey);
+        facetToEsMapping);
   }
 
   @Override

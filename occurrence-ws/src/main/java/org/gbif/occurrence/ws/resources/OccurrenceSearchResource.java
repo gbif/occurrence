@@ -125,10 +125,10 @@ public class OccurrenceSearchResource {
     @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;
-    OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
+    OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     this.esSearchRequestBuilder =
         new OccurrenceEsSearchRequestBuilder(
-            esFieldMapper, conceptClient, nameUsageMatchingService);
+            esFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
   }
 
   /**

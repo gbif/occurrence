@@ -101,7 +101,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceEsFieldMapper(esFieldMapper).build();
     this.esSearchRequestBuilder =
         new OccurrenceEsSearchRequestBuilder(
-            esFieldMapper, conceptClient, nameUsageMatchingService);
+            esFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
     this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new OccurrenceEsResponseParser(esFieldMapper, searchHitOccurrenceConverter);
     this.defaultChecklistKey = defaultChecklistKey;

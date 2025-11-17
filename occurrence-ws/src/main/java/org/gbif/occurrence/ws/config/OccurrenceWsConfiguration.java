@@ -33,8 +33,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OccurrenceWsConfiguration {
 
-
-
   @Bean
   public TitleLookupService titleLookupService(@Value("${api.url}") String apiUrl) {
     return TitleLookupServiceFactory.getInstance(apiUrl);

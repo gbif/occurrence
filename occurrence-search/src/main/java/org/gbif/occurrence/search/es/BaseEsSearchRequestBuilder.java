@@ -85,16 +85,19 @@ public abstract class BaseEsSearchRequestBuilder<
   protected final NameUsageMatchingService nameUsageMatchingService;
   protected final ConceptClient conceptClient;
   protected final EsQueryVisitor<P> esQueryVisitor;
+  protected final String defaultChecklistKey;
 
   public BaseEsSearchRequestBuilder(
       EsFieldMapper<P> esFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      EsQueryVisitor<P> esQueryVisitor) {
+      EsQueryVisitor<P> esQueryVisitor,
+      String defaultChecklistKey) {
     this.esFieldMapper = esFieldMapper;
     this.conceptClient = conceptClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
     this.esQueryVisitor = esQueryVisitor;
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   public SearchRequest buildSearchRequest(S searchRequest, String index) {
@@ -188,32 +191,6 @@ public abstract class BaseEsSearchRequestBuilder<
     searchSourceBuilder.fetchSource(esField.getSearchFieldName(), null);
 
     return request;
-  }
-
-  // Method to build and add a nested checklist query
-  private void addChecklistKeyParamToQuery(
-      Map<P, Set<String>> params, BoolQueryBuilder bool, P taxonParam) {
-
-    if (params.containsKey(taxonParam)
-        && params.get(taxonParam) != null
-        && !params.get(taxonParam).isEmpty()) {
-      String checklistKey = getChecklistKey(params);
-      String esFieldToUse = esFieldMapper.getChecklistField(checklistKey, taxonParam);
-      // Build the query
-      BoolQueryBuilder checklistQuery =
-          QueryBuilders.boolQuery()
-              .must(QueryBuilders.termsQuery(esFieldToUse, params.get(taxonParam)));
-
-      EsField esField = esFieldMapper.getEsField(taxonParam);
-      // TODO: this has to be with the other nested queries
-      if (esField.isNestedField()) {
-        bool.filter()
-            .add(
-                QueryBuilders.nestedQuery(esField.getNestedPath(), checklistQuery, ScoreMode.None));
-      } else {
-        bool.filter().add(checklistQuery);
-      }
-    }
   }
 
   /**
@@ -353,7 +330,7 @@ public abstract class BaseEsSearchRequestBuilder<
     return getParam("CHECKLIST_KEY")
         .filter(params::containsKey)
         .map(p -> params.get(p).iterator().next())
-        .orElse(esFieldMapper.getDefaultChecklistKey());
+        .orElse(defaultChecklistKey);
   }
 
   /**

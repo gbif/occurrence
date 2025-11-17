@@ -22,12 +22,14 @@ public class OccurrenceEsHeatmapRequestBuilder
   public OccurrenceEsHeatmapRequestBuilder(
       EsFieldMapper<OccurrenceSearchParameter> esFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
+      NameUsageMatchingService nameUsageMatchingService,
+      String defaultChecklistKey) {
     super(
         esFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new OccurrenceEsQueryVisitor(esFieldMapper));
+        new OccurrenceEsQueryVisitor(esFieldMapper, defaultChecklistKey),
+        defaultChecklistKey);
   }
 
   @Override

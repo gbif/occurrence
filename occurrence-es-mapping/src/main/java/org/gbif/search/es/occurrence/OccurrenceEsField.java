@@ -430,7 +430,7 @@ public enum OccurrenceEsField implements EsField {
       .build();
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, EVENT_DATE_GTE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
-  public static OccurrenceEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
+  public static OccurrenceEsFieldMapper buildFieldMapper() {
       return OccurrenceEsFieldMapper.builder()
         .fullTextField(FULL_TEXT)
         .geoShapeField(COORDINATE_SHAPE)
@@ -441,7 +441,6 @@ public enum OccurrenceEsField implements EsField {
         .dateFields(DATE_FIELDS)
         .facetToEsMapping(FACET_TO_ES_MAPPING)
         .fieldEnumClass(OccurrenceEsField.class)
-        .defaulChecklistKey(defaultChecklistKey)
         .build();
   }
 

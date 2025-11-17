@@ -20,12 +20,14 @@ public class EventEsHeatmapRequestBuilder
   public EventEsHeatmapRequestBuilder(
       EsFieldMapper<EventSearchParameter> esFieldMapper,
       ConceptClient conceptClient,
-      NameUsageMatchingService nameUsageMatchingService) {
+      NameUsageMatchingService nameUsageMatchingService,
+      String defaultChecklistKey) {
     super(
         esFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new EventEsQueryVisitor(esFieldMapper));
+        new EventEsQueryVisitor(esFieldMapper, defaultChecklistKey),
+        defaultChecklistKey);
   }
 
   @Override

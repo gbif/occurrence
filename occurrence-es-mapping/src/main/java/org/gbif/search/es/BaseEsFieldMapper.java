@@ -16,6 +16,8 @@ package org.gbif.search.es;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -56,8 +58,6 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
 
   private final QueryBuilder defaultFilter;
 
-  private final String defaultChecklistKey;
-
   public BaseEsFieldMapper(Map<P,EsField> searchToEsMapping,
                            Set<EsField> dateFields,
                            EsField fullTextField,
@@ -67,8 +67,7 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
                            List<FieldSortBuilder> defaultSort,
                            QueryBuilder defaultFilter,
                            Class<? extends Enum<? extends EsField>> fieldEnumClass,
-                           @Nullable Map<P,EsField> facetToEsMapping,
-                           String defaultChecklistKey) {
+                           @Nullable Map<P,EsField> facetToEsMapping) {
     this.searchToEsMapping = searchToEsMapping;
     esToSearchMapping = searchToEsMapping.entrySet().stream().collect(Collectors.toMap(e -> e.getValue().getSearchFieldName(),
                                                                                             Map.Entry::getKey));
@@ -82,7 +81,6 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
     this.defaultSort = defaultSort;
     this.defaultFilter = defaultFilter;
     this.facetToEsMapping = facetToEsMapping == null? new HashMap<>(): facetToEsMapping;
-    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   public P getSearchParameter(String searchFieldName) {
@@ -142,11 +140,6 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
     return searchToEsMapping.get(searchParameter);
   }
 
-  @Override
-  public String getDefaultChecklistKey() {
-    return defaultChecklistKey;
-  }
-
   /**
    * Gets the facet field used for a search parameter, it defaults to the search field if the facet is not mapped.
    */
@@ -203,7 +196,7 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
    * @return the field name for the checklist field
    */
   @Override
-  public String getChecklistField(String checklistKey, P searchParameter) {
+  public String getChecklistField(@NotNull String checklistKey, P searchParameter) {
 
     EsField esField = getEsField(searchParameter);
     if (esField == null) {
@@ -220,8 +213,7 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
     }
 
     if (baseEsField instanceof ChecklistEsField) {
-      return ((ChecklistEsField) baseEsField)
-          .getSearchFieldName(checklistKey != null ? checklistKey : defaultChecklistKey);
+      return ((ChecklistEsField) baseEsField).getSearchFieldName(checklistKey);
     }
 
     return esField.getSearchFieldName();

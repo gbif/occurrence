@@ -388,7 +388,7 @@ public enum EventEsField implements EsField {
   private static final Set<EsField> DATE_FIELDS =
     ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
-  public static EventEsFieldMapper buildFieldMapper(String defaultChecklistKey) {
+  public static EventEsFieldMapper buildFieldMapper() {
     return EventEsFieldMapper.builder()
         .fullTextField(FULL_TEXT)
         .geoShapeField(COORDINATE_SHAPE)
@@ -405,7 +405,6 @@ public enum EventEsField implements EsField {
         .searchToEsMapping(SEARCH_TO_ES_MAPPING)
         .dateFields(DATE_FIELDS)
         .fieldEnumClass(EventEsField.class)
-        .defaulChecklistKey(defaultChecklistKey)
         .build();
   }
 

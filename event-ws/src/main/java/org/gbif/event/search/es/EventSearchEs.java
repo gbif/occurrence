@@ -103,10 +103,10 @@ public class EventSearchEs
     // create ES client
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
-    eventEsFieldMapper = EventEsField.buildFieldMapper(defaultChecklistKey);
+    eventEsFieldMapper = EventEsField.buildFieldMapper();
     this.esSearchRequestBuilder =
         new EventEsSearchRequestBuilder(
-            eventEsFieldMapper, conceptClient, nameUsageMatchingService);
+            eventEsFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
     this.occurrenceSearchService = occurrenceSearchService;
