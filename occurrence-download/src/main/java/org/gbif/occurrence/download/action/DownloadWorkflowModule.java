@@ -211,9 +211,10 @@ public class DownloadWorkflowModule {
   }
 
 
-  public static EsFieldMapper<? extends SearchParameter> esFieldMapper(WorkflowConfiguration.SearchType searchType, String checklistKey) {
-    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType ?
-      OccurrenceEsField.buildFieldMapper(checklistKey) : EventEsField.buildFieldMapper(checklistKey);
+  public static EsFieldMapper<? extends SearchParameter> esFieldMapper(WorkflowConfiguration.SearchType searchType) {
+    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType
+        ? OccurrenceEsField.buildFieldMapper()
+        : EventEsField.buildFieldMapper();
   }
 
   /**
@@ -229,12 +230,7 @@ public class DownloadWorkflowModule {
   }
 
   private SearchHitConverter<Occurrence> searchHitConverter() {
-    return new SearchHitOccurrenceConverter(
-        OccurrenceEsField.buildFieldMapper(
-            downloadJobConfiguration.getChecklistKey() != null
-                ? downloadJobConfiguration.getChecklistKey()
-                : workflowConfiguration.getDefaultChecklistKey()),
-        false);
+    return new SearchHitOccurrenceConverter(OccurrenceEsField.buildFieldMapper(), false);
   }
 
   private <T extends VerbatimOccurrence> Function<T, Map<String, String>> verbatimMapper() {

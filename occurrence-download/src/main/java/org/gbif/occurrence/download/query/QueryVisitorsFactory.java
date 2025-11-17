@@ -19,10 +19,6 @@ import org.gbif.predicate.query.occurrence.OccurrenceTermsMapper;
 
 public class QueryVisitorsFactory {
 
-  public static SQLQueryVisitor<SearchParameter> createSqlQueryVisitor() {
-    return new SQLQueryVisitor<>(new OccurrenceTermsMapper());
-  }
-
   public static SQLQueryVisitor<SearchParameter> createSqlQueryVisitor(String defaultChecklistKey) {
     return new SQLQueryVisitor<>(new OccurrenceTermsMapper(), defaultChecklistKey);
   }

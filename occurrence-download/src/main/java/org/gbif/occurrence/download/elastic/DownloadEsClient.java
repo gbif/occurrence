@@ -49,13 +49,17 @@ public class DownloadEsClient implements Closeable {
   private final OccurrenceEsFieldMapper esFieldMapper;
 
   /**
-   * Executes the ElasticSearch query and returns the number of records found.
-   * If an error occurs 'ERROR_COUNT' is returned.
+   * Executes the ElasticSearch query and returns the number of records found. If an error occurs
+   * 'ERROR_COUNT' is returned.
    */
   @SneakyThrows
   public long getRecordCount(Predicate predicate) {
-    CountResponse response = esClient.count(new CountRequest().indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
-      RequestOptions.DEFAULT);
+    CountResponse response =
+        esClient.count(
+            new CountRequest()
+                .indices(esIndex)
+                .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
+            RequestOptions.DEFAULT);
     log.info("Download record count {}", response.getCount());
     return response.getCount();
   }

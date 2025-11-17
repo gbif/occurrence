@@ -112,7 +112,7 @@ public class DownloadMaster extends AbstractActor {
     this.esClient = esClient;
     this.esIndex = esIndex;
     this.aggregator = aggregator;
-    this.occurrenceEsFieldMapper = OccurrenceEsField.buildFieldMapper(jobConfiguration.getChecklistKey());
+    this.occurrenceEsFieldMapper = OccurrenceEsField.buildFieldMapper();
     this.interpretedMapper = interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;

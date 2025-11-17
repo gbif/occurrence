@@ -13,15 +13,10 @@
  */
 package org.gbif.occurrence.download.sql;
 
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.Map;
 import java.util.function.BiConsumer;
-
-import org.apache.commons.lang3.StringUtils;
-
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class SqlQueryUtils {
@@ -75,18 +70,5 @@ public class SqlQueryUtils {
       return input.substring(0, maxLength);
     }
     return input;
-  }
-
-  @FunctionalInterface
-  public interface TemplateConsumer<T> {
-    void accept(T t) throws Exception;
-  }
-
-  @SneakyThrows
-  public static String queryTemplateToString(TemplateConsumer<Writer> templateBuilder) {
-    try (StringWriter stringWriter = new StringWriter()) {
-      templateBuilder.accept(stringWriter);
-      return stringWriter.toString();
-    }
   }
 }

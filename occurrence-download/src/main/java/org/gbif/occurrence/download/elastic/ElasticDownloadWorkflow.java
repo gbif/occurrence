@@ -74,17 +74,12 @@ public class ElasticDownloadWorkflow {
             .searchQuery(
                 EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
-                    OccurrenceEsField.buildFieldMapper(download.getRequest().getChecklistKey() != null
-                      ? download.getRequest().getChecklistKey()
-                      : configuration.getDefaultChecklistKey())
-                        )
-                    .toString()
-            )
+                        OccurrenceEsField.buildFieldMapper())
+                    .toString())
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
                     ? download.getRequest().getChecklistKey()
-                    : configuration.getDefaultChecklistKey()
-            )
+                    : configuration.getDefaultChecklistKey())
             .downloadKey(download.getKey())
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
             .sourceDir(configuration.getTempDir())
@@ -112,7 +107,12 @@ public class ElasticDownloadWorkflow {
   }
 
   private long recordCount(Download download) {
+    // if set, dont recalculate
+    if (download.getTotalRecords() > 0){
+      return download.getTotalRecords();
+    }
 
+    log.info("Download records count: {}, re-querying ES for accurate count", download.getTotalRecords());
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
       return downloadEsClient.getRecordCount(
           ((PredicateDownloadRequest) download.getRequest()).getPredicate());
@@ -127,11 +127,7 @@ public class ElasticDownloadWorkflow {
         .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
         .esIndex(
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
-        .esFieldMapper(
-            OccurrenceEsField.buildFieldMapper(
-                download.getRequest().getChecklistKey() != null
-                    ? download.getRequest().getChecklistKey()
-                    : workflowConfiguration.getDefaultChecklistKey()))
+        .esFieldMapper(OccurrenceEsField.buildFieldMapper())
         .build();
   }
 
