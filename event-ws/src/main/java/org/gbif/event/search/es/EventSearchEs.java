@@ -241,6 +241,7 @@ public class EventSearchEs
       return null;
     }
 
+    // TODO: add datasetKey too as a param??
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_ID, event.getId());
     return occurrenceSearchService.search(occurrenceSearchRequest);
