@@ -118,7 +118,7 @@ public class DownloadJobConfiguration {
         .coreTerm(download.getRequest().getType().getCoreTerm())
         .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
         .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
-        .filter(getDownloadFilter(download))
+        .filter(getDownloadFilter(download, workflowConfiguration.getDefaultChecklistKey()))
         .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
         .isSmallDownload(false)
         .sourceDir(workflowConfiguration.getHiveDBPath())
@@ -132,12 +132,12 @@ public class DownloadJobConfiguration {
    * Returns the string representation of a download base on the download format: Json Predicate or
    * Sql clause.
    */
-  private static String getDownloadFilter(Download download) {
+  private static String getDownloadFilter(Download download, String defaultChecklistKey) {
     return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
         ? ((SqlDownloadRequest) download.getRequest()).getSql()
         : toSqlQuery(
-            ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
-            download.getRequest().getChecklistKey());
+            ((PredicateDownloadRequest) download.getRequest()).getPredicate(), defaultChecklistKey
+    );
   }
 
   public EsFieldMapper<? extends SearchParameter> esFieldMapper(Download download) {

@@ -48,17 +48,17 @@ public class DownloadEsClient implements Closeable {
 
   private final OccurrenceEsFieldMapper esFieldMapper;
 
+  private final String defaultChecklistKey;
+
   /**
    * Executes the ElasticSearch query and returns the number of records found. If an error occurs
    * 'ERROR_COUNT' is returned.
    */
   @SneakyThrows
   public long getRecordCount(Predicate predicate) {
-    CountResponse response =
-        esClient.count(
-            new CountRequest()
-                .indices(esIndex)
-                .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
+    CountResponse response = esClient.count(new CountRequest()
+        .indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)
+      ),
             RequestOptions.DEFAULT);
     log.info("Download record count {}", response.getCount());
     return response.getCount();

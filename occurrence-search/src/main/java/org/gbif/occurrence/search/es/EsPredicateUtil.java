@@ -39,10 +39,9 @@ public class EsPredicateUtil {
 
   @SneakyThrows
   public static QueryBuilder searchQuery(
-      Predicate predicate, OccurrenceEsFieldMapper esFieldMapper) {
+      Predicate predicate, OccurrenceBaseEsFieldMapper esFieldMapper, String defaultChecklistKey) {
     Optional<QueryBuilder> queryBuilder =
-        new OccurrenceEsQueryVisitor(esFieldMapper, "defaultChecklistKey")
-            .getQueryBuilder(predicate);
+        EsQueryVisitorFactory.createEsQueryVisitor(esFieldMapper, defaultChecklistKey).getQueryBuilder(predicate);
     if (queryBuilder.isPresent()) {
       BoolQueryBuilder query = (BoolQueryBuilder) queryBuilder.get();
       esFieldMapper.getDefaultFilter().ifPresent(df -> query.filter().add(df));

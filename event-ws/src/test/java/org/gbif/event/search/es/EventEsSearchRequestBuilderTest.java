@@ -333,10 +333,16 @@ public class EventEsSearchRequestBuilderTest {
   public void humboldtTaxonomyPredicateTest() throws Exception {
     Predicate p1 =
         new EqualsPredicate<>(
-            EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk", false);
+            EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY,
+            "uk",
+            false,
+            DEFAULT_CHECKLIST_KEY);
     Predicate p2 =
         new EqualsPredicate<>(
-            EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk", false);
+            EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY,
+            "tk",
+            false,
+            DEFAULT_CHECKLIST_KEY);
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new ConjunctionPredicate(List.of(p1, p2)));
 

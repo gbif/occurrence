@@ -102,7 +102,7 @@ public abstract class Queries {
    * @return the select fields for the interpreted multimedia extension fields
    */
   public Map<String, InitializableField> selectMultimediaFields(boolean useInitializers) {
-    return selectDownloadFields(DownloadTerms.DOWNLOAD_MULTIMEDIA_TERMS, useInitializers);
+    return selectDownloadFields(DownloadTerms.DOWNLOAD_MULTIMEDIA_TERMS, useInitializers, null);
   }
 
   /**
@@ -149,12 +149,8 @@ public abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the internal search fields
    */
-  public Map<String, InitializableField> selectInternalSearchFields(boolean useInitializers) {
-    return selectDownloadFields(DownloadTerms.INTERNAL_SEARCH_TERMS, useInitializers);
-  }
-
-  Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers) {
-    return selectDownloadFields(terms, useInitializers, null);
+  public Map<String, InitializableField> selectInternalSearchFields(boolean useInitializers, String checklistKey) {
+    return selectDownloadFields(DownloadTerms.INTERNAL_SEARCH_TERMS, useInitializers, checklistKey);
   }
 
   /**

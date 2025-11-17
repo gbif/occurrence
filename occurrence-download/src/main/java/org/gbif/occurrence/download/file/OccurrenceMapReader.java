@@ -161,6 +161,22 @@ public class OccurrenceMapReader {
         });
       }
       interpretedOccurrence.put(IucnTerm.iucnRedListCategory.simpleName(), getSimpleValue(occurrence.getIucnRedListCategory()));
+
+      // combine taxonomic issues for this classification, with non taxonomic issues
+      List<String> nonTaxonomicIssues = occurrence.getIssues().stream()
+        .filter(oi -> !OccurrenceIssue.TAXONOMIC_RULES.contains(oi)).map(OccurrenceIssue::name)
+        .toList();
+
+      List<String> taxonIssues = classification.getIssues() != null ? classification.getIssues() : List.of();
+      List<String> combinedIssues = Stream.concat(nonTaxonomicIssues.stream(), taxonIssues.stream())
+        .toList();
+
+      interpretedOccurrence.put(GbifTerm.issue.simpleName(), String.join(";", combinedIssues));
+
+    } else {
+
+      extractOccurrenceIssues(occurrence.getIssues())
+        .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
     }
 
     //location fields
@@ -189,8 +205,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.higherGeography.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getHigherGeography()));
     interpretedOccurrence.put(DwcTerm.georeferencedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getGeoreferencedBy()));
 
-    extractOccurrenceIssues(occurrence.getIssues())
-      .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
+
     extractMediaTypes(occurrence.getMedia())
       .ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
     extractAgentIds(occurrence.getRecordedByIds())
