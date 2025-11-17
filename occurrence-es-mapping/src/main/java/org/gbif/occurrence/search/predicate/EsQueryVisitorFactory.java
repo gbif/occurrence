@@ -21,7 +21,7 @@ import org.gbif.predicate.query.EsQueryVisitor;
 
 public class EsQueryVisitorFactory {
 
-  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(OccurrenceBaseEsFieldMapper fieldMapper) {
+  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(OccurrenceBaseEsFieldMapper fieldMapper, String defaultChecklistKey) {
     return new EsQueryVisitor<>(
         new org.gbif.predicate.query.EsFieldMapper<OccurrenceSearchParameter>() {
 
@@ -76,6 +76,6 @@ public class EsQueryVisitorFactory {
             OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
             return fieldMapper.includeNullInRange(param, rangeQueryBuilder);
           }
-        });
+        }, defaultChecklistKey);
   }
 }

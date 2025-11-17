@@ -14,10 +14,6 @@
 package org.gbif.occurrence.download.query;
 
 import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
-import org.gbif.predicate.query.EsQueryVisitor;
 import org.gbif.predicate.query.SQLQueryVisitor;
 import org.gbif.predicate.query.occurrence.OccurrenceTermsMapper;
 
@@ -29,10 +25,5 @@ public class QueryVisitorsFactory {
 
   public static SQLQueryVisitor<SearchParameter> createSqlQueryVisitor(String defaultChecklistKey) {
     return new SQLQueryVisitor<>(new OccurrenceTermsMapper(), defaultChecklistKey);
-  }
-
-  public static EsQueryVisitor<OccurrenceSearchParameter> createEsQueryVisitor(
-      OccurrenceBaseEsFieldMapper fieldMapper) {
-    return EsQueryVisitorFactory.createEsQueryVisitor(fieldMapper);
   }
 }

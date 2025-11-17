@@ -75,7 +75,7 @@ public class ElasticDownloadWorkflow {
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
                         DownloadWorkflowModule.esFieldMapper(
                           configuration.getEsIndexType()
-                        ))
+                        ), workflowConfiguration.getDefaultChecklistKey())
                     .toString()
             )
             .checklistKey(

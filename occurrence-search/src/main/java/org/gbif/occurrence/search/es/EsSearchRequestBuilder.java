@@ -380,7 +380,7 @@ public class EsSearchRequestBuilder {
     }
 
     EsQueryVisitor<OccurrenceSearchParameter> esQueryVisitor =
-        EsQueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper);
+        EsQueryVisitorFactory.createEsQueryVisitor(occurrenceBaseEsFieldMapper, defaultChecklistKey);
     esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
 
     return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);

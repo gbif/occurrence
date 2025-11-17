@@ -335,7 +335,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
         esClient.count(
             new CountRequest()
                 .indices(esIndex)
-                .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
+                .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)),
             RequestOptions.DEFAULT);
     return response.getCount();
   }
