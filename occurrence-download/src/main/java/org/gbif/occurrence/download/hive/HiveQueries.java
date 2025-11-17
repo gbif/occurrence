@@ -35,7 +35,7 @@ public class HiveQueries extends TsvQueries {
 
     if (term == GbifTerm.issue) {
       return String.format(
-        "array_union(nontaxonomicissue, element_at(taxonomicissue, '%s')) as issue",
+        "array_join(array_union(nontaxonomicissue, element_at(taxonomicissue, '%s'), '\\;') as issue",
         checklistKey
       );
     } else if (term == DwcTerm.taxonomicStatus) {
