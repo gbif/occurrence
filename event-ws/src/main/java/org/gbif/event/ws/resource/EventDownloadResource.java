@@ -38,13 +38,15 @@ public class EventDownloadResource extends DownloadResource {
       DownloadRequestService eventDownloadRequestService,
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
-      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
+      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
+      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     super(
         archiveServerUrl,
         eventDownloadRequestService,
         callbackService,
         occurrenceDownloadService,
         DownloadType.EVENT,
-        downloadsDisabled);
+        downloadsDisabled,
+        defaultChecklistKey);
   }
 }

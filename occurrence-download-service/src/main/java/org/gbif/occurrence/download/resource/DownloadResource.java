@@ -123,6 +123,8 @@ public class DownloadResource {
 
   private final Boolean downloadsDisabled;
 
+  protected final String defaultChecklistKey;
+
   @Autowired
   public DownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
@@ -130,13 +132,15 @@ public class DownloadResource {
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadType downloadType,
-      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
+      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
+      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadType = downloadType;
     this.downloadsDisabled = downloadsDisabled;
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   private void assertDownloadType(Download download) {
@@ -705,7 +709,8 @@ public class DownloadResource {
       generatedSql.append(" FROM occurrence");
 
       if (downloadRequest.getPredicate() != null) {
-        String generatedWhereClause = QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(downloadRequest.getPredicate());
+        String generatedWhereClause = QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey)
+          .buildQuery(downloadRequest.getPredicate());
         // This is not pretty.
         generatedWhereClause = generatedWhereClause
           .replaceAll("\\byear\\b", "\"year\"")

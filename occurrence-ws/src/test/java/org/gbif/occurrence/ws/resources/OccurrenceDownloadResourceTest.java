@@ -118,7 +118,7 @@ public class OccurrenceDownloadResourceTest {
 
     resource =
         new OccurrenceDownloadResource(
-            archiveServerUrl, service, callbackService, downloadService, false);
+            archiveServerUrl, service, callbackService, downloadService, false, "defaultChecklistKey");
     dl =
         new PredicateDownloadRequest(
             new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false),

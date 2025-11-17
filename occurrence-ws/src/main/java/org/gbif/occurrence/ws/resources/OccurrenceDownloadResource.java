@@ -74,13 +74,16 @@ public class OccurrenceDownloadResource extends DownloadResource {
       DownloadRequestService service,
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
-      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
+      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
+      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     super(
         archiveServerUrl,
         service,
         callbackService,
         occurrenceDownloadService,
         DownloadType.OCCURRENCE,
-        downloadsDisabled);
+        downloadsDisabled,
+        defaultChecklistKey
+      );
   }
 }
