@@ -13,10 +13,11 @@
  */
 package org.gbif.occurrence.download.file.common;
 
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.occurrence.download.file.DownloadFileWork;
-import org.gbif.occurrence.search.es.EsResponseParser;
 
 import java.io.IOException;
 import java.util.function.Consumer;
@@ -31,19 +32,21 @@ import org.elasticsearch.search.sort.SortOrder;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 
+import org.gbif.search.es.EsResponseParser;
+
 /**
  * Executes a Search query and applies a predicate to each result.
  */
-public class SearchQueryProcessor<T extends VerbatimOccurrence> {
+public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends SearchParameter> {
 
   // Default page size for queries.
   private static final int LIMIT = 300;
 
   private static final String KEY_FIELD = "_id";
 
-  private final EsResponseParser<T> esResponseParser;
+  private final EsResponseParser<T, P> esResponseParser;
 
-  public SearchQueryProcessor(EsResponseParser<T> esResponseParser) {
+  public SearchQueryProcessor(EsResponseParser<T, P> esResponseParser) {
     this.esResponseParser = esResponseParser;
   }
 
@@ -88,7 +91,7 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence> {
   }
 
   private void consume(SearchResponse searchResponse, Consumer<T> consumer) {
-    OccurrenceSearchRequest r = new OccurrenceSearchRequest();
+    FacetedSearchRequest<P> r = new FacetedSearchRequest<>();
     r.setOffset(0);
     r.setLimit(searchResponse.getHits().getHits().length);
     esResponseParser.buildSearchResponse(searchResponse, r)

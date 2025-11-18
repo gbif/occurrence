@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.DisjunctionPredicate;
 import org.gbif.api.model.predicate.EqualsPredicate;
@@ -31,47 +32,47 @@ public class RequestFieldsTranslatorTest {
   public void geoTimeTranslationTest() {
     Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("mesozoic,cenozoic"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals(
         "0.0,251.902", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("cenozoic,mesozoic"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals(
         "0.0,251.902", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("neogene,*"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals(
         "*,23.03", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("*,neogene"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals("2.58,*", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("burdigalian,pliocene"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals(
         "2.58,20.44", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("neogene,cenozoic"));
     assertThrows(
         IllegalArgumentException.class,
-        () -> RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock()));
+        () -> RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock()));
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("cenozoic,neogene"));
     assertThrows(
         IllegalArgumentException.class,
-        () -> RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock()));
+        () -> RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock()));
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("miocene"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals("23.03", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("neogene,foo"));
     assertThrows(
         IllegalArgumentException.class,
-        () -> RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock()));
+        () -> RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock()));
   }
 
   @Test
@@ -79,7 +80,8 @@ public class RequestFieldsTranslatorTest {
     EqualsPredicate<OccurrenceSearchParameter> equalsPredicate =
         new EqualsPredicate<>(OccurrenceSearchParameter.GEOLOGICAL_TIME, "neogene", false);
     Predicate translatedPredicate =
-        RequestFieldsTranslator.translateVocabs(equalsPredicate, new ConceptClientMock());
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
+            equalsPredicate, new ConceptClientMock());
     assertTrue(translatedPredicate instanceof EqualsPredicate);
     EqualsPredicate<OccurrenceSearchParameter> tep =
         (EqualsPredicate<OccurrenceSearchParameter>) translatedPredicate;
@@ -90,7 +92,8 @@ public class RequestFieldsTranslatorTest {
         new EqualsPredicate<>(
             OccurrenceSearchParameter.GEOLOGICAL_TIME, "mesozoic,cenozoic", false);
     Predicate rangeTranslatedPredicate =
-        RequestFieldsTranslator.translateVocabs(rangeEqualsPredicate, new ConceptClientMock());
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
+            rangeEqualsPredicate, new ConceptClientMock());
     assertTrue(rangeTranslatedPredicate instanceof EqualsPredicate);
     EqualsPredicate<OccurrenceSearchParameter> trp =
         (EqualsPredicate<OccurrenceSearchParameter>) rangeTranslatedPredicate;
@@ -100,7 +103,8 @@ public class RequestFieldsTranslatorTest {
     DisjunctionPredicate disjunctionPredicate =
         new DisjunctionPredicate(Arrays.asList(equalsPredicate, rangeEqualsPredicate));
     Predicate translatedDisjunctionPredicate =
-        RequestFieldsTranslator.translateVocabs(disjunctionPredicate, new ConceptClientMock());
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
+            disjunctionPredicate, new ConceptClientMock());
     assertTrue(translatedDisjunctionPredicate instanceof DisjunctionPredicate);
     DisjunctionPredicate tdp = (DisjunctionPredicate) translatedDisjunctionPredicate;
     assertEquals(2, tdp.getPredicates().size());
@@ -118,51 +122,51 @@ public class RequestFieldsTranslatorTest {
 
   @Test
   public void humboldtEventDurationTranslationTest() {
-    Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
-    params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    Map<EventSearchParameter, Set<String>> params = new HashMap<>();
+    params.put(EventSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h"));
+    RequestFieldsTranslator.translateEventFields(params, new ConceptClientMock());
     assertEquals(
         "60.0",
         params
-            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .get(EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
             .iterator()
             .next());
 
-    params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h,2h"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    params.put(EventSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h,2h"));
+    RequestFieldsTranslator.translateEventFields(params, new ConceptClientMock());
     assertEquals(
         "60.0,120.0",
         params
-            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .get(EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
             .iterator()
             .next());
 
-    params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("*,2h"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    params.put(EventSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("*,2h"));
+    RequestFieldsTranslator.translateEventFields(params, new ConceptClientMock());
     assertEquals(
         "*,120.0",
         params
-            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .get(EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
             .iterator()
             .next());
 
-    params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h,*"));
-    RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock());
+    params.put(EventSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1h,*"));
+    RequestFieldsTranslator.translateEventFields(params, new ConceptClientMock());
     assertEquals(
         "60.0,*",
         params
-            .get(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
+            .get(EventSearchParameter.HUMBOLDT_EVENT_DURATION_VALUE_IN_MINUTES)
             .iterator()
             .next());
 
-    params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1foo"));
+    params.put(EventSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1foo"));
     assertThrows(
         IllegalArgumentException.class,
-        () -> RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock()));
+        () -> RequestFieldsTranslator.translateEventFields(params, new ConceptClientMock()));
 
-    params.put(OccurrenceSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1*,2h"));
+    params.put(EventSearchParameter.HUMBOLDT_EVENT_DURATION, Set.of("1*,2h"));
     assertThrows(
         IllegalArgumentException.class,
-        () -> RequestFieldsTranslator.translateVocabs(params, new ConceptClientMock()));
+        () -> RequestFieldsTranslator.translateEventFields(params, new ConceptClientMock()));
   }
 }

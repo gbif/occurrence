@@ -15,10 +15,8 @@ package org.gbif.occurrence.download.sql;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
-
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class SqlQueryUtils {

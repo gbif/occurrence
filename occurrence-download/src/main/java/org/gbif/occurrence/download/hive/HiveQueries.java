@@ -32,17 +32,16 @@ public class HiveQueries extends TsvQueries {
 
   @Override
   String toInterpretedHiveInitializer(Term term, String checklistKey) {
-
     if (term == GbifTerm.issue) {
       return String.format(
-        "array_join(array_union(nontaxonomicissue, element_at(taxonomicissue, '%s')), '\\;') as issue",
+        "array_union(nontaxonomicissue, element_at(taxonomicissue, '%s')) as issue",
         checklistKey
       );
     } else if (term == DwcTerm.taxonomicStatus) {
-        return String.format(
-          "element_at(taxonomicstatuses, '%s') as taxonomicstatus",
-          checklistKey
-        );
+      return String.format(
+        "element_at(taxonomicstatuses, '%s') as taxonomicstatus",
+        checklistKey
+      );
     } else if (TermUtils.isTaxonomic(term)) {
       return toTaxonomicHiveInitializer(term, checklistKey);
     } else if (TermUtils.isInterpretedLocalDateSeconds(term)) {

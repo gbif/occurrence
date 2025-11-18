@@ -222,8 +222,14 @@ public class GenerateHQL {
             .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
             .put("extensions", ExtensionTable.tableExtensions())
             .put(IS_HUMBOLDT_SEARCH, queryParameters.isHumboldtSearch())
-            .put(INCLUDE_HUMBOLDT_INTERPRETED, queryParameters.getInterpretedExtensions().contains(Extension.HUMBOLDT))
-            .put(INCLUDE_OCCURRENCE_EXT_INTERPRETED, queryParameters.getInterpretedExtensions().contains(Extension.OCCURRENCE))
+            .put(
+                INCLUDE_HUMBOLDT_INTERPRETED,
+                queryParameters.getInterpretedExtensions() != null
+                    && queryParameters.getInterpretedExtensions().contains(Extension.HUMBOLDT))
+            .put(
+                INCLUDE_OCCURRENCE_EXT_INTERPRETED,
+                queryParameters.getInterpretedExtensions() != null
+                    && queryParameters.getInterpretedExtensions().contains(Extension.OCCURRENCE))
             .put(
                 "humboldtFields",
                 HIVE_QUERIES

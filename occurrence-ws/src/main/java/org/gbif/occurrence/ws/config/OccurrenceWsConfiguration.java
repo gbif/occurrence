@@ -13,27 +13,23 @@
  */
 package org.gbif.occurrence.ws.config;
 
+import java.time.Duration;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfiguration;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
-import java.time.Duration;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OccurrenceWsConfiguration {
-
-
 
   @Bean
   public TitleLookupService titleLookupService(@Value("${api.url}") String apiUrl) {
@@ -58,7 +54,7 @@ public class OccurrenceWsConfiguration {
   public static class OccurrenceSearchConfigurationWs extends OccurrenceSearchConfiguration {
 
     @Bean
-    public OccurrenceBaseEsFieldMapper esFieldMapper() {
+    public OccurrenceEsFieldMapper esFieldMapper() {
       return OccurrenceEsField.buildFieldMapper();
     }
   }

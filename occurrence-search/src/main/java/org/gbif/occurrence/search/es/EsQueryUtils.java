@@ -14,6 +14,8 @@
 package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
@@ -206,18 +208,17 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, ThreatStatus.values().length)
           .build();
 
-
-
-  static int extractFacetLimit(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
+  static <P extends SearchParameter, S extends FacetedSearchRequest<P>> int extractFacetLimit(
+      S request, P facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(Pageable::getLimit)
         .orElse(request.getFacetLimit() != null ? request.getFacetLimit() : DEFAULT_FACET_LIMIT);
   }
 
-  static int extractFacetOffset(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
+  static <P extends SearchParameter, S extends FacetedSearchRequest<P>> int extractFacetOffset(
+      S request, P facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(v -> (int) v.getOffset())
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
   }
-
 }

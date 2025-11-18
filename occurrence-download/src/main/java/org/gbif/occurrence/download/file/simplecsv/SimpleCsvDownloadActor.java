@@ -13,7 +13,21 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
+
+import akka.actor.AbstractActor;
+import com.google.common.base.Throwables;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.Map;
+import java.util.function.Function;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
+import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.file.DownloadFileWork;
@@ -21,29 +35,12 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.Map;
-import java.util.function.Function;
-
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
-
-import com.google.common.base.Throwables;
-
-import akka.actor.AbstractActor;
-
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
 /**
  * Actor that creates a part of the simple csv download file.
@@ -52,11 +49,11 @@ public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor 
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvDownloadActor.class);
 
-  private final SearchQueryProcessor<T> searchQueryProcessor;
+  private final SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor;
 
   private final Function<T, Map<String,String>> interpretedRecordMapper;
 
-  public SimpleCsvDownloadActor(SearchQueryProcessor<T> searchQueryProcessor,
+  public SimpleCsvDownloadActor(SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor,
                                 Function<T, Map<String,String>> interpretedRecordMapper) {
     this.searchQueryProcessor = searchQueryProcessor;
     this.interpretedRecordMapper = interpretedRecordMapper;

@@ -13,7 +13,29 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
+import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
+
+import akka.actor.AbstractActor;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
+import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.gbif.api.model.common.MediaObject;
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -30,21 +52,6 @@ import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveColumns;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
-import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.gbif.occurrence.download.util.HeadersFileUtil;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.encoder.DefaultCsvEncoder;
@@ -55,25 +62,14 @@ import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-
-import akka.actor.AbstractActor;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
-
 /**
  * Actor that creates part files of for the DwcA download format.
  */
 @Slf4j
 @AllArgsConstructor
-public class DownloadDwcaActor<T extends VerbatimOccurrence> extends AbstractActor {
+public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchParameter> extends AbstractActor {
 
-  private final SearchQueryProcessor<T> searchQueryProcessor;
+  private final SearchQueryProcessor<T, P> searchQueryProcessor;
 
   private final Function<T,Map<String,String>> verbatimMapper;
 

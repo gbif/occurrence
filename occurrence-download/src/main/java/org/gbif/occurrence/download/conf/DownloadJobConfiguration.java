@@ -15,19 +15,21 @@ package org.gbif.occurrence.download.conf;
 
 import lombok.SneakyThrows;
 
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.event.search.es.EventEsField;
+import org.gbif.predicate.query.EsFieldMapper;
+import org.gbif.search.es.event.EventEsField;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 
 import java.util.Set;
 
@@ -138,7 +140,7 @@ public class DownloadJobConfiguration {
     );
   }
 
-  public OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
+  public EsFieldMapper<? extends SearchParameter> esFieldMapper(Download download) {
     return DownloadType.OCCURRENCE == download.getRequest().getType()
         ? OccurrenceEsField.buildFieldMapper()
         : EventEsField.buildFieldMapper();

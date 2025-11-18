@@ -29,7 +29,7 @@ import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.occurrence.search.es.EsPredicateUtil;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Builder
 @Slf4j
@@ -46,20 +46,20 @@ public class DownloadEsClient implements Closeable {
 
   private final String esIndex;
 
-  private final OccurrenceBaseEsFieldMapper esFieldMapper;
+  private final OccurrenceEsFieldMapper esFieldMapper;
 
   private final String defaultChecklistKey;
 
   /**
-   * Executes the ElasticSearch query and returns the number of records found.
-   * If an error occurs 'ERROR_COUNT' is returned.
+   * Executes the ElasticSearch query and returns the number of records found. If an error occurs
+   * 'ERROR_COUNT' is returned.
    */
   @SneakyThrows
   public long getRecordCount(Predicate predicate) {
     CountResponse response = esClient.count(new CountRequest()
         .indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)
       ),
-      RequestOptions.DEFAULT);
+            RequestOptions.DEFAULT);
     log.info("Download record count {}", response.getCount());
     return response.getCount();
   }

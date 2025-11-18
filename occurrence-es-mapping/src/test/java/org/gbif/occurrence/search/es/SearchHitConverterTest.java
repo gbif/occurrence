@@ -18,7 +18,7 @@ import java.util.Date;
 
 import org.junit.jupiter.api.Test;
 
-import static org.gbif.occurrence.search.es.SearchHitConverter.STRING_TO_DATE;
+import static org.gbif.search.es.SearchHitConverter.STRING_TO_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SearchHitConverterTest {

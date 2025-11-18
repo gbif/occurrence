@@ -13,44 +13,19 @@
  */
 package org.gbif.occurrence.download.action;
 
-import org.gbif.api.model.Constants;
-import org.gbif.api.model.event.Event;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.event.search.es.EventEsField;
-import org.gbif.event.search.es.SearchHitEventConverter;
-import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.DownloadAggregator;
-import org.gbif.occurrence.download.file.DownloadMaster;
-import org.gbif.occurrence.download.file.OccurrenceMapReader;
-import org.gbif.occurrence.download.file.dwca.akka.DwcaDownloadAggregator;
-import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
-import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
-import org.gbif.occurrence.search.es.EsConfig;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
-import org.gbif.occurrence.search.es.SearchHitConverter;
-import org.gbif.occurrence.search.es.SearchHitOccurrenceConverter;
-import org.gbif.registry.ws.client.EventDownloadClient;
-import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.vocabulary.client.ConceptClient;
-import org.gbif.wrangler.lock.Mutex;
-import org.gbif.wrangler.lock.ReadWriteMutexFactory;
-import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
-import org.gbif.ws.client.ClientBuilder;
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
-
+import lombok.Builder;
+import lombok.Data;
+import lombok.experimental.UtilityClass;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
@@ -61,22 +36,45 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
-
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import lombok.Builder;
-import lombok.Data;
-import lombok.experimental.UtilityClass;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.event.Event;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.DownloadAggregator;
+import org.gbif.occurrence.download.file.DownloadMaster;
+import org.gbif.occurrence.download.file.OccurrenceMapReader;
+import org.gbif.occurrence.download.file.dwca.akka.DwcaDownloadAggregator;
+import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
+import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
+import org.gbif.occurrence.search.es.*;
+import org.gbif.predicate.query.EsFieldMapper;
+import org.gbif.registry.ws.client.EventDownloadClient;
+import org.gbif.registry.ws.client.OccurrenceDownloadClient;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.event.EventEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
+import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.wrangler.lock.Mutex;
+import org.gbif.wrangler.lock.ReadWriteMutexFactory;
+import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 /**
  * Utility factory class to create instances of common complex objects required by Download Actions.
+ *
+ * <p>NOTE: this class seems to be adapted for both occurrences and events but events don't have ES
+ * downloads so in some places it was changes to just use occurrences.
  */
 @Data
 @Builder
-public class DownloadWorkflowModule  {
+public class DownloadWorkflowModule {
 
   public static final String CONF_FILE = "download.properties";
 
@@ -213,9 +211,10 @@ public class DownloadWorkflowModule  {
   }
 
 
-  public static OccurrenceBaseEsFieldMapper esFieldMapper(WorkflowConfiguration.SearchType searchType) {
-    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType ?
-      OccurrenceEsField.buildFieldMapper() : EventEsField.buildFieldMapper();
+  public static EsFieldMapper<? extends SearchParameter> esFieldMapper(WorkflowConfiguration.SearchType searchType) {
+    return WorkflowConfiguration.SearchType.OCCURRENCE == searchType
+        ? OccurrenceEsField.buildFieldMapper()
+        : EventEsField.buildFieldMapper();
   }
 
   /**
@@ -230,16 +229,11 @@ public class DownloadWorkflowModule  {
             .build();
   }
 
-  private <T extends VerbatimOccurrence, S extends SearchHitConverter<T>> S searchHitConverter() {
-    if (workflowConfiguration.getEsIndexType() == WorkflowConfiguration.SearchType.EVENT) {
-      return (S) new SearchHitEventConverter(esFieldMapper(workflowConfiguration.getEsIndexType()
-      ), false);
-    }
-    return (S) new SearchHitOccurrenceConverter(esFieldMapper(workflowConfiguration.getEsIndexType()
-    ), false);
+  private SearchHitConverter<Occurrence> searchHitConverter() {
+    return new SearchHitOccurrenceConverter(OccurrenceEsField.buildFieldMapper(), false);
   }
 
-  private <T extends VerbatimOccurrence> Function<T, Map<String,String>> verbatimMapper(){
+  private <T extends VerbatimOccurrence> Function<T, Map<String, String>> verbatimMapper() {
     return OccurrenceMapReader::buildVerbatimOccurrenceMap;
   }
 

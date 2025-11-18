@@ -22,6 +22,8 @@ import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.cache2k.config.Cache2kConfig;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequestProvider;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Maps;
