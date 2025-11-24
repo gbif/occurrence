@@ -13,26 +13,24 @@
  */
 package org.gbif.occurrence.download.action;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Properties;
+import org.apache.curator.test.TestingCluster;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Properties;
-
-import org.apache.curator.test.TestingCluster;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.testcontainers.utility.DockerImageName;
 
 public class SparkDownloadWorkflowModuleTestIT {
 
@@ -43,9 +41,11 @@ public class SparkDownloadWorkflowModuleTestIT {
    public static void setup() throws Exception {
      curatorTestingCluster = new TestingCluster(1);
      curatorTestingCluster.start();
-     embeddedElastic =
-       new ElasticsearchContainer(
-         "docker.elastic.co/elasticsearch/elasticsearch:" + getEsVersion());
+     embeddedElastic = new ElasticsearchContainer(
+       DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch-oss")
+         .withTag(getEsVersion()))
+       .withReuse(true);
+
      embeddedElastic.start();
    }
 
