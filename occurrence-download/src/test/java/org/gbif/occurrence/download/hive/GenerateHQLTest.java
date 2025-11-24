@@ -13,11 +13,11 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.gbif.api.model.Constants;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GenerateHQLTest {
 
@@ -51,10 +51,10 @@ public class GenerateHQLTest {
     System.out.println(simpleParquetDownloadQuery);
 
     assertTrue(
-        "Column names should be lower-case",
-        simpleParquetDownloadQuery.contains("`datasetkey` STRING"));
+        simpleParquetDownloadQuery.contains("`datasetkey` STRING"),
+        "Column names should be lower-case");
     assertTrue(
-        "Verbatim column names should be lower-case",
-        simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"));
+        simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"),
+        "Verbatim column names should be lower-case");
   }
 }

@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import java.io.BufferedWriter;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -21,11 +23,7 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.vocabulary.Extension;
-
-import java.io.BufferedWriter;
-
-import org.apache.commons.io.output.StringBuilderWriter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class ExtensionsQueryTest {
 
