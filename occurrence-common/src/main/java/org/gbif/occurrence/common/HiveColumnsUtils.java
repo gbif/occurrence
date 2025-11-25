@@ -91,6 +91,7 @@ public class HiveColumnsUtils {
         || DwcTerm.higherGeography == term
         || DwcTerm.georeferencedBy == term
         || GbifTerm.projectId == term
+        || GbifTerm.nonTaxonomicIssue == term
         || EcoTerm.voucherInstitutions == term
         || EcoTerm.verbatimSiteNames == term
         || EcoTerm.verbatimSiteDescriptions == term
