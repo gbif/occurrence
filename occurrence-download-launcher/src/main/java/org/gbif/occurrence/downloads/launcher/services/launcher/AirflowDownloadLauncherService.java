@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
@@ -71,7 +72,9 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
 
   // NOTE: this has to match with the ElasticDownloadWorkflow#isSmallDownload method
   protected boolean isSmallDownload(Download download) {
-    return (download.getRequest().getFormat() == DownloadFormat.DWCA
+    // event downloads never go thru ES
+    return download.getRequest().getType() != DownloadType.EVENT
+        && (download.getRequest().getFormat() == DownloadFormat.DWCA
             || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV)
         && download.getTotalRecords() != -1
         && sparkStaticConfiguration.getSmallDownloadCutOff() >= download.getTotalRecords();
