@@ -88,7 +88,8 @@ public class DownloadQueryParameters {
           .whereClause(sqlQuery.getSqlWhere());
     }
 
-    if (download.getRequest().toString().contains("HUMBOLDT_")) {
+    if (DwcTerm.Event == jobConfiguration.getCoreTerm()
+        && download.getRequest().toString().contains("HUMBOLDT_")) {
       builder.isHumboldtSearch(true);
     }
 
