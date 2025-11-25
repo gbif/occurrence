@@ -182,6 +182,7 @@ public class TermUtils {
     GbifTerm.familyKey,
     GbifTerm.subfamilyKey,
     GbifTerm.tribeKey,
+    GbifTerm.subtribeKey,
     GbifTerm.genusKey,
     GbifTerm.subgenusKey,
     GbifTerm.speciesKey,
