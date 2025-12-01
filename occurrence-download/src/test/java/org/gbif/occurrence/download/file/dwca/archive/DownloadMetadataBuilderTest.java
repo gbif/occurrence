@@ -13,7 +13,22 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.io.File;
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.Date;
+import java.util.List;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.DOI;
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
@@ -22,26 +37,8 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.License;
 import org.gbif.occurrence.query.TitleLookupService;
-
-import java.io.File;
-import java.net.URI;
-import java.nio.file.Path;
-import java.util.Date;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @Slf4j
 public class DownloadMetadataBuilderTest {
@@ -53,11 +50,13 @@ public class DownloadMetadataBuilderTest {
   private Predicate testPredicate() {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.registerModule(
-      new SimpleModule().addDeserializer(
-        OccurrenceSearchParameter.class,
-        new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()
-      )
-    );
+        new SimpleModule()
+            .addDeserializer(
+                SearchParameter.class,
+                new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
+            .addDeserializer(
+                OccurrenceSearchParameter.class,
+                new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
 
     return objectMapper.readValue("{\n"
                                   + "    \"type\":\"and\",\n"
