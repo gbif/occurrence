@@ -54,21 +54,9 @@ public enum EventEsField implements EsField {
   PROGRAMME(new BaseEsField("metadata.programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
-  INSTITUTION_CODE(new BaseEsField("event.institutionCode", DwcTerm.institutionCode, true, true)),
-  COLLECTION_CODE(new BaseEsField("event.collectionCode", DwcTerm.collectionCode, true, true)),
-  CATALOG_NUMBER(new BaseEsField("event.catalogNumber", DwcTerm.catalogNumber, true, true)),
-
-
-  RECORDED_BY(new BaseEsField("event.recordedBy", DwcTerm.recordedBy, true, true)),
-  IDENTIFIED_BY(new BaseEsField("event.identifiedBy", DwcTerm.identifiedBy, true, true)),
-  RECORDED_BY_ID(new BaseEsField("event.recordedByIds", "event.recordedByIds.value", DwcTerm.recordedByID)),
-  IDENTIFIED_BY_ID(new BaseEsField("event.identifiedByIds", "event.identifiedByIds.value", DwcTerm.identifiedByID)),
-  RECORD_NUMBER(new BaseEsField("event.recordNumber", DwcTerm.recordNumber, true, true)),
-  BASIS_OF_RECORD(new BaseEsField("event.basisOfRecord", DwcTerm.basisOfRecord)),
-  ASSOCIATED_SEQUENCES(new BaseEsField("event.associatedSequences", DwcTerm.associatedSequences)),
+  INSTITUTION_CODE(new BaseEsField("event.institutionCode", DwcTerm.institutionCode, true)),
   DATASET_ID(new BaseEsField("event.datasetID", DwcTerm.datasetID)),
-  DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true, true)),
-  OTHER_CATALOG_NUMBERS(new BaseEsField("event.otherCatalogNumbers", DwcTerm.otherCatalogNumbers, true, true)),
+  DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true)),
   FIELD_NUMBER(new BaseEsField("event.fieldNumber", DwcTerm.fieldNumber)),
 
   //Temporal
@@ -93,9 +81,9 @@ public enum EventEsField implements EsField {
   DEPTH_ACCURACY(new BaseEsField("event.depthAccuracy", GbifTerm.depthAccuracy)),
   ELEVATION(new BaseEsField("event.elevation", GbifTerm.elevation)),
   DEPTH(new BaseEsField("event.depth", GbifTerm.depth)),
-  STATE_PROVINCE(new BaseEsField("event.stateProvince", DwcTerm.stateProvince, true, true)), //NOT INTERPRETED
-  WATER_BODY(new BaseEsField("event.waterBody", DwcTerm.waterBody, true, true)),
-  LOCALITY(new BaseEsField("event.locality", DwcTerm.locality, true, true)),
+  STATE_PROVINCE(new BaseEsField("event.stateProvince", DwcTerm.stateProvince, true)), //NOT INTERPRETED
+  WATER_BODY(new BaseEsField("event.waterBody", DwcTerm.waterBody, true)),
+  LOCALITY(new BaseEsField("event.locality", DwcTerm.locality, true)),
   COORDINATE_PRECISION(new BaseEsField("event.coordinatePrecision", DwcTerm.coordinatePrecision)),
   COORDINATE_UNCERTAINTY_IN_METERS(new BaseEsField("event.coordinateUncertaintyInMeters", DwcTerm.coordinateUncertaintyInMeters)),
   ISLAND(new BaseEsField("event.island", DwcTerm.island)),
@@ -118,43 +106,36 @@ public enum EventEsField implements EsField {
   HAS_COORDINATE(new BaseEsField("event.hasCoordinate", GbifTerm.hasCoordinate)),
   REPATRIATED(new BaseEsField("event.repatriated", GbifTerm.repatriated)),
 
-  //Taxonomic classification
-  TAXON_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.taxonKey", GbifTerm.taxonKey)),
-  USAGE_TAXON_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.usage.key", GbifTerm.taxonKey)),
-  TAXON_RANK(new BaseEsField("derivedMetadata.taxonomicCoverage.usage.rank", DwcTerm.taxonRank)),
-  ACCEPTED_TAXON_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
-  ACCEPTED_SCIENTIFIC_NAME(new BaseEsField("derivedMetadata.taxonomicCoverage.acceptedUsage.name", GbifTerm.acceptedScientificName)),
-  KINGDOM_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.kingdomKey", GbifTerm.kingdomKey)),
-  KINGDOM(new BaseEsField("derivedMetadata.taxonomicCoverage.kingdom", DwcTerm.kingdom)),
-  PHYLUM_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.phylumKey", GbifTerm.phylumKey)),
-  PHYLUM(new BaseEsField("derivedMetadata.taxonomicCoverage.phylum", DwcTerm.phylum)),
-  CLASS_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.classKey", GbifTerm.classKey)),
-  CLASS(new BaseEsField("derivedMetadata.taxonomicCoverage.class", DwcTerm.class_)),
-  ORDER_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.orderKey", GbifTerm.orderKey)),
-  ORDER(new BaseEsField("derivedMetadata.taxonomicCoverage.order", DwcTerm.order)),
-  FAMILY_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.familyKey", GbifTerm.familyKey)),
-  FAMILY(new BaseEsField("derivedMetadata.taxonomicCoverage.family", DwcTerm.family)),
-  GENUS_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.genusKey", GbifTerm.genusKey)),
-  GENUS(new BaseEsField("derivedMetadata.taxonomicCoverage.genus", DwcTerm.genus)),
-  SUBGENUS_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.subgenusKey", GbifTerm.subgenusKey)),
-  SUBGENUS(new BaseEsField("derivedMetadata.taxonomicCoverage.subgenus", DwcTerm.subgenus)),
-  SPECIES_KEY(new BaseEsField("derivedMetadata.taxonomicCoverage.speciesKey", GbifTerm.speciesKey)),
-  SPECIES(new BaseEsField("derivedMetadata.taxonomicCoverage.species", GbifTerm.species)),
-  SCIENTIFIC_NAME(new BaseEsField("derivedMetadata.taxonomicCoverage.usage.name", DwcTerm.scientificName)),
-  SPECIFIC_EPITHET(new BaseEsField("derivedMetadata.taxonomicCoverage.usageParsedName.specificEpithet", DwcTerm.specificEpithet)),
-  INFRA_SPECIFIC_EPITHET(new BaseEsField("derivedMetadata.taxonomicCoverage.usageParsedName.infraspecificEpithet", DwcTerm.infraspecificEpithet)),
-  GENERIC_NAME(new BaseEsField("derivedMetadata.taxonomicCoverage.usageParsedName.genericName", DwcTerm.genericName)),
-  TAXONOMIC_STATUS(new BaseEsField("derivedMetadata.taxonomicCoverage.diagnostics.status", DwcTerm.taxonomicStatus)),
-  TAXON_ID(new BaseEsField("derivedMetadata.taxonomicCoverage.taxonID", DwcTerm.taxonID)),
-  VERBATIM_SCIENTIFIC_NAME(new BaseEsField("derivedMetadata.taxonomicCoverage.verbatimScientificName", GbifTerm.verbatimScientificName)),
-  IUCN_RED_LIST_CATEGORY(new BaseEsField("derivedMetadata.taxonomicCoverage.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
-
+  // Derived Taxonomic classification
+  TAXON_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.taxonKeys", GbifTerm.taxonKey)),
+  ACCEPTED_TAXON_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
+  SCIENTIFIC_NAME(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.usage.name", DwcTerm.scientificName)),
+  KINGDOM_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.KINGDOM", GbifTerm.kingdomKey)),
+  KINGDOM(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.KINGDOM", DwcTerm.kingdom)),
+  PHYLUM_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.PHYLUM", GbifTerm.phylumKey)),
+  PHYLUM(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.PHYLUM", DwcTerm.phylum)),
+  CLASS_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.CLASS", GbifTerm.classKey)),
+  CLASS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.CLASS", DwcTerm.class_)),
+  ORDER_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.ORDER", GbifTerm.orderKey)),
+  ORDER(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.ORDER", DwcTerm.order)),
+  FAMILY_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.FAMILY", GbifTerm.familyKey)),
+  FAMILY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.FAMILY", DwcTerm.family)),
+  GENUS_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.GENUS", GbifTerm.genusKey)),
+  GENUS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.GENUS", DwcTerm.genus)),
+  SUBGENUS_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.SUBGENUS", GbifTerm.subgenusKey)),
+  SUBGENUS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.SUBGENUS", DwcTerm.subgenus)),
+  SPECIES_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.SPECIES", GbifTerm.speciesKey)),
+  SPECIES(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.SPECIES", GbifTerm.species)),
+  TAXONOMIC_STATUS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.status", DwcTerm.taxonomicStatus)),
+  TAXONOMIC_ISSUE(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.issues", GbifTerm.taxonomicIssue)),
+  TAXON_ID(new BaseEsField("derivedMetadata.taxonomicCoverage.taxonIDs", DwcTerm.taxonID)),
+  IUCN_RED_LIST_CATEGORY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
 
   //Sampling
-  EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true, true)),
-  PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true,true)),
-  EVENT_ID_HIERARCHY(new BaseEsField("event.eventHierarchy", null, true,true)),
-  SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true,true)),
+  EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true)),
+  PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true)),
+  EVENT_ID_HIERARCHY(new BaseEsField("event.eventHierarchy", null, true)),
+  SAMPLING_PROTOCOL(new BaseEsField("event.samplingProtocol", DwcTerm.samplingProtocol, true)),
   DATE_IDENTIFIED(new BaseEsField("event.dateIdentified", DwcTerm.dateIdentified)),
   MODIFIED(new BaseEsField("event.modified", DcTerm.modified)),
   REFERENCES(new BaseEsField("event.references", DcTerm.references)),
@@ -207,10 +188,13 @@ public enum EventEsField implements EsField {
   HUMBOLDT_EVENT_DURATION_VALUE(new BaseEsField("event.humboldt.eventDurationValue", EcoTerm.eventDurationValue)),
   HUMBOLDT_EVENT_DURATION_UNIT(new BaseEsField("event.humboldt.eventDurationUnit", EcoTerm.eventDurationUnit)),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE(new BaseEsField("event.humboldt.targetTaxonomicScope", EcoTerm.targetTaxonomicScope)),
-  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usageName", null, "event.humboldt")),
-  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usageKey", null, "event.humboldt")),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usage.name", null, "event.humboldt")),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.usage.key", null, "event.humboldt")),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_NAME(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.acceptedUsage.name", null, "event.humboldt")),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.acceptedUsage.key", null, "event.humboldt")),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.taxonKeys", null, "event.humboldt")),
-  HUMBOLDT_TAXONOMIC_ISSUE(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.issues", GbifTerm.taxonomicIssue, "event.humboldt")),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_IUCN_RED_LIST_CATEGORY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.iucnRedListCategoryCode", null, "event.humboldt")),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.issues", GbifTerm.taxonomicIssue, "event.humboldt")),
   HUMBOLDT_EXCLUDED_TAXONOMIC_SCOPE(new BaseEsField("event.humboldt.excludedTaxonomicScope", EcoTerm.excludedTaxonomicScope)),
   HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS(new BaseEsField("event.humboldt.taxonCompletenessProtocols", EcoTerm.taxonCompletenessProtocols)),
   HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED(new BaseEsField("event.humboldt.isTaxonomicScopeFullyReported", EcoTerm.isTaxonomicScopeFullyReported)),
@@ -271,9 +255,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.DAY, DAY)
       .put(EventSearchParameter.START_DAY_OF_YEAR, START_DAY_OF_YEAR)
       .put(EventSearchParameter.END_DAY_OF_YEAR, END_DAY_OF_YEAR)
-      .put(EventSearchParameter.CATALOG_NUMBER, CATALOG_NUMBER)
-      .put(EventSearchParameter.RECORD_NUMBER, RECORD_NUMBER)
-      .put(EventSearchParameter.COLLECTION_CODE, COLLECTION_CODE)
       .put(EventSearchParameter.INSTITUTION_CODE, INSTITUTION_CODE)
       .put(EventSearchParameter.DEPTH, DEPTH)
       .put(EventSearchParameter.ELEVATION, ELEVATION)
@@ -291,7 +272,11 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.ISLAND_GROUP, ISLAND_GROUP)
       .put(EventSearchParameter.HIGHER_GEOGRAPHY, HIGHER_GEOGRAPHY)
       .put(EventSearchParameter.GEOREFERENCED_BY, GEOREFERENCED_BY)
+
+       // start derived taxon
+      .put(EventSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(EventSearchParameter.TAXON_KEY, TAXON_KEY)
+      .put(EventSearchParameter.SCIENTIFIC_NAME, SCIENTIFIC_NAME)
       .put(EventSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
       .put(EventSearchParameter.PHYLUM_KEY, PHYLUM_KEY)
       .put(EventSearchParameter.CLASS_KEY, CLASS_KEY)
@@ -300,10 +285,12 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.GENUS_KEY, GENUS_KEY)
       .put(EventSearchParameter.SUBGENUS_KEY, SUBGENUS_KEY)
       .put(EventSearchParameter.SPECIES_KEY, SPECIES_KEY)
-      .put(EventSearchParameter.SCIENTIFIC_NAME, SCIENTIFIC_NAME)
-      .put(EventSearchParameter.VERBATIM_SCIENTIFIC_NAME, VERBATIM_SCIENTIFIC_NAME)
       .put(EventSearchParameter.TAXON_ID, TAXON_ID)
       .put(EventSearchParameter.TAXONOMIC_STATUS, TAXONOMIC_STATUS)
+      .put(EventSearchParameter.TAXONOMIC_ISSUE, TAXONOMIC_ISSUE)
+      .put(EventSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
+      // end derived taxon
+
       .put(EventSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
       .put(EventSearchParameter.ISSUE, ISSUE)
       .put(EventSearchParameter.REPATRIATED, REPATRIATED)
@@ -335,7 +322,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
       .put(EventSearchParameter.DATASET_ID, DATASET_ID)
       .put(EventSearchParameter.DATASET_NAME, DATASET_NAME)
-      .put(EventSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)
       .put(EventSearchParameter.FIELD_NUMBER, FIELD_NUMBER)
       .put(EventSearchParameter.GBIF_ID, GBIF_ID)
       .put(EventSearchParameter.EVENT_TYPE, EVENT_TYPE)
@@ -352,8 +338,11 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.HUMBOLDT_EVENT_DURATION_UNIT, HUMBOLDT_EVENT_DURATION_UNIT)
       .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_NAME)
       .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY)
+      .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_NAME, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_NAME)
+      .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_KEY)
       .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY)
-      .put(EventSearchParameter.HUMBOLDT_TAXONOMIC_ISSUE, HUMBOLDT_TAXONOMIC_ISSUE)
+      .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_IUCN_RED_LIST_CATEGORY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_IUCN_RED_LIST_CATEGORY)
+      .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE)
       .put(EventSearchParameter.HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS, HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS)
       .put(EventSearchParameter.HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED, HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED)
       .put(EventSearchParameter.HUMBOLDT_IS_ABSENCE_REPORTED, HUMBOLDT_IS_ABSENCE_REPORTED)

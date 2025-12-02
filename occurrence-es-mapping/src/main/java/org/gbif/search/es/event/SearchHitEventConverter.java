@@ -270,7 +270,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getListValueAsString(hit, DATASET_ID).ifPresent(event::setDatasetID);
     getListValueAsString(hit, DATASET_NAME).ifPresent(event::setDatasetName);
     getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(event::setSamplingProtocol);
-    getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(event::setOtherCatalogNumbers);
     setEventLineageData(hit, event);
   }
 
@@ -295,7 +294,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, CONTINENT, Continent::valueOf).ifPresent(event::setContinent);
     getStringValue(hit, STATE_PROVINCE).ifPresent(event::setStateProvince);
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(event::setCountry);
-    getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(event::setCoordinateAccuracy);
     getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(event::setCoordinatePrecision);
     getDoubleValue(hit, COORDINATE_UNCERTAINTY_IN_METERS)
         .ifPresent(event::setCoordinateUncertaintyInMeters);
@@ -539,6 +537,14 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
                                           (String) value.get("usageName"));
                                       taxonClassification.setUsageRank(
                                           (String) value.get("usageRank"));
+                                      taxonClassification.setAcceptedUsageKey(
+                                          (String) value.get("acceptedUsageKey"));
+                                      taxonClassification.setAcceptedUsageName(
+                                          (String) value.get("acceptedUsageName"));
+                                      taxonClassification.setAcceptedUsageRank(
+                                          (String) value.get("acceptedUsageRank"));
+                                      taxonClassification.setIucnRedListCategory(
+                                          (String) value.get("iucnRedListCategory"));
                                       taxonClassification.setIssues(
                                           (List<String>) value.get("issues"));
 
