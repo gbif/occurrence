@@ -321,7 +321,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.SAMPLE_SIZE_VALUE, SAMPLE_SIZE_VALUE)
       .put(EventSearchParameter.SAMPLE_SIZE_UNIT, SAMPLE_SIZE_UNIT)
       .put(EventSearchParameter.DWCA_EXTENSION, EXTENSIONS)
-      .put(EventSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
       .put(EventSearchParameter.DATASET_ID, DATASET_ID)
       .put(EventSearchParameter.DATASET_NAME, DATASET_NAME)
       .put(EventSearchParameter.FIELD_NUMBER, FIELD_NUMBER)
@@ -386,9 +385,7 @@ public enum EventEsField implements EsField {
         .geoDistanceField(COORDINATE_POINT)
         .uniqueIdField(ID)
         .defaultFilter(QueryBuilders.termQuery("type", "event"))
-        // FIXME: remove comment when reindexed with changes in pipelines
-        //
-        // .defaultSort(ImmutableList.of(SortBuilders.fieldSort("event.yearMonthEventIdSort").order(SortOrder.ASC)))
+        .defaultSort(ImmutableList.of(SortBuilders.fieldSort("event.yearMonthEventIdSort").order(SortOrder.ASC)))
         .defaultSort(
             ImmutableList.of(
                 SortBuilders.fieldSort(YEAR.getSearchFieldName()).order(SortOrder.DESC),
