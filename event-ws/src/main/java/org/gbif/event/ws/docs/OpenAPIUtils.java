@@ -202,6 +202,17 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
         @Parameter(
+          name = "collectionCode",
+          description =
+            "An identifier of any form assigned by the source to identify the physical collection or digital "
+              + "dataset uniquely within the context of an institution.\n\n"
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+          @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          example = "K"),
+        @Parameter(
             name = "continent",
             description =
                 "Continent, as defined in our Continent vocabulary.\n\n"

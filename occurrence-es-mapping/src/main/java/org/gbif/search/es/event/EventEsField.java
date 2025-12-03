@@ -55,6 +55,7 @@ public enum EventEsField implements EsField {
 
   //Core identification
   INSTITUTION_CODE(new BaseEsField("event.institutionCode", DwcTerm.institutionCode, true)),
+  COLLECTION_CODE(new BaseEsField("event.collectionCode", DwcTerm.collectionCode, true)),
   DATASET_ID(new BaseEsField("event.datasetID", DwcTerm.datasetID)),
   DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true)),
   FIELD_NUMBER(new BaseEsField("event.fieldNumber", DwcTerm.fieldNumber)),
@@ -256,6 +257,7 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.START_DAY_OF_YEAR, START_DAY_OF_YEAR)
       .put(EventSearchParameter.END_DAY_OF_YEAR, END_DAY_OF_YEAR)
       .put(EventSearchParameter.INSTITUTION_CODE, INSTITUTION_CODE)
+      .put(EventSearchParameter.COLLECTION_CODE, COLLECTION_CODE)
       .put(EventSearchParameter.DEPTH, DEPTH)
       .put(EventSearchParameter.ELEVATION, ELEVATION)
       .put(EventSearchParameter.DATASET_KEY, DATASET_KEY)
