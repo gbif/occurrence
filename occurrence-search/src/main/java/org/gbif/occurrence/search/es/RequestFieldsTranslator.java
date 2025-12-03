@@ -27,6 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.elasticsearch.common.Strings;
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
@@ -41,13 +42,25 @@ public class RequestFieldsTranslator {
   // TODO: add to this class the dnaSequence conversion too?
 
   private static final String GEO_TIME_VOCAB = "GeoTime";
-  private static final ObjectMapper objectMapper =
+  private static final ObjectMapper occurrenceObjectMapper =
       new ObjectMapper()
           .registerModule(
               new SimpleModule()
                   .addDeserializer(
-                      OccurrenceSearchParameter.class,
+                      SearchParameter.class,
                       new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
+                  .addDeserializer(
+                      OccurrenceSearchParameter.class,
+                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()))
+          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+  private static final ObjectMapper eventObjectMapper =
+      new ObjectMapper()
+          .registerModule(
+              new SimpleModule()
+                  .addDeserializer(
+                      SearchParameter.class,
+                      new EventSearchParameter.EventSearchParameterDeserializer())
                   .addDeserializer(
                       EventSearchParameter.class,
                       new EventSearchParameter.EventSearchParameterDeserializer()))
@@ -60,7 +73,7 @@ public class RequestFieldsTranslator {
       return predicate;
     }
 
-    ObjectNode node = objectMapper.valueToTree(predicate);
+    ObjectNode node = occurrenceObjectMapper.valueToTree(predicate);
     node.findParents("key")
         .forEach(
             parent -> {
@@ -72,7 +85,7 @@ public class RequestFieldsTranslator {
               }
             });
 
-    return objectMapper.treeToValue(node, Predicate.class);
+    return occurrenceObjectMapper.treeToValue(node, Predicate.class);
   }
 
   @SneakyThrows
@@ -82,7 +95,7 @@ public class RequestFieldsTranslator {
       return predicate;
     }
 
-    ObjectNode node = objectMapper.valueToTree(predicate);
+    ObjectNode node = eventObjectMapper.valueToTree(predicate);
     node.findParents("key")
         .forEach(
             parent -> {
@@ -97,7 +110,7 @@ public class RequestFieldsTranslator {
               }
             });
 
-    return objectMapper.treeToValue(node, Predicate.class);
+    return eventObjectMapper.treeToValue(node, Predicate.class);
   }
 
   private static boolean containsParam(JsonNode node, String paramName) {
