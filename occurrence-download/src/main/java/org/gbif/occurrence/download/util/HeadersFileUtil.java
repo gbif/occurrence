@@ -16,9 +16,10 @@ package org.gbif.occurrence.download.util;
 
 import org.apache.commons.compress.utils.IOUtils;
 
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.ByteArrayInputStream;
@@ -126,8 +127,12 @@ public class HeadersFileUtil {
   /**
    * Returns the headers names of download columns.
    */
-  public static String getInterpretedTableHeader() {
-    return getTableHeader(DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
+  public static String getInterpretedTableHeader(DwcTerm coreTerm) {
+    if (DwcTerm.Event == coreTerm) {
+      return getTableHeader(EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
+    } else {
+      return getTableHeader(DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
+    }
   }
 
   /**

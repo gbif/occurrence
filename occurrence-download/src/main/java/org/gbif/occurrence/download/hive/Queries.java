@@ -88,13 +88,28 @@ public abstract class Queries {
    */
   abstract String toVerbatimHiveInitializer(Term term);
 
-
   /**
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted download fields
    */
-  public Map<String, InitializableField> selectInterpretedFields(boolean useInitializers, String checklistKey) {
-    return selectDownloadFields(DownloadTerms.DOWNLOAD_INTERPRETED_TERMS, useInitializers, checklistKey);
+  public Map<String, InitializableField> selectInterpretedFields(
+      boolean useInitializers, String checklistKey, DwcTerm coreTerm) {
+    return selectDownloadFields(
+        getDownloadInterpretedTerms(coreTerm), useInitializers, checklistKey);
+  }
+
+  public Map<String, InitializableField> selectInterpretedFields(
+      boolean useInitializers, String checklistKey) {
+    return selectDownloadFields(
+        getDownloadInterpretedTerms(DwcTerm.Occurrence), useInitializers, checklistKey);
+  }
+
+  private Set<Term> getDownloadInterpretedTerms(DwcTerm coreTerm) {
+    if (DwcTerm.Event == coreTerm) {
+      return EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS;
+    } else {
+      return DownloadTerms.DOWNLOAD_INTERPRETED_TERMS;
+    }
   }
 
   /**
@@ -244,8 +259,17 @@ public abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the simple download fields
    */
-  public Map<String, InitializableField> selectSimpleDownloadFields(boolean useInitializers, String checklistKey) {
-    return selectGroupedDownloadFields(DownloadTerms.SIMPLE_DOWNLOAD_TERMS, useInitializers, checklistKey);
+  public Map<String, InitializableField> selectSimpleDownloadFields(
+      boolean useInitializers, String checklistKey, DwcTerm coreTerm) {
+    return selectGroupedDownloadFields(getSimpleDownloadTerms(coreTerm), useInitializers, checklistKey);
+  }
+
+  private Set<Pair<DownloadTerms.Group, Term>> getSimpleDownloadTerms(DwcTerm coreTerm) {
+    if (DwcTerm.Event == coreTerm) {
+      return EventDownloadTerms.SIMPLE_DOWNLOAD_TERMS;
+    } else {
+      return DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
+    }
   }
 
   /**

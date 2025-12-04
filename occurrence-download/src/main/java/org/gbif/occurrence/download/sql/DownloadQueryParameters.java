@@ -58,6 +58,8 @@ public class DownloadQueryParameters {
 
   private Set<Extension> interpretedExtensions;
 
+  private final DwcTerm coreTerm;
+
   @SneakyThrows
   public static DownloadQueryParameters from(
       Download download,
@@ -70,7 +72,8 @@ public class DownloadQueryParameters {
             .whereClause(jobConfiguration.getFilter())
             .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
             .database(workflowConfiguration.getHiveDb())
-            .warehouseDir(workflowConfiguration.getHiveWarehouseDir());
+            .warehouseDir(workflowConfiguration.getHiveWarehouseDir())
+            .coreTerm(jobConfiguration.getCoreTerm());
 
     builder.interpretedExtensions(
         DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
