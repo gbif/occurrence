@@ -62,7 +62,7 @@ public class HeadersFileUtil {
     String multimediaFileName
   ) throws IOException {
     generateFileHeader(verbatimFileName, DEFAULT_VERBATIM_FILE_NAME, getVerbatimTableHeader());
-    generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getInterpretedTableHeader());
+    generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getInterpretedTableHeader(DwcTerm.Occurrence));
     generateFileHeader(multimediaFileName, DEFAULT_MULTIMEDIA_FILE_NAME, getMultimediaTableHeader());
   }
 
@@ -91,7 +91,9 @@ public class HeadersFileUtil {
    * Appends the occurrence headers line to the output file.
    */
   public static void appendInterpretedHeaders(OutputStream fileWriter) throws IOException {
-    appendHeaders(fileWriter, getInterpretedTableHeader());
+    // hardcoded to use Occurrence term because this is used only by small downloads and event
+    // downloads always go thru the big downloads wf
+    appendHeaders(fileWriter, getInterpretedTableHeader(DwcTerm.Occurrence));
   }
 
   /**
