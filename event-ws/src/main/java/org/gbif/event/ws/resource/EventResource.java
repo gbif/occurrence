@@ -330,7 +330,7 @@ public class EventResource {
   }
 
   @Hidden
-  @PostMapping("search/predicate/toesquery")
+  @PostMapping(value = "search/predicate/toesquery", consumes = MediaType.APPLICATION_JSON_VALUE)
   public String predicateToEsQuery(
       @NotNull @Valid @RequestBody EventPredicateSearchRequest request) {
     return eventSearchEs

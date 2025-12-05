@@ -28,7 +28,6 @@ import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
@@ -122,12 +121,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
           objectMapper.registerModule(
               new SimpleModule()
                   .addKeyDeserializer(
-                      OccurrenceSearchParameter.class,
+                      SearchParameter.class,
                       new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
                   .addDeserializer(
-                      OccurrenceSearchParameter.class,
+                      SearchParameter.class,
                       new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
-          objectMapper.addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
         }
         return bean;
       }
@@ -141,10 +139,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
         .registerModule(new JavaTimeModule())
         .registerModule(
             new SimpleModule()
+                .addKeyDeserializer(
+                    SearchParameter.class,
+                    new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
                 .addDeserializer(
-                    OccurrenceSearchParameter.class,
-                    new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()))
-        .addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
+                    SearchParameter.class,
+                    new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
   }
 
   @Bean

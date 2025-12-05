@@ -20,21 +20,18 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.google.common.collect.Lists;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
-import jakarta.validation.constraints.NotNull;
 import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
@@ -58,8 +55,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-  @Autowired
-  protected ChecklistAwareEventSearchRequestHandlerMethodArgumentResolver resolver;
+  @Autowired protected ChecklistAwareEventSearchRequestHandlerMethodArgumentResolver resolver;
 
   @Override
   public void configurePathMatch(PathMatchConfigurer configurer) {
@@ -101,7 +97,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     return new BeanPostProcessor() {
 
       @Override
-      public Object postProcessBeforeInitialization(@NotNull Object bean, @NotNull String beanName) {
+      public Object postProcessBeforeInitialization(
+          @NotNull Object bean, @NotNull String beanName) {
         return bean;
       }
 
@@ -118,19 +115,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
         }
         if (bean instanceof AbstractJackson2HttpMessageConverter) {
           AbstractJackson2HttpMessageConverter converter =
-            (AbstractJackson2HttpMessageConverter) bean;
+              (AbstractJackson2HttpMessageConverter) bean;
           ObjectMapper objectMapper = converter.getObjectMapper();
           objectMapper.registerModule(new JavaTimeModule());
 
           objectMapper.registerModule(
-            new SimpleModule()
-              .addKeyDeserializer(
-                OccurrenceSearchParameter.class,
-                new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
-              .addDeserializer(
-                OccurrenceSearchParameter.class,
-                new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
-          objectMapper.addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
+              new SimpleModule()
+                  .addKeyDeserializer(
+                      SearchParameter.class,
+                      new EventSearchParameter.EventSearchParameterKeyDeserializer())
+                  .addDeserializer(
+                      SearchParameter.class,
+                      new EventSearchParameter.EventSearchParameterDeserializer()));
         }
         return bean;
       }
@@ -139,10 +135,17 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
   @Primary
   @Bean
-  public ObjectMapper registryObjectMapper() {
+  public ObjectMapper objectMapper() {
     return JacksonJsonObjectMapperProvider.getObjectMapper()
         .registerModule(new JavaTimeModule())
-        .addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
+        .registerModule(
+            new SimpleModule()
+                .addKeyDeserializer(
+                    SearchParameter.class,
+                    new EventSearchParameter.EventSearchParameterKeyDeserializer())
+                .addDeserializer(
+                    SearchParameter.class,
+                    new EventSearchParameter.EventSearchParameterDeserializer()));
   }
 
   @Bean
