@@ -125,6 +125,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
                       new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
                   .addDeserializer(
                       SearchParameter.class,
+                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
+                  .addKeyDeserializer(
+                      OccurrenceSearchParameter.class,
+                      new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
+                  .addDeserializer(
+                      OccurrenceSearchParameter.class,
                       new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
         }
         return bean;

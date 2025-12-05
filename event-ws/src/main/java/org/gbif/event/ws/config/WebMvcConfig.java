@@ -126,6 +126,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
                       new EventSearchParameter.EventSearchParameterKeyDeserializer())
                   .addDeserializer(
                       SearchParameter.class,
+                      new EventSearchParameter.EventSearchParameterDeserializer())
+                  .addKeyDeserializer(
+                      EventSearchParameter.class,
+                      new EventSearchParameter.EventSearchParameterKeyDeserializer())
+                  .addDeserializer(
+                      EventSearchParameter.class,
                       new EventSearchParameter.EventSearchParameterDeserializer()));
         }
         return bean;
