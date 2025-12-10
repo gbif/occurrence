@@ -178,6 +178,7 @@
     <servlet-api.version>3.1.0</servlet-api.version>
     <metainf-services.version>1.11</metainf-services.version>
     <jakarta-validation.version>3.1.1</jakarta-validation.version>
+    <jakarta-annotation.version>3.0.0</jakarta-annotation.version>
     <javassist.version>3.30.2-GA</javassist.version>
 
     <super-csv.version>2.4.0</super-csv.version>
@@ -329,6 +330,11 @@
         <groupId>jakarta.validation</groupId>
         <artifactId>jakarta.validation-api</artifactId>
         <version>${jakarta-validation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>${jakarta-annotation.version}</version>
       </dependency>
 
       <!-- GBIF -->
