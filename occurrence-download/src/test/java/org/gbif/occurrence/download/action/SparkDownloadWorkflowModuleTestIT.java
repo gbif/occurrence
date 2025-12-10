@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
 import org.apache.curator.test.TestingCluster;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -41,10 +43,11 @@ public class SparkDownloadWorkflowModuleTestIT {
    public static void setup() throws Exception {
      curatorTestingCluster = new TestingCluster(1);
      curatorTestingCluster.start();
-     embeddedElastic = new ElasticsearchContainer(
-       DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch")
-         .withTag(getEsVersion()))
-       .withReuse(true);
+     embeddedElastic = new ElasticsearchContainer(DockerImageName.parse(
+       "docker.elastic.co/elasticsearch/elasticsearch").withTag(getEsVersion()));
+     embeddedElastic.withReuse(true).withLabel("reuse.UUID", "ITs_ES_container");
+     embeddedElastic.setWaitStrategy(
+       Wait.defaultWaitStrategy().withStartupTimeout(Duration.ofSeconds(60)));
 
      embeddedElastic.start();
    }

@@ -19,7 +19,7 @@ import org.gbif.api.vocabulary.Kingdom;
 
 import java.util.Map;
 
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Min;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;

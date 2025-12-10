@@ -21,8 +21,6 @@ import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,6 +29,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import javax.annotation.Nullable;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
@@ -77,11 +78,11 @@ public abstract class DownloadRequestServiceImpl
           JobStatus.FAILED, Download.Status.FAILED);
 
   private static final Counter SUCCESSFUL_DOWNLOADS =
-      Metrics.newCounter(CallbackService.class, "successful_downloads");
+      Metrics.counter("successful_downloads");
   private static final Counter FAILED_DOWNLOADS =
-      Metrics.newCounter(CallbackService.class, "failed_downloads");
+      Metrics.counter("failed_downloads");
   private static final Counter CANCELLED_DOWNLOADS =
-      Metrics.newCounter(CallbackService.class, "cancelled_downloads");
+      Metrics.counter("cancelled_downloads");
   private final DownloadIdService downloadIdService;
   private final String portalUrl;
   private final String wsUrl;
@@ -322,7 +323,7 @@ public abstract class DownloadRequestServiceImpl
       case KILLED:
         // Keep a manually cancelled download status as opposed to a killed one
         if (download.getStatus() == Download.Status.CANCELLED) {
-          CANCELLED_DOWNLOADS.inc();
+          CANCELLED_DOWNLOADS.increment();
           return;
         }
 
@@ -335,11 +336,11 @@ public abstract class DownloadRequestServiceImpl
         download = updateDownloadStatus(download, newStatus);
         emailModel = emailManager.generateFailedDownloadEmailModel(download, portalUrl);
         emailSender.send(emailModel);
-        FAILED_DOWNLOADS.inc();
+        FAILED_DOWNLOADS.increment();
         break;
 
       case SUCCEEDED:
-        SUCCESSFUL_DOWNLOADS.inc();
+        SUCCESSFUL_DOWNLOADS.increment();
         download = updateDownloadStatus(download, newStatus, getDownloadSize(download));
         // notify about download
         if (Boolean.TRUE.equals(download.getRequest().getSendNotification())) {

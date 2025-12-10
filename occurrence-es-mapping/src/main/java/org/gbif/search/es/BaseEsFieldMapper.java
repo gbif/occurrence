@@ -15,8 +15,8 @@ package org.gbif.search.es;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
