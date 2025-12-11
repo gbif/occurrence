@@ -168,7 +168,7 @@
 
     <jackson.version>2.19.4</jackson.version>
     <json.version>20250517</json.version>
-    <jcommander.version>1.35</jcommander.version>
+    <jcommander.version>1.48</jcommander.version>
     <slf4j.version>2.0.17</slf4j.version>
     <logback.version>1.5.21</logback.version>
     <logstash-encoder.version>9.0</logstash-encoder.version>
@@ -201,7 +201,7 @@
     <occurrence.environment>dev</occurrence.environment>
     <occurrence.env_prefix>dev</occurrence.env_prefix>
 
-    <avro.version>1.11.2</avro.version>
+    <avro.version>1.11.3</avro.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
