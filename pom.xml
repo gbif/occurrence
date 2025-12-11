@@ -145,7 +145,7 @@
 
     <!-- Fixing to the version JUnit and Mockito depending on -->
     <aopalliance.version>1.0</aopalliance.version>
-    <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <commons-beanutils.version>1.11.0</commons-beanutils.version>
     <commons-codec.version>1.20.0</commons-codec.version>
     <commons-digester.version>2.1</commons-digester.version>
     <commons-io.version>2.21.0</commons-io.version>
