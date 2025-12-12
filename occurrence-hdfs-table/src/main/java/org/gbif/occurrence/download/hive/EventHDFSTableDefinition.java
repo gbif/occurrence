@@ -26,9 +26,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.Sets;
+
 import lombok.experimental.UtilityClass;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.*;
+import org.gbif.occurrence.common.EventTermUtils;
 
 /**
  * This provides the definition required to construct the occurrence HDFS table, for use as a Hive table.
@@ -130,7 +134,10 @@ public class EventHDFSTableDefinition {
                                                       .put(GbifInternalTerm.eventDateLte, columnFor(GbifInternalTerm.eventDateLte))
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    for (Term t : EventDownloadTerms.DOWNLOAD_INTERNAL_TERMS_HDFS) {
+    for (Term t :
+        Sets.difference(
+            EventDownloadTerms.DOWNLOAD_INTERNAL_TERMS_HDFS,
+            EventTermUtils.TERMS_POPULATED_BY_INTERPRETATION)) {
       if (!EventDownloadTerms.EXCLUSIONS_HDFS.contains(t)) {
         if (initializers.containsKey(t)) {
           builder.add(interpretedField(t, initializers.get(t)));

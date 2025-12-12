@@ -13,7 +13,7 @@ import org.gbif.dwc.terms.*;
 /** This class customizes some of the methods and variables of TermUtils to apply them to events. */
 public class EventTermUtils {
 
-  private static final Set<Term> TERMS_POPULATED_BY_INTERPRETATION =
+  public static final Set<Term> TERMS_POPULATED_BY_INTERPRETATION =
       ImmutableSet.of(
           DwcTerm.decimalLatitude,
           DwcTerm.decimalLongitude,
