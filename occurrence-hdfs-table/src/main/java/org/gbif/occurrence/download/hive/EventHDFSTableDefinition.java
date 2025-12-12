@@ -21,6 +21,8 @@ import static org.gbif.occurrence.download.hive.HiveColumns.getVerbatimColPrefix
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -134,10 +136,9 @@ public class EventHDFSTableDefinition {
                                                       .put(GbifInternalTerm.eventDateLte, columnFor(GbifInternalTerm.eventDateLte))
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    for (Term t :
-        Sets.difference(
-            EventDownloadTerms.DOWNLOAD_INTERNAL_TERMS_HDFS,
-            EventTermUtils.TERMS_POPULATED_BY_INTERPRETATION)) {
+    Set<Term> internalTermsNotInterpreted = new HashSet<>(EventDownloadTerms.DOWNLOAD_INTERNAL_TERMS_HDFS);
+    internalTermsNotInterpreted.removeAll(EventTermUtils.TERMS_POPULATED_BY_INTERPRETATION);
+    for (Term t : internalTermsNotInterpreted) {
       if (!EventDownloadTerms.EXCLUSIONS_HDFS.contains(t)) {
         if (initializers.containsKey(t)) {
           builder.add(interpretedField(t, initializers.get(t)));
