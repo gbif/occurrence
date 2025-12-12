@@ -552,7 +552,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
                                       }
 
                                       taxonClassification.setIucnRedListCategory(
-                                          (String) value.get("iucnRedListCategory"));
+                                          (String) value.get("iucnRedListCategoryCode"));
                                       taxonClassification.setIssues(
                                           (List<String>) value.get("issues"));
 
