@@ -532,18 +532,25 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
                                     value -> {
                                       Humboldt.TaxonClassification taxonClassification =
                                           new Humboldt.TaxonClassification();
-                                      taxonClassification.setUsageKey(
-                                          (String) value.get("usageKey"));
-                                      taxonClassification.setUsageName(
-                                          (String) value.get("usageName"));
-                                      taxonClassification.setUsageRank(
-                                          (String) value.get("usageRank"));
-                                      taxonClassification.setAcceptedUsageKey(
-                                          (String) value.get("acceptedUsageKey"));
-                                      taxonClassification.setAcceptedUsageName(
-                                          (String) value.get("acceptedUsageName"));
-                                      taxonClassification.setAcceptedUsageRank(
-                                          (String) value.get("acceptedUsageRank"));
+                                      Map<String, String> usage =
+                                          (Map<String, String>) value.get("usage");
+                                      if (usage != null) {
+                                        taxonClassification.setUsageKey(usage.get("key"));
+                                        taxonClassification.setUsageName(usage.get("name"));
+                                        taxonClassification.setUsageRank(usage.get("rank"));
+                                      }
+
+                                      Map<String, String> acceptedUsage =
+                                          (Map<String, String>) value.get("acceptedUsage");
+                                      if (acceptedUsage != null) {
+                                        taxonClassification.setAcceptedUsageKey(
+                                            acceptedUsage.get("key"));
+                                        taxonClassification.setAcceptedUsageName(
+                                            acceptedUsage.get("name"));
+                                        taxonClassification.setAcceptedUsageRank(
+                                            acceptedUsage.get("rank"));
+                                      }
+
                                       taxonClassification.setIucnRedListCategory(
                                           (String) value.get("iucnRedListCategory"));
                                       taxonClassification.setIssues(
