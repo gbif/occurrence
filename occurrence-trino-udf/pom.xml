@@ -18,7 +18,7 @@
     <gbif-parsers.version>0.63</gbif-parsers.version>
     <geocode.version>1.1</geocode.version>
     <gbif-common-ws.version>2.1.1-SNAPSHOT</gbif-common-ws.version>
-    <gbif.kvs.version>3.0</gbif.kvs.version>
+    <gbif.kvs.version>2.0.0</gbif.kvs.version>
     <junit-jupiter.version>5.6.3</junit-jupiter.version>
     <geotools.version>22.2</geotools.version>
 
