@@ -83,6 +83,7 @@ public class EventTermUtils {
           DwcTerm.eventType,
           DwcTerm.eventID,
           DwcTerm.parentEventID,
+          DwcTerm.locality,
           DwcTerm.locationID);
 
   private static final Set<Term> TERMS_SUBJECT_TO_INTERPRETATION =
