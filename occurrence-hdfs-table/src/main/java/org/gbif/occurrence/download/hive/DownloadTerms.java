@@ -62,8 +62,6 @@ public class DownloadTerms {
           .add(GbifTerm.biostratigraphy)
           .add(GbifTerm.dnaSequenceID)
           .add(GbifTerm.checklistKey)
-          .add(GbifInternalTerm.derivedTaxonIDs)
-          .add(GbifInternalTerm.derivedTaxonomicClassifications)
           .build();
 
   /** Terms not used in DWCA downloads. */

@@ -103,8 +103,7 @@ public final class HiveDataTypes {
           EcoTerm.protocolReferences,
           EcoTerm.voucherInstitutions,
           EcoTerm.materialSampleTypes,
-          EcoTerm.samplingPerformedBy,
-          GbifInternalTerm.derivedTaxonIDs);
+          EcoTerm.samplingPerformedBy);
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS =
@@ -234,8 +233,6 @@ public final class HiveDataTypes {
       return TYPE_MAP_OF_ARRAY_STRUCT;
     } else if (term.equals(GbifInternalTerm.classificationDetails)) {
       return TYPE_MAP_OF_MAP_STRUCT;
-    } else if (term.equals(GbifInternalTerm.derivedTaxonomicClassifications)) {
-      return TYPE_MAP_OF_MAP_ARRAY_STRUCT;
     } else {
       return TYPED_TERMS.getOrDefault(term, TYPE_STRING); // interpreted term with a registered type
     }
