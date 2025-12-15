@@ -111,22 +111,6 @@ public enum EventEsField implements EsField {
   TAXON_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.taxonKeys", GbifTerm.taxonKey)),
   ACCEPTED_TAXON_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.acceptedUsage.key", GbifTerm.acceptedTaxonKey)),
   SCIENTIFIC_NAME(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.usage.name", DwcTerm.scientificName)),
-  KINGDOM_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.KINGDOM", GbifTerm.kingdomKey)),
-  KINGDOM(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.KINGDOM", DwcTerm.kingdom)),
-  PHYLUM_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.PHYLUM", GbifTerm.phylumKey)),
-  PHYLUM(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.PHYLUM", DwcTerm.phylum)),
-  CLASS_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.CLASS", GbifTerm.classKey)),
-  CLASS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.CLASS", DwcTerm.class_)),
-  ORDER_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.ORDER", GbifTerm.orderKey)),
-  ORDER(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.ORDER", DwcTerm.order)),
-  FAMILY_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.FAMILY", GbifTerm.familyKey)),
-  FAMILY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.FAMILY", DwcTerm.family)),
-  GENUS_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.GENUS", GbifTerm.genusKey)),
-  GENUS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.GENUS", DwcTerm.genus)),
-  SUBGENUS_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.SUBGENUS", GbifTerm.subgenusKey)),
-  SUBGENUS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.SUBGENUS", DwcTerm.subgenus)),
-  SPECIES_KEY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classificationKeys.SPECIES", GbifTerm.speciesKey)),
-  SPECIES(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.classification.SPECIES", GbifTerm.species)),
   TAXONOMIC_STATUS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.status", DwcTerm.taxonomicStatus)),
   TAXONOMIC_ISSUE(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.issues", GbifTerm.taxonomicIssue)),
   TAXON_ID(new BaseEsField("derivedMetadata.taxonomicCoverage.taxonIDs", DwcTerm.taxonID)),
@@ -279,14 +263,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(EventSearchParameter.TAXON_KEY, TAXON_KEY)
       .put(EventSearchParameter.SCIENTIFIC_NAME, SCIENTIFIC_NAME)
-      .put(EventSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
-      .put(EventSearchParameter.PHYLUM_KEY, PHYLUM_KEY)
-      .put(EventSearchParameter.CLASS_KEY, CLASS_KEY)
-      .put(EventSearchParameter.ORDER_KEY, ORDER_KEY)
-      .put(EventSearchParameter.FAMILY_KEY, FAMILY_KEY)
-      .put(EventSearchParameter.GENUS_KEY, GENUS_KEY)
-      .put(EventSearchParameter.SUBGENUS_KEY, SUBGENUS_KEY)
-      .put(EventSearchParameter.SPECIES_KEY, SPECIES_KEY)
       .put(EventSearchParameter.TAXON_ID, TAXON_ID)
       .put(EventSearchParameter.TAXONOMIC_STATUS, TAXONOMIC_STATUS)
       .put(EventSearchParameter.TAXONOMIC_ISSUE, TAXONOMIC_ISSUE)

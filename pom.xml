@@ -216,7 +216,7 @@
     <download-query-tools.version>2.0.4-java11-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>2.1.7-events-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.1-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>2.2.0-events-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>2.2.0-events-jdk17-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.59</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
