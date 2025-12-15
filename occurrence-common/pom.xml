@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.gbif.occurrence</groupId>
     <artifactId>occurrence-motherpom</artifactId>
-    <version>1.1.9-SNAPSHOT</version>
+    <version>1.1.9-spark-refactor-SNAPSHOT</version>
   </parent>
 
   <artifactId>occurrence-common</artifactId>
