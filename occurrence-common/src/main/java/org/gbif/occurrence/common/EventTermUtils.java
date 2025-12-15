@@ -81,6 +81,7 @@ public class EventTermUtils {
           DwcTerm.higherGeography,
           GbifTerm.projectId,
           DwcTerm.eventType,
+          DwcTerm.eventID,
           DwcTerm.parentEventID,
           DwcTerm.locationID);
 
