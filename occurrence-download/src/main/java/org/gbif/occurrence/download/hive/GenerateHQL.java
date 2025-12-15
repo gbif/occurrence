@@ -35,6 +35,8 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Generates HQL scripts dynamically which are used to create the download HDFS tables, and querying
  * when a user issues a download request.
@@ -207,20 +209,18 @@ public class GenerateHQL {
       Configuration cfg, DownloadQueryParameters queryParameters, Writer writer)
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("download/execute-query.ftl");
-    Queries queries =
-        queryParameters.getCoreTerm() == DwcTerm.Event ? EVENTS_HIVE_QUERIES : HIVE_QUERIES;
     Map<String, Object> data =
         ImmutableMap.<String, Object>builder()
             .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
             .put(
                 "interpretedFields",
-                queries
+                getQueries(queryParameters.getCoreTerm())
                     .selectInterpretedFields(
                         false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                     .values())
             .put(
                 "initializedInterpretedFields",
-                queries
+                getQueries(queryParameters.getCoreTerm())
                     .selectInterpretedFields(
                         true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                     .values())
@@ -246,6 +246,10 @@ public class GenerateHQL {
                 HIVE_QUERIES.selectHumboldtFields(true, queryParameters.getChecklistKey()).values())
             .build();
     template.process(data, writer);
+  }
+
+  private static Queries getQueries(DwcTerm coreTerm) {
+    return coreTerm == DwcTerm.Event ? EVENTS_HIVE_QUERIES : HIVE_QUERIES;
   }
 
   public static void generateDwcaDropTableQueryHQL(Configuration cfg, File outDir)
@@ -283,7 +287,7 @@ public class GenerateHQL {
     Map<String, Object> data =
         ImmutableMap.of(
             FIELDS,
-            HIVE_QUERIES
+            getQueries(queryParameters.getCoreTerm())
                 .selectSimpleDownloadFields(
                     true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                 .values(),
