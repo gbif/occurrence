@@ -157,17 +157,27 @@ public class OccurrenceHDFSTableDefinition {
    * @return the list of fields that are exposed through Hive
    */
   private static List<InitializableField> extensions() {
-    // only MULTIMEDIA is supported, but coded for future use
-    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA);
+    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA, Extension.HUMBOLDT);
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Extension e : extensions) {
-      builder.add(new InitializableField(GbifTerm.Multimedia,
-                                         columnFor(e),
-                                         HiveDataTypes.TYPE_STRING
-                                         //always, as it has a custom serialization
-                  ));
+      builder.add(new InitializableField(extensionTerm(e),
+        columnFor(e),
+        HiveDataTypes.TYPE_STRING
+        //always, as it has a custom serialization
+      ));
     }
     return builder.build();
+  }
+
+  // TODO: Humboldt should be removed when events uses its own hdfs view pipeline
+  private static Term extensionTerm(Extension extension) {
+    if (Extension.MULTIMEDIA == extension) {
+      return GbifTerm.Multimedia;
+    } else if (Extension.HUMBOLDT == extension) {
+      return GbifTerm.Humboldt;
+    } else {
+      return UnknownTerm.build(extension.name());
+    }
   }
 
   /**
@@ -177,12 +187,12 @@ public class OccurrenceHDFSTableDefinition {
    */
   public static List<InitializableField> definition() {
     return ImmutableList.<InitializableField>builder()
-      .add(keyField())
-      .addAll(verbatimFields())
-      .addAll(internalFields())
-      .addAll(interpretedFields())
-      .addAll(extensions())
-      .build();
+        .add(keyField())
+        .addAll(verbatimFields())
+        .addAll(internalFields())
+        .addAll(interpretedFields())
+        .addAll(extensions())
+        .build();
   }
 
   /**
