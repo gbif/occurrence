@@ -93,7 +93,8 @@ public class EventDownloadTerms {
       ImmutableSet.of(
           Pair.of(Group.INTERPRETED, GbifTerm.gbifID),
           Pair.of(Group.INTERPRETED, GbifTerm.datasetKey),
-          Pair.of(Group.INTERPRETED, DwcTerm.occurrenceID),
+          Pair.of(Group.INTERPRETED, DwcTerm.eventID),
+          Pair.of(Group.INTERPRETED, DwcTerm.parentEventID),
           Pair.of(Group.INTERPRETED, DwcTerm.countryCode),
           Pair.of(Group.INTERPRETED, DwcTerm.locality),
           Pair.of(Group.INTERPRETED, DwcTerm.stateProvince),
@@ -118,8 +119,6 @@ public class EventDownloadTerms {
           Pair.of(Group.INTERPRETED, DcTerm.rightsHolder),
           Pair.of(Group.INTERPRETED, GbifTerm.lastInterpreted),
           Pair.of(Group.INTERPRETED, GbifTerm.mediaType),
-          Pair.of(Group.INTERPRETED, DwcTerm.eventID),
-          Pair.of(Group.INTERPRETED, DwcTerm.parentEventID),
           Pair.of(Group.INTERPRETED, GbifTerm.issue));
 
 
