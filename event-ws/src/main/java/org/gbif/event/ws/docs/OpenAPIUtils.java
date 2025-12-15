@@ -178,20 +178,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "2476674"),
         @Parameter(
-            name = "classKey",
-            description =
-                "Class classification key."
-                    + DERIVED_TAXON
-                    + "\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "212"),
-        @Parameter(
             name = "checklistKey",
             description =
                 "*Experimental.* The checklist key. This determines which taxonomy will be used for "
@@ -362,16 +348,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "A 123"),
         @Parameter(
-            name = "familyKey",
-            description = "Family classification key." + DERIVED_TAXON,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2405"),
-        @Parameter(
             name = "fieldNumber",
             description =
                 "An identifier given to the event in the field. Often serves as a link between field notes and the event.\n\n"
@@ -447,16 +423,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "AFRICA"),
-        @Parameter(
-            name = "genusKey",
-            description = "Genus classification key." + DERIVED_TAXON,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2877951"),
         @Parameter(
             name = "geoDistance",
             description =
@@ -1034,20 +1000,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "EX"),
         @Parameter(
-            name = "kingdomKey",
-            description =
-                "Kingdom classification key."
-                    + DERIVED_TAXON
-                    + "\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "5"),
-        @Parameter(
             name = "lastInterpreted",
             description =
                 "This date the record was last modified in GBIF, in ISO 8601 format: yyyy, yyyy-MM, yyyy-MM-dd, "
@@ -1118,16 +1070,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "2b7c7b4f-4d4f-40d3-94de-c28b6fa054a6"),
         @Parameter(
-            name = "orderKey",
-            description = "Order classification key.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "1448"),
-        @Parameter(
             name = "parentEventId",
             description =
                 "An identifier for the information associated with a sampling event.\n\n"
@@ -1137,20 +1079,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "A 123"),
-        @Parameter(
-            name = "phylumKey",
-            description =
-                "Phylum classification key."
-                    + DERIVED_TAXON
-                    + "\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "44"),
         @Parameter(
             name = "programme",
             description =
@@ -1272,17 +1200,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "Quercus robur"),
         @Parameter(
-            name = "speciesKey",
-            description =
-                "Species classification key." + DERIVED_TAXON + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2476674"),
-        @Parameter(
             name = "startDayOfYear",
             description =
                 "The earliest integer day of the year on which the event occurred.\n\n"
@@ -1306,17 +1223,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "Leicestershire"),
-        @Parameter(
-            name = "subgenusKey",
-            hidden = true, // Not yet implemented
-            description = "Subgenus classification key." + DERIVED_TAXON,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "0"),
         @Parameter(
             name = "taxonId",
             description =
