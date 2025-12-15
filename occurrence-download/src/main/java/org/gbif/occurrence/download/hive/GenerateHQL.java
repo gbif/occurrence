@@ -32,6 +32,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 
 /**
@@ -68,6 +69,7 @@ public class GenerateHQL {
   private static final String INCLUDE_OCCURRENCE_EXT_INTERPRETED = "includeOccurrenceExtInterpreted";
 
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
+  private static final EventsHiveQueries EVENTS_HIVE_QUERIES = new EventsHiveQueries();
   private static final AvroQueries AVRO_QUERIES = new AvroQueries();
   private static final ParquetQueries PARQUET_QUERIES = new ParquetQueries();
   private static final ParquetSchemaQueries PARQUET_SCHEMA_QUERIES = new ParquetSchemaQueries();
@@ -205,18 +207,20 @@ public class GenerateHQL {
       Configuration cfg, DownloadQueryParameters queryParameters, Writer writer)
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("download/execute-query.ftl");
+    Queries queries =
+        queryParameters.getCoreTerm() == DwcTerm.Event ? EVENTS_HIVE_QUERIES : HIVE_QUERIES;
     Map<String, Object> data =
         ImmutableMap.<String, Object>builder()
             .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
             .put(
                 "interpretedFields",
-                HIVE_QUERIES
+                queries
                     .selectInterpretedFields(
                         false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                     .values())
             .put(
                 "initializedInterpretedFields",
-                HIVE_QUERIES
+                queries
                     .selectInterpretedFields(
                         true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                     .values())
