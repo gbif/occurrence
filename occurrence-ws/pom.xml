@@ -20,7 +20,6 @@
   </distributionManagement>
 
   <properties>
-    <javassist.version>3.19.0-GA</javassist.version>
     <main.basedir>${project.parent.basedir}</main.basedir>
     <start-class>org.gbif.occurrence.ws.OccurrenceWsApplication</start-class>
     <!-- because ws accesses HBase directly this must match cluster-expected Guava -->
@@ -391,15 +390,6 @@
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-common</artifactId>
-      <version>2.6.0</version>
-    </dependency>
-    <dependency>
       <groupId>io.swagger.core.v3</groupId>
       <artifactId>swagger-annotations</artifactId>
     </dependency>
@@ -534,11 +524,11 @@
       <artifactId>mail</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.yammer.metrics</groupId>
+      <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-annotation</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.yammer.metrics</groupId>
+      <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
     </dependency>
     <dependency>
@@ -586,7 +576,6 @@
     <dependency>
       <groupId>org.javassist</groupId>
       <artifactId>javassist</artifactId>
-      <version>${javassist.version}</version>
       <scope>test</scope>
     </dependency>
 

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.config;
 
+import io.swagger.v3.oas.models.media.JsonSchema;
 import org.gbif.api.vocabulary.Extension;
 
 import java.util.Comparator;
@@ -31,7 +32,6 @@ import org.springframework.stereotype.Component;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.tags.Tag;
 
@@ -66,7 +66,7 @@ public class OpenAPIConfiguration {
       // request to those supported, remembering to use the RowType
       List<String> allowedVerbatimExtensionValues = Extension.availableExtensions().stream().map(Extension::getRowType).collect(Collectors.toList());
       Schema predicateDownloadRequest = openApi.getComponents().getSchemas().get("PredicateDownloadRequest");
-      ArraySchema verbatimExtension = (ArraySchema)  predicateDownloadRequest.getProperties().get("verbatimExtensions");
+      JsonSchema verbatimExtension = (JsonSchema)  predicateDownloadRequest.getProperties().get("verbatimExtensions");
       Schema verbatimExtensionString = verbatimExtension.getItems();
       verbatimExtensionString.setEnum(allowedVerbatimExtensionValues);
     };

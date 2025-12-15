@@ -271,13 +271,8 @@
     </dependency>
     <!-- false positive from mvn dep:analyze -->
     <dependency>
-      <groupId>com.yammer.metrics</groupId>
+      <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
-    </dependency>
-    <!-- false positive from mvn dep:analyze -->
-    <dependency>
-      <groupId>com.yammer.metrics</groupId>
-      <artifactId>metrics-ganglia</artifactId>
     </dependency>
 
     <!-- logging -->
