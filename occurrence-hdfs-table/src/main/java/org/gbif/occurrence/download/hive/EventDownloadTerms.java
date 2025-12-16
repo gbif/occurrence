@@ -98,7 +98,6 @@ public class EventDownloadTerms {
           Pair.of(Group.INTERPRETED, DwcTerm.countryCode),
           Pair.of(Group.INTERPRETED, DwcTerm.locality),
           Pair.of(Group.INTERPRETED, DwcTerm.stateProvince),
-          Pair.of(Group.INTERPRETED, DwcTerm.individualCount),
           Pair.of(Group.INTERPRETED, GbifInternalTerm.publishingOrgKey),
           Pair.of(Group.INTERPRETED, DwcTerm.decimalLatitude),
           Pair.of(Group.INTERPRETED, DwcTerm.decimalLongitude),
