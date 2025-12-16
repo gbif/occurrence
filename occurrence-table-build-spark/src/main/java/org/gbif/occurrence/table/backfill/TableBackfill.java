@@ -46,8 +46,10 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.download.hive.EventHDFSTableDefinition;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
+import org.gbif.occurrence.download.hive.InitializableField;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
@@ -493,7 +495,7 @@ public class TableBackfill {
   private String createParquetTableIfNotExists() {
     return String.format(
         "CREATE TABLE IF NOT EXISTS %s (\n"
-            + OccurrenceHDFSTableDefinition.definition().stream()
+            + getTableDefinition(configuration.getCoreName()).stream()
                 .map(field -> field.getHiveField() + " " + field.getHiveDataType())
                 .collect(Collectors.joining(", \n"))
             + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")",
@@ -503,7 +505,7 @@ public class TableBackfill {
   private String createPartitionedTableIfNotExists() {
     return String.format(
         "CREATE EXTERNAL TABLE IF NOT EXISTS %s ("
-            + OccurrenceHDFSTableDefinition.definition().stream()
+            + getTableDefinition(configuration.getCoreName()).stream()
                 .filter(
                     field ->
                         configuration.isUsePartitionedTable()
@@ -526,7 +528,7 @@ public class TableBackfill {
     List<String> availableColumns = Arrays.asList(avroDF.columns());
 
     List<Column> columns =
-        OccurrenceHDFSTableDefinition.definition().stream()
+        getTableDefinition(configuration.getCoreName()).stream()
             .filter(
                 field ->
                     !configuration.isUsePartitionedTable()
@@ -673,5 +675,13 @@ public class TableBackfill {
     }
 
     return structType;
+  }
+
+  private List<InitializableField> getTableDefinition(String coreName) {
+    if (coreName.equalsIgnoreCase("event")) {
+      return EventHDFSTableDefinition.definition();
+    } else {
+      return OccurrenceHDFSTableDefinition.definition();
+    }
   }
 }

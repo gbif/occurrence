@@ -32,7 +32,10 @@ import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Generates HQL scripts dynamically which are used to create the download HDFS tables, and querying
@@ -68,6 +71,7 @@ public class GenerateHQL {
   private static final String INCLUDE_OCCURRENCE_EXT_INTERPRETED = "includeOccurrenceExtInterpreted";
 
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
+  private static final EventsHiveQueries EVENTS_HIVE_QUERIES = new EventsHiveQueries();
   private static final AvroQueries AVRO_QUERIES = new AvroQueries();
   private static final ParquetQueries PARQUET_QUERIES = new ParquetQueries();
   private static final ParquetSchemaQueries PARQUET_SCHEMA_QUERIES = new ParquetSchemaQueries();
@@ -210,13 +214,15 @@ public class GenerateHQL {
             .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
             .put(
                 "interpretedFields",
-                HIVE_QUERIES
-                    .selectInterpretedFields(false, queryParameters.getChecklistKey())
+                getQueries(queryParameters.getCoreTerm())
+                    .selectInterpretedFields(
+                        false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                     .values())
             .put(
                 "initializedInterpretedFields",
-                HIVE_QUERIES
-                    .selectInterpretedFields(true, queryParameters.getChecklistKey())
+                getQueries(queryParameters.getCoreTerm())
+                    .selectInterpretedFields(
+                        true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                     .values())
             .put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values())
             .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
@@ -240,6 +246,10 @@ public class GenerateHQL {
                 HIVE_QUERIES.selectHumboldtFields(true, queryParameters.getChecklistKey()).values())
             .build();
     template.process(data, writer);
+  }
+
+  private static Queries getQueries(DwcTerm coreTerm) {
+    return coreTerm == DwcTerm.Event ? EVENTS_HIVE_QUERIES : HIVE_QUERIES;
   }
 
   public static void generateDwcaDropTableQueryHQL(Configuration cfg, File outDir)
@@ -277,8 +287,9 @@ public class GenerateHQL {
     Map<String, Object> data =
         ImmutableMap.of(
             FIELDS,
-            HIVE_QUERIES
-                .selectSimpleDownloadFields(true, queryParameters.getChecklistKey())
+            getQueries(queryParameters.getCoreTerm())
+                .selectSimpleDownloadFields(
+                    true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                 .values(),
             IS_HUMBOLDT_SEARCH,
             queryParameters.isHumboldtSearch());
@@ -329,7 +340,7 @@ public class GenerateHQL {
       throws IOException {
     Map<String, InitializableField> fields =
         SIMPLE_AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(
-            true, queryParameters.getChecklistKey());
+            true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm());
 
     SchemaBuilder.FieldAssembler<Schema> builder =
         SchemaBuilder.record("SimpleOccurrence")
@@ -349,7 +360,8 @@ public class GenerateHQL {
           ImmutableMap.of(
               FIELDS,
               AVRO_QUERIES
-                  .selectSimpleDownloadFields(true, queryParameters.getChecklistKey())
+                  .selectSimpleDownloadFields(
+                      true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                   .values(),
               "avroSchema",
               simpleAvroSchema(queryParameters).toString(true));
@@ -365,7 +377,8 @@ public class GenerateHQL {
         ImmutableMap.of(
             FIELDS,
             AVRO_QUERIES
-                .selectSimpleDownloadFields(true, queryParameters.getChecklistKey())
+                .selectSimpleDownloadFields(
+                    true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
                 .values(),
             "avroSchema",
             simpleAvroSchema(queryParameters).toString(true));
@@ -397,9 +410,11 @@ public class GenerateHQL {
     // We need the initializers (toLocalISO8601(eventDate) etc) but also the API-matching column
     // name (verbatimScientificName etc).
     Map<String, InitializableField> interpretedNames =
-        PARQUET_QUERIES.selectSimpleDownloadFields(true, queryParameters.getChecklistKey());
+        PARQUET_QUERIES.selectSimpleDownloadFields(
+            true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm());
     Map<String, InitializableField> columnNames =
-        PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(false, queryParameters.getChecklistKey());
+        PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(
+            false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm());
 
     Map<String, Object> data =
         ImmutableMap.of(

@@ -16,9 +16,10 @@ package org.gbif.occurrence.download.util;
 
 import org.apache.commons.compress.utils.IOUtils;
 
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
 import java.io.ByteArrayInputStream;
@@ -61,7 +62,7 @@ public class HeadersFileUtil {
     String multimediaFileName
   ) throws IOException {
     generateFileHeader(verbatimFileName, DEFAULT_VERBATIM_FILE_NAME, getVerbatimTableHeader());
-    generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getInterpretedTableHeader());
+    generateFileHeader(interpretedFileName, DEFAULT_INTERPRETED_FILE_NAME, getInterpretedTableHeader(DwcTerm.Occurrence));
     generateFileHeader(multimediaFileName, DEFAULT_MULTIMEDIA_FILE_NAME, getMultimediaTableHeader());
   }
 
@@ -90,7 +91,9 @@ public class HeadersFileUtil {
    * Appends the occurrence headers line to the output file.
    */
   public static void appendInterpretedHeaders(OutputStream fileWriter) throws IOException {
-    appendHeaders(fileWriter, getInterpretedTableHeader());
+    // hardcoded to use Occurrence term because this is used only by small downloads and event
+    // downloads always go thru the big downloads wf
+    appendHeaders(fileWriter, getInterpretedTableHeader(DwcTerm.Occurrence));
   }
 
   /**
@@ -126,8 +129,12 @@ public class HeadersFileUtil {
   /**
    * Returns the headers names of download columns.
    */
-  public static String getInterpretedTableHeader() {
-    return getTableHeader(DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
+  public static String getInterpretedTableHeader(DwcTerm coreTerm) {
+    if (DwcTerm.Event == coreTerm) {
+      return getTableHeader(EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
+    } else {
+      return getTableHeader(DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID);
+    }
   }
 
   /**
