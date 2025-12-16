@@ -32,10 +32,6 @@ public class EventsHiveQueries extends TsvQueries {
 
   @Override
   String toInterpretedHiveInitializer(Term term, String checklistKey) {
-    // TODO: queries to derived taxon fields
-//    if (TermUtils.isTaxonomic(term)) {
-//      return toTaxonomicHiveInitializer(term, checklistKey);
-//    }
     if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {
