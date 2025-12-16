@@ -208,7 +208,7 @@
     <download-query-tools.version>2.0.4-java11-SNAPSHOT</download-query-tools.version>
     <dwc-api.version>2.1.7-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.1-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>2.2.0-events-jdk17-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>2.2.1-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.60</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -218,13 +218,13 @@
     <gbif-metadata-profile.version>2.6</gbif-metadata-profile.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
     <gbif-postal-service.version>2.1.3</gbif-postal-service.version>
-    <gbif-registry.version>4.1.21-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>4.2.0-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>1.0.0</gbif-wrangler.version>
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>3.0</gbif.kvs.version>
     <gbif-cli.version>3.0</gbif-cli.version>
-    <gbif-predicates.version>2.1.2-events-SNAPSHOT</gbif-predicates.version>
+    <gbif-predicates.version>2.1.2-SNAPSHOT</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.0</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 
