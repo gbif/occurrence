@@ -55,7 +55,7 @@ public class TermUtils {
    * Its only purpose is to join the records within the archive, and is therefore not included here
    * as it has no meaning outside the archive.
    */
-  private static final List<DcTerm> DwC_DC_PROPERTIES = ImmutableList.of(
+  public static final List<DcTerm> DwC_DC_PROPERTIES = ImmutableList.of(
       DcTerm.accessRights,
       DcTerm.bibliographicCitation,
       DcTerm.language,
@@ -82,7 +82,7 @@ public class TermUtils {
    * The list of Darwin Core properties applicable to occurrence records, excluding classes such as Taxon and terms
    * that are not relevant to occurrence records.
    */
-  private static final List<DwcTerm> DwC_PROPERTIES = Arrays.stream(DwcTerm.values())
+  public static final List<DwcTerm> DwC_PROPERTIES = Arrays.stream(DwcTerm.values())
     .filter(t ->   !t.isClass() && !DwC_EXTENSION_EXCLUSIONS.contains(t))
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 
@@ -131,7 +131,7 @@ public class TermUtils {
    * The list of GADM properties applicable to occurrence records, excluding any classes and terms that are not
    * relevant to occurrence records.
    */
-  private static final List<GadmTerm> GADM_PROPERTIES = Arrays.stream(GadmTerm.values())
+  public static final List<GadmTerm> GADM_PROPERTIES = Arrays.stream(GadmTerm.values())
     .filter(t -> !t.isClass())
       .collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList));
 

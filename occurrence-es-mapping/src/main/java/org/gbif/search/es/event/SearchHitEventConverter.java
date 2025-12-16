@@ -54,6 +54,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.EventTermUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.SearchHitConverter;
@@ -132,7 +133,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
       termMap =
           termMap.filter(
               e ->
-                  !TermUtils.isInterpretedSourceTerm(e.getKey())
+                  !EventTermUtils.isInterpretedSourceTerm(e.getKey())
                       && !EVENT_INTERPRETED_TERMS.contains(e.getKey()));
     }
     return termMap.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -270,7 +271,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getListValueAsString(hit, DATASET_ID).ifPresent(event::setDatasetID);
     getListValueAsString(hit, DATASET_NAME).ifPresent(event::setDatasetName);
     getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(event::setSamplingProtocol);
-    getListValueAsString(hit, OTHER_CATALOG_NUMBERS).ifPresent(event::setOtherCatalogNumbers);
     setEventLineageData(hit, event);
   }
 
@@ -295,7 +295,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, CONTINENT, Continent::valueOf).ifPresent(event::setContinent);
     getStringValue(hit, STATE_PROVINCE).ifPresent(event::setStateProvince);
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(event::setCountry);
-    getDoubleValue(hit, COORDINATE_ACCURACY).ifPresent(event::setCoordinateAccuracy);
     getDoubleValue(hit, COORDINATE_PRECISION).ifPresent(event::setCoordinatePrecision);
     getDoubleValue(hit, COORDINATE_UNCERTAINTY_IN_METERS)
         .ifPresent(event::setCoordinateUncertaintyInMeters);
@@ -533,12 +532,27 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
                                     value -> {
                                       Humboldt.TaxonClassification taxonClassification =
                                           new Humboldt.TaxonClassification();
-                                      taxonClassification.setUsageKey(
-                                          (String) value.get("usageKey"));
-                                      taxonClassification.setUsageName(
-                                          (String) value.get("usageName"));
-                                      taxonClassification.setUsageRank(
-                                          (String) value.get("usageRank"));
+                                      Map<String, String> usage =
+                                          (Map<String, String>) value.get("usage");
+                                      if (usage != null) {
+                                        taxonClassification.setUsageKey(usage.get("key"));
+                                        taxonClassification.setUsageName(usage.get("name"));
+                                        taxonClassification.setUsageRank(usage.get("rank"));
+                                      }
+
+                                      Map<String, String> acceptedUsage =
+                                          (Map<String, String>) value.get("acceptedUsage");
+                                      if (acceptedUsage != null) {
+                                        taxonClassification.setAcceptedUsageKey(
+                                            acceptedUsage.get("key"));
+                                        taxonClassification.setAcceptedUsageName(
+                                            acceptedUsage.get("name"));
+                                        taxonClassification.setAcceptedUsageRank(
+                                            acceptedUsage.get("rank"));
+                                      }
+
+                                      taxonClassification.setIucnRedListCategory(
+                                          (String) value.get("iucnRedListCategoryCode"));
                                       taxonClassification.setIssues(
                                           (List<String>) value.get("issues"));
 

@@ -67,7 +67,7 @@ public class EventEsSearchRequestBuilderTest {
             .path(BOOL)
             .path(FILTER)
             .findValues(
-                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".usageKey")
+                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".usage.key")
             .get(0)
             .get(VALUE)
             .asText());
@@ -86,7 +86,7 @@ public class EventEsSearchRequestBuilderTest {
   @Test
   public void humboldtTaxonomicIssueTest() throws Exception {
     EventSearchRequest searchRequest = new EventSearchRequest();
-    searchRequest.addParameter(EventSearchParameter.HUMBOLDT_TAXONOMIC_ISSUE, "TAXON_MATCH_NONE");
+    searchRequest.addParameter(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE, "TAXON_MATCH_NONE");
     QueryBuilder query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -122,7 +122,7 @@ public class EventEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("event.humboldt.targetTaxonomicScope.key2.usageKey")
+            .findValues("event.humboldt.targetTaxonomicScope.key2.usage.key")
             .get(0)
             .get(VALUE)
             .asText());
@@ -354,7 +354,7 @@ public class EventEsSearchRequestBuilderTest {
         jsonQuery
             .findParent(NESTED)
             .findValues(
-                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".usageKey")
+                "event.humboldt.targetTaxonomicScope." + DEFAULT_CHECKLIST_KEY + ".usage.key")
             .get(0)
             .get(VALUE)
             .asText());
