@@ -110,14 +110,12 @@ public class EventTermUtils {
         .addAll(
             // add all Dublin Core terms that are not stripped during interpretation
             DwC_DC_PROPERTIES.stream()
-                .filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t))
+                .filter(
+                    t ->
+                        !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)
+                            && !TERMS_POPULATED_BY_INTERPRETATION.contains(t))
                 .collect(Collectors.toList()))
         .addAll(TERMS_POPULATED_BY_INTERPRETATION)
-        .addAll(
-            // add all GADM terms (none are stripped during interpretation, but filter anyway).
-            GADM_PROPERTIES.stream()
-                .filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t))
-                .collect(Collectors.toList()))
         .build();
   }
 

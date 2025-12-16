@@ -37,7 +37,7 @@ import org.gbif.dwc.terms.*;
 import org.gbif.occurrence.common.EventTermUtils;
 
 /**
- * This provides the definition required to construct the occurrence HDFS table, for use as a Hive table.
+ * This provides the definition required to construct the event HDFS table, for use as a Hive table.
  * The table is populated by a query which scans the Avro files, but along the way converts some fields to
  * e.g., Hive arrays which require some UDF voodoo captured here.
  * <p/>
@@ -179,7 +179,7 @@ public class EventHDFSTableDefinition {
   }
 
   /**
-   * Generates the conceptual definition for the occurrence tables when used in hive.
+   * Generates the conceptual definition for the event tables when used in hive.
    *
    * @return a list of fields, with the types.
    */
