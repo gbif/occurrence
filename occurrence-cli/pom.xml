@@ -150,6 +150,10 @@
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-reload4j</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>reload4j</artifactId>
+          <groupId>ch.qos.reload4j</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
     <!-- mvn dep:analyze gives false positive here -->
@@ -168,6 +172,10 @@
         <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-reload4j</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>reload4j</artifactId>
+          <groupId>ch.qos.reload4j</groupId>
         </exclusion>
       </exclusions>
     </dependency>
