@@ -15,10 +15,13 @@ package org.gbif.occurrence.download.query;
 
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.common.EventTermUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
 import java.util.Set;
+
+import org.gbif.occurrence.download.hive.EventDownloadTerms;
 
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +44,18 @@ public class TestDownloadHeaders {
     assertEquals(0, diff.size(),
                  "TermUtils.interpretedTerms() and DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS must use the same terms. Difference(s): " +
                                  diff);
+
+  }
+
+  @Test
+  public void testEventTermsConsistency(){
+    Set<Term> diff = Sets.newHashSet(Sets.symmetricDifference(Sets.newHashSet(EventTermUtils.interpretedTerms()),
+      EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS));
+    diff.remove(GbifTerm.gbifID);
+    diff.remove(GbifTerm.verbatimScientificName);
+    assertEquals(0, diff.size(),
+      "TermUtils.interpretedTerms() and DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS must use the same terms. Difference(s): " +
+        diff);
 
   }
 

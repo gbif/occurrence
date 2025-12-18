@@ -37,6 +37,7 @@ public class OpenAPIUtils {
   public static final String API_PARAMETER_RANGE_QUERIES = "*Supports range queries.*";
   public static final String API_PARAMETER_RANGE_OR_REPEAT =
       "*Parameter may be repeated or a range.*";
+  public static final String DERIVED_TAXON = " It searches the taxonomy of event occurrences.";
 
   /** Documentation for the id path parameter. */
   @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
@@ -163,9 +164,11 @@ public class OpenAPIUtils {
         @Parameter(
             name = "acceptedTaxonKey",
             description =
-                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). "
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter)."
+                    + DERIVED_TAXON
                     + "Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 "
-                    + "(i.e. [/event/search?taxonKey=212](https://api.gbif.org/v1/event/search?acceptedTaxonKey=212)) will match events identified as birds, but not any known family, genus or species of bird."
+                    + "(i.e. [/event/search?taxonKey=212](https://api.gbif.org/v1/event/search?acceptedTaxonKey=212)) "
+                    + "will match events identified as birds, but not any known family, genus or species of bird."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -175,44 +178,12 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "2476674"),
         @Parameter(
-            name = "associatedSequences",
-            description =
-                "Identifier (publication, global unique identifier, URI) of genetic sequence "
-                    + "information associated with the material entity.\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "http://www.ncbi.nlm.nih.gov/nuccore/U34853.1"),
-        @Parameter(
-            name = "catalogNumber",
-            description =
-                "An identifier of any form assigned by the source within a physical collection or digital "
-                    + "dataset for the record which may not be unique, but should be fairly unique in combination with the "
-                    + "institution and collection code.\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "K001275042"),
-        @Parameter(
-            name = "classKey",
-            description = "Class classification key.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "212"),
-        @Parameter(
             name = "checklistKey",
             description =
                 "*Experimental.* The checklist key. This determines which taxonomy will be used for "
                     + "the search in conjunction with other taxon keys or scientificName. If this is not specified, the GBIF "
-                    + "backbone taxonomy will be used.",
+                    + "backbone taxonomy will be used. It can be used to search in both the taxonomy of the event occurrences "
+                    + "and in the humboldt taxonomic scope",
             schema = @Schema(implementation = String.class),
             in = ParameterIn.QUERY,
             example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
@@ -226,7 +197,7 @@ public class OpenAPIUtils {
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
-            example = "F"),
+            example = "K"),
         @Parameter(
             name = "continent",
             description =
@@ -377,16 +348,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "A 123"),
         @Parameter(
-            name = "familyKey",
-            description = "Family classification key.",
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2405"),
-        @Parameter(
             name = "fieldNumber",
             description =
                 "An identifier given to the event in the field. Often serves as a link between field notes and the event.\n\n"
@@ -462,16 +423,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "AFRICA"),
-        @Parameter(
-            name = "genusKey",
-            description = "Genus classification key.",
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2877951"),
         @Parameter(
             name = "geoDistance",
             description =
@@ -813,6 +764,67 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "adult"),
         @Parameter(
+            name = "humboldtTargetTaxonomicScopeAcceptedUsageKey",
+            description =
+                "The accepted usage keys of the taxonomic groups targeted during the event.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(
+                    uniqueItems = true,
+                    schema = @Schema(implementation = Integer.class, minimum = "0")),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "212"),
+        @Parameter(
+            name = "humboldtTargetTaxonomicScopeAcceptedUsageName",
+            description =
+                "The accepted usage names of the taxonomic groups targeted during the event.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "Aves"),
+        @Parameter(
+            name = "humboldtTargetTaxonomicScopeIssue",
+            description =
+                "A specific taxonomic interpretation issue for the targeted taxonomic scope as defined in our "
+                    + "EventIssue enumeration.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(
+                    uniqueItems = true,
+                    schema =
+                        @Schema(
+                            type = "string",
+                            allowableValues = {
+                              "TAXON_MATCH_FUZZY",
+                              "TAXON_MATCH_HIGHERRANK",
+                              "TAXON_MATCH_AGGREGATE",
+                              "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+                              "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+                              "TAXON_MATCH_TAXON_ID_IGNORED",
+                              "SCIENTIFIC_NAME_ID_NOT_FOUND",
+                              "TAXON_CONCEPT_ID_NOT_FOUND",
+                              "TAXON_ID_NOT_FOUND",
+                              "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+                              "TAXON_MATCH_NONE"
+                            })),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "TAXON_MATCH_HIGHERRANK"),
+        @Parameter(
+            name = "humboldtTargetTaxonomicScopeIucnRedListCategory",
+            description =
+                "A threat status category from the IUCN Red List for the target taxonomic scope. The two-letter code "
+                    + "for the status should be used.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "Aves"),
+        @Parameter(
             name = "humboldtTargetTaxonomicScopeTaxonKey",
             description =
                 "The taxon keys of the taxonomic groups targeted during the event.\n\n"
@@ -856,34 +868,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "census"),
-        @Parameter(
-            name = "humboldtTaxonomicIssue",
-            description =
-                "A specific taxonomic interpretation issue for the targeted taxonomic scope as defined in our "
-                    + "EventIssue enumeration.\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema =
-                        @Schema(
-                            type = "string",
-                            allowableValues = {
-                              "TAXON_MATCH_FUZZY",
-                              "TAXON_MATCH_HIGHERRANK",
-                              "TAXON_MATCH_AGGREGATE",
-                              "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
-                              "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
-                              "TAXON_MATCH_TAXON_ID_IGNORED",
-                              "SCIENTIFIC_NAME_ID_NOT_FOUND",
-                              "TAXON_CONCEPT_ID_NOT_FOUND",
-                              "TAXON_ID_NOT_FOUND",
-                              "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
-                              "TAXON_MATCH_NONE"
-                            })),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "TAXON_MATCH_HIGHERRANK"),
         @Parameter(
             name = "humboldtTotalAreaSampledUnit",
             description =
@@ -1003,8 +987,10 @@ public class OpenAPIUtils {
         @Parameter(
             name = "iucnRedListCategory",
             description =
-                "A threat status category from the IUCN Red List.  The two-letter code for the status should "
-                    + "be used.\n\n"
+                "A threat status category from the IUCN Red List. The two-letter code for the status should "
+                    + "be used."
+                    + DERIVED_TAXON
+                    + "\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -1013,16 +999,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "EX"),
-        @Parameter(
-            name = "kingdomKey",
-            description = "Kingdom classification key.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "5"),
         @Parameter(
             name = "lastInterpreted",
             description =
@@ -1094,25 +1070,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "2b7c7b4f-4d4f-40d3-94de-c28b6fa054a6"),
         @Parameter(
-            name = "orderKey",
-            description = "Order classification key.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "1448"),
-        @Parameter(
-            name = "otherCatalogNumbers",
-            description =
-                "Previous or alternate fully qualified catalog numbers.\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY),
-        @Parameter(
             name = "parentEventId",
             description =
                 "An identifier for the information associated with a sampling event.\n\n"
@@ -1122,16 +1079,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "A 123"),
-        @Parameter(
-            name = "phylumKey",
-            description = "Phylum classification key.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "44"),
         @Parameter(
             name = "programme",
             description =
@@ -1196,16 +1143,6 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "e2e717bf-551a-4917-bdc9-4fa0f342c530"),
         @Parameter(
-            name = "recordNumber",
-            description =
-                "An identifier given to the record at the time it was recorded in the field.\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "1"),
-        @Parameter(
             name = "repatriated",
             description =
                 "Searches for records whose publishing country is different to the country in which the "
@@ -1249,7 +1186,8 @@ public class OpenAPIUtils {
             name = "scientificName",
             description =
                 "A scientific name from the [GBIF backbone](https://www.gbif.org/dataset/d7dddbf4-2cf0-4f39-9b2a-bb099caae36c) "
-                    + "or the specified checklist (see checklistKey parameter). "
+                    + "or the specified checklist (see checklistKey parameter)."
+                    + DERIVED_TAXON
                     + "All included and synonym taxa are included in the search.\n\n"
                     + "Under the hood a call to the [species match service](https://www.gbif.org/developer/species#searching) "
                     + "is done first to retrieve a taxonKey. Only unique scientific names will return results, homonyms "
@@ -1261,16 +1199,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "Quercus robur"),
-        @Parameter(
-            name = "speciesKey",
-            description = "Species classification key." + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2476674"),
         @Parameter(
             name = "startDayOfYear",
             description =
@@ -1296,20 +1224,23 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "Leicestershire"),
         @Parameter(
-            name = "subgenusKey",
-            hidden = true, // Not yet implemented
-            description = "Subgenus classification key.",
+            name = "taxonId",
+            description =
+                "The taxon identifier provided to GBIF by the data publisher."
+                    + DERIVED_TAXON
+                    + "\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
             array =
-                @ArraySchema(
-                    uniqueItems = true,
-                    schema = @Schema(implementation = Integer.class, minimum = "0")),
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
-            example = "0"),
+            example = "urn:lsid:dyntaxa.se:Taxon:103026"),
         @Parameter(
             name = "taxonKey",
             description =
-                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/event/search?taxonKey=212](https://api.gbif.org/v1/event/search?taxonKey=212)) will match all birds, no matter which species."
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter)."
+                    + DERIVED_TAXON
+                    + "All included (child) and synonym taxa are included in the search, so a search for Aves with taxonKey=212 (i.e. [/event/search?taxonKey=212](https://api.gbif.org/v1/event/search?taxonKey=212)) will match all birds, no matter which species."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -1319,21 +1250,12 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "2476674"),
         @Parameter(
-            name = "taxonId",
-            description =
-                "The taxon identifier provided to GBIF by the data publisher.\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "urn:lsid:dyntaxa.se:Taxon:103026"),
-        // TODO: creo q hay q quitarlo
-        @Parameter(
             name = "taxonomicIssue",
             description =
                 "*Experimental.* A specific taxonomic interpretation issue as defined in our "
-                    + "EventIssue enumeration.\n\n"
+                    + "OccurrenceIssue enumeration."
+                    + DERIVED_TAXON
+                    + "\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -1360,7 +1282,9 @@ public class OpenAPIUtils {
         @Parameter(
             name = "taxonomicStatus",
             description =
-                "A taxonomic status from our TaxonomicStatus enumeration.\n\n"
+                "A taxonomic status from our TaxonomicStatus enumeration."
+                    + DERIVED_TAXON
+                    + "\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -1369,17 +1293,6 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "SYNONYM"),
-        @Parameter(
-            name = "verbatimScientificName",
-            description =
-                "The scientific name provided to GBIF by the data publisher, before interpretation and "
-                    + "processing by GBIF.\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Quercus robur L."),
         @Parameter(
             name = "waterBody",
             description =

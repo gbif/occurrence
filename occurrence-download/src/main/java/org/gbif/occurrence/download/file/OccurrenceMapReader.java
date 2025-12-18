@@ -242,7 +242,6 @@ public class OccurrenceMapReader {
     interpretedEvent.put(GbifTerm.lastInterpreted.simpleName(), getSimpleValue(event.getLastInterpreted()));
     interpretedEvent.put(DwcTerm.datasetID.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getDatasetID()));
     interpretedEvent.put(DwcTerm.datasetName.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getDatasetName()));
-    interpretedEvent.put(DwcTerm.otherCatalogNumbers.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getOtherCatalogNumbers()));
     interpretedEvent.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getPreparations()));
     interpretedEvent.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(event.getSamplingProtocol()));
 
@@ -283,7 +282,6 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DwcTerm.waterBody.simpleName(), event.getWaterBody());
     interpretedEvent.put(GbifTerm.hasGeospatialIssues.simpleName(), Boolean.toString(event.hasSpatialIssue()));
     interpretedEvent.put(GbifTerm.hasCoordinate.simpleName(), Boolean.toString(event.getDecimalLatitude() != null && event.getDecimalLongitude() != null));
-    interpretedEvent.put(GbifTerm.coordinateAccuracy.simpleName(), getSimpleValue(event.getCoordinateAccuracy()));
     getRepatriated(event).ifPresent(repatriated -> interpretedEvent.put(GbifTerm.repatriated.simpleName(), repatriated));
     interpretedEvent.put(DwcTerm.geodeticDatum.simpleName(), event.getGeodeticDatum());
     putGadmFeature(interpretedEvent, GadmTerm.level0Name, GadmTerm.level0Gid, event.getGadm().getLevel0());

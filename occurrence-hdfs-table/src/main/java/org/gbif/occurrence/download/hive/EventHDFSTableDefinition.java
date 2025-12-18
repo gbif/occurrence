@@ -21,17 +21,23 @@ import static org.gbif.occurrence.download.hive.HiveColumns.getVerbatimColPrefix
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.Sets;
+
 import lombok.experimental.UtilityClass;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.*;
+import org.gbif.occurrence.common.EventTermUtils;
 
 /**
- * This provides the definition required to construct the occurrence HDFS table, for use as a Hive table.
+ * This provides the definition required to construct the event HDFS table, for use as a Hive table.
  * The table is populated by a query which scans the Avro files, but along the way converts some fields to
  * e.g., Hive arrays which require some UDF voodoo captured here.
  * <p/>
@@ -45,12 +51,12 @@ import org.gbif.dwc.terms.*;
  * maintenance.
  */
 @UtilityClass
-public class OccurrenceHDFSTableDefinition {
+public class EventHDFSTableDefinition {
 
   public static void main(String[] args) {
     System.out.println(
-      "CREATE TABLE IF NOT EXISTS occurrence (\n"
-        + OccurrenceHDFSTableDefinition.definition().stream()
+      "CREATE TABLE IF NOT EXISTS event (\n"
+        + EventHDFSTableDefinition.definition().stream()
         .map(field -> field.getHiveField() + " " + field.getHiveDataType())
         .collect(Collectors.joining(", \n"))
         + ") STORED AS PARQUET TBLPROPERTIES (\"parquet.compression\"=\"SNAPPY\")");
@@ -78,7 +84,7 @@ public class OccurrenceHDFSTableDefinition {
    */
   private static List<InitializableField> verbatimFields() {
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    for (Term t : DownloadTerms.DOWNLOAD_VERBATIM_TERMS) {
+    for (Term t : EventDownloadTerms.DOWNLOAD_VERBATIM_TERMS) {
       builder.add(verbatimField(t));
     }
     return builder.build();
@@ -91,22 +97,16 @@ public class OccurrenceHDFSTableDefinition {
    * @return the list of fields that are used in the interpreted context
    */
   private static List<InitializableField> interpretedFields() {
-
     // the following terms are manipulated when transposing from Avro to hive by using UDFs and custom HQL
     Map<Term, String> initializers = ImmutableMap.<Term, String>builder()
                                       .put(GbifTerm.datasetKey, columnFor(GbifTerm.datasetKey))
                                       .put(GbifTerm.protocol, columnFor(GbifTerm.protocol))
                                       .put(GbifTerm.publishingCountry, columnFor(GbifTerm.publishingCountry))
                                       .put(DwcTerm.eventType, columnFor(DwcTerm.eventType))
-                                      .put(IucnTerm.iucnRedListCategory, columnFor(IucnTerm.iucnRedListCategory))
-                                      .put(GbifInternalTerm.classifications, columnFor(GbifInternalTerm.classifications))
-                                      .put(GbifInternalTerm.taxonomicStatuses, columnFor(GbifInternalTerm.taxonomicStatuses))
-                                      .put(GbifInternalTerm.classificationDetails, columnFor(GbifInternalTerm.classificationDetails))
-                                      .put(GbifTerm.checklistKey, columnFor(GbifTerm.checklistKey))
                                       .build();
 
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    for (Term t : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {
+    for (Term t : EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS) {
       // if there is custom handling registered for the term, use it
       if (initializers.containsKey(t)) {
         builder.add(interpretedField(t, initializers.get(t)));
@@ -128,19 +128,18 @@ public class OccurrenceHDFSTableDefinition {
     Map<Term, String> initializers = new ImmutableMap.Builder<Term,String>()
                                                       .put(GbifInternalTerm.publishingOrgKey, columnFor(GbifInternalTerm.publishingOrgKey))
                                                       .put(GbifInternalTerm.installationKey, columnFor(GbifInternalTerm.installationKey))
-                                                      .put(GbifInternalTerm.institutionKey, columnFor(GbifInternalTerm.institutionKey))
-                                                      .put(GbifInternalTerm.collectionKey, columnFor(GbifInternalTerm.collectionKey))
                                                       .put(GbifTerm.projectId, columnFor(GbifTerm.projectId))
                                                       .put(GbifInternalTerm.programmeAcronym, columnFor(GbifInternalTerm.programmeAcronym))
                                                       .put(GbifInternalTerm.hostingOrganizationKey, columnFor(GbifInternalTerm.hostingOrganizationKey))
-                                                      .put(GbifInternalTerm.isInCluster, columnFor(GbifInternalTerm.isInCluster))
                                                       .put(GbifInternalTerm.dwcaExtension, columnFor(GbifInternalTerm.dwcaExtension))
                                                       .put(GbifInternalTerm.eventDateGte, columnFor(GbifInternalTerm.eventDateGte))
                                                       .put(GbifInternalTerm.eventDateLte, columnFor(GbifInternalTerm.eventDateLte))
                                             .build();
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
-    for (GbifInternalTerm t : GbifInternalTerm.values()) {
-      if (!DownloadTerms.EXCLUSIONS_HDFS.contains(t)) {
+    Set<Term> internalTermsNotInterpreted = new HashSet<>(EventDownloadTerms.DOWNLOAD_INTERNAL_TERMS_HDFS);
+    internalTermsNotInterpreted.removeAll(EventTermUtils.TERMS_POPULATED_BY_INTERPRETATION);
+    for (Term t : internalTermsNotInterpreted) {
+      if (!EventDownloadTerms.EXCLUSIONS_HDFS.contains(t)) {
         if (initializers.containsKey(t)) {
           builder.add(interpretedField(t, initializers.get(t)));
         } else {
@@ -161,15 +160,14 @@ public class OccurrenceHDFSTableDefinition {
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Extension e : extensions) {
       builder.add(new InitializableField(extensionTerm(e),
-        columnFor(e),
-        HiveDataTypes.TYPE_STRING
-        //always, as it has a custom serialization
-      ));
+                                         columnFor(e),
+                                         HiveDataTypes.TYPE_STRING
+                                         //always, as it has a custom serialization
+                  ));
     }
     return builder.build();
   }
 
-  // TODO: Humboldt should be removed when events uses its own hdfs view pipeline
   private static Term extensionTerm(Extension extension) {
     if (Extension.MULTIMEDIA == extension) {
       return GbifTerm.Multimedia;
@@ -181,18 +179,18 @@ public class OccurrenceHDFSTableDefinition {
   }
 
   /**
-   * Generates the conceptual definition for the occurrence tables when used in hive.
+   * Generates the conceptual definition for the event tables when used in hive.
    *
    * @return a list of fields, with the types.
    */
   public static List<InitializableField> definition() {
     return ImmutableList.<InitializableField>builder()
-        .add(keyField())
-        .addAll(verbatimFields())
-        .addAll(internalFields())
-        .addAll(interpretedFields())
-        .addAll(extensions())
-        .build();
+      .add(keyField())
+      .addAll(verbatimFields())
+      .addAll(internalFields())
+      .addAll(interpretedFields())
+      .addAll(extensions())
+      .build();
   }
 
   /**

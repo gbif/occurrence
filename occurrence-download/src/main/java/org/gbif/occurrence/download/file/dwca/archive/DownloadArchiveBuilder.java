@@ -84,7 +84,7 @@ public class DownloadArchiveBuilder {
 
       // add the large download data files to the zip stream
       if (!configuration.isSmallDownload()) {
-        appendPreCompressedFiles(zos);
+        appendPreCompressedFiles(zos, configuration.getCoreTerm());
       }
 
       zos.finish();
@@ -158,7 +158,7 @@ public class DownloadArchiveBuilder {
   }
 
   /** Append the pre-compressed content to the zip stream */
-  private void appendPreCompressedFiles(ModalZipOutputStream out) throws IOException {
+  private void appendPreCompressedFiles(ModalZipOutputStream out, DwcTerm coreTerm) throws IOException {
     log.info("Appending pre-compressed occurrence content to the Zip");
 
     // NOTE: hive lower-cases all the paths
@@ -166,7 +166,7 @@ public class DownloadArchiveBuilder {
         out,
         new Path(configuration.getInterpretedDataFileName()),
         getInterpretedFileName(),
-        HeadersFileUtil.getInterpretedTableHeader());
+        HeadersFileUtil.getInterpretedTableHeader(coreTerm));
 
     appendPreCompressedFile(
         out,
@@ -194,7 +194,7 @@ public class DownloadArchiveBuilder {
             out,
             new Path(configuration.getOccurrenceExtDataFileName()),
             OCCURRENCE_INTERPRETED_FILENAME,
-            HeadersFileUtil.getInterpretedTableHeader());
+            HeadersFileUtil.getInterpretedTableHeader(DwcTerm.Occurrence));
       }
     }
 

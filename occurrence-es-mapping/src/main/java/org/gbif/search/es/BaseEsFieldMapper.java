@@ -204,16 +204,14 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
     }
 
     BaseEsField baseEsField = null;
-    if (esField instanceof OccurrenceEsField) {
-      OccurrenceEsField occurrenceEsField = (OccurrenceEsField) esField;
+    if (esField instanceof OccurrenceEsField occurrenceEsField) {
       baseEsField = occurrenceEsField.getEsField();
-    } else if (esField instanceof EventEsField) {
-      EventEsField eventEsField = (EventEsField) esField;
+    } else if (esField instanceof EventEsField eventEsField) {
       baseEsField = eventEsField.getEsField();
     }
 
-    if (baseEsField instanceof ChecklistEsField) {
-      return ((ChecklistEsField) baseEsField).getSearchFieldName(checklistKey);
+    if (baseEsField instanceof ChecklistEsField checklistEsField) {
+      return checklistEsField.getSearchFieldName(checklistKey);
     }
 
     return esField.getSearchFieldName();
