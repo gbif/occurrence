@@ -220,7 +220,7 @@
     <gbif-postal-service.version>2.1.4-SNAPSHOT</gbif-postal-service.version>
     <gbif-registry.version>4.2.0-SNAPSHOT</gbif-registry.version>
     <gbif-wrangler.version>1.0.0</gbif-wrangler.version>
-    <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
+    <gbif-common-mybatis.version>2.0.0</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>3.0</gbif.kvs.version>
     <gbif-cli.version>3.0.1-SNAPSHOT</gbif-cli.version>
