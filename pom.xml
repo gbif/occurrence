@@ -223,7 +223,7 @@
     <gbif-common-mybatis.version>1.3</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
     <gbif.kvs.version>3.0</gbif.kvs.version>
-    <gbif-cli.version>3.0</gbif-cli.version>
+    <gbif-cli.version>3.0.1-SNAPSHOT</gbif-cli.version>
     <gbif-predicates.version>2.1.2-SNAPSHOT</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.0</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>

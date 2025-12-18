@@ -20,9 +20,8 @@
   </distributionManagement>
 
   <properties>
-    <!-- have to match gbif-cli version -->
-    <guava.version>23.0</guava.version>
     <main.basedir>${project.parent.basedir}</main.basedir>
+    <expressly.version>6.0.0</expressly.version>
   </properties>
 
   <build>
@@ -310,7 +309,7 @@
     <dependency>
       <groupId>org.glassfish.expressly</groupId>
       <artifactId>expressly</artifactId>
-      <version>5.0.0</version>
+      <version>${expressly.version}</version>
     </dependency>
 
     <!-- testing -->
