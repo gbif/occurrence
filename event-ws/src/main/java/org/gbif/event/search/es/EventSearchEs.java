@@ -175,7 +175,7 @@ public class EventSearchEs
         QueryBuilders.boolQuery()
             .filter(QueryBuilders.termQuery("type", "event"))
             .filter(QueryBuilders.termQuery("metadata.datasetKey", datasetKey))
-            .filter(QueryBuilders.termQuery("event.eventID.keyword", eventId)),
+            .filter(QueryBuilders.termQuery("event.eventID", eventId)),
         searchHitEventConverter);
   }
 
@@ -211,7 +211,7 @@ public class EventSearchEs
     return pageByQuery(
         QueryBuilders.boolQuery()
             .filter(QueryBuilders.termQuery("type", "event"))
-            .filter(QueryBuilders.termQuery("event.parentEventID.keyword", event.getEventID()))
+            .filter(QueryBuilders.termQuery("event.parentEventID", event.getEventID()))
             .filter(
                 QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString())),
         pagingRequest,
