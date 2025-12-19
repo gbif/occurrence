@@ -47,7 +47,6 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.common.SearchService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
-import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
@@ -241,9 +240,11 @@ public class EventSearchEs
       return null;
     }
 
-    // TODO: add datasetKey too as a param??
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
     occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_ID, event.getId());
+    if (event.getDatasetKey() != null) {
+      occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATASET_KEY, event.getDatasetKey().toString());
+    }
     return occurrenceSearchService.search(occurrenceSearchRequest);
   }
 
