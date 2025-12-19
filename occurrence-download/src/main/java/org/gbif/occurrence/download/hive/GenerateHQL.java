@@ -251,13 +251,13 @@ public class GenerateHQL {
               "occurrenceExtInterpretedFields",
               getQueries(DwcTerm.Occurrence)
                   .selectInterpretedFields(
-                      false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                      false, queryParameters.getChecklistKey(), DwcTerm.Occurrence)
                   .values())
           .put(
               "occurrenceExtInitializedInterpretedFields",
               getQueries(DwcTerm.Occurrence)
                   .selectInterpretedFields(
-                      true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                      true, queryParameters.getChecklistKey(), DwcTerm.Occurrence)
                   .values());
     }
 
