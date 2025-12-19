@@ -103,14 +103,14 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 <#if includeOccurrenceExtInterpreted>
    -- occurrence extension interpreted table
    CREATE TABLE ${r"${occurrenceExtensionTable}"} (
-   <#list interpretedFields as field>
+   <#list occurrenceExtInterpretedFields as field>
      ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
    </#list>
    ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
    INSERT INTO TABLE ${r"${occurrenceExtensionTable}"}
    SELECT
-   <#list initializedInterpretedFields as field>
+   <#list occurrenceExtInitializedInterpretedFields as field>
      ${field.hiveField}<#if field_has_next>,</#if>
    </#list>
    FROM iceberg.${r"${hiveDB}"}.occurrence

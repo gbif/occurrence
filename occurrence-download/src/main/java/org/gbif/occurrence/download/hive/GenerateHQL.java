@@ -209,7 +209,8 @@ public class GenerateHQL {
       Configuration cfg, DownloadQueryParameters queryParameters, Writer writer)
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("download/execute-query.ftl");
-    Map<String, Object> data =
+
+    ImmutableMap.Builder<String, Object> dataBuilder =
         ImmutableMap.<String, Object>builder()
             .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
             .put(
@@ -230,22 +231,43 @@ public class GenerateHQL {
             .put(IS_HUMBOLDT_SEARCH, queryParameters.isHumboldtSearch())
             .put(
                 INCLUDE_HUMBOLDT_INTERPRETED,
-                queryParameters.getInterpretedExtensions() != null
-                    && queryParameters.getInterpretedExtensions().contains(Extension.HUMBOLDT))
+                includeInterpretedExtension(queryParameters, Extension.HUMBOLDT))
             .put(
                 INCLUDE_OCCURRENCE_EXT_INTERPRETED,
-                queryParameters.getInterpretedExtensions() != null
-                    && queryParameters.getInterpretedExtensions().contains(Extension.OCCURRENCE))
-            .put(
-                "humboldtFields",
-                HIVE_QUERIES
-                    .selectHumboldtFields(false, queryParameters.getChecklistKey())
-                    .values())
-            .put(
-                "humboldtSelectFields",
-                HIVE_QUERIES.selectHumboldtFields(true, queryParameters.getChecklistKey()).values())
-            .build();
-    template.process(data, writer);
+                includeInterpretedExtension(queryParameters, Extension.OCCURRENCE));
+
+    if (includeInterpretedExtension(queryParameters, Extension.HUMBOLDT)) {
+      dataBuilder.put(
+          "humboldtFields",
+          HIVE_QUERIES.selectHumboldtFields(false, queryParameters.getChecklistKey()).values());
+      dataBuilder.put(
+          "humboldtSelectFields",
+          HIVE_QUERIES.selectHumboldtFields(true, queryParameters.getChecklistKey()).values());
+    }
+
+    if (includeInterpretedExtension(queryParameters, Extension.OCCURRENCE)) {
+      dataBuilder
+          .put(
+              "occurrenceExtInterpretedFields",
+              getQueries(DwcTerm.Occurrence)
+                  .selectInterpretedFields(
+                      false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                  .values())
+          .put(
+              "occurrenceExtInitializedInterpretedFields",
+              getQueries(DwcTerm.Occurrence)
+                  .selectInterpretedFields(
+                      true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                  .values());
+    }
+
+    template.process(dataBuilder.build(), writer);
+  }
+
+  private static boolean includeInterpretedExtension(
+      DownloadQueryParameters queryParameters, Extension extension) {
+    return queryParameters.getInterpretedExtensions() != null
+        && queryParameters.getInterpretedExtensions().contains(extension);
   }
 
   private static Queries getQueries(DwcTerm coreTerm) {
