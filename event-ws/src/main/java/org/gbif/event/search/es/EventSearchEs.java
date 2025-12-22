@@ -249,7 +249,6 @@ public class EventSearchEs
   }
 
   private List<Lineage> lineage(Event event) {
-    // TODO: no need to do the loop. The lineage is stored in ES
     List<Lineage> lineage = new ArrayList<>();
     Optional<Event> parent =
         event.getParentEventID() == null
