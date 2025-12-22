@@ -193,8 +193,10 @@ public class TableBackfill {
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
-        // first we remove the old tables
+        // first we remove the old tables and the new ones in case it failed before and they weren't
+        // renamed
         executeDeleteAction(command, spark, "old_");
+        executeDeleteAction(command, spark, "new_");
         if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
           configuration.setPrefixTable("new");
         }
