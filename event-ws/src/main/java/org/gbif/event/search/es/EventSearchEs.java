@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -59,6 +60,7 @@ import org.gbif.search.es.event.SearchHitEventConverter;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -93,7 +95,7 @@ public class EventSearchEs
       @Value("${occurrence.search.es.index}") String esIndex,
       ConceptClient conceptClient,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
-      OccurrenceSearchService occurrenceSearchService) {
+      @Qualifier("occurrenceWsSearchClient") OccurrenceSearchService occurrenceSearchService) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -226,25 +228,18 @@ public class EventSearchEs
   }
 
   public PagingResponse<Occurrence> occurrences(String id, PagingRequest pagingRequest) {
-    // TODO: call the occurrence API
-    return occurrences(get(id), pagingRequest);
+    Event event = get(id);
+    return occurrences(event.getDatasetKey().toString(), event.getEventID(), pagingRequest);
   }
 
-  public PagingResponse<Occurrence> occurrences(
-      String datasetKey, String eventId, PagingRequest pagingRequest) {
-    return occurrences(get(datasetKey, eventId), pagingRequest);
-  }
-
-  private PagingResponse<Occurrence> occurrences(Event event, PagingRequest pagingRequest) {
-    if (Objects.isNull(event)) {
+  public PagingResponse<Occurrence> occurrences(String datasetKey, String eventID, PagingRequest pagingRequest) {
+    if (Strings.isNullOrEmpty(eventID) || datasetKey == null) {
       return null;
     }
 
     OccurrenceSearchRequest occurrenceSearchRequest = new OccurrenceSearchRequest();
-    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_ID, event.getId());
-    if (event.getDatasetKey() != null) {
-      occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATASET_KEY, event.getDatasetKey().toString());
-    }
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.EVENT_ID, eventID);
+    occurrenceSearchRequest.addParameter(OccurrenceSearchParameter.DATASET_KEY, datasetKey);
     return occurrenceSearchService.search(occurrenceSearchRequest);
   }
 

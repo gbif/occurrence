@@ -14,6 +14,8 @@
 package org.gbif.event.ws.config;
 
 import java.io.IOException;
+
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.JsonMessagePublisher;
@@ -21,6 +23,7 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
+import org.gbif.occurrence.ws.client.OccurrenceWsSearchClient;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
@@ -50,6 +53,16 @@ public class EventWsConfiguration {
       .withFormEncoder()
       .build(EventDownloadClient.class);
   }
+
+  @Bean("occurrenceWsSearchClient")
+  public OccurrenceSearchService occurrenceSearchService(@Value("${api.url}") String apiUrl) {
+    return new ClientBuilder()
+      .withUrl(apiUrl)
+      .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+      .withFormEncoder()
+      .build(OccurrenceWsSearchClient.class);
+  }
+
 
   @Bean
   public RabbitProperties rabbitProperties() {
