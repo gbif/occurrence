@@ -35,6 +35,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -120,6 +122,10 @@ public class TableBackfill {
     if (configuration.isUsePartitionedTable()) {
       sparkBuilder.config("spark.sql.sources.partitionOverwriteMode", "dynamic");
     }
+
+    Configurator.setLevel("org.apache.iceberg", Level.DEBUG);
+    Configurator.setLevel("org.apache.spark.sql", Level.DEBUG);
+
     return sparkBuilder.getOrCreate();
   }
 
