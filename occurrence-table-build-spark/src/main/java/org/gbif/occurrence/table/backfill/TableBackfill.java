@@ -217,6 +217,7 @@ public class TableBackfill {
 
   public void run(Command command) {
     try (SparkSession spark = createSparkSession()) {
+      spark.sparkContext().setLogLevel("DEBUG");
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
