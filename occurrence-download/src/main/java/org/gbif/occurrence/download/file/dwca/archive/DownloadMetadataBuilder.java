@@ -13,9 +13,14 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Dataset;
@@ -80,6 +85,7 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
   private final Function<Download,URI> downloadLinkProvider;
   private final StringBuilder description = new StringBuilder();
   private final DownloadType downloadType;
+  private final HumanPredicateBuilder humanPredicateBuilder;
 
   @Builder
   public DownloadMetadataBuilder(
@@ -93,6 +99,21 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
     this.archiveDir = archiveDir;
     this.downloadLinkProvider = downloadLinkProvider;
     this.downloadType = download.getRequest().getType();
+    this.humanPredicateBuilder =
+        downloadType == DownloadType.EVENT
+            ? new HumanPredicateBuilder(titleLookup, EventSearchParameter.class)
+            : new HumanPredicateBuilder(titleLookup, OccurrenceSearchParameter.class);
+
+    SimpleModule searchParameterModule = new SimpleModule();
+    if (downloadType == DownloadType.EVENT) {
+      searchParameterModule.addAbstractTypeMapping(
+          SearchParameter.class, EventSearchParameter.class);
+    } else {
+      searchParameterModule.addAbstractTypeMapping(
+          SearchParameter.class, OccurrenceSearchParameter.class);
+    }
+    OBJECT_MAPPER.registerModule(searchParameterModule);
+
     initDescription();
   }
 
@@ -109,7 +130,7 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
     try {
       if (download.getRequest() instanceof PredicateDownloadRequest) {
         Predicate p = ((PredicateDownloadRequest) download.getRequest()).getPredicate();
-        return new HumanPredicateBuilder(titleLookup).humanFilterString(p);
+        return humanPredicateBuilder.humanFilterString(p);
       }
     } catch (Exception e) {
       log.error("Failed to transform JSON query into human query: {}", humanQuery, e);
