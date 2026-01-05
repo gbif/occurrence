@@ -218,14 +218,14 @@ public class TableBackfill {
 
   @SneakyThrows
   private void deleteTable(SparkSession spark, String tableName) {
-    spark.sql(dropTable(tableName));
-
     String location =
-        spark
-            .sql("DESCRIBE TABLE EXTENDED " + tableName)
-            .filter("col_name = 'Location'")
-            .first()
-            .getString(1);
+      spark
+        .sql("DESCRIBE TABLE EXTENDED " + tableName)
+        .filter("col_name = 'Location'")
+        .first()
+        .getString(1);
+
+    spark.sql(dropTable(tableName));
 
     FileSystem fs = FileSystem.get(spark.sparkContext().hadoopConfiguration());
     Path locationPath = new Path(location);
