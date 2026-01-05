@@ -191,17 +191,17 @@ public class TableBackfill {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Deleting Table " + configuration.getTableName());
       deleteTable(spark, prefix + configuration.getTableName());
-      deleteTable(spark,prefix + configuration.getTableName() + "_avro");
+      deleteTable(spark, prefix + configuration.getTableName() + "_avro");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Deleting Multimedia Table ");
-      deleteTable(spark,prefix + configuration.getTableName() + "_multimedia");
+      deleteTable(spark, prefix + configuration.getTableName() + "_multimedia");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.HUMBOLDT)) {
       log.info("Deleting Humboldt Table ");
-      deleteTable(spark,prefix + configuration.getTableName() + "_humboldt");
+      deleteTable(spark, prefix + configuration.getTableName() + "_humboldt");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -211,7 +211,7 @@ public class TableBackfill {
               extensionTable -> {
                 String extensionTableName = extensionTableName(extensionTable);
                 log.info("Deleting Extension Table {}", extensionTableName);
-                deleteTable(spark,prefix + extensionTableName);
+                deleteTable(spark, prefix + extensionTableName);
               });
     }
   }
@@ -234,7 +234,7 @@ public class TableBackfill {
     FileSystem fs = FileSystem.get(spark.sparkContext().hadoopConfiguration());
     Path locationPath = new Path(location);
 
-    if (Strings.isNullOrEmpty(location) && !fs.exists(locationPath)) {
+    if (Strings.isNullOrEmpty(location) || !fs.exists(locationPath)) {
       log.info("Location {} of table {} does not exist", location, tableName);
       return;
     }
@@ -247,8 +247,7 @@ public class TableBackfill {
       return;
     }
 
-    boolean deleted =
-        FileSystem.get(spark.sparkContext().hadoopConfiguration()).delete(locationPath, true);
+    boolean deleted = fs.delete(locationPath, true);
     log.info("Files of table {} in location {} deleted: {}", tableName, location, deleted);
   }
 
