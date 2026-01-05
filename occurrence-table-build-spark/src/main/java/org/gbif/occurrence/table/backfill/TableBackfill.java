@@ -23,7 +23,6 @@ import static org.gbif.occurrence.common.TermUtils.INTERPRETED_HUMBOLDT_TERMS;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -191,18 +190,18 @@ public class TableBackfill {
   private void executeDeleteAction(Command command, SparkSession spark, String prefix) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Deleting Table " + configuration.getTableName());
-      spark.sql(dropTable(prefix + configuration.getTableName()));
-      spark.sql(dropTable(prefix + configuration.getTableName() + "_avro"));
+      deleteTable(spark, prefix + configuration.getTableName());
+      deleteTable(spark,prefix + configuration.getTableName() + "_avro");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Deleting Multimedia Table ");
-      spark.sql(dropTable(prefix + configuration.getTableName() + "_multimedia"));
+      deleteTable(spark,prefix + configuration.getTableName() + "_multimedia");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.HUMBOLDT)) {
       log.info("Deleting Humboldt Table ");
-      spark.sql(dropTable(prefix + configuration.getTableName() + "_humboldt"));
+      deleteTable(spark,prefix + configuration.getTableName() + "_humboldt");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -212,9 +211,41 @@ public class TableBackfill {
               extensionTable -> {
                 String extensionTableName = extensionTableName(extensionTable);
                 log.info("Deleting Extension Table {}", extensionTableName);
-                spark.sql(dropTable(prefix + extensionTableName));
+                deleteTable(spark,prefix + extensionTableName);
               });
     }
+  }
+
+  @SneakyThrows
+  private void deleteTable(SparkSession spark, String tableName) {
+    spark.sql(dropTable(tableName));
+
+    String location =
+        spark
+            .sql("DESCRIBE TABLE EXTENDED " + tableName)
+            .filter("col_name = 'Location'")
+            .first()
+            .getString(1);
+
+    FileSystem fs = FileSystem.get(spark.sparkContext().hadoopConfiguration());
+    Path locationPath = new Path(location);
+
+    if (Strings.isNullOrEmpty(location) && !fs.exists(locationPath)) {
+      log.info("Location {} of table {} does not exist", location, tableName);
+      return;
+    }
+
+    if (spark.catalog().tableExists(tableName)) {
+      log.info(
+          "Can't delete files of table {} in location {} because the table still exists",
+          tableName,
+          location);
+      return;
+    }
+
+    boolean deleted =
+        FileSystem.get(spark.sparkContext().hadoopConfiguration()).delete(locationPath, true);
+    log.info("Files of table {} in location {} deleted: {}", tableName, location, deleted);
   }
 
   public void run(Command command) {
@@ -222,11 +253,10 @@ public class TableBackfill {
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
-        // first we remove the old tables and the new ones in case it failed before and they weren't
-        // renamed
+        // first we remove the old tables
         executeDeleteAction(command, spark, "old_");
         if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
-          configuration.setPrefixTable("new_" + System.currentTimeMillis() + "_");
+          configuration.setPrefixTable("new_" + System.currentTimeMillis());
         }
         executeCreateAction(command, spark);
         swapTables(command, spark);
