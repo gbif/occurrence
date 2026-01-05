@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+import com.fasterxml.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationModule;
 import com.google.common.collect.Lists;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -158,13 +158,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
   public XmlMapper xmlMapper() {
     XmlMapper xmlMapper = new XmlMapper();
     xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    xmlMapper.registerModules(Arrays.asList(new SimpleModule(), new JaxbAnnotationModule()));
+    xmlMapper.registerModules(Arrays.asList(new SimpleModule(), new JakartaXmlBindAnnotationModule()));
     return xmlMapper;
   }
 
   @Bean
   public Jackson2ObjectMapperBuilderCustomizer customJson() {
-    return builder -> builder.modulesToInstall(new JaxbAnnotationModule());
+    return builder -> builder.modulesToInstall(new JakartaXmlBindAnnotationModule());
   }
 
   @Override
