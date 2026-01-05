@@ -120,6 +120,7 @@ public class TableBackfill {
     if (configuration.isUsePartitionedTable()) {
       sparkBuilder.config("spark.sql.sources.partitionOverwriteMode", "dynamic");
     }
+
     return sparkBuilder.getOrCreate();
   }
 
@@ -189,18 +190,18 @@ public class TableBackfill {
   private void executeDeleteAction(Command command, SparkSession spark, String prefix) {
     if (command.getOptions().contains(Option.ALL) || command.getOptions().contains(Option.TABLE)) {
       log.info("Deleting Table " + configuration.getTableName());
-      spark.sql(dropTable(prefix + configuration.getTableName()));
-      spark.sql(dropTable(prefix + configuration.getTableName() + "_avro"));
+      deleteTable(spark, prefix + configuration.getTableName());
+      deleteTable(spark, prefix + configuration.getTableName() + "_avro");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.MULTIMEDIA)) {
       log.info("Deleting Multimedia Table ");
-      spark.sql(dropTable(prefix + configuration.getTableName() + "_multimedia"));
+      deleteTable(spark, prefix + configuration.getTableName() + "_multimedia");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.HUMBOLDT)) {
       log.info("Deleting Humboldt Table ");
-      spark.sql(dropTable(prefix + configuration.getTableName() + "_humboldt"));
+      deleteTable(spark, prefix + configuration.getTableName() + "_humboldt");
     }
     if (command.getOptions().contains(Option.ALL)
         || command.getOptions().contains(Option.EXTENSIONS)) {
@@ -210,9 +211,44 @@ public class TableBackfill {
               extensionTable -> {
                 String extensionTableName = extensionTableName(extensionTable);
                 log.info("Deleting Extension Table {}", extensionTableName);
-                spark.sql(dropTable(prefix + extensionTableName));
+                deleteTable(spark, prefix + extensionTableName);
               });
     }
+  }
+
+  @SneakyThrows
+  private void deleteTable(SparkSession spark, String tableName) {
+    if (!spark.catalog().tableExists(tableName)) {
+      return;
+    }
+
+    String location =
+      spark
+        .sql("DESCRIBE TABLE EXTENDED " + tableName)
+        .filter("col_name = 'Location'")
+        .first()
+        .getString(1);
+
+    spark.sql(dropTable(tableName));
+
+    FileSystem fs = FileSystem.get(spark.sparkContext().hadoopConfiguration());
+    Path locationPath = new Path(location);
+
+    if (Strings.isNullOrEmpty(location) || !fs.exists(locationPath)) {
+      log.info("Location {} of table {} does not exist", location, tableName);
+      return;
+    }
+
+    if (spark.catalog().tableExists(tableName)) {
+      log.info(
+          "Can't delete files of table {} in location {} because the table still exists",
+          tableName,
+          location);
+      return;
+    }
+
+    boolean deleted = fs.delete(locationPath, true);
+    log.info("Files of table {} in location {} deleted: {}", tableName, location, deleted);
   }
 
   public void run(Command command) {
@@ -220,12 +256,10 @@ public class TableBackfill {
       spark.sql("USE " + configuration.getHiveDatabase());
       log.info("Running command " + command);
       if (Action.CREATE == command.getAction()) {
-        // first we remove the old tables and the new ones in case it failed before and they weren't
-        // renamed
+        // first we remove the old tables
         executeDeleteAction(command, spark, "old_");
-        executeDeleteAction(command, spark, "new_");
         if (Strings.isNullOrEmpty(configuration.getPrefixTable())) {
-          configuration.setPrefixTable("new");
+          configuration.setPrefixTable("new_" + System.currentTimeMillis());
         }
         executeCreateAction(command, spark);
         swapTables(command, spark);
