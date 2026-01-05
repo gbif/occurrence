@@ -218,6 +218,10 @@ public class TableBackfill {
 
   @SneakyThrows
   private void deleteTable(SparkSession spark, String tableName) {
+    if (!spark.catalog().tableExists(tableName)) {
+      return;
+    }
+
     String location =
       spark
         .sql("DESCRIBE TABLE EXTENDED " + tableName)
