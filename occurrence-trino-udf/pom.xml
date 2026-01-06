@@ -10,17 +10,27 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <gbif-api.version>2.2.0-SNAPSHOT</gbif-api.version>
+
+    <!-- Library versions -->
     <lucene.version>8.7.0</lucene.version>
     <trino.version>414</trino.version>
     <slice.version>0.45</slice.version>
     <lombok.version>1.18.42</lombok.version>
+    <guava.version>33.5.0-jre</guava.version>
+    <geotools.version>34.0</geotools.version>
+    <jackson.version>2.19.4</jackson.version>
+
+    <!-- GBIF dependencies -->
+    <gbif-api.version>2.2.2</gbif-api.version>
     <gbif-parsers.version>0.63</gbif-parsers.version>
     <geocode.version>1.1</geocode.version>
-    <gbif-common-ws.version>2.1.1-SNAPSHOT</gbif-common-ws.version>
+    <gbif-common-ws.version>2.1.1</gbif-common-ws.version>
+    <!-- Upgrade to latest version -->
     <gbif.kvs.version>2.0.0</gbif.kvs.version>
-    <junit-jupiter.version>5.6.3</junit-jupiter.version>
-    <geotools.version>22.2</geotools.version>
+
+    <!-- Testing -->
+    <junit-jupiter.version>5.14.1</junit-jupiter.version>
+
 
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <maven-shade-plugin.version>3.5.0</maven-shade-plugin.version>
@@ -65,22 +75,9 @@
       <url>https://repository.gbif.org/repository/thirdparty/</url>
     </repository>
     <repository>
-      <id>typesafe</id>
-      <name>Typesafe Repository</name>
-      <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
-    </repository>
-    <repository>
       <id>osgeo</id>
       <name>Open Source Geospatial Foundation Repository</name>
       <url>https://repo.osgeo.org/repository/release/</url>
-    </repository>
-    <repository>
-      <id>ALA</id>
-      <url>https://nexus.ala.org.au/content/repositories/releases</url>
-    </repository>
-    <repository>
-      <id>ALA-snapshots</id>
-      <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
     </repository>
   </repositories>
   <build>
@@ -257,12 +254,12 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>31.1-jre</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.13.1</version>
+      <version>${jackson.version}</version>
     </dependency>
 
     <dependency>
@@ -283,7 +280,7 @@
     <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-api</artifactId>
-      <version>20.5</version>
+      <version>${geotools.version}</version>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
