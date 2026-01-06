@@ -69,19 +69,6 @@
       <name>Typesafe Repository</name>
       <url>https://repo.typesafe.com/typesafe/maven-releases/</url>
     </repository>
-    <repository>
-      <id>osgeo</id>
-      <name>Open Source Geospatial Foundation Repository</name>
-      <url>https://repo.osgeo.org/repository/release/</url>
-    </repository>
-    <repository>
-      <id>ALA</id>
-      <url>https://nexus.ala.org.au/content/repositories/releases</url>
-    </repository>
-    <repository>
-      <id>ALA-snapshots</id>
-      <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
-    </repository>
   </repositories>
 
   <modules>
@@ -152,8 +139,7 @@
     <commmons-lang.version>3.20.0</commmons-lang.version>
     <curator.version>5.5.0</curator.version>
     <curator-framework.version>5.5.0-disable-connectstr-updates</curator-framework.version>
-    <curator-test.version>5.5.0</curator-test.version>
-    <geotools.version>21.2</geotools.version>
+    <curator-test.version>5.5.0</curator-test.version>=
 
     <!--
       Important! Guava is highly fragile across webservices, YARN MR jobs, downloads
@@ -206,9 +192,9 @@
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
     <download-query-tools.version>2.0.4-SNAPSHOT</download-query-tools.version>
-    <dwc-api.version>2.1.8-SNAPSHOT</dwc-api.version>
+    <dwc-api.version>2.1.7</dwc-api.version>
     <dwca-io.version>3.0.1-SNAPSHOT</dwca-io.version>
-    <gbif-api.version>2.2.3-SNAPSHOT</gbif-api.version>
+    <gbif-api.version>2.2.2</gbif-api.version>
     <gbif-common.version>0.60</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -1163,48 +1149,6 @@
           </exclusion>
         </exclusions>
         <scope>test</scope>
-      </dependency>
-
-      <!-- geotools -->
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-api</artifactId>
-        <version>${geotools.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-transform</artifactId>
-        <version>${geotools.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-geometry</artifactId>
-        <version>${geotools.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-referencing</artifactId>
-        <version>${geotools.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-epsg-hsql</artifactId>
-        <version>${geotools.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-metadata</artifactId>
-        <version>${geotools.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-opengis</artifactId>
-        <version>${geotools.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-main</artifactId>
-        <version>${geotools.version}</version>
       </dependency>
 
       <!-- metrics -->
