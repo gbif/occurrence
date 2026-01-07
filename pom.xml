@@ -190,7 +190,7 @@
     <hbase-utils.version>1.0.0</hbase-utils.version>
     <download-query-tools.version>2.0.4</download-query-tools.version>
     <dwc-api.version>2.1.8</dwc-api.version>
-    <dwca-io.version>3.0.1-SNAPSHOT</dwca-io.version>
+    <dwca-io.version>3.0.1</dwca-io.version>
     <gbif-api.version>2.2.2</gbif-api.version>
     <gbif-common.version>0.60</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
@@ -201,7 +201,7 @@
     <gbif-metadata-profile.version>2.6</gbif-metadata-profile.version>
     <gbif-parsers.version>0.67</gbif-parsers.version>
     <gbif-postal-service.version>2.1.4</gbif-postal-service.version>
-    <gbif-registry.version>4.2.0-SNAPSHOT</gbif-registry.version>
+    <gbif-registry.version>4.2.0</gbif-registry.version>
     <gbif-wrangler.version>1.0.0</gbif-wrangler.version>
     <gbif-common-mybatis.version>2.0.0</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
