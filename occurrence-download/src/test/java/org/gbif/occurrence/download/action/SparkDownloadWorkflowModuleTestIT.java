@@ -32,6 +32,8 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 
+import org.testcontainers.utility.DockerImageName;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SparkDownloadWorkflowModuleTestIT {
@@ -43,9 +45,11 @@ public class SparkDownloadWorkflowModuleTestIT {
    public static void setup() throws Exception {
      curatorTestingCluster = new TestingCluster(1);
      curatorTestingCluster.start();
-     embeddedElastic =
-       new ElasticsearchContainer(
-         "docker.elastic.co/elasticsearch/elasticsearch:" + getEsVersion());
+    embeddedElastic =
+        new ElasticsearchContainer(
+                DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch-oss")
+                    .withTag(getEsVersion()))
+            .withReuse(true);
      embeddedElastic.start();
    }
 
