@@ -139,7 +139,7 @@
     <commmons-lang.version>3.20.0</commmons-lang.version>
     <curator.version>5.5.0</curator.version>
     <curator-framework.version>5.5.0-disable-connectstr-updates</curator-framework.version>
-    <curator-test.version>5.5.0</curator-test.version>=
+    <curator-test.version>5.5.0</curator-test.version>
 
     <!--
       Important! Guava is highly fragile across webservices, YARN MR jobs, downloads
