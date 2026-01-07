@@ -45,7 +45,11 @@ public class DownloadTerms {
           GbifInternalTerm.fragmentHash, // omitted entirely
           GbifInternalTerm.fragment, // omitted entirely
           GbifTerm.numberOfOccurrences,
-          GbifInternalTerm.humboldtEventDurationValueInMinutes);
+          GbifInternalTerm.humboldtEventDurationValueInMinutes,
+          DwcTerm.projectTitle, // only used by events
+          DwcTerm.projectID, // only used by events
+          DwcTerm.fundingAttribution, // only used by events
+          DwcTerm.fundingAttributionID); // only used by events
 
   /** This set is used for the HDFS table definition */
   public static final Set<Term> EXCLUSIONS_HDFS =
