@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import java.io.BufferedWriter;
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -23,37 +21,72 @@ import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.vocabulary.Extension;
+
+import java.io.BufferedWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.output.StringBuilderWriter;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class ExtensionsQueryTest {
 
+  /**
+   * Checks (99%) that the columns in the SQL template are in the correct order.
+   * Possibly redundant with the test in ExtensionTableTest, but this has
+   * caused too many bugs before.
+   */
   @Test
-  public void manualTest() throws Exception {
+  public void checkColumnOrder() throws Exception {
+    for (Extension extension : Extension.availableExtensions()) {
+      PredicateDownloadRequest pdr = new PredicateDownloadRequest(
+        new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "1", false),
+        "MattBlissett",
+        null,
+        false,
+        DownloadFormat.DWCA,
+        DownloadType.OCCURRENCE,
+        null,
+        null,
+        Set.of(extension),
+        null,
+        Constants.NUB_DATASET_KEY.toString()
+      );
 
-    StringBuilderWriter writer = new StringBuilderWriter();
+      Download download = new Download();
+      download.setKey("extension-test");
+      download.setRequest(pdr);
 
-    ExtensionsQuery extensionsQuery = new ExtensionsQuery(new BufferedWriter(writer));
+      StringBuilderWriter writer = new StringBuilderWriter();
+      new ExtensionsQuery(new BufferedWriter(writer)).generateExtensionsQueryHQL(download);
+      // System.out.println(writer);
+      String query = writer.toString();
 
-    PredicateDownloadRequest pdr = new PredicateDownloadRequest(
-      new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "1", false),
-      "MattBlissett",
-      null,
-      false,
-      DownloadFormat.DWCA,
-      DownloadType.OCCURRENCE,
-      null,
-      null,
-      Extension.availableExtensions(),
-      null,
-      Constants.NUB_DATASET_KEY.toString()
-    );
+      Pattern createColumnsRX = Pattern.compile("^    `?([a-z0-9_]+)`? [a-z_]+,?$");
+      Pattern insertColumnsRX = Pattern.compile("^      ext\\.([a-z0-9_]+),?$");
+      List<String> createColumns = new ArrayList<>();
+      List<String> insertColumns = new ArrayList<>();
 
-    Download download = new Download();
-    download.setKey("extension-test");
-    download.setRequest(pdr);
+      query.lines().forEach(
+        l -> {
+          Matcher createColumMatches = createColumnsRX.matcher(l);
+          if (createColumMatches.matches()) {
+            createColumns.add(createColumMatches.group(1));
+          }
 
-    extensionsQuery.generateExtensionsQueryHQL(download);
+          Matcher insertColumMatches = insertColumnsRX.matcher(l);
+          if (insertColumMatches.matches()) {
+            insertColumns.add(insertColumMatches.group(1).replace("v_", ""));
+          }
+        }
+      );
 
-    System.out.println(writer);
+      Assertions.assertEquals(createColumns.size(), insertColumns.size());
+      Assertions.assertArrayEquals(createColumns.toArray(), insertColumns.toArray(), "Columns are in mismatched order");
+    }
   }
 }
