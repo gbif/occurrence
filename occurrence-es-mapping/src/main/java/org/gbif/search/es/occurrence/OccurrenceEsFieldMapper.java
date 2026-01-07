@@ -14,7 +14,7 @@
 package org.gbif.search.es.occurrence;
 
 import java.util.*;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilder;

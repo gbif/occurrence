@@ -15,7 +15,7 @@ package org.gbif.search.heatmap;
 
 import org.gbif.search.heatmap.es.EsHeatmapResponse;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * Generic interface for Heatmap services.

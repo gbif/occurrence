@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.common.identifier;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 /**
  * A helper class for building the row keys used in the occurrence lookup table/process.

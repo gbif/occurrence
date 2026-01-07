@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.BiFunction;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;

@@ -15,7 +15,7 @@ package org.gbif.occurrence.common.identifier;
 
 import java.util.UUID;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import com.google.common.base.Objects;
 

@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
