@@ -30,8 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.output.StringBuilderWriter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ExtensionsQueryTest {
 
@@ -84,8 +84,8 @@ public class ExtensionsQueryTest {
         }
       );
 
-      Assert.assertEquals(createColumns.size(), insertColumns.size());
-      Assert.assertArrayEquals("Columns are in mismatched order", createColumns.toArray(), insertColumns.toArray());
+      Assertions.assertEquals(createColumns.size(), insertColumns.size());
+      Assertions.assertArrayEquals(createColumns.toArray(), insertColumns.toArray(), "Columns are in mismatched order");
     }
   }
 }

@@ -15,9 +15,9 @@ package org.gbif.occurrence.download.hive;
 
 
 import org.gbif.api.model.Constants;
-import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class GenerateHQLTest {
 
@@ -38,7 +38,7 @@ public class GenerateHQLTest {
     String simpleParquetDownloadQuery = GenerateHQL.simpleParquetQueryHQL(Constants.NUB_DATASET_KEY.toString());
     System.out.println(simpleParquetDownloadQuery);
 
-    assertTrue("Column names should be lower-case", simpleParquetDownloadQuery.contains("`datasetkey` STRING"));
-    assertTrue("Verbatim column names should be lower-case", simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"));
+    Assertions.assertTrue(simpleParquetDownloadQuery.contains("`datasetkey` STRING"), "Column names should be lower-case");
+    Assertions.assertTrue(simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"), "Verbatim column names should be lower-case");
   }
 }
