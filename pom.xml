@@ -211,7 +211,7 @@
     <gbif.kvs.version>3.0</gbif.kvs.version>
     <gbif-cli.version>3.0.1-SNAPSHOT</gbif-cli.version>
     <gbif-predicates.version>2.1.2-SNAPSHOT</gbif-predicates.version>
-    <gbif-occurrence-cube-functions.version>1.0.0</gbif-occurrence-cube-functions.version>
+    <gbif-occurrence-cube-functions.version>1.0.1</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
 
     <!-- Sonar -->
