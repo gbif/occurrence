@@ -47,7 +47,7 @@ public class SparkDownloadWorkflowModuleTestIT {
      curatorTestingCluster.start();
     embeddedElastic =
         new ElasticsearchContainer(
-                DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch-oss")
+                DockerImageName.parse("docker.elastic.co/elasticsearch/elasticsearch")
                     .withTag(getEsVersion()))
             .withReuse(true);
      embeddedElastic.start();
