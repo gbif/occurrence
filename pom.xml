@@ -142,7 +142,7 @@
     <curator-framework.version>5.5.0-disable-connectstr-updates</curator-framework.version>
     <curator-test.version>5.5.0</curator-test.version>
 
-    <guava.version>33.5.0-jre</guava.version>
+    <guava.version>32.0.0-jre</guava.version>
     <hamcrest.version>3.0</hamcrest.version>
 
     <!-- Version for ES client -->
