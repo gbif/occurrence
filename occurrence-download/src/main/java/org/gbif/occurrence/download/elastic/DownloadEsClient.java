@@ -18,6 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Objects;
+
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -26,10 +29,10 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
 import org.gbif.occurrence.search.es.EsPredicateUtil;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Builder
 @Slf4j
@@ -39,23 +42,35 @@ public class DownloadEsClient implements Closeable {
     new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
-    OBJECT_MAPPER.addMixIn(SearchParameter.class, OccurrenceSearchParameterMixin.class);
+    // only used by ES downloads so forcing occurence since events don't fo thru ES downloads
+    OBJECT_MAPPER.registerModule(
+      new SimpleModule()
+        .addKeyDeserializer(
+          SearchParameter.class,
+          new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
+        .addDeserializer(
+          SearchParameter.class,
+          new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
   }
 
   private final RestHighLevelClient esClient;
 
   private final String esIndex;
 
-  private final OccurrenceBaseEsFieldMapper esFieldMapper;
+  private final OccurrenceEsFieldMapper esFieldMapper;
+
+  private final String defaultChecklistKey;
 
   /**
-   * Executes the ElasticSearch query and returns the number of records found.
-   * If an error occurs 'ERROR_COUNT' is returned.
+   * Executes the ElasticSearch query and returns the number of records found. If an error occurs
+   * 'ERROR_COUNT' is returned.
    */
   @SneakyThrows
   public long getRecordCount(Predicate predicate) {
-    CountResponse response = esClient.count(new CountRequest().indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper)),
-      RequestOptions.DEFAULT);
+    CountResponse response = esClient.count(new CountRequest()
+        .indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)
+      ),
+            RequestOptions.DEFAULT);
     log.info("Download record count {}", response.getCount());
     return response.getCount();
   }

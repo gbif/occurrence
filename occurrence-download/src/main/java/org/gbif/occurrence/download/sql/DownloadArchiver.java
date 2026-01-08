@@ -9,6 +9,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.occurrence.download.citations.CitationsPersister;
@@ -21,6 +22,7 @@ import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.file.simpleavro.SimpleAvroArchiveBuilder;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
 
@@ -56,7 +58,8 @@ public class DownloadArchiver {
             .sourceDir(workflowConfiguration.getHiveDBPath())
             .downloadFormat(workflowConfiguration.getDownloadFormat())
             .coreTerm(download.getRequest().getType().getCoreTerm())
-            .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
             .build();
     DwcaArchiveBuilder.of(configuration, workflowConfiguration).buildArchive();
   }
@@ -142,9 +145,13 @@ public class DownloadArchiver {
   }
 
   private Set<Pair<DownloadTerms.Group, Term>> getDownloadTerms() {
-    return download.getRequest().getFormat().equals(DownloadFormat.SPECIES_LIST)
-        ? DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS
-        : DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
+    if (download.getRequest().getFormat().equals(DownloadFormat.SPECIES_LIST)) {
+      return DownloadTerms.SPECIES_LIST_DOWNLOAD_TERMS;
+    } else if (DwcTerm.Event == queryParameters.getCoreTerm()) {
+      return EventDownloadTerms.SIMPLE_DOWNLOAD_TERMS;
+    } else {
+      return DownloadTerms.SIMPLE_DOWNLOAD_TERMS;
+    }
   }
 
   private ModalZipOutputStream.MODE getZipMode() {

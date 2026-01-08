@@ -25,7 +25,7 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.MediaType;

@@ -15,7 +15,7 @@
   When using this dataset <strong>please use the following citation:</strong>
 </p>
 <p style="background: rgba(190, 198, 206, 0.25);margin: 0 0 20px;padding: 10px;line-height: 1.65;">
-  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF Occurrence Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
+  GBIF.org (${downloadCreatedDateDefaultLocale}) GBIF ${download.request.type.getCoreTerm().simpleName()} Download <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
 </p>
 
 
@@ -41,12 +41,12 @@
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   Information about this download will always be available at <a href="${download.doi.getUrl()}" style="color: #4ba2ce;text-decoration: none;">${download.doi.getUrl()}</a>
-  and <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  and <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">
   The <#if download.request.format == "SIMPLE_CSV">simple tab-separated values (TSV)<#else>${download.request.format}</#if> file will be kept for six months (until ${download.eraseAfter?date}).  You can ask
-  us to keep the file for longer from <a href="${portal}occurrence/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}occurrence/download/${download.key}</a>
+  us to keep the file for longer from <a href="${portal}${download.request.type?lower_case}/download/${download.key}" style="color: #4ba2ce;text-decoration: none;">${portal}${download.request.type?lower_case}/download/${download.key}</a>
 </p>
 
 <p style="margin: 0 0 20px;padding: 0;line-height: 1.65;">

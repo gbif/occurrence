@@ -4,11 +4,10 @@ appkeys:
 occurrence:
   db:
     speciesMultimedia:
+      table: occurrence_species_multimedia
+      splits: 30
       chunkSize: 300
       maxLimit: 300
-    meta:
-      retryIntervalMs: 3000
-      zkNodePath: /dev/meta_test/occurrence_species_multimedia_table
   download:
     disabled: false
     downloads_hard_limit: 1,1000

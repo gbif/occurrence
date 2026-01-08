@@ -14,7 +14,6 @@
 package org.gbif.occurrence.cli.dataset;
 
 import org.gbif.common.messaging.config.MessagingConfiguration;
-import org.gbif.occurrence.cli.common.GangliaConfiguration;
 
 import java.util.Arrays;
 import java.util.StringJoiner;
@@ -31,9 +30,6 @@ public class EsDatasetDeleterConfiguration {
 
   @ParametersDelegate @NotNull @Valid
   public MessagingConfiguration messaging = new MessagingConfiguration();
-
-  @ParametersDelegate @Valid @NotNull
-  public GangliaConfiguration ganglia = new GangliaConfiguration();
 
   @Parameter(names = "--pool-size")
   @Min(1)
@@ -84,7 +80,6 @@ public class EsDatasetDeleterConfiguration {
     return new StringJoiner(
       ", ", EsDatasetDeleterConfiguration.class.getSimpleName() + "[", "]")
         .add("messaging=" + messaging)
-        .add("ganglia=" + ganglia)
         .add("poolSize=" + poolSize)
         .add("queueName='" + queueName + "'")
         .add("esHosts=" + Arrays.toString(esHosts))

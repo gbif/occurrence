@@ -241,7 +241,8 @@ public class SqlValidation {
       RelDataType parentEventGbifId = tdf.createArrayType(keyValuePair, -1);
 
       //  Map definition - needed for multiple classifications
-      RelDataType structMap = tdf.createMapType(varChar, varCharArray);
+      RelDataType structMap = tdf.createMapType(varChar, varChar);
+      RelDataType structMapOfArrays = tdf.createMapType(varChar, varCharArray);
       RelDataType structMapOfMap = tdf.createMapType(varChar, tdf.createMapType(varChar, varChar));
 
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
@@ -263,6 +264,10 @@ public class SqlValidation {
 
             case HiveDataTypes.TYPE_MAP_STRUCT:
               builder.add(field.getColumnName(), structMap);
+              break;
+
+            case HiveDataTypes.TYPE_MAP_OF_ARRAY_STRUCT:
+              builder.add(field.getColumnName(), structMapOfArrays);
               break;
 
             case HiveDataTypes.TYPE_MAP_OF_MAP_STRUCT:

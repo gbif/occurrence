@@ -13,32 +13,48 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.gbif.api.model.Constants;
-
-import org.junit.jupiter.api.Assertions;
+import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 import org.junit.jupiter.api.Test;
 
 public class GenerateHQLTest {
 
   @Test
   public void simpleCsvTest() throws Exception {
-    String simpleCsvDownloadQuery = GenerateHQL.simpleCsvQueryHQL(Constants.NUB_DATASET_KEY.toString());
+    String simpleCsvDownloadQuery =
+        GenerateHQL.simpleCsvQueryHQL(
+            DownloadQueryParameters.builder()
+                .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .build());
     System.out.println(simpleCsvDownloadQuery);
   }
 
   @Test
   public void dwcaTest() throws Exception {
-    String dwcaDownloadQuery = GenerateHQL.generateDwcaQueryHQL(Constants.NUB_DATASET_KEY.toString());
+    String dwcaDownloadQuery =
+        GenerateHQL.generateDwcaQueryHQL(
+            DownloadQueryParameters.builder()
+                .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .build());
     System.out.println(dwcaDownloadQuery);
   }
 
   @Test
   public void simpleParquetTest() throws Exception {
-    String simpleParquetDownloadQuery = GenerateHQL.simpleParquetQueryHQL(Constants.NUB_DATASET_KEY.toString());
+    String simpleParquetDownloadQuery =
+        GenerateHQL.simpleParquetQueryHQL(
+            DownloadQueryParameters.builder()
+                .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .build());
     System.out.println(simpleParquetDownloadQuery);
 
-    Assertions.assertTrue(simpleParquetDownloadQuery.contains("`datasetkey` STRING"), "Column names should be lower-case");
-    Assertions.assertTrue(simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"), "Verbatim column names should be lower-case");
+    assertTrue(
+        simpleParquetDownloadQuery.contains("`datasetkey` STRING"),
+        "Column names should be lower-case");
+    assertTrue(
+        simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"),
+        "Verbatim column names should be lower-case");
   }
 }

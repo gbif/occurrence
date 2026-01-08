@@ -22,6 +22,7 @@ import org.gbif.api.model.checklistbank.ParsedName;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.checklistbank.NameParser;
+import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.v2.RankedName;
 import org.gbif.api.vocabulary.Kingdom;
 import org.gbif.api.vocabulary.OccurrenceIssue;
@@ -254,11 +255,11 @@ public class TaxonomyInterpreter implements Serializable {
 
     if (match.getAcceptedUsage() != null) {
       nameUsageMatch.setScientificName(match.getAcceptedUsage().getName());
-      nameUsageMatch.setAcceptedUsageKey(match.getAcceptedUsage().getKey());
-      nameUsageMatch.setRank(match.getAcceptedUsage().getRank());
+      nameUsageMatch.setAcceptedUsageKey(Integer.parseInt(match.getAcceptedUsage().getKey()));
+      nameUsageMatch.setRank(VocabularyUtils.lookupEnum(match.getAcceptedUsage().getRank(), Rank.class));
     } else {
       nameUsageMatch.setScientificName(match.getUsage().getName());
-      nameUsageMatch.setRank(match.getUsage().getRank());
+      nameUsageMatch.setRank(VocabularyUtils.lookupEnum(match.getUsage().getRank(), Rank.class));
     }
 
     nameUsageMatch.setCanonicalName(
@@ -274,9 +275,9 @@ public class TaxonomyInterpreter implements Serializable {
 
     Optional.ofNullable(match.getAcceptedUsage())
         .map(RankedName::getKey)
-        .ifPresent(nameUsageMatch::setAcceptedUsageKey);
+        .ifPresent(key -> nameUsageMatch.setAcceptedUsageKey(Integer.parseInt(key)));
 
-    nameUsageMatch.setUsageKey(match.getUsage().getKey());
+    nameUsageMatch.setUsageKey(Integer.parseInt(match.getUsage().getKey()));
 
     nameUsageMatch.setMatchType(match.getDiagnostics().getMatchType());
     nameUsageMatch.setStatus(match.getDiagnostics().getStatus());
@@ -286,30 +287,32 @@ public class TaxonomyInterpreter implements Serializable {
         .getClassification()
         .forEach(
             rankedName -> {
-              if (Rank.KINGDOM == rankedName.getRank()) {
+              Rank rank = VocabularyUtils.lookupEnum(rankedName.getRank(), Rank.class);
+              Integer rankKey = Integer.parseInt(rankedName.getKey());
+              if (Rank.KINGDOM == rank) {
                 nameUsageMatch.setKingdom(rankedName.getName());
-                nameUsageMatch.setKingdomKey(rankedName.getKey());
-              } else if (Rank.PHYLUM == rankedName.getRank()) {
+                nameUsageMatch.setKingdomKey(rankKey);
+              } else if (Rank.PHYLUM == rank) {
                 nameUsageMatch.setPhylum(rankedName.getName());
-                nameUsageMatch.setPhylumKey(rankedName.getKey());
-              } else if (Rank.CLASS == rankedName.getRank()) {
+                nameUsageMatch.setPhylumKey(rankKey);
+              } else if (Rank.CLASS == rank) {
                 nameUsageMatch.setClazz(rankedName.getName());
-                nameUsageMatch.setClassKey(rankedName.getKey());
-              } else if (Rank.ORDER == rankedName.getRank()) {
+                nameUsageMatch.setClassKey(rankKey);
+              } else if (Rank.ORDER == rank) {
                 nameUsageMatch.setOrder(rankedName.getName());
-                nameUsageMatch.setOrderKey(rankedName.getKey());
-              } else if (Rank.FAMILY == rankedName.getRank()) {
+                nameUsageMatch.setOrderKey(rankKey);
+              } else if (Rank.FAMILY == rank) {
                 nameUsageMatch.setFamily(rankedName.getName());
-                nameUsageMatch.setFamilyKey(rankedName.getKey());
-              } else if (Rank.GENUS == rankedName.getRank()) {
+                nameUsageMatch.setFamilyKey(rankKey);
+              } else if (Rank.GENUS == rank) {
                 nameUsageMatch.setGenus(rankedName.getName());
-                nameUsageMatch.setGenusKey(rankedName.getKey());
-              } else if (Rank.SUBGENUS == rankedName.getRank()) {
+                nameUsageMatch.setGenusKey(rankKey);
+              } else if (Rank.SUBGENUS == rank) {
                 nameUsageMatch.setSubgenus(rankedName.getName());
-                nameUsageMatch.setSubgenusKey(rankedName.getKey());
-              } else if (Rank.SPECIES == rankedName.getRank()) {
+                nameUsageMatch.setSubgenusKey(rankKey);
+              } else if (Rank.SPECIES == rank) {
                 nameUsageMatch.setSpecies(rankedName.getName());
-                nameUsageMatch.setSpeciesKey(rankedName.getKey());
+                nameUsageMatch.setSpeciesKey(rankKey);
               }
             });
 
@@ -400,7 +403,7 @@ public class TaxonomyInterpreter implements Serializable {
   }
 
   private static void applyKingdom(Occurrence occ, Kingdom k) {
-    occ.setTaxonKey(k.nubUsageKey());
+    occ.setTaxonKey(Integer.parseInt(k.nubUsageKey()));
     occ.setScientificName(k.scientificName());
     occ.setTaxonRank(Rank.KINGDOM);
   }

@@ -38,23 +38,36 @@ CREATE TABLE ${r"${interpretedTable}"} (
 </#list>
 ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
+<#if includeOccurrenceExtInterpreted>
+  -- aux table to avoid clashes between column names in the joins since changing that in the code is pretty invasive
+  CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING);
+</#if>
+
 --
 -- Uses multi-table inserts format to reduce to a single scan of the source table.
 --
 <#-- NOTE: Formatted below to generate nice output at expense of ugliness in this template -->
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
+<#if isHumboldtSearch>
+  LEFT JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h ON h.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
+</#if>
   INSERT INTO TABLE ${r"${verbatimTable}"}
   SELECT
 <#list verbatimFields as field>
-    ${field.hiveField}<#if field_has_next>,</#if>
+    <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
   WHERE ${r"${whereClause}"}
   INSERT INTO TABLE ${r"${interpretedTable}"}
   SELECT
 <#list initializedInterpretedFields as field>
-    ${field.hiveField}<#if field_has_next>,</#if>
+    <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
+  WHERE ${r"${whereClause}"}<#if !includeOccurrenceExtInterpreted>;</#if>
+<#if includeOccurrenceExtInterpreted>
+  INSERT INTO TABLE ${r"${eventIdsTable}"}
+  SELECT DISTINCT eventid
   WHERE ${r"${whereClause}"};
+</#if>
 
 
 -- See https://github.com/gbif/occurrence/issues/28#issuecomment-432958372
@@ -69,6 +82,40 @@ CREATE TABLE ${r"${multimediaTable}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY 
 AS SELECT m.gbifid, m.type, m.format, m.identifier, m.references, m.title, m.description, m.source, m.audience, m.created, m.creator, m.contributor, m.publisher, m.license, m.rightsHolder
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
+
+
+<#if includeHumboldtInterpreted>
+  -- Humboldt interpreted table
+  CREATE TABLE ${r"${humboldtTable}"} (
+  <#list humboldtFields as field>
+    ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+  </#list>
+  ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+  INSERT INTO TABLE ${r"${humboldtTable}"}
+  SELECT
+  <#list humboldtSelectFields as field>
+      <#if field.hiveField == "gbifid">h.</#if>${field.hiveField}<#if field_has_next>,</#if>
+  </#list>
+  FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h
+  JOIN ${r"${interpretedTable}"} i ON h.gbifId = i.gbifId;
+</#if>
+<#if includeOccurrenceExtInterpreted>
+   -- occurrence extension interpreted table
+   CREATE TABLE ${r"${occurrenceExtensionTable}"} (
+   <#list occurrenceExtInterpretedFields as field>
+     ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+   </#list>
+   ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+   INSERT INTO TABLE ${r"${occurrenceExtensionTable}"}
+   SELECT
+   <#list occurrenceExtInitializedInterpretedFields as field>
+     ${field.hiveField}<#if field_has_next>,</#if>
+   </#list>
+   FROM iceberg.${r"${hiveDB}"}.occurrence
+   JOIN ${r"${eventIdsTable}"} ON eventid = event_id;
+</#if>
 
 SET hive.auto.convert.join=true;
 

@@ -13,7 +13,6 @@
 
   <properties>
     <jdkLevel>17</jdkLevel>
-    <amqp-client.version>5.22.0</amqp-client.version>
     <start-class>org.gbif.occurrence.downloads.launcher.OccurrenceDownloadsLauncherApplication</start-class>
   </properties>
 
@@ -185,10 +184,6 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-annotations</artifactId>
     </dependency>
     <dependency>
       <groupId>com.rabbitmq</groupId>

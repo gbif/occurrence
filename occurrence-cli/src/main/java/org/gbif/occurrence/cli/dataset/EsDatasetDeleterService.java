@@ -61,8 +61,6 @@ public class EsDatasetDeleterService extends AbstractIdleService {
 
     fs = createFs();
 
-    config.ganglia.start();
-
     listener.listen(
         config.queueName,
         config.poolSize,

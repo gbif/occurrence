@@ -20,7 +20,6 @@
   </distributionManagement>
 
   <properties>
-    <javassist.version>3.19.0-GA</javassist.version>
     <main.basedir>${project.parent.basedir}</main.basedir>
     <start-class>org.gbif.event.ws.EventWsApplication</start-class>
     <!-- because ws accesses HBase directly this must match cluster-expected Guava -->
@@ -261,6 +260,10 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>occurrence-ws-client</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
     </dependency>
@@ -456,7 +459,6 @@
     <dependency>
       <groupId>org.javassist</groupId>
       <artifactId>javassist</artifactId>
-      <version>${javassist.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -466,16 +468,12 @@
       <artifactId>mail</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.yammer.metrics</groupId>
+      <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-annotation</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.yammer.metrics</groupId>
+      <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.yammer.metrics</groupId>
-      <artifactId>metrics-jersey</artifactId>
     </dependency>
     <dependency>
       <groupId>xml-apis</groupId>

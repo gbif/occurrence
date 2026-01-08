@@ -15,19 +15,21 @@ package org.gbif.occurrence.download.conf;
 
 import lombok.SneakyThrows;
 
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.event.search.es.EventEsField;
+import org.gbif.predicate.query.EsFieldMapper;
+import org.gbif.search.es.event.EventEsField;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 
 import java.util.Set;
 
@@ -71,8 +73,11 @@ public class DownloadJobConfiguration {
   /** Requested download core. */
   private final DwcTerm coreTerm;
 
-  /** Requested extensions. */
-  private final Set<Extension> extensions;
+  /** Requested verbatim extensions. */
+  private final Set<Extension> verbatimExtensions;
+
+  /** Requested interpreted extensions. */
+  private final Set<Extension> interpretedExtensions;
 
   /** Requested extensions. */
   private final String checklistKey;
@@ -88,7 +93,8 @@ public class DownloadJobConfiguration {
       String searchQuery,
       DownloadFormat downloadFormat,
       DwcTerm coreTerm,
-      Set<Extension> extensions,
+      Set<Extension> verbatimExtensions,
+      Set<Extension> interpretedExtensions,
       String checklistKey) {
     this.downloadKey = downloadKey;
     this.filter = filter;
@@ -99,7 +105,8 @@ public class DownloadJobConfiguration {
     this.downloadTableName = downloadTableName;
     this.downloadFormat = downloadFormat;
     this.coreTerm = coreTerm;
-    this.extensions = extensions;
+    this.verbatimExtensions = verbatimExtensions;
+    this.interpretedExtensions = interpretedExtensions;
     this.checklistKey = checklistKey;
   }
 
@@ -109,8 +116,9 @@ public class DownloadJobConfiguration {
         .downloadKey(download.getKey())
         .downloadFormat(download.getRequest().getFormat())
         .coreTerm(download.getRequest().getType().getCoreTerm())
-        .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
-        .filter(getDownloadFilter(download))
+        .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+        .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
+        .filter(getDownloadFilter(download, workflowConfiguration.getDefaultChecklistKey()))
         .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
         .isSmallDownload(false)
         .sourceDir(workflowConfiguration.getHiveDBPath())
@@ -121,17 +129,20 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * Returns the string representation of a download base on the download format: Json Predicate or Sql clause.
+   * Returns the string representation of a download base on the download format: Json Predicate or
+   * Sql clause.
    */
-  private static String getDownloadFilter(Download download) {
+  private static String getDownloadFilter(Download download, String defaultChecklistKey) {
     return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
         ? ((SqlDownloadRequest) download.getRequest()).getSql()
-        : toSqlQuery(((PredicateDownloadRequest) download.getRequest()).getPredicate());
+        : toSqlQuery(
+            ((PredicateDownloadRequest) download.getRequest()).getPredicate(), defaultChecklistKey
+    );
   }
 
-  public OccurrenceBaseEsFieldMapper esFieldMapper(Download download) {
+  public EsFieldMapper<? extends SearchParameter> esFieldMapper(Download download) {
     return DownloadType.OCCURRENCE == download.getRequest().getType()
-        ? OccurrenceEsField.buildFieldMapper(checklistKey)
+        ? OccurrenceEsField.buildFieldMapper()
         : EventEsField.buildFieldMapper();
   }
 
@@ -186,6 +197,28 @@ public class DownloadJobConfiguration {
   }
 
   /**
+   * Humboldt table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_humboldt/ - small downloads
+   * format: sourceDir/downloadKey/humboldt
+   */
+  public String getHumboldtDataFileName() {
+    return isSmallDownload
+        ? getDownloadTempDir() + DwcDownloadsConstants.HUMBOLDT_FILENAME
+        : getDownloadTempDir(TableSuffixes.HUMBOLDT_SUFFIX);
+  }
+
+  /**
+   * Occurrence extension table/file name. This is used for DwcA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_occurrence/ - small downloads
+   * format: sourceDir/downloadKey/occurrence
+   */
+  public String getOccurrenceExtDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME
+      : getDownloadTempDir(TableSuffixes.OCCURRENCE_EXT_SUFFIX);
+  }
+
+  /**
    * Directory where downloads files will be temporary stored. The output varies for small and big
    * downloads: - small downloads: sourceDir/downloadKey(suffix)/ - big downloads:
    * sourceDir/downloadTableName(suffix)/
@@ -217,7 +250,7 @@ public class DownloadJobConfiguration {
   }
 
   @SneakyThrows
-  private static String toSqlQuery(Predicate predicate) {
-    return QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(predicate);
+  private static String toSqlQuery(Predicate predicate, String defaultChecklistKey) {
+    return QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey).buildQuery(predicate);
   }
 }

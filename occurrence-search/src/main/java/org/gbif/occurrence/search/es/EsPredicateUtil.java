@@ -16,16 +16,19 @@ package org.gbif.occurrence.search.es;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
+
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
-import org.gbif.occurrence.common.json.OccurrenceSearchParameterMixin;
-import org.gbif.occurrence.search.predicate.EsQueryVisitorFactory;
-
+import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @UtilityClass
 public class EsPredicateUtil {
@@ -34,15 +37,22 @@ public class EsPredicateUtil {
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
-    OBJECT_MAPPER.addMixIn(
-        SearchParameter.class, OccurrenceSearchParameterMixin.class);
+    // only used by ES downloads so forcing occurence since events don't fo thru ES downloads
+    OBJECT_MAPPER.registerModule(
+      new SimpleModule()
+        .addKeyDeserializer(
+          SearchParameter.class,
+          new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
+        .addDeserializer(
+          SearchParameter.class,
+          new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
   }
 
   @SneakyThrows
   public static QueryBuilder searchQuery(
-      Predicate predicate, OccurrenceBaseEsFieldMapper esFieldMapper) {
+      Predicate predicate, OccurrenceEsFieldMapper esFieldMapper, String defaultChecklistKey) {
     Optional<QueryBuilder> queryBuilder =
-        EsQueryVisitorFactory.createEsQueryVisitor(esFieldMapper).getQueryBuilder(predicate);
+        new OccurrenceEsQueryVisitor(esFieldMapper, defaultChecklistKey).getQueryBuilder(predicate);
     if (queryBuilder.isPresent()) {
       BoolQueryBuilder query = (BoolQueryBuilder) queryBuilder.get();
       esFieldMapper.getDefaultFilter().ifPresent(df -> query.filter().add(df));

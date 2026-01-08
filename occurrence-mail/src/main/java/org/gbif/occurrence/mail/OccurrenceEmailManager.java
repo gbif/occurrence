@@ -15,9 +15,12 @@ package org.gbif.occurrence.mail;
 
 import org.gbif.api.model.common.AbstractGbifUser;
 import org.gbif.api.model.common.GbifUser;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.common.IdentityAccessService;
 import org.gbif.occurrence.query.HumanPredicateBuilder;
 import org.gbif.occurrence.query.TitleLookupService;
@@ -167,10 +170,12 @@ public class OccurrenceEmailManager {
    */
   public String getHumanQuery(Download download, Locale locale) {
     try {
-      String query = download.getRequest() instanceof PredicateDownloadRequest
-        ? new HumanPredicateBuilder(titleLookup)
-          .humanFilterString(((PredicateDownloadRequest) download.getRequest()).getPredicate())
-        : ((SqlDownloadRequest) download.getRequest()).getSql();
+      String query =
+          download.getRequest() instanceof PredicateDownloadRequest
+              ? getHumanPredicateBuilder(download)
+                  .humanFilterString(
+                      ((PredicateDownloadRequest) download.getRequest()).getPredicate())
+              : ((SqlDownloadRequest) download.getRequest()).getSql();
 
       if ("{ }".equals(query)) {
         LOG.debug("Empty query was used");
@@ -185,6 +190,14 @@ public class OccurrenceEmailManager {
     } catch (Exception e) {
       LOG.warn("Exception while getting human query: {}", e.getMessage());
       return MESSAGE_SOURCE.getMessage("download.query.complex", null, locale);
+    }
+  }
+
+  private HumanPredicateBuilder getHumanPredicateBuilder(Download download) {
+    if (download.getRequest() != null && download.getRequest().getType() != null && download.getRequest().getType() == DownloadType.EVENT) {
+      return new HumanPredicateBuilder(titleLookup, EventSearchParameter.class);
+    } else {
+      return new HumanPredicateBuilder(titleLookup, OccurrenceSearchParameter.class);
     }
   }
 

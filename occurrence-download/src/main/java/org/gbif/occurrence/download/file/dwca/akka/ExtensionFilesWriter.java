@@ -41,7 +41,7 @@ public class ExtensionFilesWriter implements Closeable {
   private final Map<Extension, ExtensionTable> tableMap = new HashMap<>();
 
   public ExtensionFilesWriter(DownloadJobConfiguration configuration) {
-    configuration.getExtensions().forEach(extension -> {
+    configuration.getVerbatimExtensions().forEach(extension -> {
       filesMap.put(extension, extensionOutput(extension, configuration));
       tableMap.put(extension, new ExtensionTable(extension));
     });

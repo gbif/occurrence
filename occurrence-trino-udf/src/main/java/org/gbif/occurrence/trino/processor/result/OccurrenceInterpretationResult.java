@@ -15,7 +15,7 @@ package org.gbif.occurrence.trino.processor.result;
 
 import org.gbif.api.model.occurrence.Occurrence;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

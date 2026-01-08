@@ -14,6 +14,8 @@
 package org.gbif.occurrence.search.es;
 
 import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
@@ -47,12 +49,15 @@ public class EsQueryUtils {
   public static final String QUERY = "query";
   public static final String BOOL = "bool";
   public static final String MUST = "must";
+  public static final String MUST_NOT = "must_not";
   public static final String MATCH = "match";
   public static final String TERM = "term";
   public static final String TERMS = "terms";
   public static final String FILTER = "filter";
   public static final String SHOULD = "should";
+  public static final String NESTED = "nested";
   public static final String RANGE = "range";
+  public static final String PATH = "path";
   public static final String GTE = "gte";
   public static final String LTE = "lte";
   public static final String VALUE = "value";
@@ -203,18 +208,17 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, ThreatStatus.values().length)
           .build();
 
-
-
-  static int extractFacetLimit(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
+  static <P extends SearchParameter, S extends FacetedSearchRequest<P>> int extractFacetLimit(
+      S request, P facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(Pageable::getLimit)
         .orElse(request.getFacetLimit() != null ? request.getFacetLimit() : DEFAULT_FACET_LIMIT);
   }
 
-  static int extractFacetOffset(OccurrenceSearchRequest request, OccurrenceSearchParameter facet) {
+  static <P extends SearchParameter, S extends FacetedSearchRequest<P>> int extractFacetOffset(
+      S request, P facet) {
     return Optional.ofNullable(request.getFacetPage(facet))
         .map(v -> (int) v.getOffset())
         .orElse(request.getFacetOffset() != null ? request.getFacetOffset() : DEFAULT_FACET_OFFSET);
   }
-
 }

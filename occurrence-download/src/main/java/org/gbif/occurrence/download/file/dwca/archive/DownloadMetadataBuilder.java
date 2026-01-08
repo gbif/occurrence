@@ -13,8 +13,14 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.model.registry.Citation;
 import org.gbif.api.model.registry.Dataset;
@@ -53,12 +59,12 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
   private static final String DOWNLOAD_CONTACT_SERVICE = "GBIF Download Service";
   private static final String DOWNLOAD_CONTACT_EMAIL = "support@gbif.org";
 
-  private static final String DATASET_TITLE_FMT = "GBIF Occurrence Download %s";
+  private static final String DATASET_TITLE_FMT = "GBIF %s Download %s";
 
   private static final String DATA_DESC_FORMAT = "Darwin Core Archive";
 
   private static final String METADATA_DESC_HEADER_FMT =
-    "A dataset containing all occurrences available in GBIF matching the query:\n%s"
+    "A dataset containing all %ss available in GBIF matching the query:\n%s"
     +
     "\nThe dataset includes records from the following constituent datasets. "
     + "The full metadata for each constituent is also included in this archive:\n";
@@ -78,6 +84,8 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
   private final File archiveDir;
   private final Function<Download,URI> downloadLinkProvider;
   private final StringBuilder description = new StringBuilder();
+  private final DownloadType downloadType;
+  private final HumanPredicateBuilder humanPredicateBuilder;
 
   @Builder
   public DownloadMetadataBuilder(
@@ -90,6 +98,22 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
     this.titleLookup = titleLookup;
     this.archiveDir = archiveDir;
     this.downloadLinkProvider = downloadLinkProvider;
+    this.downloadType = download.getRequest().getType();
+    this.humanPredicateBuilder =
+        downloadType == DownloadType.EVENT
+            ? new HumanPredicateBuilder(titleLookup, EventSearchParameter.class)
+            : new HumanPredicateBuilder(titleLookup, OccurrenceSearchParameter.class);
+
+    SimpleModule searchParameterModule = new SimpleModule();
+    if (downloadType == DownloadType.EVENT) {
+      searchParameterModule.addAbstractTypeMapping(
+          SearchParameter.class, EventSearchParameter.class);
+    } else {
+      searchParameterModule.addAbstractTypeMapping(
+          SearchParameter.class, OccurrenceSearchParameter.class);
+    }
+    OBJECT_MAPPER.registerModule(searchParameterModule);
+
     initDescription();
   }
 
@@ -106,7 +130,7 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
     try {
       if (download.getRequest() instanceof PredicateDownloadRequest) {
         Predicate p = ((PredicateDownloadRequest) download.getRequest()).getPredicate();
-        return new HumanPredicateBuilder(titleLookup).humanFilterString(p);
+        return humanPredicateBuilder.humanFilterString(p);
       }
     } catch (Exception e) {
       log.error("Failed to transform JSON query into human query: {}", humanQuery, e);
@@ -117,7 +141,7 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
   private void initDescription() {
     // transform json filter into predicate instance and then into human-readable string
     String humanQuery = readPredicateQuery();
-    description.append(String.format(METADATA_DESC_HEADER_FMT, humanQuery));
+    description.append(String.format(METADATA_DESC_HEADER_FMT, downloadType.toString().toLowerCase(), humanQuery));
   }
 
   /**
@@ -156,15 +180,23 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
       dataset.setIdentifiers(Lists.newArrayList(identifier));
     }
     dataset.setKey(UUID.randomUUID());
-    dataset.setTitle(String.format(DATASET_TITLE_FMT, downloadUniqueID));
+    dataset.setTitle(
+        String.format(
+            DATASET_TITLE_FMT, downloadType.getCoreTerm().simpleName(), downloadUniqueID));
     dataset.setDescription(description.toString());
     dataset.setCreated(download.getCreated());
-    Citation citation = new Citation(String.format(DATASET_TITLE_FMT, downloadUniqueID), downloadUniqueID, false);
+    Citation citation =
+        new Citation(
+            String.format(
+                DATASET_TITLE_FMT, downloadType.getCoreTerm().simpleName(), downloadUniqueID),
+            downloadUniqueID,
+            false);
     dataset.setCitation(citation);
     // can we derive a link from the query to set the dataset.homepage?
     dataset.setPubDate(download.getCreated());
     dataset.setDataLanguage(Language.ENGLISH);
-    dataset.setType(DatasetType.OCCURRENCE);
+    dataset.setType(
+        downloadType == DownloadType.EVENT ? DatasetType.SAMPLING_EVENT : DatasetType.OCCURRENCE);
     dataset.getDataDescriptions().add(createDataDescription());
     //TODO: use new license field once available
     if (download.getLicense().isConcrete()) {

@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Objects;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;

@@ -133,7 +133,7 @@ public class XmlToAvscGeneratorMojo extends AbstractMojo {
     }
 
     String[] extraNamespace =
-        url.toString().replaceAll("http://rs.gbif.org/extension/", "").split("/");
+        url.toString().replaceAll("https?://rs.gbif.org/(extension|core)/", "").split("/");
 
     String doc = "Avro Schema of Hive Table for " + name;
     String fullNamespace = namespace + "." + extraNamespace[0];

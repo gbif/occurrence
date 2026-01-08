@@ -1,6 +1,6 @@
 package org.gbif.occurrence.download.elastic;
 
-import static org.gbif.occurrence.download.util.VocabularyUtils.translateVocabs;
+import static org.gbif.occurrence.download.util.VocabularyUtils.translateOccurrencePredicateFields;
 
 import java.util.Properties;
 import lombok.Builder;
@@ -18,6 +18,7 @@ import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.search.es.EsPredicateUtil;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
 
 @Slf4j
@@ -44,7 +45,7 @@ public class ElasticDownloadWorkflow {
         DownloadWorkflowModule.downloadServiceClient(coreDwcTerm, workflowConfiguration);
     this.download = downloadService.get(downloadKey);
     ConceptClient conceptClient = DownloadWorkflowModule.conceptClient(workflowConfiguration);
-    translateVocabs(download, conceptClient);
+    translateOccurrencePredicateFields(download, conceptClient);
   }
 
   @SneakyThrows
@@ -73,26 +74,20 @@ public class ElasticDownloadWorkflow {
             .searchQuery(
                 EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
-                        DownloadWorkflowModule.esFieldMapper(
-                          configuration.getEsIndexType(),
-                          download.getRequest().getChecklistKey() != null
-                              ? download.getRequest().getChecklistKey()
-                              : configuration.getDefaultChecklistKey()
-                        ))
-                    .toString()
-            )
+                        OccurrenceEsField.buildFieldMapper(),
+                        workflowConfiguration.getDefaultChecklistKey())
+                    .toString())
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
                     ? download.getRequest().getChecklistKey()
-                    : configuration.getDefaultChecklistKey()
-            )
+                    : configuration.getDefaultChecklistKey())
             .downloadKey(download.getKey())
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
             .sourceDir(configuration.getTempDir())
             .isSmallDownload(true)
             .downloadFormat(configuration.getDownloadFormat())
             .coreTerm(coreDwcTerm)
-            .extensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
             .build());
 
     updateTotalRecordsCount(download, recordCount);
@@ -113,7 +108,12 @@ public class ElasticDownloadWorkflow {
   }
 
   private long recordCount(Download download) {
+    // if set, dont recalculate
+    if (download.getTotalRecords() > 0){
+      return download.getTotalRecords();
+    }
 
+    log.info("Download records count: {}, re-querying ES for accurate count", download.getTotalRecords());
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
       return downloadEsClient.getRecordCount(
           ((PredicateDownloadRequest) download.getRequest()).getPredicate());
@@ -128,12 +128,7 @@ public class ElasticDownloadWorkflow {
         .esClient(DownloadWorkflowModule.esClient(workflowConfiguration))
         .esIndex(
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
-        .esFieldMapper(DownloadWorkflowModule.esFieldMapper(
-          workflowConfiguration.getEsIndexType(),
-          download.getRequest().getChecklistKey() != null
-              ? download.getRequest().getChecklistKey()
-              : workflowConfiguration.getDefaultChecklistKey()
-        ))
+        .esFieldMapper(OccurrenceEsField.buildFieldMapper())
         .build();
   }
 

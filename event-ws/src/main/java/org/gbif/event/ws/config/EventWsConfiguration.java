@@ -13,6 +13,9 @@
  */
 package org.gbif.event.ws.config;
 
+import java.io.IOException;
+
+import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.ConnectionParameters;
 import org.gbif.common.messaging.JsonMessagePublisher;
@@ -20,19 +23,16 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
-import org.gbif.occurrence.search.es.OccurrenceBaseEsFieldMapper;
-import org.gbif.occurrence.search.es.OccurrenceEsField;
+import org.gbif.occurrence.ws.client.OccurrenceWsSearchClient;
 import org.gbif.registry.ws.client.EventDownloadClient;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
-import java.io.IOException;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 
 @Configuration
 public class EventWsConfiguration {
@@ -54,6 +54,16 @@ public class EventWsConfiguration {
       .build(EventDownloadClient.class);
   }
 
+  @Bean("occurrenceWsSearchClient")
+  public OccurrenceSearchService occurrenceSearchService(@Value("${api.url}") String apiUrl) {
+    return new ClientBuilder()
+      .withUrl(apiUrl)
+      .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+      .withFormEncoder()
+      .build(OccurrenceWsSearchClient.class);
+  }
+
+
   @Bean
   public RabbitProperties rabbitProperties() {
     return new RabbitProperties();
@@ -72,12 +82,9 @@ public class EventWsConfiguration {
   @Configuration
   public static class EventSearchConfigurationWs extends OccurrenceSearchConfiguration {
 
-    @Value("${defaultChecklistKey}")
-    protected String defaultChecklistKey;
-
     @Bean
-    public OccurrenceBaseEsFieldMapper esFieldMapper() {
-      return OccurrenceEsField.buildFieldMapper(defaultChecklistKey);
+    public OccurrenceEsFieldMapper esFieldMapper() {
+      return OccurrenceEsField.buildFieldMapper();
     }
   }
 }

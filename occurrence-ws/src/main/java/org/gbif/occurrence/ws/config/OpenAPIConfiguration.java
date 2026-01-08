@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.config;
 
+import io.swagger.v3.oas.models.media.JsonSchema;
 import org.gbif.api.vocabulary.Extension;
 
 import java.util.Comparator;
@@ -21,6 +22,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.gbif.dwc.terms.DwcTerm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +34,6 @@ import org.springframework.stereotype.Component;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.Paths;
-import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.tags.Tag;
 
@@ -64,11 +66,25 @@ public class OpenAPIConfiguration {
 
       // Set the list of enumeration values for the verbatimExtensions parameter in a predicate download
       // request to those supported, remembering to use the RowType
-      List<String> allowedVerbatimExtensionValues = Extension.availableExtensions().stream().map(Extension::getRowType).collect(Collectors.toList());
-      Schema predicateDownloadRequest = openApi.getComponents().getSchemas().get("PredicateDownloadRequest");
-      ArraySchema verbatimExtension = (ArraySchema)  predicateDownloadRequest.getProperties().get("verbatimExtensions");
+      List<String> allowedVerbatimExtensionValues =
+        Extension.availableExtensions().stream()
+          .map(Extension::getRowType)
+          .collect(Collectors.toList());
+      Schema predicateDownloadRequest =
+        openApi.getComponents().getSchemas().get("PredicateDownloadRequest");
+      JsonSchema verbatimExtension =
+        (JsonSchema) predicateDownloadRequest.getProperties().get("verbatimExtensions");
       Schema verbatimExtensionString = verbatimExtension.getItems();
       verbatimExtensionString.setEnum(allowedVerbatimExtensionValues);
+
+      List<String> allowedInterpretedExtensionValues =
+        Extension.availableInterpretedExtensions(DwcTerm.Occurrence).stream()
+          .map(Extension::getRowType)
+          .collect(Collectors.toList());
+      JsonSchema interpretedExtension =
+        (JsonSchema) predicateDownloadRequest.getProperties().get("interpretedExtensions");
+      Schema interpretedExtensionString = interpretedExtension.getItems();
+      interpretedExtensionString.setEnum(allowedInterpretedExtensionValues);
     };
   }
 

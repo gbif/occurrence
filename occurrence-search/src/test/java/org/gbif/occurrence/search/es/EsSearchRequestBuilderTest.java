@@ -13,12 +13,12 @@
  */
 package org.gbif.occurrence.search.es;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-
-/** Tests the {@link EsSearchRequestBuilder}. */
+/** Tests the {@link BaseEsSearchRequestBuilder}. */
 public class EsSearchRequestBuilderTest {
 
   @Test
@@ -45,7 +45,7 @@ public class EsSearchRequestBuilderTest {
         };
 
     Coordinate[] normalizedCoords =
-        EsSearchRequestBuilder.normalizePolygonCoordinates(duplicateCoords);
+        BaseEsSearchRequestBuilder.normalizePolygonCoordinates(duplicateCoords);
 
     assertArrayEquals(expectedCoords, normalizedCoords);
   }

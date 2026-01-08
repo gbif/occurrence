@@ -15,6 +15,7 @@ package org.gbif.occurrence.common;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
@@ -89,6 +90,27 @@ public class HiveColumnsUtils {
         || DwcTerm.associatedSequences == term
         || DwcTerm.higherGeography == term
         || DwcTerm.georeferencedBy == term
-        || GbifTerm.projectId == term;
+        || GbifTerm.projectId == term
+        || GbifTerm.nonTaxonomicIssue == term
+        || EcoTerm.voucherInstitutions == term
+        || EcoTerm.verbatimSiteNames == term
+        || EcoTerm.verbatimSiteDescriptions == term
+        || EcoTerm.compilationSourceTypes == term
+        || EcoTerm.targetHabitatScope == term
+        || EcoTerm.excludedHabitatScope == term
+        || EcoTerm.targetGrowthFormScope == term
+        || EcoTerm.excludedGrowthFormScope == term
+        || EcoTerm.taxonCompletenessProtocols == term
+        || EcoTerm.samplingPerformedBy == term
+        || EcoTerm.compilationTypes == term
+        || EcoTerm.materialSampleTypes == term
+        || EcoTerm.inventoryTypes == term
+        || EcoTerm.protocolNames == term
+        || EcoTerm.protocolDescriptions == term
+        || EcoTerm.protocolReferences == term
+        || EcoTerm.targetLifeStageScope == term
+        || EcoTerm.targetDegreeOfEstablishmentScope == term
+        || EcoTerm.excludedLifeStageScope == term
+        || EcoTerm.excludedDegreeOfEstablishmentScope == term;
   }
 }

@@ -16,7 +16,7 @@ package org.gbif.occurrence.table.backfill;
 import java.io.File;
 import java.io.IOException;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.yaml.snakeyaml.parser.ParserException;
 

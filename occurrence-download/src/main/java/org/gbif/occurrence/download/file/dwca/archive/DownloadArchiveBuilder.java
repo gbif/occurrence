@@ -13,6 +13,20 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.*;
+import static org.gbif.occurrence.download.util.ArchiveFileUtils.cleanupFS;
+
+import com.google.common.collect.Lists;
+import java.io.*;
+import java.util.Collection;
+import java.util.List;
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -22,29 +36,9 @@ import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
-
-import java.io.*;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.fs.FileSystem;
-
-import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
-
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.*;
-import static org.gbif.occurrence.download.util.ArchiveFileUtils.cleanupFS;
 
 /**
  * Creates a DWC archive for occurrence downloads based on the hive query result files generated
@@ -67,7 +61,9 @@ public class DownloadArchiveBuilder {
   private void createDescriptor() {
     if (DwcTerm.Event == configuration.getCoreTerm()) {
       DwcArchiveUtils.createEventArchiveDescriptor(
-          archiveDir, DownloadRequestUtils.getVerbatimExtensions(download.getRequest()));
+          archiveDir,
+          DownloadRequestUtils.getVerbatimExtensions(download.getRequest()),
+          DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
     } else {
       DwcArchiveUtils.createOccurrenceArchiveDescriptor(
           archiveDir, DownloadRequestUtils.getVerbatimExtensions(download.getRequest()));
@@ -88,7 +84,7 @@ public class DownloadArchiveBuilder {
 
       // add the large download data files to the zip stream
       if (!configuration.isSmallDownload()) {
-        appendPreCompressedFiles(zos);
+        appendPreCompressedFiles(zos, configuration.getCoreTerm());
       }
 
       zos.finish();
@@ -162,7 +158,7 @@ public class DownloadArchiveBuilder {
   }
 
   /** Append the pre-compressed content to the zip stream */
-  private void appendPreCompressedFiles(ModalZipOutputStream out) throws IOException {
+  private void appendPreCompressedFiles(ModalZipOutputStream out, DwcTerm coreTerm) throws IOException {
     log.info("Appending pre-compressed occurrence content to the Zip");
 
     // NOTE: hive lower-cases all the paths
@@ -170,7 +166,7 @@ public class DownloadArchiveBuilder {
         out,
         new Path(configuration.getInterpretedDataFileName()),
         getInterpretedFileName(),
-        HeadersFileUtil.getInterpretedTableHeader());
+        HeadersFileUtil.getInterpretedTableHeader(coreTerm));
 
     appendPreCompressedFile(
         out,
@@ -183,6 +179,24 @@ public class DownloadArchiveBuilder {
         new Path(configuration.getMultimediaDataFileName()),
         MULTIMEDIA_FILENAME,
         HeadersFileUtil.getMultimediaTableHeader());
+
+    if (DwcTerm.Event == configuration.getCoreTerm()) {
+      if (configuration.getInterpretedExtensions().contains(Extension.HUMBOLDT)) {
+        appendPreCompressedFile(
+            out,
+            new Path(configuration.getHumboldtDataFileName()),
+            HUMBOLDT_FILENAME,
+            HeadersFileUtil.getHumboldtTableHeader());
+      }
+
+      if (configuration.getInterpretedExtensions().contains(Extension.OCCURRENCE)) {
+        appendPreCompressedFile(
+            out,
+            new Path(configuration.getOccurrenceExtDataFileName()),
+            OCCURRENCE_INTERPRETED_FILENAME,
+            HeadersFileUtil.getInterpretedTableHeader(DwcTerm.Occurrence));
+      }
+    }
 
     appendExtensionFiles(out);
   }

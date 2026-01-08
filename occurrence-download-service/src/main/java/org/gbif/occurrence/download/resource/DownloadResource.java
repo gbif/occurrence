@@ -123,6 +123,8 @@ public class DownloadResource {
 
   private final Boolean downloadsDisabled;
 
+  protected final String defaultChecklistKey;
+
   @Autowired
   public DownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
@@ -130,13 +132,15 @@ public class DownloadResource {
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadType downloadType,
-      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled) {
+      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
+      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadType = downloadType;
     this.downloadsDisabled = downloadsDisabled;
+    this.defaultChecklistKey = defaultChecklistKey;
   }
 
   private void assertDownloadType(Download download) {
@@ -171,8 +175,8 @@ public class DownloadResource {
               properties = @ExtensionProperty(name = "Order", value = "0030")))
   @ApiResponses(
       value = {
-        @ApiResponse(responseCode = "204", description = "Occurrence download cancelled."),
-        @ApiResponse(responseCode = "404", description = "Invalid occurrence download key.")
+        @ApiResponse(responseCode = "204", description = "Download cancelled."),
+        @ApiResponse(responseCode = "404", description = "Invalid download key.")
       })
   @DeleteMapping("{key}")
   public void delDownload(
@@ -211,11 +215,11 @@ public class DownloadResource {
         @ApiResponse(
             responseCode = "302",
             description =
-                "Occurrence download found, follow the redirect to the data file (e.g. zip file)."),
-        @ApiResponse(responseCode = "404", description = "Invalid occurrence download key."),
+                "Download found, follow the redirect to the data file (e.g. zip file)."),
+        @ApiResponse(responseCode = "404", description = "Invalid download key."),
         @ApiResponse(
             responseCode = "410",
-            description = "Occurrence download file was erased and is no longer available.")
+            description = "Download file was erased and is no longer available.")
       })
   @GetMapping(
       value = "{key}",
@@ -322,15 +326,14 @@ public class DownloadResource {
       value = {
         @ApiResponse(
             responseCode = "201",
-            description = "Occurrence download requested, key returned."),
+            description = "Download requested, key returned."),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid query, see [predicates](#operations-tag-Occurrence_downloads)."),
+            description = "Invalid query, see [predicates](#predicates)."),
         @ApiResponse(
             responseCode = "429",
             description =
-                "Too many downloads, wait for one of your downloads to complete. "
-                    + "See [limits](#operations-tag-Occurrence_downloads)")
+                "Too many downloads, wait for one of your downloads to complete. See [limits](#limits)")
       })
   @PostMapping(
       produces = {MediaType.TEXT_PLAIN_VALUE, MediaType.APPLICATION_JSON_VALUE},
@@ -358,7 +361,7 @@ public class DownloadResource {
   }
 
   /**
-   * Creates/Starts an occurrence download.
+   * Creates/Starts a download.
    *
    * <p>Non-admin users may be given an existing download key, where the monthly download user has
    * already created a suitable download.
@@ -521,6 +524,7 @@ public class DownloadResource {
       @RequestParam(name = "notification_address", required = false) String emails,
       @RequestParam("format") String format,
       @RequestParam(name = "extensions", required = false) String extensions,
+      @RequestParam(name = "interpretedExtensions", required = false) String interpretedExtensions,
       @RequestParam(name = "source", required = false) String source,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
@@ -533,8 +537,16 @@ public class DownloadResource {
     try {
       return ResponseEntity.ok(
           createDownload(
-              downloadPredicate(httpRequest, emails, format, extensions, description, machineDescriptionJson,
-                checklistKey, principal),
+              downloadPredicate(
+                  httpRequest,
+                  emails,
+                  format,
+                  extensions,
+                  interpretedExtensions,
+                  description,
+                  machineDescriptionJson,
+                  checklistKey,
+                  principal),
               authentication,
               principal,
               parseSource(source, userAgent)));
@@ -562,6 +574,7 @@ public class DownloadResource {
       @Parameter(name = "format", description = "Download format."),
       @Parameter(name = "verbatimExtensions", description = "Verbatim extensions to include in a Darwin Core Archive " +
         "download."),
+      // TODO: interpretedExtensions but it's only for events
       @Parameter(name = "checklistKey", description = "*Experimental.* The checklist to use that will supply interpreted" +
         " taxonomic fields. The default is to use the GBIF Backbone." +
         "download."),
@@ -572,6 +585,7 @@ public class DownloadResource {
       @RequestParam(name = "notification_address", required = false) String emails,
       @RequestParam("format") String format,
       @RequestParam(name = "verbatimExtensions", required = false) String verbatimExtensions,
+      @RequestParam(name = "interpretedExtensions", required = false) String interpretedExtensions,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
       @RequestParam(name = "checklistKey", required = false) String checklistKey,
@@ -580,14 +594,8 @@ public class DownloadResource {
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = principal != null ? principal.getName() : null;
     Set<String> notificationAddress = asSet(emails);
-    Set<org.gbif.api.vocabulary.Extension> requestExtensions =
-        Optional.ofNullable(asSet(verbatimExtensions))
-            .map(
-                exts ->
-                    exts.stream()
-                        .map(org.gbif.api.vocabulary.Extension::fromRowType)
-                        .collect(Collectors.toSet()))
-            .orElse(Collections.emptySet());
+    Set<org.gbif.api.vocabulary.Extension> requestVerbatimExtensions = toExtension(verbatimExtensions);
+    Set<org.gbif.api.vocabulary.Extension> requestInterpretedExtensions = toExtension(interpretedExtensions);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
 
@@ -610,9 +618,20 @@ public class DownloadResource {
         downloadType,
         description,
         machineDescription,
-        requestExtensions,
+        requestVerbatimExtensions,
+        requestInterpretedExtensions,
         checklistKey
     );
+  }
+
+  private static Set<org.gbif.api.vocabulary.Extension> toExtension(String extensions) {
+    return Optional.ofNullable(asSet(extensions))
+        .map(
+            exts ->
+                exts.stream()
+                    .map(org.gbif.api.vocabulary.Extension::fromRowType)
+                    .collect(Collectors.toSet()))
+        .orElse(Collections.emptySet());
   }
 
   /**
@@ -689,7 +708,9 @@ public class DownloadResource {
       generatedSql.append(" FROM occurrence");
 
       if (downloadRequest.getPredicate() != null) {
-        String generatedWhereClause = QueryVisitorsFactory.createSqlQueryVisitor().buildQuery(downloadRequest.getPredicate());
+        String generatedWhereClause =
+            QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey)
+                .buildQuery(downloadRequest.getPredicate());
         // This is not pretty.
         generatedWhereClause = generatedWhereClause
           .replaceAll("\\byear\\b", "\"year\"")
@@ -780,6 +801,7 @@ public class DownloadResource {
       downloadType,
       description,
       machineDescription,
+      null,
       null,
       checklistKey);
 

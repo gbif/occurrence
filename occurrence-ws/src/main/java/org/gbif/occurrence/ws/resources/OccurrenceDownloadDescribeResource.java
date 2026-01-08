@@ -290,7 +290,7 @@ public class OccurrenceDownloadDescribeResource {
   private static final Table SQL = Table.builder()
     .fields(ImmutableSet.<Field>builder()
       .addAll(toTypedFieldList(HIVE_QUERIES.selectInterpretedFields(false, Constants.NUB_DATASET_KEY.toString()), true))
-      .addAll(toTypedFieldList(HIVE_QUERIES.selectInternalSearchFields(false), true))
+      .addAll(toTypedFieldList(HIVE_QUERIES.selectInternalSearchFields(false, Constants.NUB_DATASET_KEY.toString()), true))
       .addAll(toTypedFieldList(HIVE_QUERIES.selectVerbatimFields(), false))
       .build()
       .asList()

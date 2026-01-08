@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.cli.dataset;
 
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DeleteDatasetOccurrencesMessage;
 import org.gbif.common.messaging.api.messages.OccurrenceDeletionReason;
@@ -31,10 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
-
 /** Callback that is called when the {@link DeleteDatasetOccurrencesMessage} is received. */
 public class EsDatasetDeleterCallback
   extends AbstractMessageCallback<DeleteDatasetOccurrencesMessage> {
@@ -46,18 +44,10 @@ public class EsDatasetDeleterCallback
   private final FileSystem fs;
 
   private final Timer processTimerDeleteByQuery =
-    Metrics.newTimer(
-      EsDatasetDeleterCallback.class,
-      "ES dataset delete by query time",
-      TimeUnit.MILLISECONDS,
-      TimeUnit.SECONDS);
+    Metrics.timer("ES dataset delete by query time");
 
   private final Timer processTimerDeleteIndex =
-    Metrics.newTimer(
-      EsDatasetDeleterCallback.class,
-      "ES dataset delete index time",
-      TimeUnit.MILLISECONDS,
-      TimeUnit.SECONDS);
+    Metrics.timer("ES dataset delete index time");
 
   public EsDatasetDeleterCallback(RestHighLevelClient esClient, FileSystem fs, EsDatasetDeleterConfiguration config) {
     this.esClient = esClient;
@@ -84,19 +74,17 @@ public class EsDatasetDeleterCallback
       return;
     }
 
-    final TimerContext contextDeleteIndex = processTimerDeleteIndex.time();
+    processTimerDeleteIndex.record( () ->
     // remove independent indexes for this dataset
     datasetIndexes.stream()
       .filter(i -> i.startsWith(datasetKey))
-      .forEach(idx -> EsHelper.deleteIndex(esClient, idx));
-    contextDeleteIndex.stop();
+      .forEach(idx -> EsHelper.deleteIndex(esClient, idx)));
 
-    final TimerContext contextDeleteByQuery = processTimerDeleteByQuery.time();
+    processTimerDeleteByQuery.record(() ->
     // delete documents of this dataset in non-independent indexes
     datasetIndexes.stream()
       .filter(i -> !i.startsWith(datasetKey))
-      .forEach(idx -> EsHelper.deleteByDatasetKey(esClient, datasetKey, idx));
-    contextDeleteByQuery.stop();
+      .forEach(idx -> EsHelper.deleteByDatasetKey(esClient, datasetKey, idx)));
 
     // Delete dataset from ingest folder
     String deleteIngestPath = String.join(Path.SEPARATOR, config.ingestDirPath, datasetKey);

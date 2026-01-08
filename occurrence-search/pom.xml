@@ -12,7 +12,7 @@
   <packaging>jar</packaging>
 
   <properties>
-    <restlet.version>2.1.1</restlet.version>
+    <restlet.version>2.4.4</restlet.version>
 
     <!-- Elasticsearch -->
     <jts-core.version>1.15.0</jts-core.version>
@@ -227,8 +227,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <artifactId>org.restlet</artifactId>
       <groupId>org.restlet.jee</groupId>
+      <artifactId>org.restlet</artifactId>
       <version>${restlet.version}</version>
       <scope>test</scope>
     </dependency>
