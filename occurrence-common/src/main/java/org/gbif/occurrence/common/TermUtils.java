@@ -313,7 +313,6 @@ public class TermUtils {
       DwcTerm.bed,
       GbifTerm.projectId,
       DwcTerm.eventType,
-      DwcTerm.projectID,
       DwcTerm.projectTitle,
       DwcTerm.fundingAttribution,
       DwcTerm.fundingAttributionID
