@@ -370,7 +370,8 @@ public class TermUtils {
       DwcTerm.minimumElevationInMeters,
       DwcTerm.maximumElevationInMeters,
       DwcTerm.associatedMedia,
-      DwcTerm.eventType)
+      DwcTerm.eventType,
+      DwcTerm.projectID)
     .build();
 
   /**
