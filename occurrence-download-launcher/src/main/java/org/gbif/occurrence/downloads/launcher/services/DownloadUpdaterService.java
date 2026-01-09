@@ -25,7 +25,6 @@ import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.registry.ws.client.BaseDownloadClient;
-import org.springframework.stereotype.Service;
 
 /**
  * Service is to be called to update the status of a download or to work with the
