@@ -103,7 +103,10 @@ public final class HiveDataTypes {
           EcoTerm.protocolReferences,
           EcoTerm.voucherInstitutions,
           EcoTerm.materialSampleTypes,
-          EcoTerm.samplingPerformedBy);
+          EcoTerm.samplingPerformedBy,
+          DwcTerm.projectTitle,
+          DwcTerm.fundingAttribution,
+          DwcTerm.fundingAttributionID);
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS =

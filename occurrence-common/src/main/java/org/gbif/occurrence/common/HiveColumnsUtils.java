@@ -111,6 +111,9 @@ public class HiveColumnsUtils {
         || EcoTerm.targetLifeStageScope == term
         || EcoTerm.targetDegreeOfEstablishmentScope == term
         || EcoTerm.excludedLifeStageScope == term
-        || EcoTerm.excludedDegreeOfEstablishmentScope == term;
+        || EcoTerm.excludedDegreeOfEstablishmentScope == term
+        || DwcTerm.projectTitle == term
+        || DwcTerm.fundingAttribution == term
+        || DwcTerm.fundingAttributionID == term;
   }
 }
