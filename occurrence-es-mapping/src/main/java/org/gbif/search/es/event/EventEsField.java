@@ -50,7 +50,6 @@ public enum EventEsField implements EsField {
   NETWORK_KEY(new BaseEsField("metadata.networkKeys", GbifInternalTerm.networkKey)),
   PROTOCOL(new BaseEsField("metadata.protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("metadata.license", DcTerm.license)),
-  PROJECT_ID(new BaseEsField("metadata.projectId", GbifTerm.projectId)),
   PROGRAMME(new BaseEsField("metadata.programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification
@@ -59,6 +58,10 @@ public enum EventEsField implements EsField {
   DATASET_ID(new BaseEsField("event.datasetID", DwcTerm.datasetID)),
   DATASET_NAME(new BaseEsField("event.datasetName", DwcTerm.datasetName, true)),
   FIELD_NUMBER(new BaseEsField("event.fieldNumber", DwcTerm.fieldNumber)),
+  PROJECT_ID(new BaseEsField("event.projectID", DwcTerm.projectID)),
+  PROJECT_TITLE(new BaseEsField("event.projectTitle", DwcTerm.projectTitle)),
+  FUNDING_ATTRIBUTION(new BaseEsField("event.fundingAttribution", DwcTerm.fundingAttribution)),
+  FUNDING_ATTRIBUTION_ID(new BaseEsField("event.fundingAttributionID", DwcTerm.fundingAttributionID)),
 
   //Temporal
   YEAR(new BaseEsField("event.year", DwcTerm.year)),
@@ -292,7 +295,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
       .put(EventSearchParameter.EVENT_ID_HIERARCHY, EVENT_ID_HIERARCHY)
       .put(EventSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)
-      .put(EventSearchParameter.PROJECT_ID, PROJECT_ID)
       .put(EventSearchParameter.PROGRAMME, PROGRAMME)
       .put(EventSearchParameter.SAMPLE_SIZE_VALUE, SAMPLE_SIZE_VALUE)
       .put(EventSearchParameter.SAMPLE_SIZE_UNIT, SAMPLE_SIZE_UNIT)
@@ -300,6 +302,10 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.DATASET_ID, DATASET_ID)
       .put(EventSearchParameter.DATASET_NAME, DATASET_NAME)
       .put(EventSearchParameter.FIELD_NUMBER, FIELD_NUMBER)
+      .put(EventSearchParameter.PROJECT_ID, PROJECT_ID)
+      .put(EventSearchParameter.PROJECT_TITLE, PROJECT_TITLE)
+      .put(EventSearchParameter.FUNDING_ATTRIBUTION, FUNDING_ATTRIBUTION)
+      .put(EventSearchParameter.FUNDING_ATTRIBUTION_ID, FUNDING_ATTRIBUTION_ID)
       .put(EventSearchParameter.GBIF_ID, GBIF_ID)
       .put(EventSearchParameter.EVENT_TYPE, EVENT_TYPE)
       .put(EventSearchParameter.VERBATIM_EVENT_TYPE, VERBATIM_EVENT_TYPE)
