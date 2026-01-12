@@ -107,6 +107,10 @@
                   <pattern>com.google.guava</pattern>
                   <shadedPattern>relocated.com.google.guava</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.text</pattern>
+                  <shadedPattern>relocated.org.apache.commons.text</shadedPattern>
+                </relocation>
               </relocations>
             </configuration>
           </execution>
