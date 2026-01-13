@@ -125,10 +125,10 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
       download.setLicense(licenseSelector.getSelectedLicense());
       LOG.info("Persisting download license: {}", download);
-      occurrenceDownloadService.update(download);
+      Download updated = occurrenceDownloadService.update(download);
 
       // TODO: remove, just for testing
-      Download updated = occurrenceDownloadService.get(configuration.getDownloadKey());
+//      Download updated = occurrenceDownloadService.get(configuration.getDownloadKey());
       LOG.info("Updated download license: {}", updated);
     } catch (Exception ex) {
       LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, licenses,
