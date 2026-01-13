@@ -124,6 +124,7 @@ public class SimpleCsvDownloadAggregator implements DownloadAggregator {
       licenses.forEach(licenseSelector::collectLicense);
       Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
       download.setLicense(licenseSelector.getSelectedLicense());
+      LOG.info("Persisting download license: {}", download);
       occurrenceDownloadService.update(download);
     } catch (Exception ex) {
       LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, licenses,
