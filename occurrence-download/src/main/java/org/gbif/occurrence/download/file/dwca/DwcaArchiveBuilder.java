@@ -169,6 +169,7 @@ public class DwcaArchiveBuilder {
         Download updatedDownload = occurrenceDownloadService.get(download.getKey());
         updatedDownload.setLicense(constituentsDatasetsProcessor.getSelectedLicense());
         updatedDownload.setTotalRecords(totalCount);
+        log.info("Persisitng download: {}", updatedDownload);
         downloadUsagesPersist.persistDownload(updatedDownload);
 
         // metadata about the entire archive data

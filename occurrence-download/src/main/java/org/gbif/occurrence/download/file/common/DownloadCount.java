@@ -42,6 +42,7 @@ public class DownloadCount {
         LOG.error("Download {} was not found!", downloadKey);
       } else {
         download.setTotalRecords(recordCount);
+        LOG.info("Updating record count of download {}", download);
         occurrenceDownloadService.update(download);
       }
     } catch (Exception ex) {

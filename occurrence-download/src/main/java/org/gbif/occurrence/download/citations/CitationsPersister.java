@@ -95,6 +95,7 @@ public final class CitationsPersister extends CitationsFileReader {
         Download download = downloadService.get(downloadKey);
         download.setLicense(licenseSelector.getSelectedLicense());
         download.setTotalRecords(totalRecords);
+        LOG.info("Updating download in citations persister: {}", downloadKey);
         downloadService.update(download);
       } catch (Exception ex) {
         LOG.error("Error persisting download license information, downloadKey: {}, licenses: {} ",
