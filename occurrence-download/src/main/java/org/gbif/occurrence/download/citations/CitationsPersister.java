@@ -92,11 +92,8 @@ public final class CitationsPersister extends CitationsFileReader {
       try {
         datasetLicenses.values().forEach(licenseSelector::collectLicense);
         Long totalRecords = sumCitations(datasetsCitation);
-        Download download = downloadService.get(downloadKey);
-        download.setLicense(licenseSelector.getSelectedLicense());
-        download.setTotalRecords(totalRecords);
-        LOG.info("Updating download in citations persister: {}", downloadKey);
-        downloadService.update(download);
+        downloadService.updateLicenseAndTotalRecords(
+            downloadKey, licenseSelector.getSelectedLicense(), totalRecords);
       } catch (Exception ex) {
         LOG.error("Error persisting download license information, downloadKey: {}, licenses: {} ",
           downloadKey, datasetLicenses.values(), ex);

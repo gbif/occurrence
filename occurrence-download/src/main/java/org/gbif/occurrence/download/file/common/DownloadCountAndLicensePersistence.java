@@ -50,8 +50,6 @@ public class DownloadCountAndLicensePersistence {
     // persists download count information.
     DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
     // persist license information.
-    Download download = occurrenceDownloadService.get(downloadKey);
-    download.setLicense(License.valueOf(license));
-    occurrenceDownloadService.update(download);
+    occurrenceDownloadService.updateLicense(downloadKey, License.valueOf(license));
   }
 }
