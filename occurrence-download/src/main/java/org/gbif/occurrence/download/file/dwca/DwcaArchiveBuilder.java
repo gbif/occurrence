@@ -165,10 +165,11 @@ public class DwcaArchiveBuilder {
         downloadUsagesPersist.persistUsages(download.getKey(), datasetUsages);
 
         Long totalCount = datasetUsages.values().stream().reduce(0L, Long::sum);
-        download.setLicense(constituentsDatasetsProcessor.getSelectedLicense());
-        download.setTotalRecords(totalCount);
-
-        downloadUsagesPersist.persistDownload(download);
+        // it's important to get the up-to-date download since it's modified in other parts of the wf
+        Download updatedDownload = occurrenceDownloadService.get(download.getKey());
+        updatedDownload.setLicense(constituentsDatasetsProcessor.getSelectedLicense());
+        updatedDownload.setTotalRecords(totalCount);
+        downloadUsagesPersist.persistDownload(updatedDownload);
 
         // metadata about the entire archive data
         metadataBuilder.writeMetadata();
