@@ -25,6 +25,7 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.CountryUsageSortField;
 import org.gbif.api.vocabulary.DatasetUsageSortField;
+import org.gbif.api.vocabulary.License;
 import org.gbif.api.vocabulary.OrganizationUsageSortField;
 import org.gbif.api.vocabulary.SortOrder;
 
@@ -244,6 +245,22 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
                 })
             .collect(Collectors.toList()));
   }
+
+  @Override
+  public void updateLicense(
+      @jakarta.validation.constraints.NotNull String s,
+      @jakarta.validation.constraints.NotNull License license) {}
+
+  @Override
+  public void updateTotalRecords(
+      @jakarta.validation.constraints.NotNull String s,
+      @jakarta.validation.constraints.NotNull long l) {}
+
+  @Override
+  public void updateLicenseAndTotalRecords(
+      @jakarta.validation.constraints.NotNull String s,
+      @jakarta.validation.constraints.NotNull License license,
+      @jakarta.validation.constraints.NotNull long l) {}
 
   @Override
   public PagingResponse<Download> listByEraseAfter(
