@@ -151,7 +151,9 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
   private void persistDownloadLicense(String downloadKey, Set<License> licenses) {
     try {
       licenses.forEach(licenseSelector::collectLicense);
-      occurrenceDownloadService.updateLicense(downloadKey, licenseSelector.getSelectedLicense());
+      License license = licenseSelector.getSelectedLicense();
+      LOG.info("Update license of download {} to {}", downloadKey, license);
+      occurrenceDownloadService.updateLicense(downloadKey, license);
     } catch (Exception ex) {
       LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
     }

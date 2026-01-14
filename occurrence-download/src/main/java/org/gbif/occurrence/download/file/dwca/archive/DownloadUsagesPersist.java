@@ -44,6 +44,7 @@ public class DownloadUsagesPersist {
    */
   public void persistDownloadLicenseAndTotalRecords(String downloadKey, License license, long totalRecords) {
     try {
+      log.info("Persist download {} with license {} and total records {}", downloadKey, license, totalRecords);
       occurrenceDownloadService.updateLicenseAndTotalRecords(downloadKey, license, totalRecords);
     } catch (Exception ex) {
       log.error("Error updating download license and total records, downloadKey: {}", downloadKey, ex);
