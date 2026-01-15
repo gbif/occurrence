@@ -207,7 +207,7 @@ public class DownloadArchiver {
     OccurrenceDownloadService occurrenceDownloadService =
         registryClientUtil.occurrenceDownloadService(download.getRequest().getType().getCoreTerm());
     // persists species count information.
-    DownloadCount.persist(
+    DownloadCount.persistTotalRecords(
         download.getKey(),
         DownloadFileUtils.readCount(workflowConfiguration.getHdfsNameNode(), countPath),
         occurrenceDownloadService);

@@ -136,7 +136,7 @@ public class ElasticDownloadWorkflow {
   private void updateTotalRecordsCount(String downloadKey, long recordCount) {
     try {
       if (recordCount != ERROR_COUNT) {
-        log.info("Updating record count({}) of download {}", recordCount, download);
+        log.info("Updating record count({}) of download {}", recordCount, downloadKey);
         downloadService.updateTotalRecords(downloadKey, recordCount);
       }
     } catch (Exception ex) {

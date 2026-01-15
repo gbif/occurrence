@@ -13,11 +13,14 @@
  */
 package org.gbif.occurrence.download.file.common;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+
+import org.gbif.api.vocabulary.License;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
 
 /** Action for Species list download, helps with counts of the number of distinct species. */
 public class DownloadCount {
@@ -27,11 +30,9 @@ public class DownloadCount {
   private DownloadCount() {}
 
   /** Updates the species record count of the download entity. */
-  public static void persist(
+  public static void persistTotalRecords(
       String downloadKey, long recordCount, OccurrenceDownloadService occurrenceDownloadService) {
     try {
-
-      LOG.info("Updating record count({}) of download {}", recordCount, downloadKey);
       if (downloadKey == null) {
         LOG.error("Download {} was not found!", downloadKey);
       } else {

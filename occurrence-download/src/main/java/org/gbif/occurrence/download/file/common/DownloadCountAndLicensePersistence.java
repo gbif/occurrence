@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.common;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.dwc.terms.DwcTerm;
@@ -48,7 +47,7 @@ public class DownloadCountAndLicensePersistence {
     RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryUser, registryPassword, registryWsURL);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(coreTerm);
     // persists download count information.
-    DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
+    DownloadCount.persistTotalRecords(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
     // persist license information.
     occurrenceDownloadService.updateLicense(downloadKey, License.valueOf(license));
   }

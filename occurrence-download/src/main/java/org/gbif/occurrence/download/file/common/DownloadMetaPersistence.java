@@ -51,6 +51,6 @@ public class DownloadMetaPersistence {
     RegistryClientUtil registryClientUtil = new RegistryClientUtil(registryUser, registryPassword, registryWsURL);
     OccurrenceDownloadService occurrenceDownloadService = registryClientUtil.occurrenceDownloadService(coreTerm);
     // persists species count information.
-    DownloadCount.persist(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
+    DownloadCount.persistTotalRecords(downloadKey, DownloadFileUtils.readCount(nameNode, countPath), occurrenceDownloadService);
   }
 }

@@ -40,7 +40,7 @@ public class DownloadUsagesPersist {
   }
 
   /**
-   * Persist upadated download.
+   * Persist updated download.
    */
   public void persistDownloadLicenseAndTotalRecords(String downloadKey, License license, long totalRecords) {
     try {
