@@ -90,7 +90,7 @@ public class ElasticDownloadWorkflow {
             .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
             .build());
 
-    updateTotalRecordsCount(download, recordCount);
+    updateTotalRecordsCount(download.getKey(), recordCount);
   }
 
   /** Method that determines if the search query produces a "small" download file. */
@@ -133,12 +133,11 @@ public class ElasticDownloadWorkflow {
   }
 
   /** Updates the record count of the download entity. */
-  private void updateTotalRecordsCount(Download download, long recordCount) {
+  private void updateTotalRecordsCount(String downloadKey, long recordCount) {
     try {
       if (recordCount != ERROR_COUNT) {
-        log.info("Updating record count({}) of download {}", recordCount, download);
-        download.setTotalRecords(recordCount);
-        downloadService.update(download);
+        log.info("Updating record count({}) of download {}", recordCount, downloadKey);
+        downloadService.updateTotalRecords(downloadKey, recordCount);
       }
     } catch (Exception ex) {
       log.error(

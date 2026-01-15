@@ -13,39 +13,38 @@
  */
 package org.gbif.occurrence.download.file.common;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+
+import org.gbif.api.vocabulary.License;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *
- * Action for Species list download, helps with counts of the number of distinct species.
- *
- */
+import java.util.Set;
+
+/** Action for Species list download, helps with counts of the number of distinct species. */
 public class DownloadCount {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadCount.class);
 
   private DownloadCount() {}
 
-  /**
-   * Updates the species record count of the download entity.
-   */
-  public static void persist(String downloadKey, long recordCount, OccurrenceDownloadService occurrenceDownloadService) {
+  /** Updates the species record count of the download entity. */
+  public static void persistTotalRecords(
+      String downloadKey, long recordCount, OccurrenceDownloadService occurrenceDownloadService) {
     try {
-
-      LOG.info("Updating record count({}) of download {}", recordCount, downloadKey);
-      Download download = occurrenceDownloadService.get(downloadKey);
-      if (download == null) {
-        LOG.error("Download {} was not found!", downloadKey);
+      if (downloadKey == null) {
+        LOG.error("Download key can't be null");
       } else {
-        download.setTotalRecords(recordCount);
-        occurrenceDownloadService.update(download);
+        LOG.info("Updating record count of download {}", downloadKey);
+        occurrenceDownloadService.updateTotalRecords(downloadKey, recordCount);
       }
     } catch (Exception ex) {
-      LOG.error("Error updating record count for download workflow {}, reported count is {}", downloadKey, recordCount, ex);
+      LOG.error(
+          "Error updating record count for download workflow {}, reported count is {}",
+          downloadKey,
+          recordCount,
+          ex);
     }
   }
 }

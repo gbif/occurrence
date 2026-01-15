@@ -22,6 +22,8 @@ import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.gbif.api.vocabulary.License;
+
 @Slf4j
 @AllArgsConstructor(staticName = "create")
 public class DownloadUsagesPersist {
@@ -38,13 +40,14 @@ public class DownloadUsagesPersist {
   }
 
   /**
-   * Persist upadated download.
+   * Persist updated download.
    */
-  public void persistDownload(Download download) {
+  public void persistDownloadLicenseAndTotalRecords(String downloadKey, License license, long totalRecords) {
     try {
-      occurrenceDownloadService.update(download);
+      log.info("Persist download {} with license {} and total records {}", downloadKey, license, totalRecords);
+      occurrenceDownloadService.updateLicenseAndTotalRecords(downloadKey, license, totalRecords);
     } catch (Exception ex) {
-      log.error("Error updating download, downloadKey: {}", download.getKey(), ex);
+      log.error("Error updating download license and total records, downloadKey: {}", downloadKey, ex);
     }
   }
 }

@@ -154,27 +154,30 @@ public class DwcaArchiveBuilder {
 
   private CitationFileReader citationFileReader() {
     return CitationFileReader.builder()
-      .sourceFs(sourceFs)
-      .citationFileName(jobConfiguration.getCitationDataFileName())
-      .datasetService(datasetService)
-      .onRead(constituentDataset -> {
-        constituentsDatasetsProcessor.accept(constituentDataset);
-        metadataBuilder.accept(constituentDataset);
-      })
-      .onFinish(datasetUsages -> {
-        downloadUsagesPersist.persistUsages(download.getKey(), datasetUsages);
+        .sourceFs(sourceFs)
+        .citationFileName(jobConfiguration.getCitationDataFileName())
+        .datasetService(datasetService)
+        .onRead(
+            constituentDataset -> {
+              constituentsDatasetsProcessor.accept(constituentDataset);
+              metadataBuilder.accept(constituentDataset);
+            })
+        .onFinish(
+            datasetUsages -> {
+              downloadUsagesPersist.persistUsages(download.getKey(), datasetUsages);
 
-        Long totalCount = datasetUsages.values().stream().reduce(0L, Long::sum);
-        download.setLicense(constituentsDatasetsProcessor.getSelectedLicense());
-        download.setTotalRecords(totalCount);
+              Long totalCount = datasetUsages.values().stream().reduce(0L, Long::sum);
+              downloadUsagesPersist.persistDownloadLicenseAndTotalRecords(
+                  download.getKey(),
+                  constituentsDatasetsProcessor.getSelectedLicense(),
+                  totalCount);
 
-        downloadUsagesPersist.persistDownload(download);
-
-        // metadata about the entire archive data
-        metadataBuilder.writeMetadata();
-        closeSilently(constituentsDatasetsProcessor);
-        deleteSilently(jobConfiguration.getCitationDataFileName());
-      }).build();
+              // metadata about the entire archive data
+              metadataBuilder.writeMetadata();
+              closeSilently(constituentsDatasetsProcessor);
+              deleteSilently(jobConfiguration.getCitationDataFileName());
+            })
+        .build();
   }
 
   @SneakyThrows

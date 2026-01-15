@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -119,8 +118,10 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
     exportToFile(outputFileName, speciesListCollector);
     LOG.debug("Create usage for download key: {}", configuration.getDownloadKey());
     occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
-    persistDownloadLicense(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetLicenses());
-    DownloadCount.persist(configuration.getDownloadKey(), speciesListCollector.getDistinctSpecies().size(), occurrenceDownloadService);
+    persistDownloadLicenseAndTotalRecords(
+        configuration.getDownloadKey(),
+        datasetUsagesCollector.getDatasetLicenses(),
+        speciesListCollector.getDistinctSpecies().size());
   }
 
   private void exportToFile(String outputFileName, SpeciesListCollector speciesListCollector) {
@@ -148,14 +149,14 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
   /**
    * Persist download license that was assigned to the occurrence download.
    */
-  private void persistDownloadLicense(String downloadKey, Set<License> licenses) {
+  private void persistDownloadLicenseAndTotalRecords(String downloadKey, Set<License> licenses, long totalRecords) {
     try {
       licenses.forEach(licenseSelector::collectLicense);
-      Download download = occurrenceDownloadService.get(configuration.getDownloadKey());
-      download.setLicense(licenseSelector.getSelectedLicense());
-      occurrenceDownloadService.update(download);
+      License license = licenseSelector.getSelectedLicense();
+      LOG.info("Update license of download {} to {}", downloadKey, license);
+      occurrenceDownloadService.updateLicenseAndTotalRecords(downloadKey, license, totalRecords);
     } catch (Exception ex) {
-      LOG.error("Error persisting download license information, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
+      LOG.error("Error persisting download license and total records, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
     }
   }
 

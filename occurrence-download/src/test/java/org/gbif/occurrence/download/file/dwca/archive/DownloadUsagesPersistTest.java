@@ -16,50 +16,49 @@ package org.gbif.occurrence.download.file.dwca.archive;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 
+import org.gbif.api.vocabulary.License;
+
 import org.junit.jupiter.api.Test;
 
 import static org.gbif.occurrence.download.file.dwca.archive.Datasets.testUsages;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-/**
- * Tests for class DownloadUsagesPersist.
- */
+/** Tests for class DownloadUsagesPersist. */
 public class DownloadUsagesPersistTest {
 
-  /**
-   * Tests the DownloadUsagesPersist.createUsages method.
-   */
+  /** Tests the DownloadUsagesPersist.createUsages method. */
   @Test
   public void persistUsagesTest() {
-    //Creates mock instances
+    // Creates mock instances
     OccurrenceDownloadService occurrenceDownloadService = mock(OccurrenceDownloadService.class);
-    DownloadUsagesPersist downloadUsagesPersist = DownloadUsagesPersist.create(occurrenceDownloadService);
+    DownloadUsagesPersist downloadUsagesPersist =
+        DownloadUsagesPersist.create(occurrenceDownloadService);
 
-    //Persists test usages
+    // Persists test usages
     downloadUsagesPersist.persistUsages("1", testUsages(3));
 
-    //Verify the mock occurrence download service is called
+    // Verify the mock occurrence download service is called
     verify(occurrenceDownloadService, times(1)).createUsages(anyString(), any());
   }
 
-  /**
-   * Tests the DownloadUsagesPersist.update method.
-   */
+  /** Tests the DownloadUsagesPersist.update method. */
   @Test
   public void persistDownloadTest() {
-    //Creates mock instances
+    // Creates mock instances
     OccurrenceDownloadService occurrenceDownloadService = mock(OccurrenceDownloadService.class);
-    DownloadUsagesPersist downloadUsagesPersist = DownloadUsagesPersist.create(occurrenceDownloadService);
+    DownloadUsagesPersist downloadUsagesPersist =
+        DownloadUsagesPersist.create(occurrenceDownloadService);
 
-    //Persists a download with a new license
-    Download download = new Download();
-    downloadUsagesPersist.persistDownload(download);
+    // Persists a download with a new license
+    downloadUsagesPersist.persistDownloadLicenseAndTotalRecords("1", License.CC_BY_4_0, 10);
 
-    //Verify the mock occurrence download service is called
-    verify(occurrenceDownloadService, times(1)).update(any());
+    // Verify the mock occurrence download service is called
+    verify(occurrenceDownloadService, times(1))
+        .updateLicenseAndTotalRecords(anyString(), any(), anyLong());
   }
 }
