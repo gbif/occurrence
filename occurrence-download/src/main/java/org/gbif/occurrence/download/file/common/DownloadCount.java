@@ -34,7 +34,7 @@ public class DownloadCount {
       String downloadKey, long recordCount, OccurrenceDownloadService occurrenceDownloadService) {
     try {
       if (downloadKey == null) {
-        LOG.error("Download {} was not found!", downloadKey);
+        LOG.error("Download key can't be null");
       } else {
         LOG.info("Updating record count of download {}", downloadKey);
         occurrenceDownloadService.updateTotalRecords(downloadKey, recordCount);

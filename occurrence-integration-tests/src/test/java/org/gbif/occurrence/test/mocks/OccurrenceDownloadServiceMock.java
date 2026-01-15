@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.test.mocks;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -36,8 +39,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jakarta.annotation.Nullable;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -98,9 +99,7 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
   }
 
   @Override
-  public long count(
-      @Nullable Set<Download.Status> set,
-      @Nullable String s) {
+  public long count(@Nullable Set<Download.Status> set, @Nullable String s) {
     return 0;
   }
 
@@ -247,20 +246,14 @@ public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService 
   }
 
   @Override
-  public void updateLicense(
-      @jakarta.validation.constraints.NotNull String s,
-      @jakarta.validation.constraints.NotNull License license) {}
+  public void updateLicense(@NotNull String s, @NotNull License license) {}
 
   @Override
-  public void updateTotalRecords(
-      @jakarta.validation.constraints.NotNull String s,
-      @jakarta.validation.constraints.NotNull long l) {}
+  public void updateTotalRecords(@NotNull String s, @NotNull long l) {}
 
   @Override
   public void updateLicenseAndTotalRecords(
-      @jakarta.validation.constraints.NotNull String s,
-      @jakarta.validation.constraints.NotNull License license,
-      @jakarta.validation.constraints.NotNull long l) {}
+      @NotNull String s, @NotNull License license, @NotNull long l) {}
 
   @Override
   public PagingResponse<Download> listByEraseAfter(
