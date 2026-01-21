@@ -17,6 +17,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 
 import lombok.experimental.UtilityClass;
+import org.apache.spark.sql.types.StructField;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
 
 @UtilityClass
@@ -36,6 +37,7 @@ public class UDFS {
     // SQL Downloads — public-visible names.
     sparkSession.udf().register(SqlDownloadFunction.DEGREE_MINUTE_SECOND_GRID_CELL_CODE.getSqlIdentifier(), new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.EEA_CELL_CODE.getSqlIdentifier(), new EeaCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.EUROSTAT_CELL_CODE.getSqlIdentifier(), new EuroStatCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.ISEA3H_CELL_CODE.getSqlIdentifier(), new Isea3hCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.MILITARY_GRID_REFERENCE_SYSTEM_CELL_CODE.getSqlIdentifier(), new MilitaryGridReferenceSystemCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.EXTENDED_QUARTER_DEGREE_GRID_CELL_CODE.getSqlIdentifier(), new ExtendedQuarterDegreeGridCellCodeUdf(), DataTypes.StringType);
@@ -47,5 +49,6 @@ public class UDFS {
     sparkSession.udf().register(SqlDownloadFunction.CONTAINS.getSqlIdentifier(), new ContainsUdf(), DataTypes.BooleanType);
     sparkSession.udf().register(SqlDownloadFunction.STRING_ARRAY_CONTAINS_GENERIC.getSqlIdentifier(), new StringArrayContainsGenericUdf(), DataTypes.BooleanType);
     sparkSession.udf().register(SqlDownloadFunction.STRING_ARRAY_LIKE_GENERIC.getSqlIdentifier(), new StringArrayLikeGenericUdf(), DataTypes.BooleanType);
+    sparkSession.udf().register("GBIF_ST_Transform", new STTransformUdf(), DataTypes.createStructType(new StructField[]{DataTypes.createStructField("x", DataTypes.DoubleType, false), DataTypes.createStructField("y", DataTypes.DoubleType, false)}));
   }
 }
