@@ -358,6 +358,26 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "RV Sol 87-03-08"),
         @Parameter(
+            name = "fundingAttribution",
+            description =
+                "The description of organizations or individuals who funded the creation of the event.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "Nippon Foundation"),
+        @Parameter(
+            name = "fundingAttributionID",
+            description =
+                "The identifiers of organizations or individuals who funded the creation of the event.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "https://www.wikidata.org/wiki/Q13102615"),
+        @Parameter(
             name = "gadmGid",
             description =
                 "A GADM geographic identifier at any level, for example AGO, AGO.1_1, AGO.1.1_1 or AGO.1.1.1_1\n\n"
@@ -1093,13 +1113,23 @@ public class OpenAPIUtils {
         @Parameter(
             name = "projectId",
             description =
-                "The identifier for a project, which is often assigned by a funded programme.\n\n"
+                "The identifier for the projects that contributed to the event.\n\n"
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
-            example = "bid-af2020-039-reg"),
+            example = "RCN276730"),
+        @Parameter(
+            name = "projectTitle",
+            description =
+                "The title for the projects that contributed to the event.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "Nippon Foundation"),
         @Parameter(
             name = "protocol",
             description =

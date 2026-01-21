@@ -263,7 +263,6 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
               occRelation.setId(v);
               event.setRelations(Collections.singletonList(occRelation));
             });
-    getStringValue(hit, PROJECT_ID).ifPresent(event::setProjectId);
     getStringValue(hit, PROGRAMME).ifPresent(event::setProgrammeAcronym);
 
     getStringValue(hit, SAMPLE_SIZE_UNIT).ifPresent(event::setSampleSizeUnit);
@@ -271,6 +270,10 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getListValueAsString(hit, DATASET_ID).ifPresent(event::setDatasetID);
     getListValueAsString(hit, DATASET_NAME).ifPresent(event::setDatasetName);
     getListValueAsString(hit, SAMPLING_PROTOCOL).ifPresent(event::setSamplingProtocol);
+    getListValueAsString(hit, PROJECT_ID).ifPresent(event::setProjectId);
+    getListValueAsString(hit, PROJECT_TITLE).ifPresent(event::setProjectTitle);
+    getListValueAsString(hit, FUNDING_ATTRIBUTION).ifPresent(event::setFundingAttribution);
+    getListValueAsString(hit, FUNDING_ATTRIBUTION_ID).ifPresent(event::setFundingAttributionID);
     setEventLineageData(hit, event);
   }
 

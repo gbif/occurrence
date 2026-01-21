@@ -86,7 +86,10 @@ public class EventTermUtils {
           DwcTerm.locality,
           DwcTerm.locationID,
           DwcTerm.institutionCode,
-          DwcTerm.collectionCode);
+          DwcTerm.collectionCode,
+          DwcTerm.projectTitle,
+          DwcTerm.fundingAttribution,
+          DwcTerm.fundingAttributionID);
 
   private static final Set<Term> TERMS_SUBJECT_TO_INTERPRETATION =
       ImmutableSet.<Term>builder()
