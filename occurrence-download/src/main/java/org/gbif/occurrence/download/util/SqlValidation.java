@@ -147,7 +147,8 @@ public class SqlValidation {
       SqlKind.OTHER_FUNCTION,
       ReturnTypes.INTEGER,
       null,
-      OperandTypes.STRING_OPTIONAL_STRING,
+      // #393: The validator would work with OperandTypes.STRING_OPTIONAL_STRING here, but Spark does not support this
+      OperandTypes.STRING_STRING,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
     // org.gbif.occurrence.hive.udf.MillisecondsToISO8601UDF
