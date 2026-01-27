@@ -9,7 +9,6 @@ public class SqlValidationTest {
 
   @Test
   public void testAllFunctionsMapped() {
-    // FIXME: delete the - 1 when EUROSTAT_CELL_CODE is added
-    assertEquals(SqlDownloadFunction.values().length - 1, SqlValidation.additionalSqlOperators().size());
+    assertEquals(SqlDownloadFunction.values().length, SqlValidation.additionalSqlOperators().size());
   }
 }

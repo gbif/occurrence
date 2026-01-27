@@ -36,7 +36,7 @@ public class UDFS {
     // SQL Downloads — public-visible names.
     sparkSession.udf().register(SqlDownloadFunction.DEGREE_MINUTE_SECOND_GRID_CELL_CODE.getSqlIdentifier(), new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.EEA_CELL_CODE.getSqlIdentifier(), new EeaCellCodeUdf(), DataTypes.StringType);
-    //FIXME: sparkSession.udf().register(SqlDownloadFunction.EUROSTAT_CELL_CODE.getSqlIdentifier(), new EuroStatCellCodeUdf(), DataTypes.StringType);
+    sparkSession.udf().register(SqlDownloadFunction.EUROSTAT_CELL_CODE.getSqlIdentifier(), new EuroStatCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.ISEA3H_CELL_CODE.getSqlIdentifier(), new Isea3hCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.MILITARY_GRID_REFERENCE_SYSTEM_CELL_CODE.getSqlIdentifier(), new MilitaryGridReferenceSystemCellCodeUdf(), DataTypes.StringType);
     sparkSession.udf().register(SqlDownloadFunction.EXTENDED_QUARTER_DEGREE_GRID_CELL_CODE.getSqlIdentifier(), new ExtendedQuarterDegreeGridCellCodeUdf(), DataTypes.StringType);
