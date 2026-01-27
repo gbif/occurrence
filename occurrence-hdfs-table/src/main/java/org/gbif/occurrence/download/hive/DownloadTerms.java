@@ -66,6 +66,9 @@ public class DownloadTerms {
           .add(GbifTerm.biostratigraphy)
           .add(GbifTerm.dnaSequenceID)
           .add(GbifTerm.checklistKey)
+          .add(DwcTerm.projectTitle)
+          .add(DwcTerm.fundingAttribution)
+          .add(DwcTerm.fundingAttributionID)
           .build();
 
   /** Terms not used in DWCA downloads. */
