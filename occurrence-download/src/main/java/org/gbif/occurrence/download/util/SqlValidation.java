@@ -110,6 +110,14 @@ public class SqlValidation {
       family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    // org.gbif.occurrence.hive.udf.EuroStatCellCodeUDF
+    additionalOperators.add(new SqlFunction(SqlDownloadFunction.EUROSTAT_CELL_CODE.getSqlIdentifier(),
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.CHAR,
+      null,
+      family(SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC, SqlTypeFamily.NUMERIC),
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.ExtendedQuarterDegreeGridCellCodeUDF
     additionalOperators.add(new SqlFunction(SqlDownloadFunction.EXTENDED_QUARTER_DEGREE_GRID_CELL_CODE.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
