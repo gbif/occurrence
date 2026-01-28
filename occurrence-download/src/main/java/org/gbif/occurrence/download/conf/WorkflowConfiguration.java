@@ -134,15 +134,6 @@ public class WorkflowConfiguration {
 
   /**
    *
-   * @return is the index nested
-   */
-  public Boolean isEsNestedIndex() {
-    Preconditions.checkNotNull(settings);
-    return getBoolSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_NESTED);
-  }
-
-  /**
-   *
    * @return Index object type to use as main object
    */
   public SearchType getEsIndexType() {
