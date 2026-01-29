@@ -222,33 +222,35 @@ public class TableBackfill {
       return;
     }
 
-    String location =
-      spark
-        .sql("DESCRIBE TABLE EXTENDED " + tableName)
-        .filter("col_name = 'Location'")
-        .first()
-        .getString(1);
+    // TODO: needs fixing https://github.com/gbif/occurrence/issues/458
+    //    String location =
+    //      spark
+    //        .sql("DESCRIBE TABLE EXTENDED " + tableName)
+    //        .filter("col_name = 'Location'")
+    //        .first()
+    //        .getString(1);
 
     spark.sql(dropTable(tableName));
 
-    FileSystem fs = FileSystem.get(spark.sparkContext().hadoopConfiguration());
-    Path locationPath = new Path(location);
-
-    if (Strings.isNullOrEmpty(location) || !fs.exists(locationPath)) {
-      log.info("Location {} of table {} does not exist", location, tableName);
-      return;
-    }
-
-    if (spark.catalog().tableExists(tableName)) {
-      log.info(
-          "Can't delete files of table {} in location {} because the table still exists",
-          tableName,
-          location);
-      return;
-    }
-
-    boolean deleted = fs.delete(locationPath, true);
-    log.info("Files of table {} in location {} deleted: {}", tableName, location, deleted);
+    // TODO: needs fixing https://github.com/gbif/occurrence/issues/458
+    //    FileSystem fs = FileSystem.get(spark.sparkContext().hadoopConfiguration());
+    //    Path locationPath = new Path(location);
+    //
+    //    if (Strings.isNullOrEmpty(location) || !fs.exists(locationPath)) {
+    //      log.info("Location {} of table {} does not exist", location, tableName);
+    //      return;
+    //    }
+    //
+    //    if (spark.catalog().tableExists(tableName)) {
+    //      log.info(
+    //          "Can't delete files of table {} in location {} because the table still exists",
+    //          tableName,
+    //          location);
+    //      return;
+    //    }
+    //
+    //    boolean deleted = fs.delete(locationPath, true);
+    //    log.info("Files of table {} in location {} deleted: {}", tableName, location, deleted);
   }
 
   public void run(Command command) {
