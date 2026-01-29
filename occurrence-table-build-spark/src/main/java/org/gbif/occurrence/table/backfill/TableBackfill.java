@@ -585,8 +585,8 @@ public class TableBackfill {
                                 col(columnName))
                             .alias(columnName);
                   } else {
-                    // If column is missing, return a NULL column with the correct name
-                    return lit(null).cast("string").alias(columnName);
+                    // If column is missing, return a NULL column with the correct name and correct type
+                    return lit(null).cast(field.getHiveDataType()).alias(columnName);
                   }
                 })
             .collect(Collectors.toList());
