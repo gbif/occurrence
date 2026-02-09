@@ -61,6 +61,11 @@ registry:
   ws:
     url: @registry.ws.url@
 spring:
+  cloud:
+    zookeeper:
+      enabled: false
+      discovery:
+        enabled: false
   liquibase:
     enabled: false
   mail:
