@@ -7,7 +7,7 @@ pipeline {
     jdk 'OpenJDK17'
   }
   options {
-    buildDiscarder(logRotator(numToKeepStr: '5'))
+    buildDiscarder(logRotator(numToKeepStr: '6'))
     skipStagesAfterUnstable()
     timestamps()
   }
