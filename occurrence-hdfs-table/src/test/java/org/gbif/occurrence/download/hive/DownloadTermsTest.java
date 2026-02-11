@@ -8,7 +8,7 @@ public class DownloadTermsTest {
 
   @Test
   public void newEventTermsTest() {
-    Assertions.assertFalse(
+    Assertions.assertTrue(
         DownloadTerms.DOWNLOAD_VERBATIM_TERMS.contains(DwcTerm.fundingAttribution));
     Assertions.assertTrue(
         EventDownloadTerms.DOWNLOAD_VERBATIM_TERMS.contains(DwcTerm.fundingAttribution));
