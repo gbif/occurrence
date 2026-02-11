@@ -312,10 +312,7 @@ public class TermUtils {
       DwcTerm.member,
       DwcTerm.bed,
       GbifTerm.projectId,
-      DwcTerm.eventType,
-      DwcTerm.projectTitle,
-      DwcTerm.fundingAttribution,
-      DwcTerm.fundingAttributionID
+      DwcTerm.eventType
     );
 
   /**
@@ -371,7 +368,10 @@ public class TermUtils {
       DwcTerm.maximumElevationInMeters,
       DwcTerm.associatedMedia,
       DwcTerm.eventType,
-      DwcTerm.projectID)
+      DwcTerm.projectID,
+      DwcTerm.projectTitle,
+      DwcTerm.fundingAttribution,
+      DwcTerm.fundingAttributionID)
     .build();
 
   /**
