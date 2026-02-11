@@ -65,7 +65,7 @@ public abstract class Queries {
             ? EventDownloadTerms.DOWNLOAD_VERBATIM_TERMS
             : DownloadTerms.DOWNLOAD_VERBATIM_TERMS;
 
-    for (Term term : DownloadTerms.DOWNLOAD_VERBATIM_TERMS) {
+    for (Term term : verbatimTerms) {
       if (GbifTerm.gbifID == term) {
         continue; // for safety, we code defensively as it may be added
       }
