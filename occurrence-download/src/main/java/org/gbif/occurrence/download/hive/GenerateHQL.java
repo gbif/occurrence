@@ -212,7 +212,7 @@ public class GenerateHQL {
 
     ImmutableMap.Builder<String, Object> dataBuilder =
         ImmutableMap.<String, Object>builder()
-            .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields().values())
+            .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields(queryParameters.getCoreTerm()).values())
             .put(
                 "interpretedFields",
                 getQueries(queryParameters.getCoreTerm())

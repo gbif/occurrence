@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>1.1.15-SNAPSHOT</version>
+  <version>1.1.17-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -40,14 +40,6 @@
   </distributionManagement>
 
   <repositories>
-    <repository>
-      <id>gbif-all</id>
-      <url>https://repository.gbif.org/content/groups/gbif</url>
-    </repository>
-    <repository>
-      <id>gbif-central</id>
-      <url>https://repository.gbif.org/repository/central/</url>
-    </repository>
     <repository>
       <id>gbif-release</id>
       <url>https://repository.gbif.org/repository/releases/</url>

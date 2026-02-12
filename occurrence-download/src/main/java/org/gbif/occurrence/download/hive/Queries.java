@@ -47,16 +47,25 @@ public abstract class Queries {
     );
   }
 
+  public Map<String, InitializableField> selectVerbatimFields() {
+    return selectVerbatimFields(DwcTerm.Occurrence);
+  }
+
   /**
    * @return the select fields for the verbatim download fields.
    */
-  public Map<String, InitializableField> selectVerbatimFields() {
+  public Map<String, InitializableField> selectVerbatimFields(DwcTerm coreTerm) {
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
     result.put(GbifTerm.gbifID.simpleName(), selectGbifId());
 
-    for (Term term : DownloadTerms.DOWNLOAD_VERBATIM_TERMS) {
+    Set<Term> verbatimTerms =
+        DwcTerm.Event == coreTerm
+            ? EventDownloadTerms.DOWNLOAD_VERBATIM_TERMS
+            : DownloadTerms.DOWNLOAD_VERBATIM_TERMS;
+
+    for (Term term : verbatimTerms) {
       if (GbifTerm.gbifID == term) {
         continue; // for safety, we code defensively as it may be added
       }

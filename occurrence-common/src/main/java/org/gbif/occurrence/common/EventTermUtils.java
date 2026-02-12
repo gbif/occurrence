@@ -3,11 +3,14 @@ package org.gbif.occurrence.common;
 import static org.gbif.occurrence.common.TermUtils.*;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.dwc.terms.*;
 
 /** This class customizes some of the methods and variables of TermUtils to apply them to events. */
@@ -153,4 +156,22 @@ public class EventTermUtils {
   public static boolean isInterpretedSourceTerm(Term term) {
     return TERMS_SUBJECT_TO_INTERPRETATION.contains(term);
   }
+
+  /**
+   * Returns the map of term→value for all terms which, after interpretation, have the same value on
+   * all occurrences. In Darwin Core Archive terms, this is a default value.
+   */
+  public static Map<Term, String> identicalInterpretedTerms() {
+    return TERMS_IDENTICAL_AFTER_INTERPRETATION;
+  }
+
+  /**
+   * The map of term→value for terms that, after interpretation, have the same value for all
+   * occurrences.
+   *
+   * <p>For example, coordinates are reprojected to WGS84, so dwc:geodeticDatum is "WGS84" for all
+   * occurrences.
+   */
+  private static final Map<Term, String> TERMS_IDENTICAL_AFTER_INTERPRETATION =
+      ImmutableMap.<Term, String>builder().put(DwcTerm.geodeticDatum, Occurrence.GEO_DATUM).build();
 }
