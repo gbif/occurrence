@@ -38,14 +38,14 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.occurrence.common.EventTermUtils;
 import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
-/**
- * Utility class for Darwin Core Archive handling during the download file creation.
- */
+/** Utility class for Darwin Core Archive handling during the download file creation. */
 @Slf4j
 @UtilityClass
 public class DwcArchiveUtils {
@@ -53,16 +53,15 @@ public class DwcArchiveUtils {
   private static final String DEFAULT_DELIMITER = ";";
 
   /**
-   * Creates a new archive file description for a DwC archive and sets the id field to the column of gbifID.
-   * Used to generate the meta.xml with the help of the dwca-writer
+   * Creates a new archive file description for a DwC archive and sets the id field to the column of
+   * gbifID. Used to generate the meta.xml with the help of the dwca-writer
    */
-  public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns) {
+  public static ArchiveFile createArchiveFile(
+      String filename, Term rowType, Iterable<? extends Term> columns) {
     return createArchiveFile(filename, rowType, columns, Collections.emptyMap());
   }
 
-  /**
-   * Adds archive fields derived from the columns.
-   */
+  /** Adds archive fields derived from the columns. */
   private static void addArchiveFields(ArchiveFile af, Iterable<? extends Term> columns) {
     int index = 0;
     for (Term term : columns) {
@@ -77,11 +76,10 @@ public class DwcArchiveUtils {
     }
   }
 
-  /**
-   * Adds fields with default values.
-   */
-  private static void addDefaultValuedFields(ArchiveFile af,  Map<? extends Term,String> defaultColumns) {
-    for (Map.Entry<? extends Term,String> defaultTerm : defaultColumns.entrySet()) {
+  /** Adds fields with default values. */
+  private static void addDefaultValuedFields(
+      ArchiveFile af, Map<? extends Term, String> defaultColumns) {
+    for (Map.Entry<? extends Term, String> defaultTerm : defaultColumns.entrySet()) {
       ArchiveField defaultField = new ArchiveField();
       defaultField.setTerm(defaultTerm.getKey());
       defaultField.setDefaultValue(defaultTerm.getValue());
@@ -90,14 +88,17 @@ public class DwcArchiveUtils {
   }
 
   /**
-   * Creates a new archive file description for a DwC archive and sets the id field to the column of gbifID.
-   * Used to generate the meta.xml with the help of the dwca-writer
+   * Creates a new archive file description for a DwC archive and sets the id field to the column of
+   * gbifID. Used to generate the meta.xml with the help of the dwca-writer
    */
-  public static ArchiveFile createArchiveFile(String filename, Term rowType, Iterable<? extends Term> columns,
-                                              Map<? extends Term,String> defaultColumns) {
+  public static ArchiveFile createArchiveFile(
+      String filename,
+      Term rowType,
+      Iterable<? extends Term> columns,
+      Map<? extends Term, String> defaultColumns) {
     ArchiveFile af = buildBaseArchive(filename, rowType);
 
-    //Add archive fields
+    // Add archive fields
     addArchiveFields(af, columns);
     addDefaultValuedFields(af, defaultColumns);
 
@@ -109,9 +110,7 @@ public class DwcArchiveUtils {
     return af;
   }
 
-  /**
-   * Utility function that creates an archive with common/default settings.
-   */
+  /** Utility function that creates an archive with common/default settings. */
   private static ArchiveFile buildBaseArchive(String filename, Term rowType) {
     ArchiveFile af = new ArchiveFile();
     af.addLocation(filename);
@@ -124,9 +123,7 @@ public class DwcArchiveUtils {
     return af;
   }
 
-  /**
-   * Creates a meta.xml occurrence descriptor file in the directory parameter.
-   */
+  /** Creates a meta.xml occurrence descriptor file in the directory parameter. */
   public static void createOccurrenceArchiveDescriptor(File directory, Set<Extension> extensions) {
     createArchiveDescriptor(
         directory,
@@ -147,18 +144,37 @@ public class DwcArchiveUtils {
         interpretedExtensions);
   }
 
-  public static void createArchiveDescriptor(File directory, String interpretedFileName, DwcTerm coreTerm, Set<Extension> verbatimExtensions, Set<Extension> interpretedExtensions) {
+  public static void createArchiveDescriptor(
+      File directory,
+      String interpretedFileName,
+      DwcTerm coreTerm,
+      Set<Extension> verbatimExtensions,
+      Set<Extension> interpretedExtensions) {
     log.info("Creating archive meta.xml descriptor");
 
     Archive downloadArchive = new Archive();
 
-    ArchiveFile core = createArchiveFile(interpretedFileName, coreTerm, DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID, TermUtils.identicalInterpretedTerms());
+    ArchiveFile core =
+        createArchiveFile(
+            interpretedFileName,
+            coreTerm,
+            DwcTerm.Event == coreTerm
+                ? EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID
+                : DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID,
+            DwcTerm.Event == coreTerm
+                ? EventTermUtils.identicalInterpretedTerms()
+                : TermUtils.identicalInterpretedTerms());
     downloadArchive.setCore(core);
 
-    ArchiveFile verbatim = createArchiveFile(VERBATIM_FILENAME, coreTerm, TermUtils.verbatimTerms());
+    ArchiveFile verbatim =
+        createArchiveFile(
+            VERBATIM_FILENAME,
+            coreTerm,
+            DwcTerm.Event == coreTerm ? EventTermUtils.verbatimTerms() : TermUtils.verbatimTerms());
     downloadArchive.addExtension(verbatim);
 
-    ArchiveFile multimedia = createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
+    ArchiveFile multimedia =
+        createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
     downloadArchive.addExtension(multimedia);
 
     if (DwcTerm.Event == coreTerm) {
@@ -189,22 +205,21 @@ public class DwcArchiveUtils {
     addMetaFile(directory, downloadArchive);
   }
 
-  /**
-   * Creates an extension archive.
-   */
+  /** Creates an extension archive. */
   private ArchiveFile createExtensionArchiveFile(Extension extension) {
     ExtensionTable extensionTable = new ExtensionTable(extension);
-    return createArchiveFile("verbatim/" + extensionTable.getHiveTableName() + ".txt",
-                             extensionTable.getTerm(),
-                             extensionTable.getInterpretedFieldsAsTerms());
+    return createArchiveFile(
+        "verbatim/" + extensionTable.getHiveTableName() + ".txt",
+        extensionTable.getTerm(),
+        extensionTable.getInterpretedFieldsAsTerms());
   }
 
-  /**
-   * Adds all the requested extensions.
-   */
-  private void addVerbatimExtensionsFiles(Set<Extension> verbatimExtensions, Archive downloadArchive) {
+  /** Adds all the requested extensions. */
+  private void addVerbatimExtensionsFiles(
+      Set<Extension> verbatimExtensions, Archive downloadArchive) {
     if (verbatimExtensions != null) {
-      verbatimExtensions.forEach(extension -> downloadArchive.addExtension(createExtensionArchiveFile(extension)));
+      verbatimExtensions.forEach(
+          extension -> downloadArchive.addExtension(createExtensionArchiveFile(extension)));
     }
   }
 
@@ -214,5 +229,4 @@ public class DwcArchiveUtils {
     File metaFile = new File(directory, DESCRIPTOR_FILENAME);
     MetaDescriptorWriter.writeMetaFile(metaFile, downloadArchive);
   }
-
 }
