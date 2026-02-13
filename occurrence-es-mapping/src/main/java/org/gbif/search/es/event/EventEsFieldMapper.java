@@ -50,4 +50,6 @@ public class EventEsFieldMapper extends BaseEsFieldMapper<EventSearchParameter> 
         fieldEnumClass,
         facetToEsMapping);
   }
+
+  // TODO: override geoShapeField
 }

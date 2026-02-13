@@ -122,6 +122,8 @@ public class EventTermUtils {
                             && !TERMS_POPULATED_BY_INTERPRETATION.contains(t))
                 .collect(Collectors.toList()))
         .addAll(TERMS_POPULATED_BY_INTERPRETATION)
+        .add(DwcTerm.measurementType)
+        .add(ObisTerm.measurementTypeID)
         .build();
   }
 
