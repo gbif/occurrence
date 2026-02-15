@@ -297,7 +297,15 @@ public class DownloadMaster extends AbstractActor {
    */
   public static class Start { }
 
-  /** Creates an instance of the download actor/job to be used. */
+  /** 
+   * Creates an instance of the download actor/job to be used. 
+   * 
+   * THREADING NOTE: The returned Props are used with RoundRobinPool to create multiple actor
+   * instances that process downloads concurrently. Each actor shares the same SearchHitConverter
+   * and OccurrenceEsResponseParser instances. The SearchHitConverter.mapTerm() method must be
+   * thread-safe to avoid ConcurrentModificationException when multiple actors process verbatim
+   * fields simultaneously.
+   */
   private Props createDownloadActor() {
 
     DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();

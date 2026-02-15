@@ -335,13 +335,19 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
   /**
    * Re-maps terms to handle Unknown terms. This has to be done because Pipelines preserve Unknown
    * terms and do not add the URI for unknown terms.
+   * 
+   * THREAD SAFETY: TermFactory.findTerm() can modify internal HashMap via addTerm() when creating
+   * unknown terms. In multi-threaded contexts (e.g., Akka actors with RoundRobinPool), this causes
+   * ConcurrentModificationException. Synchronization on TERM_FACTORY ensures thread-safe access.
    */
   protected static Term mapTerm(String verbatimTerm) {
-    Term term = TERM_FACTORY.findTerm(verbatimTerm);
-    if (term instanceof UnknownTerm) {
-      return UnknownTerm.build(term.simpleName(), false);
+    synchronized (TERM_FACTORY) {
+      Term term = TERM_FACTORY.findTerm(verbatimTerm);
+      if (term instanceof UnknownTerm) {
+        return UnknownTerm.build(term.simpleName(), false);
+      }
+      return term;
     }
-    return term;
   }
 
   @Override
