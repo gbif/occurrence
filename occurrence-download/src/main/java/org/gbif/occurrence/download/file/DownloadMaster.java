@@ -190,6 +190,13 @@ public class DownloadMaster extends AbstractActor {
 
   /**
    * Executes a search and get number of records.
+   * 
+   * POTENTIAL HANG POINT: This search request does not set an explicit query-level timeout.
+   * It relies solely on the HTTP client's socketTimeout (default 100 seconds from EsConfig).
+   * If Elasticsearch is slow or overloaded, this call could hang for up to socketTimeout duration.
+   * Since this is called during actor initialization (runActors method), a hang here will prevent
+   * the download from starting and may appear as if the job is stuck "calling ES".
+   * Consider adding: searchSourceBuilder.timeout(TimeValue) to set an explicit query timeout.
    */
   private Long getSearchCount(String query) {
     try {
