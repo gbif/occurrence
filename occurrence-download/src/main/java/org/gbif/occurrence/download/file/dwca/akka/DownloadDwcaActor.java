@@ -41,7 +41,6 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
-import org.gbif.dwc.terms.GbifDnaTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -189,13 +188,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
         row.entrySet().stream()
             .collect(
                 Collectors.toMap(
-                    e -> {
-                      if (e.getKey() == GbifDnaTerm.dna_sequence) {
-                        return "dnasequence";
-                      }
-
-                      return HiveColumns.columnFor(e.getKey());
-                    },
+                    e -> normalizeFieldName(HiveColumns.columnFor(e.getKey())),
                     Map.Entry::getValue)));
     return extensionData;
   }
