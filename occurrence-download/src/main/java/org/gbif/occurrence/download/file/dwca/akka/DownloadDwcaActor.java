@@ -184,8 +184,12 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     Map<String,String> extensionData = new LinkedHashMap<>();
     extensionData.put("gbifid", getRecordKey(record));
     extensionData.put("datasetkey", record.getDatasetKey().toString());
-    extensionData.putAll(row.entrySet().stream()
-                           .collect(Collectors.toMap(e -> HiveColumns.columnFor(e.getKey()), Map.Entry::getValue)));
+    extensionData.putAll(
+        row.entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    e -> normalizeFieldName(HiveColumns.columnFor(e.getKey())),
+                    Map.Entry::getValue)));
     return extensionData;
   }
 
@@ -336,5 +340,17 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     public String execute(Object value, CsvContext context) {
       return value != null ? DownloadUtils.ISO_8601_ZONED.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
     }
+  }
+
+  // Copied from XmlToAvscGeneratorMojo. They must match to use the same names as in the avro schemas
+  private String normalizeFieldName(String name) {
+    String normalizedNamed = name.toLowerCase().trim()
+      .replace("-", "")
+      .replace("_", "")
+      .replace(":", "_");
+    if (Character.isDigit(normalizedNamed.charAt(0))) {
+      return '_' + normalizedNamed;
+    }
+    return normalizedNamed;
   }
 }
