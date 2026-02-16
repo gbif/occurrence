@@ -188,6 +188,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
         row.entrySet().stream()
             .collect(
                 Collectors.toMap(
+                    // the normalization is needed because the avro schemas of the extensions tables
+                    // do it but ES fields aren't normalized so they don't match
                     e -> normalizeFieldName(HiveColumns.columnFor(e.getKey())),
                     Map.Entry::getValue)));
     return extensionData;
