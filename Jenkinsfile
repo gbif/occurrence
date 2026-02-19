@@ -115,6 +115,7 @@ pipeline {
       }
       steps {
         build job: "occurrence-ws-dev-deploy", wait: false, propagate: false
+        build job: "events-ws-dev-deploy", wait: false, propagate: false
       }
     }
 
