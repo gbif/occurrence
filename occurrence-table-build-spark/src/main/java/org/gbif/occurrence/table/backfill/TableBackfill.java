@@ -33,12 +33,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.avro.Schema;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.avro.SchemaConverters;
 import org.apache.spark.sql.functions;
 import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.DataType;
@@ -46,10 +49,12 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.MapType;
 import org.apache.spark.sql.types.StructType;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.download.hive.EventAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.EventHDFSTableDefinition;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.InitializableField;
+import org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
 import org.gbif.occurrence.spark.udf.UDFS;
 
@@ -306,7 +311,7 @@ public class TableBackfill {
           "Creating Avro table {} from source directory {}",
           configuration.getTableName(),
           fromSourceDir);
-      Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
+      Dataset<Row> input = spark.read().format("avro").schema(getAvroSchema(configuration.getCoreName()).toString()).load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
       if (configuration.getTablePartitions() != null
@@ -720,6 +725,14 @@ public class TableBackfill {
       return EventHDFSTableDefinition.definition();
     } else {
       return OccurrenceHDFSTableDefinition.definition();
+    }
+  }
+
+  private Schema getAvroSchema(String coreName) {
+    if (coreName.equalsIgnoreCase("event")) {
+      return EventAvroHdfsTableDefinition.avroDefinition();
+    } else {
+      return OccurrenceAvroHdfsTableDefinition.avroDefinition();
     }
   }
 }
