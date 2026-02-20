@@ -23,6 +23,7 @@ import static org.gbif.occurrence.common.TermUtils.INTERPRETED_HUMBOLDT_TERMS;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.avro.Schema;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -47,6 +47,7 @@ import org.apache.spark.sql.types.ArrayType;
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.MapType;
+import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.download.hive.EventAvroHdfsTableDefinition;
@@ -114,9 +115,7 @@ public class TableBackfill {
             .enableHiveSupport()
             .config("spark.sql.catalog.iceberg.type", "hive")
             .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
-            .config("spark.sql.defaultCatalog", "iceberg")
-            .config("spark.sql.avro.schemaEvolution.enabled", "true")
-            .config("spark.sql.avro.schemaEvolution.fillDefaultValues", "true");
+            .config("spark.sql.defaultCatalog", "iceberg");
 
     if (configuration.getHiveThriftAddress() != null) {
       sparkBuilder
@@ -311,7 +310,7 @@ public class TableBackfill {
           "Creating Avro table {} from source directory {}",
           configuration.getTableName(),
           fromSourceDir);
-      Dataset<Row> input = spark.read().format("avro").schema(getAvroSchema(configuration.getCoreName()).toString()).load(fromSourceDir + "/*.avro");
+      Dataset<Row> input = spark.read().format("avro").schema(getSchema(configuration.getCoreName())).load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
       if (configuration.getTablePartitions() != null
@@ -728,11 +727,35 @@ public class TableBackfill {
     }
   }
 
-  private Schema getAvroSchema(String coreName) {
+  private StructType getSchema(String coreName) {
+    Schema schema = null;
     if (coreName.equalsIgnoreCase("event")) {
-      return EventAvroHdfsTableDefinition.avroDefinition();
+       schema = EventAvroHdfsTableDefinition.avroDefinition();
     } else {
-      return OccurrenceAvroHdfsTableDefinition.avroDefinition();
+      schema = OccurrenceAvroHdfsTableDefinition.avroDefinition();
     }
+
+      List<StructField> fields = new ArrayList<>();
+      for (Schema.Field field : schema.getFields()) {
+        String fieldName = field.name();
+        Schema fieldSchema = field.schema();
+        DataType sparkType = SchemaConverters.toSqlType(fieldSchema).dataType();
+        boolean nullable = isNullable(fieldSchema);
+
+        fields.add(DataTypes.createStructField(fieldName, sparkType, nullable));
+      }
+
+      return DataTypes.createStructType(fields);
+    }
+
+  private static boolean isNullable(Schema avroSchema) {
+    if (avroSchema.getType() == Schema.Type.UNION) {
+      for (Schema s : avroSchema.getTypes()) {
+        if (s.getType() == Schema.Type.NULL) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
