@@ -304,7 +304,8 @@ public class TableBackfill {
           "Creating Avro table {} from source directory {}",
           configuration.getTableName(),
           fromSourceDir);
-      Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
+      Dataset<Row> input =
+          spark.read().option("mergeSchema", "true").format("avro").load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
       if (configuration.getTablePartitions() != null
@@ -578,7 +579,6 @@ public class TableBackfill {
 
                   // Check if column exists in the Avro file
                   if (availableColumns.contains(columnName)) {
-                    log.info("Available column: {}", columnName);
                     return field.getInitializer().equals(columnName)
                         ? col(columnName)
                         : callUDF(
@@ -588,7 +588,6 @@ public class TableBackfill {
                                 col(columnName))
                             .alias(columnName);
                   } else {
-                    log.info("Missing column: {}", columnName);
                     // If column is missing, return a NULL column with the correct name and correct type
                     return lit(null).cast(field.getHiveDataType()).alias(columnName);
                   }
