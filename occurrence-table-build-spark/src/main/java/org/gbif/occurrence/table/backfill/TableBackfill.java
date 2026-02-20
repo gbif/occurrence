@@ -320,7 +320,7 @@ public class TableBackfill {
                 .drop("_salted_key");
       }
 
-      input.writeTo(saveToTable).append();
+      input.writeTo(saveToTable).option("mergeSchema", "true") .append();
     }
   }
 
