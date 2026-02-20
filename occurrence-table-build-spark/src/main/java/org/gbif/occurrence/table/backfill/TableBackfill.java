@@ -109,7 +109,9 @@ public class TableBackfill {
             .enableHiveSupport()
             .config("spark.sql.catalog.iceberg.type", "hive")
             .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
-            .config("spark.sql.defaultCatalog", "iceberg");
+            .config("spark.sql.defaultCatalog", "iceberg")
+            .config("spark.sql.avro.schemaEvolution.enabled", "true")
+            .config("spark.sql.avro.schemaEvolution.fillDefaultValues", "true");
 
     if (configuration.getHiveThriftAddress() != null) {
       sparkBuilder
@@ -304,8 +306,7 @@ public class TableBackfill {
           "Creating Avro table {} from source directory {}",
           configuration.getTableName(),
           fromSourceDir);
-      Dataset<Row> input =
-          spark.read().option("mergeSchema", "true").format("avro").load(fromSourceDir + "/*.avro");
+      Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
       if (configuration.getTablePartitions() != null
@@ -320,7 +321,7 @@ public class TableBackfill {
                 .drop("_salted_key");
       }
 
-      input.writeTo(saveToTable).option("mergeSchema", "true") .append();
+      input.writeTo(saveToTable).append();
     }
   }
 
