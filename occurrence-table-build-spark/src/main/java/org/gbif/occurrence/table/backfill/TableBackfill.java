@@ -310,7 +310,7 @@ public class TableBackfill {
           "Creating Avro table {} from source directory {}",
           configuration.getTableName(),
           fromSourceDir);
-      Dataset<Row> input = spark.read().format("avro").schema(getSchema(configuration.getCoreName())).load(fromSourceDir + "/*.avro");
+      Dataset<Row> input = spark.read().format("avro").load(fromSourceDir + "/*.avro");
       input = input.select(select.apply(input));
 
       if (configuration.getTablePartitions() != null
@@ -725,37 +725,5 @@ public class TableBackfill {
     } else {
       return OccurrenceHDFSTableDefinition.definition();
     }
-  }
-
-  private StructType getSchema(String coreName) {
-    Schema schema = null;
-    if (coreName.equalsIgnoreCase("event")) {
-       schema = EventAvroHdfsTableDefinition.avroDefinition();
-    } else {
-      schema = OccurrenceAvroHdfsTableDefinition.avroDefinition();
-    }
-
-      List<StructField> fields = new ArrayList<>();
-      for (Schema.Field field : schema.getFields()) {
-        String fieldName = field.name();
-        Schema fieldSchema = field.schema();
-        DataType sparkType = SchemaConverters.toSqlType(fieldSchema).dataType();
-        boolean nullable = isNullable(fieldSchema);
-
-        fields.add(DataTypes.createStructField(fieldName, sparkType, nullable));
-      }
-
-      return DataTypes.createStructType(fields);
-    }
-
-  private static boolean isNullable(Schema avroSchema) {
-    if (avroSchema.getType() == Schema.Type.UNION) {
-      for (Schema s : avroSchema.getTypes()) {
-        if (s.getType() == Schema.Type.NULL) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }
