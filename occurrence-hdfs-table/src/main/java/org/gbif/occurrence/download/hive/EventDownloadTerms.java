@@ -21,6 +21,7 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.EventTermUtils;
 
@@ -55,6 +56,8 @@ public class EventDownloadTerms {
           .add(GbifTerm.biostratigraphy)
           .add(GbifTerm.dnaSequenceID)
           .add(GbifTerm.checklistKey)
+          .add(DwcTerm.measurementType)
+          .add(ObisTerm.measurementTypeID)
           .build();
 
   /** Terms not used in DWCA downloads. */

@@ -214,8 +214,8 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "acceptedTaxonKey",
             description =
-                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). " +
-                  "Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
+                "A taxon key from the GBIF backbone or the specified checklist (see checklistKey parameter). "
+                    + "Only synonym taxa are included in the search, so a search for Aves with acceptedTaxonKey=212 (i.e. [/occurrence/search?taxonKey=212](https://api.gbif.org/v1/occurrence/search?acceptedTaxonKey=212)) will match occurrences identified as birds, but not any known family, genus or species of bird."
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(
@@ -280,13 +280,14 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "212"),
         @Parameter(
-          name = "checklistKey",
-          description = "*Experimental.* The checklist key. This determines which taxonomy will be used for "
-            + "the search in conjunction with other taxon keys or scientificName. If this is not specified, the GBIF "
-            + "backbone taxonomy will be used.",
-          schema = @Schema(implementation = String.class),
-          in = ParameterIn.QUERY,
-          example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
+            name = "checklistKey",
+            description =
+                "*Experimental.* The checklist key. This determines which taxonomy will be used for "
+                    + "the search in conjunction with other taxon keys or scientificName. If this is not specified, the GBIF "
+                    + "backbone taxonomy will be used.",
+            schema = @Schema(implementation = String.class),
+            in = ParameterIn.QUERY,
+            example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
         @Parameter(
             name = "collectionCode",
             description =
@@ -372,17 +373,17 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
         @Parameter(
-          name = "day",
-          description =
-            "The day of the month, a number between 1 and 31.\n\n"
-              + API_PARAMETER_RANGE_OR_REPEAT,
-          array =
-          @ArraySchema(
-            uniqueItems = true,
-            schema = @Schema(implementation = Short.class, minimum = "1", maximum = "31")),
-          explode = Explode.TRUE,
-          in = ParameterIn.QUERY,
-          example = "15"),
+            name = "day",
+            description =
+                "The day of the month, a number between 1 and 31.\n\n"
+                    + API_PARAMETER_RANGE_OR_REPEAT,
+            array =
+                @ArraySchema(
+                    uniqueItems = true,
+                    schema = @Schema(implementation = Short.class, minimum = "1", maximum = "31")),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "15"),
         @Parameter(
             name = "decimalLatitude",
             description =
@@ -1400,33 +1401,33 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "urn:lsid:dyntaxa.se:Taxon:103026"),
         @Parameter(
-          name = "taxonomicIssue",
-          description =
-            "*Experimental.* A specific taxonomic interpretation issue as defined in our " +
-              "OccurrenceIssue enumeration.\n\n"
-              + API_PARAMETER_MAY_BE_REPEATED,
-          array = @ArraySchema(
-            uniqueItems = true,
-            schema = @Schema(
-              type = "string",
-              allowableValues = {
-                "TAXON_MATCH_FUZZY",
-                "TAXON_MATCH_HIGHERRANK",
-                "TAXON_MATCH_AGGREGATE",
-                "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
-                "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
-                "TAXON_MATCH_TAXON_ID_IGNORED",
-                "SCIENTIFIC_NAME_ID_NOT_FOUND",
-                "TAXON_CONCEPT_ID_NOT_FOUND",
-                "TAXON_ID_NOT_FOUND",
-                "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
-                "TAXON_MATCH_NONE"
-              }
-            )
-          ),
-          explode = Explode.TRUE,
-          in = ParameterIn.QUERY,
-          example = "TAXON_CONCEPT_ID_NOT_FOUND"),
+            name = "taxonomicIssue",
+            description =
+                "*Experimental.* A specific taxonomic interpretation issue as defined in our "
+                    + "OccurrenceIssue enumeration.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(
+                    uniqueItems = true,
+                    schema =
+                        @Schema(
+                            type = "string",
+                            allowableValues = {
+                              "TAXON_MATCH_FUZZY",
+                              "TAXON_MATCH_HIGHERRANK",
+                              "TAXON_MATCH_AGGREGATE",
+                              "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+                              "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+                              "TAXON_MATCH_TAXON_ID_IGNORED",
+                              "SCIENTIFIC_NAME_ID_NOT_FOUND",
+                              "TAXON_CONCEPT_ID_NOT_FOUND",
+                              "TAXON_ID_NOT_FOUND",
+                              "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+                              "TAXON_MATCH_NONE"
+                            })),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "TAXON_CONCEPT_ID_NOT_FOUND"),
         @Parameter(
             name = "taxonomicStatus",
             description =
@@ -1517,9 +1518,26 @@ public class OccurrenceSearchResource {
                 "The DNA sequence of a record as it comes in the DNA derived data extension",
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
-            example =
-                "TATTCTTTATTTTATTTTTGGAATATGAATACAACCTTTTTTGATCCATCAGGAGGAGGAGATCCTATTCTTTAT",
+            example = "TATTCTTTATTTTATTTTTGGAATATGAATACAACCTTTTTTGATCCATCAGGAGGAGGAGATCCTATTCTTTAT",
             hidden = true),
+        @Parameter(
+            name = "measurementType",
+            description =
+                "The measurement type of the record as it comes in the measurement or fact extension.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY),
+        @Parameter(
+            name = "measurementTypeID",
+            description =
+                "The measurement type ID of the record as it comes in the extended measurement or fact extension.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "matchCase",
             description = "*Experimental.* Indicates if the search has to be case sensitive",
@@ -1527,11 +1545,11 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "true"),
         @Parameter(
-          name = "shuffle",
-          description = "*Experimental.* Seed to sort the results randomly.",
-          schema = @Schema(implementation = String.class),
-          in = ParameterIn.QUERY,
-          example = "abcdefgh"),
+            name = "shuffle",
+            description = "*Experimental.* Seed to sort the results randomly.",
+            schema = @Schema(implementation = String.class),
+            in = ParameterIn.QUERY,
+            example = "abcdefgh"),
         @Parameter(
             name = "hl",
             description =
@@ -1565,7 +1583,7 @@ public class OccurrenceSearchResource {
       })
   @GetMapping
   public SearchResponse<Occurrence, OccurrenceSearchParameter> search(
-    @ParameterObject OccurrenceSearchRequest request) {
+      @ParameterObject OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
     return searchService.search(request);

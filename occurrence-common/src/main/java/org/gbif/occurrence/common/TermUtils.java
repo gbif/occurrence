@@ -33,6 +33,7 @@ import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.predicate.query.SQLColumnsUtils;
 
@@ -67,16 +68,15 @@ public class TermUtils {
       DcTerm.type
     );
 
-  /**
-   * Darwin Core terms only used in Darwin Core Archive extensions.
-   */
+  /** Darwin Core terms only used in Darwin Core Archive extensions. */
   /*
    * (Needed for the next declaration.)
    */
-  private static final Set<DwcTerm> DwC_EXTENSION_EXCLUSIONS = ImmutableSet.<DwcTerm>builder()
-    .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT))
-    .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP))
-    .build();
+  private static final Set<DwcTerm> DwC_EXTENSION_EXCLUSIONS =
+      ImmutableSet.<DwcTerm>builder()
+          .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_MEASUREMENTORFACT))
+          .addAll(DwcTerm.listByGroup(DwcTerm.GROUP_RESOURCERELATIONSHIP))
+          .build();
 
   /**
    * The list of Darwin Core properties applicable to occurrence records, excluding classes such as Taxon and terms
@@ -547,6 +547,9 @@ public class TermUtils {
         GADM_PROPERTIES.stream().filter(t -> !TERMS_REMOVED_DURING_INTERPRETATION.contains(t)).collect(Collectors.toList()))
       //IUCN RedList Category
       .add(IucnTerm.iucnRedListCategory)
+      .add(ObisTerm.measurementTypeID)
+       // added here since it's excluded before and it shouldn't be in the verbatim fields
+      .add(DwcTerm.measurementType)
       .build();
   }
 
