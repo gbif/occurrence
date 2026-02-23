@@ -120,7 +120,7 @@ public enum EventEsField implements EsField {
   TAXON_ID(new BaseEsField("derivedMetadata.taxonomicCoverage.taxonIDs", DwcTerm.taxonID)),
   IUCN_RED_LIST_CATEGORY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
 
-  // TODO: convex hull y temporal coverage
+  // TODO: convex hull and temporal coverage
 
   //Sampling
   EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true)),
