@@ -30,6 +30,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
@@ -106,7 +107,9 @@ public final class HiveDataTypes {
           EcoTerm.samplingPerformedBy,
           DwcTerm.projectTitle,
           DwcTerm.fundingAttribution,
-          DwcTerm.fundingAttributionID);
+          DwcTerm.fundingAttributionID,
+          DwcTerm.measurementType,
+          ObisTerm.measurementTypeID);
 
   // dates are all stored as BigInt
   private static final Set<Term> BIGINT_TERMS =

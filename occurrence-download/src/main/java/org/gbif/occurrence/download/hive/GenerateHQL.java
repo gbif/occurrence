@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import static org.gbif.occurrence.download.hive.OccurrenceAvroHdfsTableDefinition.avroField;
+import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;

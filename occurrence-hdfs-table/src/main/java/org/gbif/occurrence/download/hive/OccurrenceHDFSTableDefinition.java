@@ -157,7 +157,7 @@ public class OccurrenceHDFSTableDefinition {
    * @return the list of fields that are exposed through Hive
    */
   private static List<InitializableField> extensions() {
-    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA, Extension.HUMBOLDT);
+    Set<Extension> extensions = ImmutableSet.of(Extension.MULTIMEDIA);
     ImmutableList.Builder<InitializableField> builder = ImmutableList.builder();
     for (Extension e : extensions) {
       builder.add(new InitializableField(extensionTerm(e),
@@ -169,12 +169,9 @@ public class OccurrenceHDFSTableDefinition {
     return builder.build();
   }
 
-  // TODO: Humboldt should be removed when events uses its own hdfs view pipeline
   private static Term extensionTerm(Extension extension) {
     if (Extension.MULTIMEDIA == extension) {
       return GbifTerm.Multimedia;
-    } else if (Extension.HUMBOLDT == extension) {
-      return GbifTerm.Humboldt;
     } else {
       return UnknownTerm.build(extension.name());
     }

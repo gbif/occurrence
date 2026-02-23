@@ -19,10 +19,10 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 
@@ -65,6 +65,8 @@ public class DownloadTerms {
           .add(DwcTerm.projectTitle)
           .add(DwcTerm.fundingAttribution)
           .add(DwcTerm.fundingAttributionID)
+          .add(DwcTerm.measurementType)
+          .add(ObisTerm.measurementTypeID)
           .build();
 
   /** Terms not used in DWCA downloads. */

@@ -348,6 +348,13 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "A 123"),
         @Parameter(
+            name = "eventType",
+            description = "The event type.",
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            in = ParameterIn.QUERY,
+            example = "Event"),
+        @Parameter(
             name = "fieldNumber",
             description =
                 "An identifier given to the event in the field. Often serves as a link between field notes and the event.\n\n"
@@ -1046,6 +1053,24 @@ public class OpenAPIUtils {
             name = "locality",
             description =
                 "The specific description of the place.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY),
+        @Parameter(
+            name = "measurementType",
+            description =
+                "The measurement type of the record as it comes in the measurement or fact extension.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY),
+        @Parameter(
+            name = "measurementTypeID",
+            description =
+                "The measurement type ID of the record as it comes in the extended measurement or fact extension.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
