@@ -206,7 +206,7 @@
     <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>hadoop-minicluster</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.1</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
