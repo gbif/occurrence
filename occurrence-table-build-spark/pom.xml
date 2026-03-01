@@ -12,7 +12,7 @@
 
   <properties>
     <cluster.spark.version>3.5.1</cluster.spark.version>
-    <jackson.cluster.version>2.15.2</jackson.cluster.version>
+    <jackson.cluster.version>2.18.6</jackson.cluster.version>
   </properties>
 
   <build>
