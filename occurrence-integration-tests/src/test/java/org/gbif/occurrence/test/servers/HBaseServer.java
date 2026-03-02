@@ -47,6 +47,13 @@ public class HBaseServer implements DisposableBean, InitializingBean {
     TEST_UTIL.getConfiguration().set("hadoop.home.dir",
       "/tmp/hadoop-" + System.getProperty("user.name")
     );
+    // Force loopback binding to avoid hostname/IP resolution issues on local machines. TO DO: revert this once we have a proper solution.
+    TEST_UTIL.getConfiguration().set("hbase.master.hostname", "127.0.0.1");
+    TEST_UTIL.getConfiguration().set("hbase.master.ipc.address", "127.0.0.1");
+    TEST_UTIL.getConfiguration().set("hbase.master.info.bindAddress", "127.0.0.1");
+    TEST_UTIL.getConfiguration().set("hbase.regionserver.hostname", "127.0.0.1");
+    TEST_UTIL.getConfiguration().set("hbase.regionserver.ipc.address", "127.0.0.1");
+    TEST_UTIL.getConfiguration().set("hbase.regionserver.info.bindAddress", "127.0.0.1");
     TEST_UTIL.getConfiguration().set("fs.hdfs.impl",
       org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
     );

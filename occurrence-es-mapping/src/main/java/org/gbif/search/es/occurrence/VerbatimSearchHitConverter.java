@@ -38,9 +38,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
+import com.google.common.base.Strings;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.EndpointType;
 import org.gbif.dwc.terms.DcTerm;
@@ -60,7 +61,7 @@ public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccur
   }
 
   @Override
-  public VerbatimOccurrence apply(SearchHit hit) {
+  public VerbatimOccurrence apply(Hit<Map<String, Object>> hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
         .ifPresent(vOcc::setPublishingCountry);
@@ -103,27 +104,12 @@ public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccur
     return vOcc;
   }
 
-  private Map<Term, String> extractVerbatimFields(SearchHit hit) {
-    Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
-    if (verbatimFields == null) {
-      return Collections.emptyMap();
-    }
-    Map<String, String> verbatimCoreFields = (Map<String, String>) verbatimFields.get("core");
-    Stream<AbstractMap.SimpleEntry<Term, String>> termMap =
-        verbatimCoreFields.entrySet().stream()
-            .map(e -> new AbstractMap.SimpleEntry<>(mapTerm(e.getKey()), e.getValue()));
-    if (excludeInterpretedFromVerbatim) {
-      termMap = termMap.filter(e -> !TermUtils.isInterpretedSourceTerm(e.getKey()));
-    }
-    return termMap.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
   /**
    * The id (the <id> reference in the DWCA meta.xml) is an identifier local to the DWCA, and could
    * only have been used for "un-starring" a DWCA star record. However, we've exposed it as
    * DcTerm.identifier for a long time in our public API v1, so we continue to do this.
    */
-  private void setIdentifier(SearchHit hit, VerbatimOccurrence occ) {
+  private void setIdentifier(Hit<Map<String, Object>> hit, VerbatimOccurrence occ) {
 
     String institutionCode = occ.getVerbatimField(DwcTerm.institutionCode);
     String collectionCode = occ.getVerbatimField(DwcTerm.collectionCode);

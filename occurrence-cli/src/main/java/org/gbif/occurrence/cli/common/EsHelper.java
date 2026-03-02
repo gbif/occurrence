@@ -16,29 +16,28 @@ package org.gbif.occurrence.cli.common;
 import org.gbif.occurrence.search.SearchException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.reindex.BulkByScrollResponse;
-import org.elasticsearch.index.reindex.DeleteByQueryRequest;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
-import static org.elasticsearch.client.RequestOptions.DEFAULT;
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermsQueryField;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
+import co.elastic.clients.elasticsearch.indices.DeleteIndexRequest;
 
 /** Utility class to make ES queries. */
 public class EsHelper {
@@ -60,37 +59,41 @@ public class EsHelper {
    * @return indexes found
    */
   public static Set<String> findExistingIndexesInAliases(
-      final RestHighLevelClient esClient, String datasetKey, String[] aliases) {
+      final ElasticsearchClient esClient, String datasetKey, String[] aliases) {
     Objects.requireNonNull(esClient);
     Preconditions.checkArgument(!Strings.isNullOrEmpty(datasetKey), "datasetKey is required");
     Preconditions.checkArgument(aliases != null && aliases.length > 0, "aliases are required");
+    List<FieldValue> datasetKeyValues = List.of(FieldValue.of(datasetKey));
 
-    SearchRequest esRequest = new SearchRequest();
-    esRequest.indices(aliases);
+    Query query = Query.of(q -> q.bool(BoolQuery.of(b -> b
+        .should(s -> s.terms(t -> t.field(DATASET_KEY_FIELD).terms(TermsQueryField.of(tf -> tf.value(datasetKeyValues)))))
+        .should(s -> s.terms(t -> t.field(METADATA_DATASET_KEY_FIELD).terms(TermsQueryField.of(tf -> tf.value(datasetKeyValues)))))
+    )));
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.size(0);
-    esRequest.source(searchSourceBuilder);
-
-    // add match query to filter by datasetKey
-    searchSourceBuilder.query(QueryBuilders.boolQuery()
-        .should(QueryBuilders.termsQuery(DATASET_KEY_FIELD, datasetKey))
-        .should(QueryBuilders.termsQuery(METADATA_DATASET_KEY_FIELD, datasetKey)));
-    // add aggs by index
-    searchSourceBuilder.aggregation(AggregationBuilders.terms(AGG_BY_INDEX).field("_index"));
+    SearchRequest request = SearchRequest.of(s -> s
+        .index(java.util.Arrays.asList(aliases))
+        .size(0)
+        .query(query)
+        .aggregations(AGG_BY_INDEX, a -> a.terms(t -> t.field("_index")))
+    );
 
     try {
-      return parseFindExistingIndexesInAliasResponse(esClient.search(esRequest, HEADERS.get()));
+      SearchResponse<Void> response = esClient.search(request, Void.class);
+      return parseFindExistingIndexesInAliasResponse(response);
     } catch (IOException e) {
       throw new SearchException("Could not find indexes that contain the dataset " + datasetKey, e);
     }
   }
 
-  private static Set<String> parseFindExistingIndexesInAliasResponse(SearchResponse response) {
-    return ((Terms) response.getAggregations().get(AGG_BY_INDEX))
-        .getBuckets().stream()
-            .map(MultiBucketsAggregation.Bucket::getKeyAsString)
-            .collect(Collectors.toSet());
+  private static Set<String> parseFindExistingIndexesInAliasResponse(SearchResponse<?> response) {
+    Aggregate agg = response.aggregations().get(AGG_BY_INDEX);
+    if (agg == null || !agg.isSterms()) {
+      return java.util.Collections.emptySet();
+    }
+    return agg.sterms().buckets().array().stream()
+        .map(b -> b.key().stringValue())
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
   }
 
   /**
@@ -101,22 +104,27 @@ public class EsHelper {
    * @param index index where the documents will be deleted from
    */
   public static void deleteByDatasetKey(
-      final RestHighLevelClient esClient, String datasetKey, String index) {
+      final ElasticsearchClient esClient, String datasetKey, String index) {
     LOG.info("Deleting all documents of dataset {} from ES index {}", datasetKey, index);
     Objects.requireNonNull(esClient);
     Preconditions.checkArgument(!Strings.isNullOrEmpty(datasetKey), "datasetKey is required");
     Preconditions.checkArgument(!Strings.isNullOrEmpty(index), "index is required");
+    List<FieldValue> datasetKeyValues = List.of(FieldValue.of(datasetKey));
 
-    DeleteByQueryRequest request =
-      new DeleteByQueryRequest(index)
-            .setBatchSize(5000)
-            .setQuery(QueryBuilders.boolQuery()
-              .should(QueryBuilders.termsQuery(DATASET_KEY_FIELD, datasetKey))
-              .should(QueryBuilders.termsQuery(METADATA_DATASET_KEY_FIELD, datasetKey)));
+    Query query = Query.of(q -> q.bool(BoolQuery.of(b -> b
+        .should(s -> s.terms(t -> t.field(DATASET_KEY_FIELD).terms(TermsQueryField.of(tf -> tf.value(datasetKeyValues)))))
+        .should(s -> s.terms(t -> t.field(METADATA_DATASET_KEY_FIELD).terms(TermsQueryField.of(tf -> tf.value(datasetKeyValues)))))
+    )));
+
+    DeleteByQueryRequest request = DeleteByQueryRequest.of(d -> d
+        .index(index)
+        .query(query)
+        .scrollSize(5000L)
+    );
 
     try {
-      BulkByScrollResponse response = esClient.deleteByQuery(request, HEADERS.get());
-      LOG.info("Deleted {} documents from the index {}", response.getDeleted(), index);
+      DeleteByQueryResponse response = esClient.deleteByQuery(request);
+      LOG.info("Deleted {} documents from the index {}", response.deleted(), index);
     } catch (IOException e) {
       LOG.error("Could not delete records of dataset {} from index {}", datasetKey, index);
     }
@@ -128,14 +136,14 @@ public class EsHelper {
    * @param esClient client to connect to ES
    * @param index index to delete
    */
-  public static void deleteIndex(final RestHighLevelClient esClient, String index) {
+  public static void deleteIndex(final ElasticsearchClient esClient, String index) {
     LOG.info("Deleting ES index {}", index);
     Objects.requireNonNull(esClient);
     Preconditions.checkArgument(!Strings.isNullOrEmpty(index), "index is required");
 
-    DeleteIndexRequest request = new DeleteIndexRequest(index);
+    DeleteIndexRequest request = DeleteIndexRequest.of(r -> r.index(index));
     try {
-      esClient.indices().delete(request, DEFAULT);
+      esClient.indices().delete(request);
     } catch (IOException e) {
       LOG.error("Could not delete index {}", index);
     }

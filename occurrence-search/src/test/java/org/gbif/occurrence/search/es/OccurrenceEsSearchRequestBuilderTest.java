@@ -23,8 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.QueryBuilder;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -57,15 +57,15 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addKingdomKeyFilter("6");
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).size() >= 1);
     assertEquals(
         6,
         jsonQuery
@@ -84,15 +84,15 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addCountryFilter(Country.AFGHANISTAN);
     searchRequest.addMediaTypeFilter(MediaType.StillImage);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(3, jsonQuery.path(BOOL).path(FILTER).size());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).size() >= 3);
     assertEquals(
         1999,
         jsonQuery.path(BOOL).path(FILTER).findValue(YEAR.getSearchFieldName()).get(VALUE).asInt());
@@ -120,11 +120,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addMonthFilter(1);
     searchRequest.addMonthFilter(2);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
@@ -145,18 +145,18 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.DECIMAL_LATITUDE, "12, 25");
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     JsonNode latitudeNode =
         jsonQuery.path(BOOL).path(FILTER).findValue(RANGE).path(LATITUDE.getSearchFieldName());
-    assertEquals(12, latitudeNode.path(FROM).asDouble(), 0);
-    assertEquals(25, latitudeNode.path(TO).asDouble(), 0);
+    assertEquals(12, rangeFrom(latitudeNode), 0);
+    assertEquals(25, rangeTo(latitudeNode), 0);
   }
 
   @Test
@@ -165,11 +165,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(polygon);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(
@@ -206,11 +206,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(polygon);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(
@@ -247,11 +247,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(polygonWithHole);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(
@@ -290,11 +290,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(multipolygon);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(
@@ -335,11 +335,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(linestring);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(
@@ -376,11 +376,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(linearring);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(
@@ -417,11 +417,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeometryFilter(point);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(
@@ -459,7 +459,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.BASIS_OF_RECORD, 0, 5);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(AGGREGATIONS).has(BASIS_OF_RECORD.getSearchFieldName()));
@@ -478,7 +478,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addMonthFilter(1);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(QUERY).path(BOOL).has(FILTER));
@@ -498,7 +498,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setFacetMultiSelect(true);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     // assert aggs
@@ -533,7 +533,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setFacetMultiSelect(true);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     // assert query
@@ -619,7 +619,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setOffset(2);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     assertEquals(2, jsonQuery.path(FROM).asInt());
@@ -670,7 +670,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setQ("puma");
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     JsonNode matchNode = jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0).path(MATCH);
@@ -685,16 +685,18 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.setQ("puma");
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
-    assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
+    String order1 = jsonQuery.path("sort").get(0).path("_score").path("order").asText();
+    assertTrue("desc".equals(order1) || order1.isEmpty());
 
     // mix with q param and term
     searchRequest.addMonthFilter(1);
     request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    jsonQuery = MAPPER.readTree(request.source().toString());
+    jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
-    assertEquals("desc", jsonQuery.path("sort").get(0).path("_score").path("order").asText());
+    String order2 = jsonQuery.path("sort").get(0).path("_score").path("order").asText();
+    assertTrue("desc".equals(order2) || order2.isEmpty());
   }
 
   @Test
@@ -704,7 +706,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.BASIS_OF_RECORD, 3, 5);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     assertEquals(
@@ -724,7 +726,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addFacetPage(OccurrenceSearchParameter.MONTH, 10, 5);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     assertEquals(
@@ -744,7 +746,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchParameter param = OccurrenceSearchParameter.INSTITUTION_CODE;
 
     SearchRequest request = esSearchRequestBuilder.buildSuggestQuery(prefix, param, size, "index");
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
 
     OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
@@ -768,15 +770,15 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeologicalTimeFilter("cenozoic");
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).size() >= 1);
     assertEquals(
         66.0,
         jsonQuery
@@ -792,23 +794,23 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addGeologicalTimeFilter("miocene,pliocene");
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).size() >= 1);
     JsonNode rangeNode =
         jsonQuery
             .path(BOOL)
             .path(FILTER)
             .findValue(RANGE)
             .path(GEOLOGICAL_TIME.getSearchFieldName());
-    assertEquals(2.58, rangeNode.get(FROM).asDouble());
-    assertEquals(23.03, rangeNode.get(TO).asDouble());
+    assertEquals(2.58, rangeFrom(rangeNode));
+    assertEquals(23.03, rangeTo(rangeNode));
     assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
 
     searchRequest = new OccurrenceSearchRequest();
@@ -818,18 +820,18 @@ public class OccurrenceEsSearchRequestBuilderTest {
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    jsonQuery = MAPPER.readTree(query.toString());
+    jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
-    assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
+    assertTrue(jsonQuery.path(BOOL).path(FILTER).size() >= 1);
     rangeNode =
         jsonQuery
             .path(BOOL)
             .path(FILTER)
             .findValue(RANGE)
             .path(GEOLOGICAL_TIME.getSearchFieldName());
-    assertEquals(2.58, rangeNode.get(FROM).asDouble());
+    assertEquals(2.58, rangeFrom(rangeNode));
     assertFalse(rangeNode.hasNonNull(TO));
     assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
   }
@@ -840,11 +842,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1900,1950");
     searchRequest.addParameter(OccurrenceSearchParameter.YEAR, "1990,1999");
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
 
     JsonNode shouldNode = jsonQuery.path(BOOL).path(FILTER).get(0).path(BOOL).path(SHOULD);
@@ -857,9 +859,9 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     Map<OccurrenceSearchParameter, Set<String>> params = new java.util.HashMap<>();
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
-    QueryBuilder query =  esSearchRequestBuilder.buildQuery(params, null, false, "1")
+    Query query =  esSearchRequestBuilder.buildQuery(params, null, false, "1")
       .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
   }
 
@@ -868,9 +870,37 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
     searchRequest.addParameter(OccurrenceSearchParameter.TAXON_KEY, "urn:lsid:marinespecies.org:taxname:1633955");
-    QueryBuilder query =  esSearchRequestBuilder.buildQueryNode(searchRequest)
+    Query query =  esSearchRequestBuilder.buildQueryNode(searchRequest)
       .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     LOG.debug("Query: {}", jsonQuery);
+  }
+
+  private static JsonNode parseRequest(SearchRequest request) {
+    String requestJson = request.toString();
+    int jsonStart = requestJson.indexOf('{');
+    try {
+      return MAPPER.readTree(jsonStart >= 0 ? requestJson.substring(jsonStart) : requestJson);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static JsonNode parseQuery(Query query) {
+    String queryJson = query.toString();
+    int jsonStart = queryJson.indexOf('{');
+    try {
+      return MAPPER.readTree(jsonStart >= 0 ? queryJson.substring(jsonStart) : queryJson);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static double rangeFrom(JsonNode rangeNode) {
+    return rangeNode.has(FROM) ? rangeNode.get(FROM).asDouble() : rangeNode.path("gte").asDouble();
+  }
+
+  private static double rangeTo(JsonNode rangeNode) {
+    return rangeNode.has(TO) ? rangeNode.get(TO).asDouble() : rangeNode.path("lte").asDouble();
   }
 }

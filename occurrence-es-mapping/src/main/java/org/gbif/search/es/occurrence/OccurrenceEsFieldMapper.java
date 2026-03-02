@@ -17,9 +17,10 @@ import java.util.*;
 import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
+
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.SimplePredicate;
@@ -37,8 +38,8 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
       EsField geoDistanceField,
       EsField geoShapeField,
       EsField uniqueIdField,
-      List<FieldSortBuilder> defaultSort,
-      QueryBuilder defaultFilter,
+      List<SortOptions> defaultSort,
+      Query defaultFilter,
       Class<? extends Enum<? extends EsField>> fieldEnumClass,
       @Nullable Map<OccurrenceSearchParameter, EsField> facetToEsMapping) {
     super(
@@ -62,8 +63,8 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
 
   @Override
   public boolean includeNullInRange(
-      OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+      OccurrenceSearchParameter param, RangeQuery rangeQuery) {
     return OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == param
-        && Objects.isNull(rangeQueryBuilder.to());
+        && Objects.isNull(rangeQuery);
   }
 }

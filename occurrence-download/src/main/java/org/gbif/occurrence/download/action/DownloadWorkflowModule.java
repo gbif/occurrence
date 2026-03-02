@@ -17,7 +17,6 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -33,9 +32,9 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.sniff.SniffOnFailureListener;
-import org.elasticsearch.client.sniff.Sniffer;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -160,7 +159,7 @@ public class DownloadWorkflowModule {
   /**
    * Factory method for Elasticsearch client.
    */
-  public static RestHighLevelClient esClient(WorkflowConfiguration workflowConfiguration) {
+  public static ElasticsearchClient esClient(WorkflowConfiguration workflowConfiguration) {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
@@ -174,40 +173,18 @@ public class DownloadWorkflowModule {
       }
     }
 
-    SniffOnFailureListener sniffOnFailureListener =
-      new SniffOnFailureListener();
-
     RestClientBuilder builder =
-      RestClient.builder(hosts)
-        .setRequestConfigCallback(
-          requestConfigBuilder -> requestConfigBuilder.setConnectTimeout(esConfig.getConnectTimeout())
-            .setSocketTimeout(esConfig.getSocketTimeout()))
-        .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
+        RestClient.builder(hosts)
+            .setRequestConfigCallback(
+                requestConfigBuilder ->
+                    requestConfigBuilder
+                        .setConnectTimeout(esConfig.getConnectTimeout())
+                        .setSocketTimeout(esConfig.getSocketTimeout()))
+            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
 
-    if (esConfig.getSniffInterval() > 0) {
-      builder.setFailureListener(sniffOnFailureListener);
-    }
-
-    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
-
-    if (esConfig.getSniffInterval() > 0) {
-      Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
-        .setSniffIntervalMillis(esConfig.getSniffInterval())
-        .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
-        .build();
-      sniffOnFailureListener.setSniffer(sniffer);
-
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        sniffer.close();
-        try {
-          highLevelClient.close();
-        } catch (IOException e) {
-          throw new IllegalStateException("Couldn't close ES client", e);
-        }
-      }));
-    }
-
-    return highLevelClient;
+    RestClient restClient = builder.build();
+    RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+    return new ElasticsearchClient(transport);
   }
 
 

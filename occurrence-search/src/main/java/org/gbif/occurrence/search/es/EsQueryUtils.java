@@ -17,7 +17,6 @@ import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.*;
 
 import java.time.*;
@@ -25,11 +24,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
-
-import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
-import org.elasticsearch.client.RequestOptions;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -185,13 +179,6 @@ public class EsQueryUtils {
       };
 
   // functions
-  public static final Supplier<RequestOptions> HEADERS =
-      () -> {
-        RequestOptions.Builder builder = RequestOptions.DEFAULT.toBuilder();
-        builder.addHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
-        return builder.build();
-      };
-
   static final Map<OccurrenceSearchParameter, Integer> CARDINALITIES =
       ImmutableMap.<OccurrenceSearchParameter, Integer>builder()
           .put(OccurrenceSearchParameter.BASIS_OF_RECORD, BasisOfRecord.values().length)

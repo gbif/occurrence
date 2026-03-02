@@ -20,7 +20,7 @@ import akka.routing.RoundRobinPool;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import java.io.File;
-import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,12 +31,6 @@ import lombok.Data;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -57,6 +51,10 @@ import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 
 /**
  * Actor that controls the multithreaded creation of occurrence downloads.
@@ -68,7 +66,7 @@ public class DownloadMaster extends AbstractActor {
 
   private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
   private final String esIndex;
   private final MasterConfiguration conf;
   private final CuratorFramework curatorFramework;
@@ -91,7 +89,7 @@ public class DownloadMaster extends AbstractActor {
   public DownloadMaster(
     WorkflowConfiguration workflowConfiguration,
     MasterConfiguration masterConfiguration,
-    RestHighLevelClient esClient,
+    ElasticsearchClient esClient,
     String esIndex,
     DownloadJobConfiguration jobConfiguration,
     DownloadAggregator aggregator,
@@ -150,9 +148,9 @@ public class DownloadMaster extends AbstractActor {
   private void shutDownEsClientSilently() {
     try {
       if(Objects.nonNull(esClient)) {
-        esClient.close();
+        esClient.shutdown();
       }
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       LOG.error("Error shutting down Elasticsearch client", ex);
     }
   }
@@ -193,19 +191,28 @@ public class DownloadMaster extends AbstractActor {
    */
   private Long getSearchCount(String query) {
     try {
-      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0);
-      searchSourceBuilder.trackTotalHits(true);
-      if (!Strings.isNullOrEmpty(query)) {
-        searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
-      } else {
-        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
-      }
-      SearchResponse searchResponse = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
-      return searchResponse.getHits().getTotalHits().value;
+      Query queryNode = createQueryNode(query);
+      SearchRequest searchRequest =
+          SearchRequest.of(
+              s ->
+                  s.index(esIndex)
+                      .query(queryNode)
+                      .size(0)
+                      .trackTotalHits(th -> th.enabled(true)));
+      SearchResponse<Map<String, Object>> searchResponse =
+          esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
+      return searchResponse.hits().total() == null ? 0L : searchResponse.hits().total().value();
     } catch (Exception e) {
       LOG.error("Error executing query", e);
       return 0L;
     }
+  }
+
+  private Query createQueryNode(String query) {
+    if (!Strings.isNullOrEmpty(query)) {
+      return Query.of(q -> q.withJson(new StringReader(query)));
+    }
+    return Query.of(q -> q.matchAll(ma -> ma));
   }
 
   /**

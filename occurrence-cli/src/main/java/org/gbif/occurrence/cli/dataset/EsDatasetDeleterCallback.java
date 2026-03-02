@@ -28,7 +28,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.elasticsearch.client.RestHighLevelClient;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -39,7 +39,7 @@ public class EsDatasetDeleterCallback
 
   private static final Logger LOG = LoggerFactory.getLogger(EsDatasetDeleterCallback.class);
 
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
   private final EsDatasetDeleterConfiguration config;
   private final FileSystem fs;
 
@@ -49,7 +49,7 @@ public class EsDatasetDeleterCallback
   private final Timer processTimerDeleteIndex =
     Metrics.timer("ES dataset delete index time");
 
-  public EsDatasetDeleterCallback(RestHighLevelClient esClient, FileSystem fs, EsDatasetDeleterConfiguration config) {
+  public EsDatasetDeleterCallback(ElasticsearchClient esClient, FileSystem fs, EsDatasetDeleterConfiguration config) {
     this.esClient = esClient;
     this.config = config;
     this.fs = fs;

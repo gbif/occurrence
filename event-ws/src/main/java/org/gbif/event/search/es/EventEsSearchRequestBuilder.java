@@ -3,8 +3,8 @@ package org.gbif.event.search.es;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import org.elasticsearch.index.query.BoolQueryBuilder;
+import java.util.List;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
@@ -33,7 +33,7 @@ public class EventEsSearchRequestBuilder
   }
 
   @Override
-  protected void handleIssueQueries(Map<EventSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+  protected void handleIssueQueries(Map<EventSearchParameter, Set<String>> params, List<Query> filters) {
     // do nothing
   }
 

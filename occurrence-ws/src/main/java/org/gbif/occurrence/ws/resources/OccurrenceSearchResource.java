@@ -37,6 +37,7 @@ import static org.gbif.ws.paths.OccurrencePaths.SAMPLING_PROTOCOL_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.STATE_PROVINCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.WATER_BODY_PATH;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -60,7 +61,6 @@ import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
@@ -1587,7 +1587,7 @@ public class OccurrenceSearchResource {
   public String predicateToEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
     return esSearchRequestBuilder
       .buildQuery(request)
-      .map(AbstractQueryBuilder::toString)
+      .map(Query::toString)
       .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
@@ -1595,7 +1595,7 @@ public class OccurrenceSearchResource {
   @GetMapping("rest/toesquery")
   public String restToEsQuery(@NotNull @Valid @ParameterObject OccurrenceSearchRequest request) {
     return esSearchRequestBuilder.buildSearchRequest(request, "test")
-      .source().toString();
+      .toString();
   }
 
   /**

@@ -13,16 +13,17 @@
  */
 package org.gbif.search.heatmap.es;
 
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import com.google.common.annotations.VisibleForTesting;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
@@ -58,16 +59,6 @@ public abstract class BaseEsHeatmapRequestBuilder<
 
   @VisibleForTesting
   public SearchRequest buildHeatmapRequest(R request, String index) {
-    // build request body
-    SearchRequest esRequest = new SearchRequest();
-    esRequest.indices(index);
-
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    esRequest.source(searchSourceBuilder);
-
-    // size 0
-    searchSourceBuilder.size(0);
-
     // add the geometry filter
     String[] coords = request.getGeometry().split(",");
 
@@ -76,53 +67,88 @@ public abstract class BaseEsHeatmapRequestBuilder<
     double bottom = Double.parseDouble(coords[1]);
     double right = Double.parseDouble(coords[2]);
 
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter()
-        .add(
-            QueryBuilders.geoBoundingBoxQuery(esFieldMapper.getGeoDistanceField())
-                .setCorners(top, left, bottom, right));
+    List<Query> filters = new ArrayList<>();
+    filters.add(
+        Query.of(
+            q ->
+                q.geoBoundingBox(
+                    g ->
+                        g.field(esFieldMapper.getGeoDistanceField())
+                            .boundingBox(
+                                b ->
+                                    b.coords(
+                                        c ->
+                                            c.top(top)
+                                                .left(left)
+                                                .bottom(bottom)
+                                                .right(right))))));
 
     getParam(OccurrenceSearchParameter.HAS_COORDINATE.name())
         .ifPresent(
             param -> {
-              bool.filter()
-                  .add(QueryBuilders.termQuery(esFieldMapper.getSearchFieldName(param), true));
+              filters.add(
+                  Query.of(
+                      q ->
+                          q.term(
+                              t -> t.field(esFieldMapper.getSearchFieldName(param)).value(true))));
             });
 
     // add query
     if (request.getPredicate() != null) { // is a predicate search
-      buildQuery(request).ifPresent(bool.filter()::add);
+      buildQuery(request).ifPresent(filters::add);
     } else {
       // add hasCoordinate to the filter and create query
-      buildQueryNode(request).ifPresent(bool.filter()::add);
+      addBuildQueryNodeFilter(request, filters);
     }
 
-    searchSourceBuilder.query(bool);
-
-    // add aggs
-    searchSourceBuilder.aggregation(buildAggs(request));
-
-    return esRequest;
+    return SearchRequest.of(
+        s ->
+            s.index(index)
+                .size(0)
+                .query(q -> q.bool(b -> b.filter(filters)))
+                .aggregations(buildAggs(request)));
   }
 
-  private AggregationBuilder buildAggs(R request) {
+  private Map<String, Aggregation> buildAggs(R request) {
     String geoDistanceField = esFieldMapper.getGeoDistanceField();
-    GeoGridAggregationBuilder geoGridAggs =
-        AggregationBuilders.geohashGrid(HEATMAP_AGGS)
-            .field(geoDistanceField)
-            .precision(PRECISION_LOOKUP[Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)])
-            .size(Math.max(request.getBucketLimit(), 50000));
+    Aggregation cellAggregation =
+        OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()
+            ? Aggregation.of(a -> a.geoCentroid(c -> c.field(geoDistanceField)))
+            : Aggregation.of(a -> a.geoBounds(b -> b.field(geoDistanceField)));
 
-    if (OccurrenceHeatmapRequest.Mode.GEO_CENTROID == request.getMode()) {
-      GeoCentroidAggregationBuilder geoCentroidAggs =
-          AggregationBuilders.geoCentroid(CELL_AGGS).field(geoDistanceField);
-      geoGridAggs.subAggregation(geoCentroidAggs);
-    } else {
-      GeoBoundsAggregationBuilder geoBoundsAggs =
-          AggregationBuilders.geoBounds(CELL_AGGS).field(geoDistanceField);
-      geoGridAggs.subAggregation(geoBoundsAggs);
-    }
+    Aggregation heatmapAggregation =
+        Aggregation.of(
+            a ->
+                a.geohashGrid(
+                        g ->
+                            g.field(geoDistanceField)
+                                .precision(
+                                    p ->
+                                        p.geohashLength(
+                                            PRECISION_LOOKUP[
+                                                Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)]))
+                                .size(Math.max(request.getBucketLimit(), 50000)))
+                    .aggregations(CELL_AGGS, cellAggregation));
 
-    return geoGridAggs;
+    Map<String, Aggregation> aggregations = new LinkedHashMap<>();
+    aggregations.put(HEATMAP_AGGS, heatmapAggregation);
+    return aggregations;
+  }
+
+  /**
+   * Kept as a compatibility adapter while dependent modules in local builds may still expose
+   * buildQueryNode as Optional of a legacy query type.
+   */
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private void addBuildQueryNodeFilter(R request, List<Query> filters) {
+    Optional<?> queryNode = buildQueryNode(request);
+    queryNode.ifPresent(
+        q ->
+            filters.add(
+                Query.of(
+                    qb ->
+                        qb.withJson(
+                            new ByteArrayInputStream(
+                                q.toString().getBytes(StandardCharsets.UTF_8))))));
   }
 }

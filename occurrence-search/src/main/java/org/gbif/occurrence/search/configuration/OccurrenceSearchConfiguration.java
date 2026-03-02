@@ -15,7 +15,6 @@ package org.gbif.occurrence.search.configuration;
 
 import org.gbif.occurrence.search.es.EsConfig;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
@@ -24,9 +23,6 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.sniff.SniffOnFailureListener;
-import org.elasticsearch.client.sniff.Sniffer;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.gbif.ws.client.ClientBuilder;
@@ -34,6 +30,9 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 
 /** Occurrence search configuration. */
 public class OccurrenceSearchConfiguration  {
@@ -45,7 +44,7 @@ public class OccurrenceSearchConfiguration  {
   }
 
   @Bean
-  public RestHighLevelClient provideEsClient(EsConfig esConfig) {
+  public ElasticsearchClient provideEsClient(EsConfig esConfig) {
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
     for (String host : esConfig.getHosts()) {
@@ -58,9 +57,6 @@ public class OccurrenceSearchConfiguration  {
       }
     }
 
-    SniffOnFailureListener sniffOnFailureListener =
-      new SniffOnFailureListener();
-
     RestClientBuilder builder =
         RestClient.builder(hosts)
             .setRequestConfigCallback(
@@ -70,31 +66,15 @@ public class OccurrenceSearchConfiguration  {
                         .setSocketTimeout(esConfig.getSocketTimeout()))
             .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
 
+    RestClient restClient = builder.build();
+    RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+    ElasticsearchClient elasticsearchClient = new ElasticsearchClient(transport);
 
-    if (esConfig.getSniffInterval() > 0) {
-      builder.setFailureListener(sniffOnFailureListener);
-    }
+    Runtime.getRuntime().addShutdownHook(
+        new Thread(
+          elasticsearchClient::shutdown));
 
-    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
-
-    if (esConfig.getSniffInterval() > 0) {
-      Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
-        .setSniffIntervalMillis(esConfig.getSniffInterval())
-        .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
-        .build();
-      sniffOnFailureListener.setSniffer(sniffer);
-
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        sniffer.close();
-        try {
-          highLevelClient.close();
-        } catch (IOException e) {
-          throw new IllegalStateException("Couldn't close ES client", e);
-        }
-      }));
-    }
-
-    return highLevelClient;
+    return elasticsearchClient;
   }
 
   @Bean
@@ -103,7 +83,7 @@ public class OccurrenceSearchConfiguration  {
         .withUrl(apiUrl)
         .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
         .withFormEncoder()
-        .withExponentialBackoffRetry(Duration.ofMillis(250), 1.0, 3)      
+        .withExponentialBackoffRetry(Duration.ofMillis(250), 1.0, 3)
         .build(NameUsageMatchingService.class);
   }
 }

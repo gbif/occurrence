@@ -15,11 +15,11 @@ package org.gbif.occurrence.test.extensions;
 
 import org.gbif.occurrence.test.servers.EsManageServer;
 
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
 
 import lombok.Builder;
 import lombok.Data;
@@ -43,8 +43,8 @@ public class ElasticsearchInitializer implements BeforeAllCallback {
 
     //Index the test data
     BulkResponse bulkResponse = esServer.index(applicationContext.getResource(testDataFile));
-    if (bulkResponse.hasFailures()) {
-      throw new RuntimeException(bulkResponse.buildFailureMessage());
+    if (bulkResponse.errors()) {
+      throw new RuntimeException(EsManageServer.bulkFailureMessage(bulkResponse));
     }
 
     //refresh indices data

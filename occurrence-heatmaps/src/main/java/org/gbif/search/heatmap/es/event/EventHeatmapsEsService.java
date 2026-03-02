@@ -13,7 +13,7 @@
  */
 package org.gbif.search.heatmap.es.event;
 
-import org.elasticsearch.client.RestHighLevelClient;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.search.heatmap.es.BaseHeatmapsEsService;
 import org.gbif.search.heatmap.event.EventHeatmapRequest;
@@ -29,7 +29,7 @@ public class EventHeatmapsEsService
   private static final Logger LOG = LoggerFactory.getLogger(EventHeatmapsEsService.class);
 
   public EventHeatmapsEsService(
-      RestHighLevelClient esClient,
+      ElasticsearchClient esClient,
       String esIndex,
       EventEsHeatmapRequestBuilder esHeatmapRequestBuilder) {
     super(esClient, esIndex, esHeatmapRequestBuilder);

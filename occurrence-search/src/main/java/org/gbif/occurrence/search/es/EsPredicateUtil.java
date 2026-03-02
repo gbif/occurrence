@@ -13,19 +13,9 @@
  */
 package org.gbif.occurrence.search.es;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
-
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import lombok.SneakyThrows;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import lombok.experimental.UtilityClass;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
@@ -33,31 +23,24 @@ import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 @UtilityClass
 public class EsPredicateUtil {
 
-  private static final ObjectMapper OBJECT_MAPPER =
-      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-  static {
-    // only used by ES downloads so forcing occurence since events don't fo thru ES downloads
-    OBJECT_MAPPER.registerModule(
-      new SimpleModule()
-        .addKeyDeserializer(
-          SearchParameter.class,
-          new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
-        .addDeserializer(
-          SearchParameter.class,
-          new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
-  }
-
-  @SneakyThrows
-  public static QueryBuilder searchQuery(
+  public static Query searchQuery(
       Predicate predicate, OccurrenceEsFieldMapper esFieldMapper, String defaultChecklistKey) {
-    Optional<QueryBuilder> queryBuilder =
-        new OccurrenceEsQueryVisitor(esFieldMapper, defaultChecklistKey).getQueryBuilder(predicate);
-    if (queryBuilder.isPresent()) {
-      BoolQueryBuilder query = (BoolQueryBuilder) queryBuilder.get();
-      esFieldMapper.getDefaultFilter().ifPresent(df -> query.filter().add(df));
-      return query;
+    Optional<Query> queryBuilder;
+    try {
+      queryBuilder =
+          new OccurrenceEsQueryVisitor(esFieldMapper, defaultChecklistKey).getQueryBuilder(predicate);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error building predicate query", e);
     }
-    return esFieldMapper.getDefaultFilter().orElse(QueryBuilders.matchAllQuery());
+    if (queryBuilder.isPresent()) {
+      return
+          esFieldMapper
+              .getDefaultFilter()
+              .map(df -> Query.of(q -> q.bool(b -> b.must(queryBuilder.get()).filter(df))))
+              .orElse(queryBuilder.get());
+    }
+    return esFieldMapper
+        .getDefaultFilter()
+        .orElseGet(() -> Query.of(q -> q.matchAll(m -> m)));
   }
 }

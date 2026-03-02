@@ -15,63 +15,83 @@ package org.gbif.occurrence.search.es;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.Builder;
 import lombok.Data;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Data
-@Builder
 public class EsFulltextSuggestBuilder {
 
   private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
+
+  public EsFulltextSuggestBuilder(OccurrenceEsFieldMapper occurrenceEsFieldMapper) {
+    this.occurrenceEsFieldMapper = occurrenceEsFieldMapper;
+  }
 
   private static boolean isPhraseQuery(String query) {
     return query.contains(" ");
   }
 
+  private Query buildSuggestQuery(EsField esField, String query) {
+    String exactField = esField.getExactMatchFieldName();
+    String searchField = esField.getSearchFieldName();
 
-  private BoolQueryBuilder buildSuggestQuery(EsField esField, String query) {
-    BoolQueryBuilder suggestQuery = new BoolQueryBuilder();
+    Query baseQuery = Query.of(q -> q.bool(b -> b
+        .should(s -> s.prefix(p -> p.field(exactField).value(query)))
+        .should(s -> isPhraseQuery(query)
+            ? s.matchPhrase(m -> m.field(searchField).query(query))
+            : s.match(m -> m.field(searchField).query(v -> v.stringValue(query))))
+        .minimumShouldMatch("1")));
 
-    suggestQuery.should()
-      .add(QueryBuilders.prefixQuery(esField.getExactMatchFieldName(), query));
-
-    suggestQuery.should()
-      .add(isPhraseQuery(query)? QueryBuilders.matchPhraseQuery(esField.getSearchFieldName(), query) : QueryBuilders.matchQuery(
-        esField.getSearchFieldName(), query));
-
-    suggestQuery.minimumShouldMatch(1);
-
-    occurrenceEsFieldMapper.getDefaultFilter().ifPresent(dq -> suggestQuery.filter().add(dq));
-
-    return suggestQuery;
+    return occurrenceEsFieldMapper.getDefaultFilter()
+        .map(filter -> Query.of(q -> q.bool(b -> b.must(baseQuery).filter(filter))))
+        .orElse(baseQuery);
   }
 
-  SearchSourceBuilder buildSuggestFullTextQuery(String query, OccurrenceSearchParameter parameter, Integer limit) {
+  /**
+   * Builds a full suggest search request using the new Elasticsearch API.
+   *
+   * @param query     user input for suggest
+   * @param parameter search parameter (field) to suggest on
+   * @param limit     max number of suggestions
+   * @param index     index name to search
+   * @return SearchRequest for the new ElasticsearchClient
+   */
+  public SearchRequest buildSuggestFullTextRequest(
+      String query,
+      OccurrenceSearchParameter parameter,
+      Integer limit,
+      String index) {
     EsField esField = occurrenceEsFieldMapper.getEsField(parameter);
+    String aggName = occurrenceEsFieldMapper.getSearchFieldName(parameter);
 
-    return new SearchSourceBuilder()
-      .size(0)
-      .fetchSource(false)
-      .query(buildSuggestQuery(occurrenceEsFieldMapper.getEsField(parameter), query))
-      .aggregation(AggregationBuilders.terms(esField.getSearchFieldName()).field(esField.getExactMatchFieldName()).size(limit));
-
+    return SearchRequest.of(s -> s
+        .index(index)
+        .size(0)
+        .query(buildSuggestQuery(esField, query))
+        .aggregations(aggName, a -> a.terms(t -> t
+            .field(esField.getExactMatchFieldName())
+            .size(limit != null ? limit : 10))));
   }
 
-  List<String> buildSuggestFullTextResponse(OccurrenceSearchParameter occurrenceSearchParameter, SearchResponse response) {
-    return
-    ((Terms)response.getAggregations().get(occurrenceEsFieldMapper.getSearchFieldName(occurrenceSearchParameter)))
-      .getBuckets().stream()
-      .map(Terms.Bucket::getKeyAsString)
-      .collect(Collectors.toList());
+  public List<String> buildSuggestFullTextResponse(
+      OccurrenceSearchParameter occurrenceSearchParameter,
+      SearchResponse<?> response) {
+    String aggName = occurrenceEsFieldMapper.getSearchFieldName(occurrenceSearchParameter);
+    if (response.aggregations() == null) {
+      return List.of();
+    }
+    var agg = response.aggregations().get(aggName);
+    if (agg == null || !agg.isSterms()) {
+      return List.of();
+    }
+    return agg.sterms().buckets().array().stream()
+        .map(b -> b.key().stringValue())
+        .collect(Collectors.toList());
   }
-
 }

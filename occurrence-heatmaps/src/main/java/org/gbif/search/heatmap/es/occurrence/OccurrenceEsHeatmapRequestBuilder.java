@@ -3,8 +3,8 @@ package org.gbif.search.heatmap.es.occurrence;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import org.elasticsearch.index.query.BoolQueryBuilder;
+import java.util.List;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
@@ -33,8 +33,9 @@ public class OccurrenceEsHeatmapRequestBuilder
   }
 
   @Override
-  protected void handleIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
-    super.handleOccurrenceIssueQueries(params, bool);
+  protected void handleIssueQueries(
+      Map<OccurrenceSearchParameter, Set<String>> params, List<Query> filters) {
+    super.handleOccurrenceIssueQueries(params, filters);
   }
 
   @Override

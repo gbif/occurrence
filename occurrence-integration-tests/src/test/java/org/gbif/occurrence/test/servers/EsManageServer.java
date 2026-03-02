@@ -19,23 +19,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.action.DocWriteRequest;
-import org.elasticsearch.action.admin.cluster.settings.ClusterUpdateSettingsRequest;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.indices.CreateIndexRequest;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
@@ -44,6 +36,14 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.BulkResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
+import co.elastic.clients.elasticsearch.indices.CreateIndexRequest;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import org.apache.http.entity.ContentType;
+import org.apache.http.nio.entity.NStringEntity;
 
 import lombok.Builder;
 import lombok.Data;
@@ -66,7 +66,8 @@ public class EsManageServer implements DisposableBean, InitializingBean {
   private ElasticsearchContainer embeddedElastic;
 
   // needed to assert results against ES server directly
-  private RestHighLevelClient restClient;
+  private RestClient restClient;
+  private ElasticsearchClient elasticsearchClient;
 
   private final String indexName;
   private final String type;
@@ -89,25 +90,34 @@ public class EsManageServer implements DisposableBean, InitializingBean {
     embeddedElastic =
       new ElasticsearchContainer(
         "docker.elastic.co/elasticsearch/elasticsearch:" + getEsVersion());
+    embeddedElastic.withEnv("xpack.security.enabled", "false");
 
     embeddedElastic.start();
     restClient = buildRestClient();
+    elasticsearchClient =
+        new ElasticsearchClient(new RestClientTransport(restClient, new JacksonJsonpMapper()));
 
     createIndex();
     updateclusterSettings();
   }
 
   private void updateclusterSettings() throws IOException {
-    ClusterUpdateSettingsRequest settingsRequest = new ClusterUpdateSettingsRequest();
-    settingsRequest.persistentSettings(Collections.singletonMap("cluster.routing.allocation.disk.threshold_enabled", false));
-    restClient.cluster().putSettings(settingsRequest, RequestOptions.DEFAULT);
+    Request request = new Request("PUT", "/_cluster/settings");
+    request.setEntity(
+        new NStringEntity(
+            "{\"persistent\":{\"cluster.routing.allocation.disk.threshold_enabled\":false}}",
+            ContentType.APPLICATION_JSON));
+    restClient.performRequest(request);
   }
 
   private void createIndex() throws IOException {
-    CreateIndexRequest createIndexRequest = new CreateIndexRequest(indexName);
-    createIndexRequest.settings(asString(settingsFile), XContentType.JSON);
-    createIndexRequest.mapping(asString(mappingFile), XContentType.JSON);
-    restClient.indices().create(createIndexRequest, RequestOptions.DEFAULT);
+    CreateIndexRequest createIndexRequest =
+        CreateIndexRequest.of(
+            c ->
+                c.index(indexName)
+                    .settings(s -> s.withJson(new StringReader(asString(settingsFile))))
+                    .mappings(m -> m.withJson(new StringReader(asString(mappingFile)))));
+    elasticsearchClient.indices().create(createIndexRequest);
   }
 
   private static String asString(Resource resource) {
@@ -119,8 +129,8 @@ public class EsManageServer implements DisposableBean, InitializingBean {
   }
 
 
-  public RestHighLevelClient getRestClient() {
-    return restClient;
+  public ElasticsearchClient getRestClient() {
+    return elasticsearchClient;
   }
 
   public String getServerAddress() {
@@ -129,17 +139,15 @@ public class EsManageServer implements DisposableBean, InitializingBean {
 
   public void refresh() {
     try {
-      RefreshRequest refreshRequest = new RefreshRequest();
-      refreshRequest.indices(indexName);
-      restClient.indices().refresh(refreshRequest, RequestOptions.DEFAULT);
+      elasticsearchClient.indices().refresh(r -> r.index(indexName));
     } catch (IOException ex) {
       throw new IllegalStateException(ex);
     }
   }
 
-  private RestHighLevelClient buildRestClient() {
+  private RestClient buildRestClient() {
     HttpHost host = new HttpHost("localhost", embeddedElastic.getMappedPort(9200));
-    return new RestHighLevelClient(RestClient.builder(host));
+    return RestClient.builder(host).build();
   }
 
   private String getEsVersion() throws IOException {
@@ -149,9 +157,7 @@ public class EsManageServer implements DisposableBean, InitializingBean {
   }
 
   private void deleteIndex() throws IOException {
-    DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest();
-    deleteIndexRequest.indices(indexName);
-    restClient.indices().delete(deleteIndexRequest, RequestOptions.DEFAULT);
+    elasticsearchClient.indices().delete(d -> d.index(indexName));
   }
 
   public void reCreateIndex() {
@@ -165,20 +171,34 @@ public class EsManageServer implements DisposableBean, InitializingBean {
 
   @SneakyThrows
   public BulkResponse index(Resource dataFile) {
-    BulkRequest bulkRequest = new BulkRequest();
-    loadJsonFile(dataFile)
-      .forEach(doc -> {
-        try {
-          bulkRequest.add(new IndexRequest()
-                            .index(indexName)
-                            .source(MAPPER.writeValueAsString(doc), XContentType.JSON)
-                            .opType(DocWriteRequest.OpType.INDEX)
-                            .id(doc.get(keyField).asText()));
-        } catch (Exception ex) {
-          throw new RuntimeException(ex);
+    List<com.fasterxml.jackson.databind.JsonNode> docs = new ArrayList<>();
+    loadJsonFile(dataFile).forEach(docs::add);
+    return elasticsearchClient.bulk(
+        b -> {
+          for (com.fasterxml.jackson.databind.JsonNode doc : docs) {
+            b.operations(
+                op ->
+                    op.index(
+                        idx ->
+                            idx.index(indexName)
+                                .id(doc.get(keyField).asText())
+                                .document(doc)));
+          }
+          return b;
+        });
+  }
+
+  public static String bulkFailureMessage(BulkResponse response) {
+    StringBuilder sb = new StringBuilder();
+    for (BulkResponseItem item : response.items()) {
+      if (item.error() != null) {
+        if (sb.length() > 0) {
+          sb.append('\n');
         }
-      });
-    return restClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+        sb.append(item.id()).append(": ").append(item.error().reason());
+      }
+    }
+    return sb.toString();
   }
 
   @SneakyThrows

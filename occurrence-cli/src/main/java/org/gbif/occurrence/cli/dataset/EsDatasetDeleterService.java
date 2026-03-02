@@ -26,14 +26,15 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.sniff.SniffOnFailureListener;
-import org.elasticsearch.client.sniff.Sniffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.AbstractIdleService;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 
 /**
  * Service that listens to {@link
@@ -45,8 +46,7 @@ public class EsDatasetDeleterService extends AbstractIdleService {
 
   private final EsDatasetDeleterConfiguration config;
   private MessageListener listener;
-  private RestHighLevelClient esClient;
-  private Sniffer esSniffer;
+  private ElasticsearchClient esClient;
   private FileSystem fs;
 
   public EsDatasetDeleterService(EsDatasetDeleterConfiguration config) {
@@ -72,11 +72,8 @@ public class EsDatasetDeleterService extends AbstractIdleService {
     if (listener != null) {
       listener.close();
     }
-    if (esSniffer != null) {
-      esSniffer.close();
-    }
     if (esClient != null) {
-      esClient.close();
+      esClient.shutdown();
     }
     if (fs != null) {
       fs.close();
@@ -99,7 +96,7 @@ public class EsDatasetDeleterService extends AbstractIdleService {
     return FileSystem.get(cf);
   }
 
-  private RestHighLevelClient createEsClient() {
+  private ElasticsearchClient createEsClient() {
     HttpHost[] hosts = new HttpHost[config.esHosts.length];
     int i = 0;
     for (String host : config.esHosts) {
@@ -112,9 +109,6 @@ public class EsDatasetDeleterService extends AbstractIdleService {
       }
     }
 
-    SniffOnFailureListener sniffOnFailureListener =
-      new SniffOnFailureListener();
-
     RestClientBuilder builder =
         RestClient.builder(hosts)
             .setRequestConfigCallback(
@@ -122,18 +116,10 @@ public class EsDatasetDeleterService extends AbstractIdleService {
                     requestConfigBuilder
                         .setConnectTimeout(config.esConnectTimeout)
                         .setSocketTimeout(config.esSocketTimeout))
-            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS)
-            .setFailureListener(sniffOnFailureListener);
+            .setNodeSelector(NodeSelector.SKIP_DEDICATED_MASTERS);
 
-    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
-
-    esSniffer =
-      Sniffer.builder(highLevelClient.getLowLevelClient())
-        .setSniffIntervalMillis(config.esSniffInterval)
-        .setSniffAfterFailureDelayMillis(config.esSniffAfterFailureDelay)
-        .build();
-    sniffOnFailureListener.setSniffer(esSniffer);
-
-    return highLevelClient;
+    RestClient restClient = builder.build();
+    RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+    return new ElasticsearchClient(transport);
   }
 }

@@ -23,8 +23,6 @@ import org.locationtech.spatial4j.shape.Point;
 import org.locationtech.spatial4j.shape.Shape;
 import org.locationtech.spatial4j.shape.jts.JtsShapeFactory;
 
-import lombok.SneakyThrows;
-
 public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
 
   public static class WktReaderWrapper implements Serializable {
@@ -48,9 +46,12 @@ public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
       return spatialContextFactory;
     }
 
-    @SneakyThrows
     public Shape parse(String geometryAsWKT) {
-      return wktReader.parse(geometryAsWKT);
+      try {
+        return wktReader.parse(geometryAsWKT);
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Invalid WKT geometry", e);
+      }
     }
 
     public Point pointXY(Double longitude, Double latitude) {
@@ -62,7 +63,6 @@ public class ContainsUdf implements UDF3<String, Double, Double, Boolean> {
   private final static WktReaderWrapper WKT_READER_WRAPPER = new WktReaderWrapper();
 
   @Override
-  @SneakyThrows
   public Boolean call(String geometryAsWKT, Double latitude, Double longitude) throws Exception {
 
     // sanitize the input

@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import org.elasticsearch.index.query.AbstractQueryBuilder;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -336,7 +336,7 @@ public class EventResource {
     return eventSearchEs
         .getEsSearchRequestBuilder()
         .buildQuery(request)
-        .map(AbstractQueryBuilder::toString)
+        .map(Query::toString)
         .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
@@ -346,7 +346,6 @@ public class EventResource {
     return eventSearchEs
         .getEsSearchRequestBuilder()
         .buildSearchRequest(request, "test")
-        .source()
         .toString();
   }
 }

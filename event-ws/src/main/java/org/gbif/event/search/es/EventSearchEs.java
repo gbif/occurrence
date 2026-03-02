@@ -13,8 +13,6 @@
  */
 package org.gbif.event.search.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-
 import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,19 +20,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.Getter;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.google.common.base.Strings;
 import org.gbif.api.model.common.paging.PageableBase;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -50,6 +45,7 @@ import org.gbif.api.service.common.SearchService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
+import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.SearchHitConverter;
@@ -72,9 +68,9 @@ public class EventSearchEs
 
   private final int maxLimit;
   private final int maxOffset;
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
   private final String esIndex;
-  @Getter private final EventEsSearchRequestBuilder esSearchRequestBuilder;
+  private final EventEsSearchRequestBuilder esSearchRequestBuilder;
   private final EventEsResponseParser esResponseParser;
   private final NameUsageMatchingService nameUsageMatchingService;
   private final EventEsFieldMapper eventEsFieldMapper;
@@ -84,11 +80,8 @@ public class EventSearchEs
   private static final SearchResponse<Event, EventSearchParameter> EMPTY_RESPONSE =
       new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
 
-  private static final String SUB_OCCURRENCES_QUERY =
-      "{\"parent_id\":{\"type\":\"occurrence\",\"id\":\"%s\"}}";
-
   public EventSearchEs(
-      RestHighLevelClient esClient,
+      ElasticsearchClient esClient,
       NameUsageMatchingService nameUsageMatchingService,
       @Value("${occurrence.search.max.offset}") int maxOffset,
       @Value("${occurrence.search.max.limit}") int maxLimit,
@@ -113,19 +106,27 @@ public class EventSearchEs
     this.occurrenceSearchService = occurrenceSearchService;
   }
 
-  private <T> T getByQuery(QueryBuilder query, Function<SearchHit, T> mapper) {
-    // This should be changed to use GetRequest once ElasticSearch stores id correctly
-    SearchRequest searchRequest = new SearchRequest();
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.size(1);
-    searchSourceBuilder.fetchSource(null, EventEsSearchRequestBuilder.SOURCE_EXCLUDE);
-    searchRequest.indices(esIndex);
-    searchSourceBuilder.query(query);
-    searchRequest.source(searchSourceBuilder);
+  public EventEsSearchRequestBuilder getEsSearchRequestBuilder() {
+    return esSearchRequestBuilder;
+  }
+
+  private <T> T getByQuery(Query query, Function<Hit<Map<String, Object>>, T> mapper) {
+    SearchRequest searchRequest =
+        SearchRequest.of(
+            s ->
+                s.index(esIndex)
+                    .size(1)
+                    .source(
+                        src ->
+                            src.filter(
+                                f -> f.excludes(Arrays.asList(BaseEsSearchRequestBuilder.SOURCE_EXCLUDE))))
+                    .query(query));
     try {
-      SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
-      if (hits != null && hits.getTotalHits().value > 0) {
-        return mapper.apply(hits.getAt(0));
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> response =
+          esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
+      List<Hit<Map<String, Object>>> hits = response.hits().hits();
+      if (hits != null && !hits.isEmpty()) {
+        return mapper.apply(hits.get(0));
       }
       return null;
     } catch (IOException ex) {
@@ -134,26 +135,28 @@ public class EventSearchEs
   }
 
   private <T> PagingResponse<T> pageByQuery(
-      QueryBuilder query, PagingRequest request, Function<SearchHit, T> mapper) {
-    // This should be changed to use GetRequest once ElasticSearch stores id correctly
-    SearchRequest searchRequest = new SearchRequest();
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.from((int) request.getOffset());
-    searchSourceBuilder.size(request.getLimit());
-    searchSourceBuilder.trackTotalHits(true);
-    searchSourceBuilder.fetchSource(null, EventEsSearchRequestBuilder.SOURCE_EXCLUDE);
-    searchRequest.indices(esIndex);
-    searchSourceBuilder.query(query);
-    searchRequest.source(searchSourceBuilder);
+      Query query, PagingRequest request, Function<Hit<Map<String, Object>>, T> mapper) {
+    SearchRequest searchRequest =
+        SearchRequest.of(
+            s ->
+                s.index(esIndex)
+                    .from((int) request.getOffset())
+                    .size(request.getLimit())
+                    .trackTotalHits(t -> t.enabled(true))
+                    .source(
+                        src ->
+                            src.filter(
+                                f -> f.excludes(Arrays.asList(BaseEsSearchRequestBuilder.SOURCE_EXCLUDE))))
+                    .query(query));
     try {
-      org.elasticsearch.action.search.SearchResponse esResponse =
-          esClient.search(searchRequest, HEADERS.get());
-      SearchHits hits = esResponse.getHits();
-      if (hits != null && hits.getTotalHits().value > 0) {
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse =
+          esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
+      List<Hit<Map<String, Object>>> hits = esResponse.hits().hits();
+      long total = esResponse.hits().total() == null ? 0L : esResponse.hits().total().value();
+      if (hits != null && !hits.isEmpty() && total > 0) {
         PagingResponse<T> response =
-            new PagingResponse<>(
-                request.getOffset(), hits.getHits().length, hits.getTotalHits().value);
-        response.setResults(Arrays.stream(hits.getHits()).map(mapper).collect(Collectors.toList()));
+            new PagingResponse<>(request.getOffset(), hits.size(), total);
+        response.setResults(hits.stream().map(mapper).toList());
         return response;
       }
       return new PagingResponse<>();
@@ -162,9 +165,8 @@ public class EventSearchEs
     }
   }
 
-  private <T> T searchByKey(String key, Function<SearchHit, T> mapper) {
-    return getByQuery(
-        QueryBuilders.boolQuery().filter(QueryBuilders.idsQuery().addIds(key)), mapper);
+  private <T> T searchByKey(String key, Function<Hit<Map<String, Object>>, T> mapper) {
+    return getByQuery(Query.of(q -> q.ids(i -> i.values(key))), mapper);
   }
 
   public Event get(String key) {
@@ -173,10 +175,19 @@ public class EventSearchEs
 
   public Event get(String datasetKey, String eventId) {
     return getByQuery(
-        QueryBuilders.boolQuery()
-            .filter(QueryBuilders.termQuery("type", "event"))
-            .filter(QueryBuilders.termQuery("metadata.datasetKey", datasetKey))
-            .filter(QueryBuilders.termQuery("event.eventID", eventId)),
+        Query.of(
+            q ->
+                q.bool(
+                    b ->
+                        b.filter(f -> f.term(t -> t.field("type").value("event")))
+                            .filter(
+                                f ->
+                                    f.term(
+                                        t ->
+                                            t.field("metadata.datasetKey")
+                                                .value(datasetKey)))
+                            .filter(
+                                f -> f.term(t -> t.field("event.eventID").value(eventId))))),
         searchHitEventConverter);
   }
 
@@ -210,11 +221,23 @@ public class EventSearchEs
       return null;
     }
     return pageByQuery(
-        QueryBuilders.boolQuery()
-            .filter(QueryBuilders.termQuery("type", "event"))
-            .filter(QueryBuilders.termQuery("event.parentEventID", event.getEventID()))
-            .filter(
-                QueryBuilders.termQuery("metadata.datasetKey", event.getDatasetKey().toString())),
+        Query.of(
+            q ->
+                q.bool(
+                    b ->
+                        b.filter(f -> f.term(t -> t.field("type").value("event")))
+                            .filter(
+                                f ->
+                                    f.term(
+                                        t ->
+                                            t.field("event.parentEventID")
+                                                .value(event.getEventID())))
+                            .filter(
+                                f ->
+                                    f.term(
+                                        t ->
+                                            t.field("metadata.datasetKey")
+                                                .value(event.getDatasetKey().toString()))))),
         pagingRequest,
         searchHitEventConverter);
   }
@@ -294,8 +317,10 @@ public class EventSearchEs
 
     // perform the search
     try {
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse =
+          esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
       return esResponseParser.buildSearchResponse(
-          esClient.search(esRequest, HEADERS.get()), searchRequest);
+          esResponse, searchRequest);
     } catch (Exception e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
@@ -331,4 +356,5 @@ public class EventSearchEs
     }
     return hasValidReplaces;
   }
+
 }

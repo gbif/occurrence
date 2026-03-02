@@ -13,20 +13,20 @@
  */
 package org.gbif.search.heatmap.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
 import static org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder.*;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.GeoBounds;
+import co.elastic.clients.elasticsearch._types.GeoLocation;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import jakarta.annotation.Nullable;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.search.aggregations.bucket.geogrid.ParsedGeoHashGrid;
-import org.elasticsearch.search.aggregations.metrics.ParsedGeoBounds;
-import org.elasticsearch.search.aggregations.metrics.ParsedGeoCentroid;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
@@ -42,17 +42,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class BaseHeatmapsEsService<
         P extends SearchParameter,
         HR extends FacetedSearchRequest<P> & HeatmapRequest & PredicateSearchRequest>
-    implements HeatmapService<SearchRequest, SearchResponse, HR> {
+    implements HeatmapService<SearchRequest, SearchResponse<Map<String, Object>>, HR> {
 
   private static final Logger LOG = LoggerFactory.getLogger(BaseHeatmapsEsService.class);
 
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
   private final String esIndex;
   private final BaseEsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder;
 
   @Autowired
   public BaseHeatmapsEsService(
-      RestHighLevelClient esClient,
+      ElasticsearchClient esClient,
       String esIndex,
       BaseEsHeatmapRequestBuilder<P, HR> esHeatmapRequestBuilder) {
     this.esIndex = esIndex;
@@ -70,7 +70,8 @@ public abstract class BaseHeatmapsEsService<
     LOG.debug("ES query: {}", searchRequest);
 
     try {
-      return parseGeoBoundsResponse(esClient.search(searchRequest, HEADERS.get()));
+      return parseGeoBoundsResponse(
+          esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class));
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
@@ -87,7 +88,8 @@ public abstract class BaseHeatmapsEsService<
     LOG.debug("ES query: {}", searchRequest);
 
     try {
-      return parseGeoCentroidResponse(esClient.search(searchRequest, HEADERS.get()));
+      return parseGeoCentroidResponse(
+          esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class));
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
@@ -95,9 +97,9 @@ public abstract class BaseHeatmapsEsService<
   }
 
   @Override
-  public SearchResponse searchOnEngine(SearchRequest searchRequest) {
+  public SearchResponse<Map<String, Object>> searchOnEngine(SearchRequest searchRequest) {
     try {
-      return esClient.search(searchRequest, HEADERS.get());
+      return esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
@@ -106,34 +108,31 @@ public abstract class BaseHeatmapsEsService<
 
   /** Transforms the {@link SearchResponse} into a {@link EsHeatmapResponse.GeoBoundsResponse}. */
   private static EsHeatmapResponse.GeoBoundsResponse parseGeoBoundsResponse(
-      SearchResponse response) {
-    ParsedGeoHashGrid heatmapAggs = response.getAggregations().get(HEATMAP_AGGS);
+      SearchResponse<Map<String, Object>> response) {
+    Aggregate heatmapAggs = response.aggregations().get(HEATMAP_AGGS);
+    if (heatmapAggs == null || !heatmapAggs.isGeohashGrid()) {
+      EsHeatmapResponse.GeoBoundsResponse empty = new EsHeatmapResponse.GeoBoundsResponse();
+      empty.setBuckets(List.of());
+      return empty;
+    }
 
     List<EsHeatmapResponse.GeoBoundsGridBucket> buckets =
-        heatmapAggs.getBuckets().stream()
+        heatmapAggs.geohashGrid().buckets().array().stream()
             .map(
                 b -> {
                   // build bucket
                   EsHeatmapResponse.GeoBoundsGridBucket bucket =
                       new EsHeatmapResponse.GeoBoundsGridBucket();
-                  bucket.setKey(b.getKeyAsString());
-                  bucket.setDocCount(b.getDocCount());
+                  bucket.setKey(b.key());
+                  bucket.setDocCount(b.docCount());
 
                   // build bounds
                   EsHeatmapResponse.Bounds bounds = new EsHeatmapResponse.Bounds();
-                  ParsedGeoBounds cellAggs = b.getAggregations().get(CELL_AGGS);
-
-                  // topLeft
-                  EsHeatmapResponse.Coordinate topLeft = new EsHeatmapResponse.Coordinate();
-                  topLeft.setLat(cellAggs.topLeft().getLat());
-                  topLeft.setLon(cellAggs.topLeft().getLon());
-                  bounds.setTopLeft(topLeft);
-
-                  // bottomRight
-                  EsHeatmapResponse.Coordinate bottomRight = new EsHeatmapResponse.Coordinate();
-                  bottomRight.setLat(cellAggs.bottomRight().getLat());
-                  bottomRight.setLon(cellAggs.bottomRight().getLon());
-                  bounds.setBottomRight(bottomRight);
+                  Aggregate cellAggs = b.aggregations().get(CELL_AGGS);
+                  if (cellAggs != null && cellAggs.isGeoBounds()) {
+                    GeoBounds geoBounds = cellAggs.geoBounds().bounds();
+                    populateBounds(bounds, geoBounds);
+                  }
 
                   // build cell
                   EsHeatmapResponse.Cell cell = new EsHeatmapResponse.Cell();
@@ -153,25 +152,32 @@ public abstract class BaseHeatmapsEsService<
 
   /** Transforms a {@link SearchResponse} into a {@link EsHeatmapResponse.GeoCentroidResponse}. */
   private static EsHeatmapResponse.GeoCentroidResponse parseGeoCentroidResponse(
-      SearchResponse response) {
-    ParsedGeoHashGrid heatmapAggs = response.getAggregations().get(HEATMAP_AGGS);
+      SearchResponse<Map<String, Object>> response) {
+    Aggregate heatmapAggs = response.aggregations().get(HEATMAP_AGGS);
+    if (heatmapAggs == null || !heatmapAggs.isGeohashGrid()) {
+      EsHeatmapResponse.GeoCentroidResponse empty = new EsHeatmapResponse.GeoCentroidResponse();
+      empty.setBuckets(List.of());
+      return empty;
+    }
 
     List<EsHeatmapResponse.GeoCentroidGridBucket> buckets =
-        heatmapAggs.getBuckets().stream()
+        heatmapAggs.geohashGrid().buckets().array().stream()
             .map(
                 b -> {
                   // build bucket
                   EsHeatmapResponse.GeoCentroidGridBucket bucket =
                       new EsHeatmapResponse.GeoCentroidGridBucket();
-                  bucket.setKey(b.getKeyAsString());
-                  bucket.setDocCount(b.getDocCount());
+                  bucket.setKey(b.key());
+                  bucket.setDocCount(b.docCount());
 
-                  ParsedGeoCentroid centroidAggs = b.getAggregations().get(CELL_AGGS);
+                  Aggregate centroidAggs = b.aggregations().get(CELL_AGGS);
 
-                  // topLeft
                   EsHeatmapResponse.Coordinate centroid = new EsHeatmapResponse.Coordinate();
-                  centroid.setLat(centroidAggs.centroid().getLat());
-                  centroid.setLon(centroidAggs.centroid().getLon());
+                  if (centroidAggs != null && centroidAggs.isGeoCentroid()) {
+                    GeoLocation location = centroidAggs.geoCentroid().location();
+                    centroid.setLat(readLat(location));
+                    centroid.setLon(readLon(location));
+                  }
 
                   bucket.setCentroid(centroid);
 
@@ -185,4 +191,51 @@ public abstract class BaseHeatmapsEsService<
 
     return result;
   }
+
+  private static void populateBounds(EsHeatmapResponse.Bounds bounds, GeoBounds geoBounds) {
+    EsHeatmapResponse.Coordinate topLeft = new EsHeatmapResponse.Coordinate();
+    EsHeatmapResponse.Coordinate bottomRight = new EsHeatmapResponse.Coordinate();
+
+    if (geoBounds.isCoords()) {
+      topLeft.setLat(geoBounds.coords().top());
+      topLeft.setLon(geoBounds.coords().left());
+      bottomRight.setLat(geoBounds.coords().bottom());
+      bottomRight.setLon(geoBounds.coords().right());
+    } else if (geoBounds.isTlbr()) {
+      topLeft.setLat(readLat(geoBounds.tlbr().topLeft()));
+      topLeft.setLon(readLon(geoBounds.tlbr().topLeft()));
+      bottomRight.setLat(readLat(geoBounds.tlbr().bottomRight()));
+      bottomRight.setLon(readLon(geoBounds.tlbr().bottomRight()));
+    }
+
+    bounds.setTopLeft(topLeft);
+    bounds.setBottomRight(bottomRight);
+  }
+
+  private static double readLat(GeoLocation geoLocation) {
+    if (geoLocation == null) {
+      return 0D;
+    }
+    if (geoLocation.isLatlon()) {
+      return geoLocation.latlon().lat();
+    }
+    if (geoLocation.isCoords() && geoLocation.coords().size() > 1) {
+      return geoLocation.coords().get(1);
+    }
+    return 0D;
+  }
+
+  private static double readLon(GeoLocation geoLocation) {
+    if (geoLocation == null) {
+      return 0D;
+    }
+    if (geoLocation.isLatlon()) {
+      return geoLocation.latlon().lon();
+    }
+    if (geoLocation.isCoords() && !geoLocation.coords().isEmpty()) {
+      return geoLocation.coords().get(0);
+    }
+    return 0D;
+  }
+
 }

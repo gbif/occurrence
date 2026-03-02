@@ -16,7 +16,6 @@ package org.gbif.occurrence.ws.it;
 import java.io.IOException;
 import java.util.Collections;
 import org.apache.hadoop.hbase.client.Connection;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.UserRole;
@@ -60,6 +59,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ActiveProfiles;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 
 /** SpringBoot app used for IT tests only. */
 @TestConfiguration
@@ -145,10 +145,10 @@ public class OccurrenceWsItConfiguration {
   }
 
   /**
-   * Creates an instance of an Elasticsearch RestHighLevelClient from the embedded EsManagerServer.
+   * Creates an instance of an ElasticsearchClient from the embedded EsManagerServer.
    */
   @Bean
-  public RestHighLevelClient restHighLevelClient(EsManageServer esManageServer) {
+  public ElasticsearchClient elasticsearchClient(EsManageServer esManageServer) {
     return esManageServer.getRestClient();
   }
 

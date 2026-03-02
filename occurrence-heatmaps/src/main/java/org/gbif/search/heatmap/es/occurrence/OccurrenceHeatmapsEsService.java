@@ -13,7 +13,7 @@
  */
 package org.gbif.search.heatmap.es.occurrence;
 
-import org.elasticsearch.client.RestHighLevelClient;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.search.heatmap.es.BaseHeatmapsEsService;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
@@ -29,7 +29,7 @@ public class OccurrenceHeatmapsEsService
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsEsService.class);
 
   public OccurrenceHeatmapsEsService(
-      RestHighLevelClient esClient,
+      ElasticsearchClient esClient,
       String esIndex,
       OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder) {
     super(esClient, esIndex, esHeatmapRequestBuilder);

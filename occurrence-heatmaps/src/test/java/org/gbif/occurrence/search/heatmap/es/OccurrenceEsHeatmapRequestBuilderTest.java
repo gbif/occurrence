@@ -27,7 +27,7 @@ import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
-import org.elasticsearch.action.search.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import org.gbif.search.es.ChecklistEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.heatmap.es.occurrence.OccurrenceEsHeatmapRequestBuilder;
@@ -50,7 +50,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
     request.setZoom(1);
 
     SearchRequest query = esHeatmapRequestBuilder.buildHeatmapRequest(request, INDEX);
-    JsonNode json = MAPPER.readTree(query.source().toString());
+    JsonNode json = MAPPER.readTree(query.toString());
 
     assertEquals(0, json.get(SIZE).asInt());
 
@@ -65,10 +65,10 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
             .path(0)
             .path(GEO_BOUNDING_BOX)
             .path(OccurrenceEsField.COORDINATE_POINT.getSearchFieldName());
-    assertEquals(-44d, bbox.path("top_left").get(0).asDouble(), 0);
-    assertEquals(54d, bbox.path("top_left").get(1).asDouble(), 0);
-    assertEquals(-32d, bbox.path("bottom_right").get(0).asDouble(), 0);
-    assertEquals(30d, bbox.path("bottom_right").get(1).asDouble(), 0);
+    assertEquals(54d, bbox.path("top").asDouble(), 0);
+    assertEquals(-44d, bbox.path("left").asDouble(), 0);
+    assertEquals(30d, bbox.path("bottom").asDouble(), 0);
+    assertEquals(-32d, bbox.path("right").asDouble(), 0);
 
     // geohash_grid
     assertTrue(json.path(AGGREGATIONS).path(HEATMAP_AGGS).has(GEOHASH_GRID));
@@ -116,7 +116,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
     request.setZoom(1);
 
     SearchRequest query = esHeatmapRequestBuilder.buildHeatmapRequest(request, INDEX);
-    JsonNode json = MAPPER.readTree(query.source().toString());
+    JsonNode json = MAPPER.readTree(query.toString());
 
     assertEquals(0, json.get(SIZE).asInt());
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).isArray());

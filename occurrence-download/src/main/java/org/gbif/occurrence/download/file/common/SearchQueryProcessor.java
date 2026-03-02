@@ -16,23 +16,20 @@ package org.gbif.occurrence.download.file.common;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 
-import java.io.IOException;
+import java.io.StringReader;
+import java.util.Map;
 import java.util.function.Consumer;
-
-import org.elasticsearch.action.search.*;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 
 import org.gbif.search.es.EsResponseParser;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 
 /**
  * Executes a Search query and applies a predicate to each result.
@@ -62,52 +59,52 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
     int nrOfOutputRecords = downloadFileWork.getTo() - downloadFileWork.getFrom();
 
     try {
-
       int recordCount = 0;
-      // Creates a search request instance using the search request that comes in the fileJob
-      SearchSourceBuilder searchSourceBuilder = createSearchQuery(downloadFileWork.getQuery());
-
+      Query queryNode = createSearchQuery(downloadFileWork.getQuery());
 
       while (recordCount < nrOfOutputRecords) {
+        int pageSize =
+            recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT;
+        int offset = downloadFileWork.getFrom() + recordCount;
+        SearchRequest searchRequest =
+            SearchRequest.of(
+                s ->
+                    s.index(downloadFileWork.getEsIndex())
+                        .query(queryNode)
+                        .from(offset)
+                        .size(pageSize)
+                        .sort(so -> so.field(f -> f.field(KEY_FIELD).order(SortOrder.Desc)))
+                        // Response fields are not needed for download processing.
+                        .source(src -> src.filter(f -> f.excludes("all", "notIssues"))));
 
-        searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
-        searchSourceBuilder.from(downloadFileWork.getFrom() + recordCount);
-        searchSourceBuilder.fetchSource(null, new String[]{
-          "all",
-          "notIssues"
-        }); //Fields are not needed in the response
-        SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
-
-        SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, RequestOptions.DEFAULT);
+        SearchResponse<Map<String, Object>> searchResponse =
+            downloadFileWork
+                .getEsClient()
+                .search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
         consume(searchResponse, resultHandler);
 
-        SearchHit[] searchHits = searchResponse.getHits().getHits();
-        recordCount += searchHits.length;
-
+        recordCount += searchResponse.hits().hits().size();
       }
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       throw Throwables.propagate(ex);
     }
   }
 
-  private void consume(SearchResponse searchResponse, Consumer<T> consumer) {
+  private void consume(SearchResponse<Map<String, Object>> searchResponse, Consumer<T> consumer) {
     FacetedSearchRequest<P> r = new FacetedSearchRequest<>();
     r.setOffset(0);
-    r.setLimit(searchResponse.getHits().getHits().length);
+    r.setLimit(searchResponse.hits().hits().size());
     esResponseParser.buildSearchResponse(searchResponse, r)
       .getResults().forEach(consumer);
   }
   /**
    * Creates a search query that contains the query parameter as the filter query value.
    */
-  private SearchSourceBuilder createSearchQuery(String query) {
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+  private Query createSearchQuery(String query) {
     if (!Strings.isNullOrEmpty(query)) {
-      searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
+      return Query.of(q -> q.withJson(new StringReader(query)));
     }
-    //key is required since this runs in a distributed installations where the natural order can't be guaranteed
-    searchSourceBuilder.sort(KEY_FIELD, SortOrder.DESC);
-    return searchSourceBuilder;
+    return Query.of(q -> q.matchAll(ma -> ma));
   }
 
 }

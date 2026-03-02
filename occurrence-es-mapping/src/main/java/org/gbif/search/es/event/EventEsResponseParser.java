@@ -13,11 +13,12 @@
  */
 package org.gbif.search.es.event;
 
+import java.util.Map;
 import java.util.function.Function;
-import org.elasticsearch.search.SearchHit;
+
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.event.search.EventSearchParameter;
-import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.search.es.BaseEsFieldMapper;
 import org.gbif.search.es.EsResponseParser;
 
@@ -32,7 +33,7 @@ public class EventEsResponseParser
    */
   public EventEsResponseParser(
       BaseEsFieldMapper<EventSearchParameter> baseEsFieldMapper,
-      Function<SearchHit, Event> hitMapper) {
+      Function<Hit<Map<String, Object>>, Event> hitMapper) {
     super(baseEsFieldMapper, hitMapper);
   }
 

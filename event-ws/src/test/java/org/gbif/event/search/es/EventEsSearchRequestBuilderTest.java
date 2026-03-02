@@ -19,10 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.QueryBuilder;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import org.gbif.api.model.event.search.EventPredicateSearchRequest;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
@@ -56,11 +57,11 @@ public class EventEsSearchRequestBuilderTest {
         EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
     searchRequest.addParameter(
         EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, "tk");
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(
         "uk",
         jsonQuery
@@ -87,11 +88,11 @@ public class EventEsSearchRequestBuilderTest {
   public void humboldtTaxonomicIssueTest() throws Exception {
     EventSearchRequest searchRequest = new EventSearchRequest();
     searchRequest.addParameter(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE, "TAXON_MATCH_NONE");
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertFalse(jsonQuery.path(BOOL).path(FILTER).findPath(NESTED).isEmpty());
     assertEquals(
         "event.humboldt", jsonQuery.path(BOOL).path(FILTER).findPath(NESTED).path(PATH).asText());
@@ -112,11 +113,11 @@ public class EventEsSearchRequestBuilderTest {
     searchRequest.addParameter(
         EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
     searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "key2");
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(
         "uk",
         jsonQuery
@@ -134,12 +135,12 @@ public class EventEsSearchRequestBuilderTest {
     searchRequest.addFacets(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY);
     searchRequest.addFacetPage(
         EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, 0, 5);
-    QueryBuilder query =
+    Query query = //TODO: Check here?
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
-    JsonNode jsonQuery = MAPPER.readTree(request.source().toString());
+    JsonNode jsonQuery = parseRequest(request);
     JsonNode aggs =
         jsonQuery.path(AGGREGATIONS).path(HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY.name());
     assertEquals("event.humboldt", aggs.path(NESTED).path(PATH).asText());
@@ -164,11 +165,11 @@ public class EventEsSearchRequestBuilderTest {
   public void humboldtEventDurationTest() throws Exception {
     EventSearchRequest searchRequest = new EventSearchRequest();
     searchRequest.addParameter(EventSearchParameter.HUMBOLDT_EVENT_DURATION, "2");
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
             .orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(
         2,
         jsonQuery
@@ -191,9 +192,9 @@ public class EventEsSearchRequestBuilderTest {
     Predicate p3 = new ConjunctionPredicate(Arrays.asList(p1, p2));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(2, jsonQuery.findPath(NESTED).findPath(FILTER).size());
   }
 
@@ -208,9 +209,9 @@ public class EventEsSearchRequestBuilderTest {
     Predicate p3 = new ConjunctionPredicate(Arrays.asList(p1, p2));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(2, jsonQuery.findPath(FILTER).size());
     assertNotNull(jsonQuery.findPath(FILTER).findPath(NESTED));
   }
@@ -226,9 +227,9 @@ public class EventEsSearchRequestBuilderTest {
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p2));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(2, jsonQuery.findPath(NESTED).findPath(SHOULD).size());
   }
 
@@ -243,9 +244,9 @@ public class EventEsSearchRequestBuilderTest {
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p2));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(2, jsonQuery.findPath(SHOULD).size());
     assertNotNull(jsonQuery.findPath(SHOULD).findPath(NESTED));
   }
@@ -261,9 +262,9 @@ public class EventEsSearchRequestBuilderTest {
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p2));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new NotPredicate(p3));
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(
         2, jsonQuery.findPath(MUST_NOT).findPath(SHOULD).findPath(NESTED).findPath(SHOULD).size());
     assertNotNull(jsonQuery.findPath(MUST_NOT));
@@ -283,9 +284,9 @@ public class EventEsSearchRequestBuilderTest {
     Predicate p3 = new DisjunctionPredicate(Arrays.asList(p1, p11, p2));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new NotPredicate(p3));
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(2, jsonQuery.findPath(MUST_NOT).findPath(SHOULD).size());
     assertEquals(
         2, jsonQuery.findPath(MUST_NOT).findPath(SHOULD).findPath(NESTED).findPath(SHOULD).size());
@@ -304,9 +305,9 @@ public class EventEsSearchRequestBuilderTest {
     Predicate p3 = new ConjunctionPredicate(Arrays.asList(p1, p2));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p3);
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(2, jsonQuery.findPath(NESTED).findPath(FILTER).size());
   }
 
@@ -316,9 +317,9 @@ public class EventEsSearchRequestBuilderTest {
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(p1);
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(
         2,
         jsonQuery
@@ -346,9 +347,9 @@ public class EventEsSearchRequestBuilderTest {
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new ConjunctionPredicate(List.of(p1, p2)));
 
-    QueryBuilder query =
+    Query query =
         esSearchRequestBuilder.buildQuery(searchRequest).orElseThrow(IllegalArgumentException::new);
-    JsonNode jsonQuery = MAPPER.readTree(query.toString());
+    JsonNode jsonQuery = parseQuery(query);
     assertEquals(
         "uk",
         jsonQuery
@@ -367,5 +368,25 @@ public class EventEsSearchRequestBuilderTest {
             .get(0)
             .get(VALUE)
             .asText());
+  }
+
+  private static JsonNode parseRequest(SearchRequest request) {
+    String requestJson = request.toString();
+    int jsonStart = requestJson.indexOf('{');
+    try {
+      return MAPPER.readTree(jsonStart >= 0 ? requestJson.substring(jsonStart) : requestJson);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private static JsonNode parseQuery(Query query) {
+    String queryJson = query.toString();
+    int jsonStart = queryJson.indexOf('{');
+    try {
+      return MAPPER.readTree(jsonStart >= 0 ? queryJson.substring(jsonStart) : queryJson);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

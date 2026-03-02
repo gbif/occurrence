@@ -13,29 +13,23 @@
  */
 package org.gbif.occurrence.search.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.CountRequest;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.search.Hit;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 import jakarta.annotation.Nullable;
 import javax.validation.constraints.Min;
-import lombok.SneakyThrows;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.core.CountRequest;
-import org.elasticsearch.client.core.CountResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -68,7 +62,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceSearchEsImpl.class);
 
   private final NameUsageMatchingService nameUsageMatchingService;
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
   private final String esIndex;
   private final int maxLimit;
   private final int maxOffset;
@@ -81,7 +75,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
   @Autowired
   public OccurrenceSearchEsImpl(
-    RestHighLevelClient esClient,
+    ElasticsearchClient esClient,
     NameUsageMatchingService nameUsageMatchingService,
     @Value("${occurrence.search.max.offset}") int maxOffset,
     @Value("${occurrence.search.max.limit}") int maxLimit,
@@ -98,7 +92,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.esClient = esClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
     this.esFieldMapper = esFieldMapper;
-    this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceEsFieldMapper(esFieldMapper).build();
+    this.esFulltextSuggestBuilder = new EsFulltextSuggestBuilder(esFieldMapper);
     this.esSearchRequestBuilder =
         new OccurrenceEsSearchRequestBuilder(
             esFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
@@ -107,19 +101,27 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.defaultChecklistKey = defaultChecklistKey;
   }
 
-  private <T> T getByQuery(QueryBuilder query, Function<SearchHit,T> mapper) {
-    //This should be changed to use GetRequest once ElasticSearch stores id correctly
-    SearchRequest searchRequest = new SearchRequest();
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    searchSourceBuilder.size(1);
-    searchSourceBuilder.fetchSource(null, BaseEsSearchRequestBuilder.SOURCE_EXCLUDE);
-    searchRequest.indices(esIndex);
-    searchSourceBuilder.query(query);
-    searchRequest.source(searchSourceBuilder);
+  private <T> T getByQuery(Query query, Function<Hit<Map<String, Object>>, T> mapper) {
+    SearchRequest searchRequest =
+        SearchRequest.of(
+            s ->
+                s.index(esIndex)
+                    .size(1)
+                    .query(query)
+                    .source(
+                        src ->
+                            src.filter(
+                                f ->
+                                    f.excludes(
+                                        Lists.newArrayList(
+                                            BaseEsSearchRequestBuilder.SOURCE_EXCLUDE)))));
     try {
-      SearchHits hits = esClient.search(searchRequest, HEADERS.get()).getHits();
-      if (hits != null && hits.getTotalHits().value > 0) {
-        return mapper.apply(hits.getAt(0));
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map> response = esClient.search(searchRequest, Map.class);
+      List<Hit<Map>> hits = response.hits().hits();
+      if (hits != null && !hits.isEmpty()) {
+        @SuppressWarnings("unchecked")
+        Hit<Map<String, Object>> hit = (Hit<Map<String, Object>>) (Hit<?>) hits.get(0);
+        return mapper.apply(hit);
       }
       return null;
     } catch (IOException ex) {
@@ -127,17 +129,34 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     }
   }
 
-  private <T> T searchByKey(Long key, Function<SearchHit, T> mapper) {
-    return getByQuery(QueryBuilders.boolQuery().filter(QueryBuilders.idsQuery().addIds(key.toString())), mapper);
+  private <T> T searchByKey(Long key, Function<Hit<Map<String, Object>>, T> mapper) {
+    return getByQuery(Query.of(q -> q.ids(i -> i.values(key.toString()))), mapper);
   }
 
-  private <T> T searchByDatasetKeyAndOccurrenceId(UUID datasetKey, String occurrenceId, Function<SearchHit, T> mapper) {
-    return getByQuery(QueryBuilders.boolQuery()
-                        .filter(
-                          QueryBuilders.boolQuery()
-                          .must(QueryBuilders.termQuery(esFieldMapper.getSearchFieldName(OccurrenceSearchParameter.DATASET_KEY), datasetKey.toString()))
-                          .must(QueryBuilders.termQuery(esFieldMapper.getExactMatchFieldName(OccurrenceSearchParameter.OCCURRENCE_ID), occurrenceId))),
-                      mapper);
+  private <T> T searchByDatasetKeyAndOccurrenceId(
+      UUID datasetKey, String occurrenceId, Function<Hit<Map<String, Object>>, T> mapper) {
+    return getByQuery(
+        Query.of(
+            q ->
+                q.bool(
+                    b ->
+                        b.must(
+                                m ->
+                                    m.term(
+                                        t ->
+                                            t.field(
+                                                    esFieldMapper.getSearchFieldName(
+                                                        OccurrenceSearchParameter.DATASET_KEY))
+                                                .value(v -> v.stringValue(datasetKey.toString()))))
+                            .must(
+                                m ->
+                                    m.term(
+                                        t ->
+                                            t.field(
+                                                    esFieldMapper.getExactMatchFieldName(
+                                                        OccurrenceSearchParameter.OCCURRENCE_ID))
+                                                .value(v -> v.stringValue(occurrenceId)))))),
+        mapper);
   }
 
   @Override
@@ -190,19 +209,19 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     }
 
     // build request
-    SearchRequest esRequest =  esSearchRequestBuilder.buildSearchRequest(request, esIndex);
+    SearchRequest esRequest = esSearchRequestBuilder.buildSearchRequest(request, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search
     try {
-      return esResponseParser.buildSearchResponse(esClient.search(esRequest, HEADERS.get()), request);
+      return esResponseParser.buildSearchResponse(
+          esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class), request);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
     }
   }
 
-  @SneakyThrows
   @Override
   public SearchResponse<Occurrence, OccurrenceSearchParameter> search(OccurrencePredicateSearchRequest request) {
    return search((OccurrenceSearchRequest) request);
@@ -287,15 +306,13 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     return suggestTermByField(prefix, OccurrenceSearchParameter.DATASET_NAME, limit);
   }
 
-  private SearchRequest buildSearchRequest(SearchSourceBuilder searchSourceBuilder) {
-    return new SearchRequest(new String[]{esIndex}, searchSourceBuilder);
-  }
-
   @Override
   public List<String> searchFieldTerms(String query, OccurrenceSearchParameter parameter, @Nullable Integer limit) {
     try {
-      SearchRequest searchRequest = buildSearchRequest(esFulltextSuggestBuilder.buildSuggestFullTextQuery(query, parameter, limit));
-      org.elasticsearch.action.search.SearchResponse response = esClient.search(searchRequest, HEADERS.get());
+      SearchRequest searchRequest =
+          esFulltextSuggestBuilder.buildSuggestFullTextRequest(query, parameter, limit, esIndex);
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> response =
+          esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
       return esFulltextSuggestBuilder.buildSuggestFullTextResponse(parameter, response);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
@@ -314,13 +331,13 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
    * @return a list of elements that matched against the prefix
    */
   public List<String> suggestTermByField(String prefix, OccurrenceSearchParameter parameter, Integer limit) {
-
     SearchRequest esRequest = esSearchRequestBuilder.buildSuggestQuery(prefix, parameter, limit, esIndex);
     LOG.debug("ES request: {}", esRequest);
 
     try {
       // perform the search
-      org.elasticsearch.action.search.SearchResponse response = esClient.search(esRequest, HEADERS.get());
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> response =
+          esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
       return esResponseParser.buildSuggestResponse(response, parameter);
     } catch (IOException e) {
       LOG.error("Error executing the search operation", e);
@@ -329,16 +346,14 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
   }
 
-  @SneakyThrows
   @Override
   public long countRecords(Predicate predicate) {
-    CountResponse response =
-        esClient.count(
-            new CountRequest()
-                .indices(esIndex)
-                .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)),
-            RequestOptions.DEFAULT);
-    return response.getCount();
+    Query query = EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey);
+    try {
+      return esClient.count(CountRequest.of(c -> c.index(esIndex).query(query))).count();
+    } catch (IOException e) {
+      throw new SearchException(e);
+    }
   }
 
   /**

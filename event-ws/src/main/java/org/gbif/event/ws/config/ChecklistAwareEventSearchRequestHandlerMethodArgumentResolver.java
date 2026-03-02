@@ -21,6 +21,8 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.rest.client.species.Metadata;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.ws.server.provider.EventSearchRequestHandlerMethodArgumentResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 
@@ -28,6 +30,9 @@ import org.springframework.web.context.request.WebRequest;
 @Slf4j
 public class ChecklistAwareEventSearchRequestHandlerMethodArgumentResolver
     extends EventSearchRequestHandlerMethodArgumentResolver {
+
+  private static final Logger LOG =
+      LoggerFactory.getLogger(ChecklistAwareEventSearchRequestHandlerMethodArgumentResolver.class);
 
   protected final NameUsageMatchingService nameUsageMatchingService;
 
@@ -136,7 +141,7 @@ public class ChecklistAwareEventSearchRequestHandlerMethodArgumentResolver
                   checklistParameters.add(new EventSearchParameter(rank + "_KEY", String.class));
                 });
       } catch (Exception e) {
-        log.error("Failed to get metadata for checklist {}", checklistKey, e);
+        LOG.error("Failed to get metadata for checklist {}", checklistKey, e);
       }
     }
   }

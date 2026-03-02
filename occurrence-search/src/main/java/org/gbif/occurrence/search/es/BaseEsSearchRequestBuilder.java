@@ -16,34 +16,24 @@ package org.gbif.occurrence.search.es;
 import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch._types.ScriptLanguage;
+import co.elastic.clients.elasticsearch._types.ScriptSortType;
+import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeRelation;
+import co.elastic.clients.json.JsonData;
+import com.google.common.base.Strings;
 import com.google.common.annotations.VisibleForTesting;
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
-import lombok.SneakyThrows;
-import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.geo.ShapeRelation;
-import org.elasticsearch.common.geo.builders.*;
-import org.elasticsearch.index.query.*;
-import org.elasticsearch.join.aggregations.ChildrenAggregationBuilder;
-import org.elasticsearch.join.query.JoinQueryBuilders;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.script.ScriptType;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.ScriptSortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.suggest.SuggestBuilder;
-import org.elasticsearch.search.suggest.SuggestBuilders;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchConstants;
@@ -101,18 +91,13 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   public SearchRequest buildSearchRequest(S searchRequest, String index) {
-
-    SearchRequest esRequest = new SearchRequest();
-    esRequest.indices(index);
-
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    esRequest.source(searchSourceBuilder);
-
-    // size and offset
-    searchSourceBuilder.size(searchRequest.getLimit());
-    searchSourceBuilder.from((int) searchRequest.getOffset());
-    searchSourceBuilder.trackTotalHits(true);
-    searchSourceBuilder.fetchSource(null, SOURCE_EXCLUDE);
+    SearchRequest.Builder searchRequestBuilder =
+        new SearchRequest.Builder()
+            .index(index)
+            .size(searchRequest.getLimit())
+            .from((int) searchRequest.getOffset())
+            .trackTotalHits(t -> t.enabled(true))
+            .source(src -> src.filter(f -> f.excludes(List.of(SOURCE_EXCLUDE))));
 
     // group params
     GroupedParams<P> groupedParams = groupParameters(searchRequest);
@@ -122,45 +107,50 @@ public abstract class BaseEsSearchRequestBuilder<
 
     // add query
     if (searchRequest instanceof PredicateSearchRequest) {
-      buildQuery((PredicateSearchRequest) searchRequest).ifPresent(searchSourceBuilder::query);
+      buildQuery((PredicateSearchRequest) searchRequest).ifPresent(searchRequestBuilder::query);
     } else {
       buildQuery(
               groupedParams.queryParams,
               searchRequest.getQ(),
               searchRequest.isMatchCase(),
               checklistKey)
-          .ifPresent(searchSourceBuilder::query);
+          .ifPresent(searchRequestBuilder::query);
     }
 
     // sort
     if (!Strings.isNullOrEmpty(searchRequest.getShuffle())) {
       // random score
-      searchSourceBuilder.sort(
-          SortBuilders.scriptSort(
-              new Script(
-                  ScriptType.INLINE,
-                  "painless",
-                  "(doc['_id'].value + params['seed']).hashCode()",
-                  Collections.singletonMap("seed", searchRequest.getShuffle())),
-              ScriptSortBuilder.ScriptSortType.NUMBER));
+      searchRequestBuilder.sort(
+          s ->
+              s.script(
+                  ss ->
+                      ss.type(ScriptSortType.Number)
+                          .script(
+                              sc ->
+                                  sc.lang(ScriptLanguage.Painless)
+                                      .source(
+                                          src ->
+                                              src.scriptString(
+                                                  "(doc['_id'].value + params['seed']).hashCode()"))
+                                      .params("seed", JsonData.of(searchRequest.getShuffle())))));
     } else if (Strings.isNullOrEmpty(searchRequest.getQ())) {
-      esFieldMapper.getDefaultSort().forEach(searchSourceBuilder::sort);
+      esFieldMapper.getDefaultSort().forEach(searchRequestBuilder::sort);
     } else {
-      searchSourceBuilder.sort(SortBuilders.scoreSort());
+      searchRequestBuilder.sort(s -> s.score(sc -> sc));
     }
 
     // add aggs
     buildAggs(searchRequest, groupedParams.postFilterParams)
-        .ifPresent(aggsList -> aggsList.forEach(searchSourceBuilder::aggregation));
+        .ifPresent(searchRequestBuilder::aggregations);
 
     // post-filter
     buildPostFilter(groupedParams.postFilterParams, searchRequest.isMatchCase(), checklistKey)
-        .ifPresent(searchSourceBuilder::postFilter);
+        .ifPresent(searchRequestBuilder::postFilter);
 
-    return esRequest;
+    return searchRequestBuilder.build();
   }
 
-  public Optional<QueryBuilder> buildQueryNode(S searchRequest) {
+  public Optional<Query> buildQueryNode(S searchRequest) {
     return buildQuery(
         searchRequest.getParameters(),
         searchRequest.getQ(),
@@ -169,28 +159,24 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   SearchRequest buildSuggestQuery(String prefix, P parameter, Integer limit, String index) {
-    SearchRequest request = new SearchRequest();
-    request.indices(index);
-
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-    request.source(searchSourceBuilder);
-
     EsField esField = esFieldMapper.getEsField(parameter);
+    int suggestLimit = limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT;
 
-    // create suggest query
-    searchSourceBuilder.suggest(
-        new SuggestBuilder()
-            .addSuggestion(
-                esField.getSearchFieldName(),
-                SuggestBuilders.completionSuggestion(esField.getSuggestFieldName())
-                    .prefix(prefix)
-                    .size(limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT)
-                    .skipDuplicates(true)));
-
-    // add source field
-    searchSourceBuilder.fetchSource(esField.getSearchFieldName(), null);
-
-    return request;
+    return SearchRequest.of(
+        sr ->
+            sr.index(index)
+                .source(src -> src.filter(f -> f.includes(esField.getSearchFieldName())))
+                .suggest(
+                    su ->
+                        su.suggesters(
+                            esField.getSearchFieldName(),
+                            fs ->
+                                fs.prefix(prefix)
+                                    .completion(
+                                        c ->
+                                            c.field(esField.getSuggestFieldName())
+                                                .size(suggestLimit)
+                                                .skipDuplicates(true)))));
   }
 
   /**
@@ -200,94 +186,94 @@ public abstract class BaseEsSearchRequestBuilder<
    * @param bool
    * @param params
    */
-  private void addTaxonKeyQuery(String rank, BoolQueryBuilder bool, Map<P, Set<String>> params) {
+  private void addTaxonKeyQuery(String rank, List<Query> filters, Map<P, Set<String>> params) {
 
     String checklistKey = getChecklistKey(params);
 
     P dynamicRankParam = createSearchParam(rank.toUpperCase() + "_KEY", String.class);
     if (params.containsKey(dynamicRankParam)) {
-      BoolQueryBuilder checklistQuery =
-          QueryBuilders.boolQuery()
-              .must(
-                  QueryBuilders.termsQuery(
-                      ((ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField())
-                          .getSearchFieldName(checklistKey),
-                      params.get(dynamicRankParam)));
+      String checklistField =
+          ((ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField()).getSearchFieldName(checklistKey);
+      List<FieldValue> values =
+          params.get(dynamicRankParam).stream().map(FieldValue::of).collect(Collectors.toList());
+      Query checklistQuery =
+          Query.of(
+              q ->
+                  q.terms(
+                      t ->
+                          t.field(checklistField)
+                              .terms(v -> v.value(values))));
       params.remove(dynamicRankParam);
-      bool.filter().add(checklistQuery);
+      filters.add(checklistQuery);
     }
   }
 
   @VisibleForTesting
-  Optional<QueryBuilder> buildQuery(
+  Optional<Query> buildQuery(
       Map<P, Set<String>> params, String qParam, boolean matchCase, String checklistKey) {
     translateFields(params);
-
-    // create bool node
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
+    List<Query> mustQueries = new ArrayList<>();
+    List<Query> filterQueries = new ArrayList<>();
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(esFieldMapper.getFullTextField(), qParam));
+      mustQueries.add(buildFullTextQuery(qParam));
     }
 
     if (params != null && !params.isEmpty()) {
 
       // check for dynamic ranks e.g. subphylum that will be specific to a checklist
-      addChecklistDynamicRanks(params, bool);
+      addChecklistDynamicRanks(params, filterQueries);
 
       // handle the switch from issue -> non-taxonomic issue if checklistKey supplied
-      handleIssueQueries(params, bool);
+      handleIssueQueries(params, filterQueries);
 
       // adding geometry to bool
       getParam("GEOMETRY")
           .filter(params::containsKey)
           .ifPresent(
               param -> {
-                BoolQueryBuilder shouldGeometry = QueryBuilders.boolQuery();
-                shouldGeometry
-                    .should()
-                    .addAll(params.get(param).stream().map(this::buildGeoShapeQuery).toList());
-                bool.filter().add(shouldGeometry);
+                List<Query> shouldGeometry = params.get(param).stream().map(this::buildGeoShapeQuery).toList();
+                filterQueries.add(Query.of(q -> q.bool(b -> b.should(shouldGeometry))));
               });
 
       getParam("GEO_DISTANCE")
           .filter(params::containsKey)
           .ifPresent(
               param -> {
-                BoolQueryBuilder shouldGeoDistance = QueryBuilders.boolQuery();
-                shouldGeoDistance
-                    .should()
-                    .addAll(params.get(param).stream().map(this::buildGeoDistanceQuery).toList());
-                bool.filter().add(shouldGeoDistance);
+                List<Query> shouldGeoDistance =
+                    params.get(param).stream().map(this::buildGeoDistanceQuery).toList();
+                filterQueries.add(Query.of(q -> q.bool(b -> b.should(shouldGeoDistance))));
               });
 
       // adding term queries to bool
-      bool.filter().addAll(createQueries(params, matchCase, checklistKey));
+      filterQueries.addAll(createQueries(params, matchCase, checklistKey));
     }
-    esFieldMapper.getDefaultFilter().ifPresent(df -> bool.filter().add(df));
+    esFieldMapper.getDefaultFilter().ifPresent(filterQueries::add);
 
-    return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
+    return mustQueries.isEmpty() && filterQueries.isEmpty()
+        ? Optional.empty()
+        : Optional.of(Query.of(q -> q.bool(b -> b.must(mustQueries).filter(filterQueries))));
   }
 
-  private List<QueryBuilder> createQueries(
+  private List<Query> createQueries(
       Map<P, Set<String>> params, boolean matchCase, String checklistKey) {
     return createQueries(params, matchCase, true, checklistKey);
   }
 
-  private List<QueryBuilder> createQueries(
+  private List<Query> createQueries(
       Map<P, Set<String>> params,
       boolean matchCase,
       boolean wrappedChildrenQueries,
       String checklistKey) {
-    Map<String, List<QueryBuilder>> queriesByNestedPath = new HashMap<>();
-    List<QueryBuilder> nonNestedQueries = new ArrayList<>();
+    Map<String, List<Query>> queriesByNestedPath = new HashMap<>();
+    List<Query> nonNestedQueries = new ArrayList<>();
     for (Map.Entry<P, Set<String>> e : params.entrySet()) {
       EsField esField = esFieldMapper.getEsField(e.getKey());
       if (esField == null) {
         continue;
       }
-      List<QueryBuilder> queryBuilders =
+      List<Query> queryBuilders =
           buildTermQuery(
               e.getValue(),
               e.getKey(),
@@ -305,20 +291,25 @@ public abstract class BaseEsSearchRequestBuilder<
       }
     }
 
-    List<QueryBuilder> allQueries = new ArrayList<>(nonNestedQueries);
+    List<Query> allQueries = new ArrayList<>(nonNestedQueries);
 
     // add nested queries
     queriesByNestedPath.forEach(
         (key, value) -> {
-          BoolQueryBuilder nestedBoolQuery = QueryBuilders.boolQuery();
-          value.forEach(q -> nestedBoolQuery.filter().add(q));
-          allQueries.add(QueryBuilders.nestedQuery(key, nestedBoolQuery, ScoreMode.None));
+          allQueries.add(
+              Query.of(
+                  q ->
+                      q.nested(
+                          n ->
+                              n.path(key)
+                                  .query(Query.of(qb -> qb.bool(b -> b.filter(value))))
+                                  .scoreMode(ChildScoreMode.None))));
         });
 
     return allQueries;
   }
 
-  protected abstract void handleIssueQueries(Map<P, Set<String>> params, BoolQueryBuilder bool);
+  protected abstract void handleIssueQueries(Map<P, Set<String>> params, List<Query> filters);
 
   /**
    * Retrieve the checklistKey from the request or fallback to the configured default.
@@ -340,7 +331,7 @@ public abstract class BaseEsSearchRequestBuilder<
    * @param params
    * @param bool
    */
-  private void addChecklistDynamicRanks(Map<P, Set<String>> params, BoolQueryBuilder bool) {
+  private void addChecklistDynamicRanks(Map<P, Set<String>> params, List<Query> filters) {
     if (nameUsageMatchingService != null) {
       Optional.ofNullable(nameUsageMatchingService.getMetadata(getChecklistKey(params)))
           .ifPresent(
@@ -351,27 +342,34 @@ public abstract class BaseEsSearchRequestBuilder<
                       .keySet()
                       .forEach(
                           rank -> {
-                            addTaxonKeyQuery(rank, bool, params);
+                            addTaxonKeyQuery(rank, filters, params);
                           }));
     }
   }
 
-  @SneakyThrows
-  public Optional<BoolQueryBuilder> buildQuery(PredicateSearchRequest searchRequest) {
+  public Optional<Query> buildQuery(PredicateSearchRequest searchRequest) {
     searchRequest.setPredicate(translatePredicateFields(searchRequest.getPredicate()));
-
-    // create bool node
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
+    List<Query> mustQueries = new ArrayList<>();
     String qParam = searchRequest.getQ();
 
     // adding full text search parameter
     if (!Strings.isNullOrEmpty(qParam)) {
-      bool.must(QueryBuilders.matchQuery(esFieldMapper.getFullTextField(), qParam));
+      mustQueries.add(buildFullTextQuery(qParam));
     }
 
-    esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(bool::must);
+    try {
+      esQueryVisitor.getQueryBuilder(searchRequest.getPredicate()).ifPresent(mustQueries::add);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error building predicate query", e);
+    }
 
-    return bool.must().isEmpty() && bool.filter().isEmpty() ? Optional.empty() : Optional.of(bool);
+    return mustQueries.isEmpty()
+        ? Optional.empty()
+        : Optional.of(Query.of(q -> q.bool(b -> b.must(mustQueries))));
+  }
+
+  protected Query buildFullTextQuery(String qParam) {
+    return Query.of(q -> q.match(m -> m.field(esFieldMapper.getFullTextField()).query(qParam)));
   }
 
   @VisibleForTesting
@@ -404,19 +402,17 @@ public abstract class BaseEsSearchRequestBuilder<
     return groupedParams;
   }
 
-  private Optional<QueryBuilder> buildPostFilter(
+  private Optional<Query> buildPostFilter(
       Map<P, Set<String>> postFilterParams, boolean matchCase, String checklistKey) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
     }
 
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter().addAll(createQueries(postFilterParams, matchCase, checklistKey));
-
-    return Optional.of(bool);
+    List<Query> filterQueries = createQueries(postFilterParams, matchCase, checklistKey);
+    return Optional.of(Query.of(q -> q.bool(b -> b.filter(filterQueries))));
   }
 
-  private Optional<List<AggregationBuilder>> buildAggs(
+  private Optional<Map<String, Aggregation>> buildAggs(
       S searchRequest, Map<P, Set<String>> postFilterParams) {
     if (searchRequest.getFacets() == null || searchRequest.getFacets().isEmpty()) {
       return Optional.empty();
@@ -432,41 +428,38 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   /** Creates a filter with all the filter in which the facet param is not present. */
-  private BoolQueryBuilder getAggregationPostFilter(
+  private Query getAggregationPostFilter(
       Map<P, Set<String>> postFilterParams, P facetParam, boolean matchCase, String checklistKey) {
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
-
     Map<P, Set<String>> filteredParams =
         postFilterParams.entrySet().stream()
             .filter(entry -> entry.getKey() != facetParam)
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    bool.filter().addAll(createQueries(filteredParams, matchCase, checklistKey));
-    return bool;
+    return Query.of(q -> q.bool(b -> b.filter(createQueries(filteredParams, matchCase, checklistKey))));
   }
 
   /** Creates a filter with all the filter in which the facet param is not present. */
-  private BoolQueryBuilder getAggregationFilter(
+  private Query getAggregationFilter(
       Map<P, Set<String>> postFilterParams,
       P facetParam,
       boolean matchCase,
       boolean wrappedChildrenQueries,
       String checklistKey) {
-    BoolQueryBuilder bool = QueryBuilders.boolQuery();
-    bool.filter()
-        .addAll(
-            createQueries(
-                Map.of(
-                    facetParam,
-                    Optional.ofNullable(postFilterParams.get(facetParam))
-                        .orElse(Collections.emptySet())),
-                matchCase,
-                wrappedChildrenQueries,
-                checklistKey));
-    return bool;
+    return Query.of(
+        q ->
+            q.bool(
+                b ->
+                    b.filter(
+                        createQueries(
+                            Map.of(
+                                facetParam,
+                                Optional.ofNullable(postFilterParams.get(facetParam))
+                                    .orElse(Collections.emptySet())),
+                            matchCase,
+                            wrappedChildrenQueries,
+                            checklistKey))));
   }
 
-  private List<AggregationBuilder> buildFacetsMultiselect(
+  private Map<String, Aggregation> buildFacetsMultiselect(
       S searchRequest, Map<P, Set<String>> postFilterParams) {
 
     if (searchRequest.getFacets().size() == 1) {
@@ -474,42 +467,38 @@ public abstract class BaseEsSearchRequestBuilder<
       return buildFacets(searchRequest);
     }
 
-    return searchRequest.getFacets().stream()
+    Map<String, Aggregation> aggregations = new LinkedHashMap<>();
+    searchRequest.getFacets().stream()
         .filter(p -> esFieldMapper.getEsField(p) != null)
-        .map(
+        .forEach(
             facetParam -> {
-
-              // build filter aggs
-              BoolQueryBuilder bool =
+              Query bool =
                   getAggregationPostFilter(
                       postFilterParams,
                       facetParam,
                       searchRequest.isMatchCase(),
                       getChecklistKey(searchRequest.getParameters()));
 
-              // add filter to the aggs
               EsField esField = esFieldMapper.getEsFacetField(facetParam);
-              FilterAggregationBuilder filterAggs =
-                  AggregationBuilders.filter(esField.getSearchFieldName(), bool);
+              NamedAggregation subAggregation =
+                  esField.isChildField()
+                      ? getChildrenAggregationBuilder(
+                          searchRequest, postFilterParams, facetParam, esField)
+                      : buildTermsAggs(
+                          "filtered_" + esField.getSearchFieldName(),
+                          esField,
+                          searchRequest,
+                          facetParam);
 
-              // build terms aggs and add it to the filter aggs
-              AggregationBuilder termsAggs =
-                  buildTermsAggs(
-                      "filtered_" + esField.getSearchFieldName(),
-                      esField,
-                      searchRequest,
-                      facetParam);
-              if (esField.isChildField()) {
-                filterAggs.subAggregation(
-                    getChildrenAggregationBuilder(
-                        searchRequest, postFilterParams, facetParam, esField));
-              } else {
-                filterAggs.subAggregation(termsAggs);
-              }
+              Aggregation filterAggregation =
+                  Aggregation.of(
+                      a ->
+                          a.filter(bool)
+                              .aggregations(subAggregation.name, subAggregation.aggregation));
+              aggregations.put(esField.getSearchFieldName(), filterAggregation);
+            });
 
-              return filterAggs;
-            })
-        .collect(Collectors.toList());
+    return aggregations;
   }
 
   boolean isDynamicRankParam(S searchRequest, P p) {
@@ -536,19 +525,24 @@ public abstract class BaseEsSearchRequestBuilder<
         .orElse(false);
   }
 
-  private List<AggregationBuilder> buildFacets(S searchRequest) {
+  private Map<String, Aggregation> buildFacets(S searchRequest) {
     final AtomicReference<GroupedParams<P>> groupedParams = new AtomicReference<>();
-    return searchRequest.getFacets().stream()
+    Map<String, Aggregation> aggregations = new LinkedHashMap<>();
+    searchRequest.getFacets().stream()
         .filter(p -> esFieldMapper.getEsField(p) != null || isDynamicRankParam(searchRequest, p))
-        .map(
+        .forEach(
             facetParam -> {
+              NamedAggregation aggregation;
               EsField esField = esFieldMapper.getEsFacetField(facetParam);
               if (esField != null && esField.isChildField()) {
                 if (groupedParams.get() == null) {
                   groupedParams.set(groupParameters(searchRequest, true));
                 }
-                return getChildrenAggregationBuilder(
+                aggregation =
+                    getChildrenAggregationBuilder(
                     searchRequest, groupedParams.get().postFilterParams, facetParam, esField);
+                aggregations.put(aggregation.name, aggregation.aggregation);
+                return;
               }
 
               // if a checklist has been supplied, then use the non taxonomic issues field
@@ -556,11 +550,14 @@ public abstract class BaseEsSearchRequestBuilder<
                   && getParam("CHECKLIST_KEY")
                       .map(p -> searchRequest.getParameters().containsKey(p))
                       .orElse(false)) {
-                return buildTermsAggs(
+                aggregation =
+                    buildTermsAggs(
                     OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName(),
                     OccurrenceEsField.NON_TAXONOMIC_ISSUE,
                     searchRequest,
                     facetParam);
+                aggregations.put(aggregation.name, aggregation.aggregation);
+                return;
               }
 
               // handle taxonomy based fields
@@ -576,7 +573,9 @@ public abstract class BaseEsSearchRequestBuilder<
                 }
 
                 if (field instanceof ChecklistEsField) {
-                  return buildTermsAggs(esFieldName, field, searchRequest, facetParam);
+                  aggregation = buildTermsAggs(esFieldName, field, searchRequest, facetParam);
+                  aggregations.put(aggregation.name, aggregation.aggregation);
+                  return;
                 } else {
                   throw new IllegalArgumentException(
                       "Facet "
@@ -595,43 +594,48 @@ public abstract class BaseEsSearchRequestBuilder<
                             .substring(0, facetParam.name().length() - 4)
                             .toUpperCase());
 
-                return buildTermsAggs(facetParam.name(), esFieldToUse, searchRequest, facetParam);
+                aggregation = buildTermsAggs(facetParam.name(), esFieldToUse, searchRequest, facetParam);
+                aggregations.put(aggregation.name, aggregation.aggregation);
+                return;
               }
 
-              return buildTermsAggs(
+              aggregation =
+                  buildTermsAggs(
                   esField.getSearchFieldName(), esField, searchRequest, facetParam);
-            })
-        .collect(Collectors.toList());
+              aggregations.put(aggregation.name, aggregation.aggregation);
+            });
+    return aggregations;
   }
 
   private boolean isTaxonomic(P param) {
     return esFieldMapper.isTaxonomic(param);
   }
 
-  private ChildrenAggregationBuilder getChildrenAggregationBuilder(
+  private NamedAggregation getChildrenAggregationBuilder(
       S searchRequest, Map<P, Set<String>> postFilterParams, P facetParam, EsField esField) {
-    if (postFilterParams.containsKey(facetParam)) {
-      return new ChildrenAggregationBuilder(
-              esField.getSearchFieldName(), esField.childrenRelation())
-          .subAggregation(
-              AggregationBuilders.filter(
-                      esField.getSearchFieldName(),
-                      getAggregationFilter(
-                          postFilterParams,
-                          facetParam,
-                          searchRequest.isMatchCase(),
-                          false,
-                          getChecklistKey(searchRequest.getParameters())))
-                  .subAggregation(
-                      buildTermsAggs(
-                          esField.getSearchFieldName(), esField, searchRequest, facetParam)));
-    }
-    return new ChildrenAggregationBuilder(esField.getSearchFieldName(), esField.childrenRelation())
-        .subAggregation(
-            buildTermsAggs(esField.getSearchFieldName(), esField, searchRequest, facetParam));
+    // ES 9 no longer exposes the old ChildrenAggregationBuilder API in this module setup.
+    // Use a filter aggregation with a has_child wrapper query to preserve child filtering intent.
+    Query childFilter =
+        postFilterParams.containsKey(facetParam)
+            ? getAggregationFilter(
+                postFilterParams,
+                facetParam,
+                searchRequest.isMatchCase(),
+                false,
+                getChecklistKey(searchRequest.getParameters()))
+            : Query.of(q -> q.matchAll(m -> m));
+
+    NamedAggregation termsAggregation =
+        buildTermsAggs(esField.getSearchFieldName(), esField, searchRequest, facetParam);
+    Aggregation filterAggregation =
+        Aggregation.of(
+            a ->
+                a.filter(wrapHasChildQuery(esField.childrenRelation(), childFilter))
+                    .aggregations(termsAggregation.name, termsAggregation.aggregation));
+    return new NamedAggregation(esField.getSearchFieldName(), filterAggregation);
   }
 
-  private AggregationBuilder buildTermsAggs(
+  private NamedAggregation buildTermsAggs(
       String aggName, EsField esField, S searchRequest, P facetParam) {
 
     String fieldName = null;
@@ -649,36 +653,42 @@ public abstract class BaseEsSearchRequestBuilder<
     return buildTermsAggs(aggName, fieldName, searchRequest, facetParam, esField);
   }
 
-  private AggregationBuilder buildTermsAggs(
+  private NamedAggregation buildTermsAggs(
       String aggName, String fieldName, S searchRequest, P facetParam) {
     return buildTermsAggs(aggName, fieldName, searchRequest, facetParam, null);
   }
 
-  private AggregationBuilder buildTermsAggs(
+  private NamedAggregation buildTermsAggs(
       String aggName, String fieldName, S searchRequest, P facetParam, EsField esField) {
-    // build aggs for the field
-    TermsAggregationBuilder termsAggsBuilder = AggregationBuilders.terms(aggName).field(fieldName);
-
-    // min count
-    Optional.ofNullable(searchRequest.getFacetMinCount()).ifPresent(termsAggsBuilder::minDocCount);
-
-    // aggs size
+    Integer minCount =
+        Optional.ofNullable(searchRequest.getFacetMinCount()).map(Number::intValue).orElse(null);
     int size =
         calculateAggsSize(
             facetParam,
             extractFacetOffset(searchRequest, facetParam),
             extractFacetLimit(searchRequest, facetParam));
-    termsAggsBuilder.size(size);
-
-    // aggs shard size
-    termsAggsBuilder.shardSize(
-        CARDINALITIES.getOrDefault(facetParam, DEFAULT_SHARD_SIZE.applyAsInt(size)));
+    int shardSize = CARDINALITIES.getOrDefault(facetParam, DEFAULT_SHARD_SIZE.applyAsInt(size));
+    Aggregation termsAggregation =
+        Aggregation.of(
+            a ->
+                a.terms(
+                    t -> {
+                      t.field(fieldName).size(size).shardSize(shardSize);
+                      if (minCount != null) {
+                        t.minDocCount(minCount);
+                      }
+                      return t;
+                    }));
 
     if (esField != null && esField.isNestedField()) {
-      return AggregationBuilders.nested(facetParam.name(), esField.getNestedPath())
-          .subAggregation(termsAggsBuilder);
+      Aggregation nestedAggregation =
+          Aggregation.of(
+              a ->
+                  a.nested(n -> n.path(esField.getNestedPath()))
+                      .aggregations(aggName, termsAggregation));
+      return new NamedAggregation(facetParam.name(), nestedAggregation);
     } else {
-      return termsAggsBuilder;
+      return new NamedAggregation(aggName, termsAggregation);
     }
   }
 
@@ -713,27 +723,34 @@ public abstract class BaseEsSearchRequestBuilder<
     return value;
   }
 
-  private List<QueryBuilder> buildTermQuery(
+  private List<Query> buildTermQuery(
       Collection<String> values,
       P param,
       EsField esField,
       boolean matchCase,
       boolean wrappedChildrenQueries,
       String checklistKey) {
-    List<QueryBuilder> queries = new ArrayList<>();
+    List<Query> queries = new ArrayList<>();
 
     // collect queries for each value
     List<String> parsedValues = new ArrayList<>();
 
-    List<QueryBuilder> queryBuilders = new ArrayList<>();
+    List<Query> queryBuilders = new ArrayList<>();
     for (String value : values) {
       if (isNumericRange(value) || esFieldMapper.isDateField(esField)) {
-        RangeQueryBuilder rangeQueryBuilder = buildRangeQuery(esField, value);
-        queryBuilders.add(rangeQueryBuilder);
-        if (esFieldMapper.includeNullInRange(param, rangeQueryBuilder)) {
+        Query rangeQuery = buildRangeQuery(esField, value);
+        queryBuilders.add(rangeQuery);
+        if (rangeQuery.isRange() && esFieldMapper.includeNullInRange(param, rangeQuery.range())) {
           queryBuilders.add(
-              QueryBuilders.boolQuery()
-                  .mustNot(QueryBuilders.existsQuery(esField.getExactMatchFieldName())));
+              Query.of(
+                  q ->
+                      q.bool(
+                          b ->
+                              b.mustNot(
+                                  Query.of(
+                                      q2 ->
+                                          q2.exists(
+                                              e -> e.field(esField.getExactMatchFieldName())))))));
         }
         continue;
       }
@@ -741,9 +758,7 @@ public abstract class BaseEsSearchRequestBuilder<
     }
 
     if (!queryBuilders.isEmpty()) {
-      BoolQueryBuilder ranges = QueryBuilders.boolQuery();
-      queryBuilders.forEach(ranges::should);
-      queries.add(ranges);
+      queries.add(Query.of(q -> q.bool(b -> b.should(queryBuilders))));
     }
 
     // get the field name based on the taxonomy and the matchCase
@@ -753,75 +768,97 @@ public abstract class BaseEsSearchRequestBuilder<
     } else {
       fieldName = matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
     }
+    final String finalFieldName = fieldName;
 
     if (parsedValues.size() == 1) {
       // single term
-      queries.add(QueryBuilders.termQuery(fieldName, parsedValues.get(0)));
+      queries.add(Query.of(q -> q.term(t -> t.field(finalFieldName).value(parsedValues.get(0)))));
     } else if (parsedValues.size() > 1) {
       // multi term query
-      queries.add(QueryBuilders.termsQuery(fieldName, parsedValues));
+      queries.add(
+          Query.of(
+              q ->
+                  q.terms(
+                      t ->
+                          t.field(finalFieldName)
+                              .terms(
+                                  v ->
+                                      v.value(
+                                          parsedValues.stream()
+                                              .map(FieldValue::of)
+                                              .toList())))));
     }
 
     if (wrappedChildrenQueries && esField.isChildField()) {
       return queries.stream()
-          .map(q -> JoinQueryBuilders.hasChildQuery(esField.childrenRelation(), q, ScoreMode.None))
-          .collect(Collectors.toList());
+          .map(q -> wrapHasChildQuery(esField.childrenRelation(), q))
+          .toList();
     }
 
     return queries;
   }
 
-  private RangeQueryBuilder buildRangeQuery(EsField esField, String value) {
-    RangeQueryBuilder builder = QueryBuilders.rangeQuery(esField.getExactMatchFieldName());
-
+  private Query buildRangeQuery(EsField esField, String value) {
+    String fieldName = esField.getExactMatchFieldName();
     if (esFieldMapper.isDateField(esField)) {
       Range<LocalDate> dateRange = IsoDateParsingUtils.parseDateRange(value);
-
-      if (dateRange.hasLowerBound()) {
-        builder.gte(dateRange.lowerEndpoint());
-      }
-
-      if (dateRange.hasUpperBound()) {
-        builder.lt(dateRange.upperEndpoint());
-      }
-      // For a match, the occurrence's date range must be entirely within the search query date
-      // range.
-      // i.e. Q:eventDate=1980 will match rec:eventDate=1980-02, but not
-      // rec:eventDate=1980-10-01/1982-02-02.
-      builder.relation(EsQueryUtils.WITHIN);
+      return Query.of(
+          q ->
+              q.range(
+                  r ->
+                      r.date(
+                          d -> {
+                            d.field(fieldName).relation(RangeRelation.Within);
+                            if (dateRange.hasLowerBound()) {
+                              d.gte(dateRange.lowerEndpoint().toString());
+                            }
+                            if (dateRange.hasUpperBound()) {
+                              d.lt(dateRange.upperEndpoint().toString());
+                            }
+                            return d;
+                          })));
     } else {
       String[] values = value.split(RANGE_SEPARATOR);
-      if (!RANGE_WILDCARD.equals(values[0])) {
-        builder.gte(values[0]);
-      }
-      if (!RANGE_WILDCARD.equals(values[1])) {
-        builder.lte(values[1]);
-      }
-
-      if (esField
-          .getSearchFieldName()
-          .equals(OccurrenceEsField.GEOLOGICAL_TIME.getSearchFieldName())) {
-        builder.relation(EsQueryUtils.WITHIN);
-      }
+      boolean withinGeoTime =
+          esField.getSearchFieldName().equals(OccurrenceEsField.GEOLOGICAL_TIME.getSearchFieldName());
+      return Query.of(
+          q ->
+              q.range(
+                  r ->
+                      r.untyped(
+                          u -> {
+                            u.field(fieldName);
+                            if (!RANGE_WILDCARD.equals(values[0])) {
+                              u.gte(JsonData.of(values[0]));
+                            }
+                            if (!RANGE_WILDCARD.equals(values[1])) {
+                              u.lte(JsonData.of(values[1]));
+                            }
+                            if (withinGeoTime) {
+                              u.relation(RangeRelation.Within);
+                            }
+                            return u;
+                          })));
     }
-
-    return builder;
   }
 
-  public GeoDistanceQueryBuilder buildGeoDistanceQuery(String rawGeoDistance) {
+  public Query buildGeoDistanceQuery(String rawGeoDistance) {
     DistanceUnit.GeoDistance geoDistance =
         DistanceUnit.GeoDistance.parseGeoDistance(rawGeoDistance);
     return buildGeoDistanceQuery(geoDistance);
   }
 
-  public GeoDistanceQueryBuilder buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
-    return QueryBuilders.geoDistanceQuery(
-            esFieldMapper.getGeoDistanceEsField().getSearchFieldName())
-        .distance(geoDistance.getDistance().toString())
-        .point(geoDistance.getLatitude(), geoDistance.getLongitude());
+  public Query buildGeoDistanceQuery(DistanceUnit.GeoDistance geoDistance) {
+    return Query.of(
+        q ->
+            q.geoDistance(
+                g ->
+                    g.field(esFieldMapper.getGeoDistanceEsField().getSearchFieldName())
+                        .distance(geoDistance.getDistance().toString())
+                        .location(l -> l.latlon(ll -> ll.lat(geoDistance.getLatitude()).lon(geoDistance.getLongitude())))));
   }
 
-  public GeoShapeQueryBuilder buildGeoShapeQuery(String wkt) {
+  public Query buildGeoShapeQuery(String wkt) {
     Geometry geometry;
     try {
       geometry = new WKTReader().read(wkt);
@@ -829,54 +866,93 @@ public abstract class BaseEsSearchRequestBuilder<
       throw new IllegalArgumentException(e.getMessage(), e);
     }
 
-    Function<Polygon, PolygonBuilder> polygonToBuilder =
-        polygon -> {
-          PolygonBuilder polygonBuilder =
-              new PolygonBuilder(
-                  new CoordinatesBuilder()
-                      .coordinates(
-                          normalizePolygonCoordinates(polygon.getExteriorRing().getCoordinates())));
-          for (int i = 0; i < polygon.getNumInteriorRing(); i++) {
-            polygonBuilder.hole(
-                new LineStringBuilder(
-                    new CoordinatesBuilder()
-                        .coordinates(
-                            normalizePolygonCoordinates(
-                                polygon.getInteriorRingN(i).getCoordinates()))));
-          }
-          return polygonBuilder;
-        };
+    String geoJson = geometryToGeoJson(geometry);
+    String queryJson =
+        "{\"geo_shape\":{\""
+            + esFieldMapper.getGeoShapeEsField().getSearchFieldName()
+            + "\":{\"shape\":"
+            + geoJson
+            + ",\"relation\":\"within\"}}}";
+    return Query.of(
+        q ->
+            q.withJson(
+                new ByteArrayInputStream(
+                    queryJson.getBytes(StandardCharsets.UTF_8))));
+  }
 
+  private Query wrapHasChildQuery(String relation, Query query) {
+    return Query.of(
+        q ->
+            q.hasChild(
+                h ->
+                    h.type(relation)
+                        .query(query)
+                        .scoreMode(ChildScoreMode.None)));
+  }
+
+  private String geometryToGeoJson(Geometry geometry) {
     String type =
         "LinearRing".equals(geometry.getGeometryType())
-            ? "LINESTRING"
-            : geometry.getGeometryType().toUpperCase();
+            ? "LineString"
+            : geometry.getGeometryType();
 
-    ShapeBuilder shapeBuilder = null;
-    if (("POINT").equals(type)) {
-      shapeBuilder = new PointBuilder(geometry.getCoordinate().x, geometry.getCoordinate().y);
-    } else if ("LINESTRING".equals(type)) {
-      shapeBuilder = new LineStringBuilder(Arrays.asList(geometry.getCoordinates()));
-    } else if ("POLYGON".equals(type)) {
-      shapeBuilder = polygonToBuilder.apply((Polygon) geometry);
-    } else if ("MULTIPOLYGON".equals(type)) {
-      // multipolygon
-      MultiPolygonBuilder multiPolygonBuilder = new MultiPolygonBuilder();
+    if ("Point".equals(type)) {
+      Coordinate c = geometry.getCoordinate();
+      return "{\"type\":\"Point\",\"coordinates\":[" + c.x + "," + c.y + "]}";
+    }
+
+    if ("LineString".equals(type)) {
+      return "{\"type\":\"LineString\",\"coordinates\":" + coordinatesToJson(geometry.getCoordinates()) + "}";
+    }
+
+    if ("Polygon".equals(type)) {
+      return polygonToGeoJson((Polygon) geometry);
+    }
+
+    if ("MultiPolygon".equals(type)) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("{\"type\":\"MultiPolygon\",\"coordinates\":[");
       for (int i = 0; i < geometry.getNumGeometries(); i++) {
-        multiPolygonBuilder.polygon(polygonToBuilder.apply((Polygon) geometry.getGeometryN(i)));
+        if (i > 0) {
+          sb.append(",");
+        }
+        String poly = polygonToGeoJson((Polygon) geometry.getGeometryN(i));
+        int start = poly.indexOf("[");
+        int end = poly.lastIndexOf("]");
+        sb.append(poly, start, end + 1);
       }
-      shapeBuilder = multiPolygonBuilder;
-    } else {
-      throw new IllegalArgumentException(type + " shape is not supported");
+      sb.append("]}");
+      return sb.toString();
     }
 
-    try {
-      return QueryBuilders.geoShapeQuery(
-              esFieldMapper.getGeoShapeEsField().getSearchFieldName(), shapeBuilder.buildGeometry())
-          .relation(ShapeRelation.WITHIN);
-    } catch (IOException e) {
-      throw new IllegalStateException(e.getMessage(), e);
+    throw new IllegalArgumentException(type + " shape is not supported");
+  }
+
+  private String polygonToGeoJson(Polygon polygon) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{\"type\":\"Polygon\",\"coordinates\":[");
+    sb.append(coordinatesToJson(normalizePolygonCoordinates(polygon.getExteriorRing().getCoordinates())));
+    for (int i = 0; i < polygon.getNumInteriorRing(); i++) {
+      sb.append(",");
+      sb.append(
+          coordinatesToJson(
+              normalizePolygonCoordinates(polygon.getInteriorRingN(i).getCoordinates())));
     }
+    sb.append("]}");
+    return sb.toString();
+  }
+
+  private String coordinatesToJson(Coordinate[] coordinates) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("[");
+    for (int i = 0; i < coordinates.length; i++) {
+      if (i > 0) {
+        sb.append(",");
+      }
+      sb.append("[").append(coordinates[i].x).append(",").append(coordinates[i].y).append("]");
+    }
+    sb.append("]");
+    return sb.toString();
   }
 
   protected abstract Optional<P> getParam(String name);
@@ -886,7 +962,8 @@ public abstract class BaseEsSearchRequestBuilder<
   protected abstract void translateFields(Map<P, Set<String>> params);
   protected abstract Predicate translatePredicateFields(Predicate predicate);
 
-  protected void handleOccurrenceIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+  protected void handleOccurrenceIssueQueries(
+      Map<OccurrenceSearchParameter, Set<String>> params, List<Query> filters) {
     if (params.containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)
       && params.containsKey(OccurrenceSearchParameter.ISSUE)) {
       String esFieldToUse = OccurrenceEsField.NON_TAXONOMIC_ISSUE.getSearchFieldName();
@@ -901,11 +978,17 @@ public abstract class BaseEsSearchRequestBuilder<
         }
       });
 
-      // Build the query
-      BoolQueryBuilder checklistQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.termsQuery(esFieldToUse, params.get(OccurrenceSearchParameter.ISSUE))
-        );
-      bool.filter().add(checklistQuery);
+      List<FieldValue> issueValues =
+          params.get(OccurrenceSearchParameter.ISSUE).stream()
+              .map(FieldValue::of)
+              .toList();
+      filters.add(
+          Query.of(
+              q ->
+                  q.terms(
+                      t ->
+                          t.field(esFieldToUse)
+                              .terms(v -> v.value(issueValues)))));
       params.remove(OccurrenceSearchParameter.ISSUE);
     }
   }
@@ -933,5 +1016,15 @@ public abstract class BaseEsSearchRequestBuilder<
   static class GroupedParams<T extends SearchParameter> {
     Map<T, Set<String>> postFilterParams;
     Map<T, Set<String>> queryParams;
+  }
+
+  private static class NamedAggregation {
+    final String name;
+    final Aggregation aggregation;
+
+    private NamedAggregation(String name, Aggregation aggregation) {
+      this.name = name;
+      this.aggregation = aggregation;
+    }
   }
 }

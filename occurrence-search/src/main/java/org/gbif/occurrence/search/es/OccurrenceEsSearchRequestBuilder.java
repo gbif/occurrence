@@ -3,7 +3,8 @@ package org.gbif.occurrence.search.es;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.elasticsearch.index.query.BoolQueryBuilder;
+import java.util.List;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
@@ -58,7 +59,21 @@ public class OccurrenceEsSearchRequestBuilder
    */
   @Override
   protected void handleIssueQueries(
-      Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
-    super.handleOccurrenceIssueQueries(params, bool);
+      Map<OccurrenceSearchParameter, Set<String>> params, List<Query> filters) {
+    super.handleOccurrenceIssueQueries(params, filters);
+  }
+
+  @Override
+  protected Query buildFullTextQuery(String qParam) {
+    return Query.of(
+        q ->
+            q.multiMatch(
+                m ->
+                    m.query(qParam)
+                        .fields(
+                            esFieldMapper.getFullTextField(),
+                            "gbifClassification.classification.name^90",
+                            "gbifClassification.usage.name^100",
+                            "gbifClassification.verbatimScientificName^100")));
   }
 }
