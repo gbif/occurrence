@@ -17,6 +17,6 @@ public class Constants {
 
   public static final String OCCURRENCE_DOWNLOAD_PATH = "/occurrence/download/request";
 
-  public static final String EVENT_DOWNLOAD_PATH = "/event/download/request";
+  public static final String EVENT_DOWNLOAD_PATH = "/experimental/event/download/request";
 
 }

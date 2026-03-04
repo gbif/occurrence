@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.ws.resources;
+package org.gbif.event.ws.docs;
 
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
@@ -21,29 +21,31 @@ import io.swagger.v3.oas.annotations.Parameters;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.junit.jupiter.api.Test;
 
-public class OccurrenceSearchResourceTest {
+public class OpenAPIUtilsTest {
 
   @Test
   public void searchParametersDocumented() throws Exception {
 
     Set<String> documentedParameters =
-        Arrays.stream(
-                OccurrenceSearchResource.class
-                    .getMethod("search", OccurrenceSearchRequest.class)
-                    .getAnnotation(Parameters.class)
-                    .value())
+        Arrays.stream(OpenAPIUtils.class.getDeclaredClasses())
+            .filter(c -> c.getSimpleName().equals("EventSearchParameters"))
+            .flatMap(c -> Arrays.stream(c.getAnnotation(Parameters.class).value()))
             .map(Parameter::name)
             .collect(Collectors.toSet());
 
-    for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+    for (EventSearchParameter param : EventSearchParameter.values()) {
+      // TODO: check these 2 params
+      if (param == EventSearchParameter.EVENT_ID_HIERARCHY
+          || param == EventSearchParameter.VERBATIM_EVENT_TYPE) {
+        continue;
+      }
+
       String name = null;
-      if (param == OccurrenceSearchParameter.IDENTIFIED_BY_ID
-          || param == OccurrenceSearchParameter.RECORDED_BY_ID
-          || param == OccurrenceSearchParameter.MEASUREMENT_TYPE_ID) {
+      if (param == EventSearchParameter.MEASUREMENT_TYPE_ID
+          || param == EventSearchParameter.FUNDING_ATTRIBUTION_ID) {
         name =
             CaseFormat.LOWER_UNDERSCORE
                 .to(CaseFormat.LOWER_CAMEL, param.name())

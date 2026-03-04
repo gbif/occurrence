@@ -63,7 +63,12 @@ public class DownloadUtils {
    * Creates a URL pointing to the download file.
    */
   public static String downloadLink(String baseUrl, String downloadId, DownloadType downloadType, String extension) {
-    return concatUrlPaths(baseUrl, String.format(DOWNLOAD_LINK_FMT, downloadType.name().toLowerCase(), downloadId, extension));
+    // hack to include experimental in events
+    String path =
+        downloadType == DownloadType.EVENT
+            ? "experimental/" + downloadType.name().toLowerCase()
+            : downloadType.name().toLowerCase();
+    return concatUrlPaths(baseUrl, String.format(DOWNLOAD_LINK_FMT, path, downloadId, extension));
   }
 
   public static String downloadTableName(String downloadKey) {

@@ -30,6 +30,7 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import org.gbif.api.annotation.Experimental;
 import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -90,9 +91,10 @@ import org.springframework.web.bind.annotation.RestController;
         @io.swagger.v3.oas.annotations.extensions.Extension(
             name = "Order",
             properties = @ExtensionProperty(name = "Order", value = "0100")))
+@Experimental
 @RestController
 @RequestMapping(
-    value = "event",
+    value = "experimental/event",
     produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"})
 public class EventResource {
 

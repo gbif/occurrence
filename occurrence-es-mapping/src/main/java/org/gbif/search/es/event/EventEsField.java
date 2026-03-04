@@ -29,6 +29,7 @@ import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.occurrence.common.TermUtils;
@@ -120,6 +121,8 @@ public enum EventEsField implements EsField {
   TAXON_ID(new BaseEsField("derivedMetadata.taxonomicCoverage.taxonIDs", DwcTerm.taxonID)),
   IUCN_RED_LIST_CATEGORY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
 
+  // TODO: convex hull and temporal coverage
+
   //Sampling
   EVENT_ID(new BaseEsField("event.eventID", DwcTerm.eventID, true)),
   PARENT_EVENT_ID(new BaseEsField("event.parentEventID", DwcTerm.parentEventID, true)),
@@ -145,8 +148,11 @@ public enum EventEsField implements EsField {
   MEDIA_TYPE(new BaseEsField("event.mediaTypes", GbifTerm.mediaType)),
   MEDIA_ITEMS(new BaseEsField("event.multimediaItems", null)),
 
-  // DNA
-  DNA_SEQUENCE_ID(new BaseEsField("event.dnaSequenceID", GbifTerm.dnaSequenceID)),
+  // MoF
+  MEASUREMENT_TYPE(new BaseEsField("event.measurementTypes", DwcTerm.measurementType)),
+
+  // eMoF
+  MEASUREMENT_TYPE_ID(new BaseEsField("event.measurementTypeIDs", ObisTerm.measurementTypeID)),
 
   //Issues
   ISSUE(new BaseEsField("event.issues", GbifTerm.issue)),
@@ -274,6 +280,8 @@ public enum EventEsField implements EsField {
       // end derived taxon
 
       .put(EventSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
+      .put(EventSearchParameter.MEASUREMENT_TYPE, MEASUREMENT_TYPE)
+      .put(EventSearchParameter.MEASUREMENT_TYPE_ID, MEASUREMENT_TYPE_ID)
       .put(EventSearchParameter.ISSUE, ISSUE)
       .put(EventSearchParameter.REPATRIATED, REPATRIATED)
       .put(EventSearchParameter.LOCALITY, LOCALITY)

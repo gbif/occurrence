@@ -43,9 +43,14 @@ public class EventTermUtils {
           DwcTerm.maximumDepthInMeters,
           DwcTerm.minimumElevationInMeters,
           DwcTerm.maximumElevationInMeters,
+          DwcTerm.maximumDistanceAboveSurfaceInMeters,
+          DwcTerm.minimumDistanceAboveSurfaceInMeters,
           GbifTerm.distanceFromCentroidInMeters,
           GbifTerm.depth,
           GbifTerm.depthAccuracy,
+          GbifTerm.hasCoordinate,
+          GbifTerm.hasGeospatialIssues,
+          GbifTerm.repatriated,
           GadmTerm.level0Gid,
           GadmTerm.level0Name,
           GadmTerm.level1Gid,
@@ -60,9 +65,6 @@ public class EventTermUtils {
           DwcTerm.organismQuantity,
           GbifInternalTerm.unitQualifier,
           GbifTerm.issue,
-          DwcTerm.recordedByID,
-          DwcTerm.identifiedByID,
-          DcTerm.references,
           GbifTerm.protocol,
           GbifTerm.lastCrawled,
           GbifTerm.lastParsed,
@@ -73,10 +75,6 @@ public class EventTermUtils {
           DcTerm.license,
           DwcTerm.datasetID,
           DwcTerm.datasetName,
-          DwcTerm.otherCatalogNumbers,
-          DwcTerm.recordedBy,
-          DwcTerm.identifiedBy,
-          DwcTerm.preparations,
           DwcTerm.samplingProtocol,
           GbifTerm.gbifRegion,
           GbifTerm.publishedByGbifRegion,
@@ -122,6 +120,8 @@ public class EventTermUtils {
                             && !TERMS_POPULATED_BY_INTERPRETATION.contains(t))
                 .collect(Collectors.toList()))
         .addAll(TERMS_POPULATED_BY_INTERPRETATION)
+        .add(DwcTerm.measurementType)
+        .add(ObisTerm.measurementTypeID)
         .build();
   }
 

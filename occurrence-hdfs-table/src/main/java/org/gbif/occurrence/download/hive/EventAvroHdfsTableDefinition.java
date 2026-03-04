@@ -21,20 +21,17 @@ import lombok.NoArgsConstructor;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
 
-/**
- * Utility class to generate an Avro scheme from the Occurrence HDFS Table schema.
- */
+/** Utility class to generate an Avro scheme from the Event HDFS Table schema. */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OccurrenceAvroHdfsTableDefinition {
+public class EventAvroHdfsTableDefinition {
 
-  /**
-   * Generates an Avro Schema based on the Occurrence HDFS table.
-   */
+  /** Generates an Avro Schema based on the Event HDFS table. */
   public static Schema avroDefinition() {
-    SchemaBuilder.FieldAssembler<Schema> builder = SchemaBuilder
-      .record("OccurrenceHdfsRecord")
-      .namespace("org.gbif.pipelines.io.avro").fields();
-    OccurrenceHDFSTableDefinition.definition().forEach(initializableField -> avroField(builder, initializableField));
+    // it needs to use a different namespace so inner types don't conflict with the occurrence hdfs record
+    SchemaBuilder.FieldAssembler<Schema> builder =
+        SchemaBuilder.record("EventHdfsRecord").namespace("org.gbif.pipelines.io.avro.event").fields();
+    EventHDFSTableDefinition.definition()
+        .forEach(initializableField -> avroField(builder, initializableField));
     return builder.endRecord();
   }
 

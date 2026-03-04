@@ -18,6 +18,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 
 /**
@@ -114,6 +115,8 @@ public class HiveColumnsUtils {
         || EcoTerm.excludedDegreeOfEstablishmentScope == term
         || DwcTerm.projectTitle == term
         || DwcTerm.fundingAttribution == term
-        || DwcTerm.fundingAttributionID == term;
+        || DwcTerm.fundingAttributionID == term
+        || DwcTerm.measurementType == term
+        || ObisTerm.measurementTypeID == term;
   }
 }

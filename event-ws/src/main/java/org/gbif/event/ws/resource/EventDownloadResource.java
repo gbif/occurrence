@@ -16,6 +16,7 @@ package org.gbif.event.ws.resource;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.gbif.api.annotation.Experimental;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -61,11 +62,12 @@ import org.springframework.web.bind.annotation.RestController;
         @io.swagger.v3.oas.annotations.extensions.Extension(
             name = "Order",
             properties = @ExtensionProperty(name = "Order", value = "0300")))
+@Experimental
 @RestController
 @Validated
 @RequestMapping(
     produces = {MediaType.APPLICATION_JSON_VALUE, "application/x-javascript"},
-    value = "event/download/request")
+    value = "experimental/event/download/request")
 @RefreshScope
 public class EventDownloadResource extends DownloadResource {
 

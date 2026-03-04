@@ -28,6 +28,7 @@ import org.gbif.dwc.terms.GadmTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
+import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.TermUtils;
 import org.gbif.predicate.query.EsField;
@@ -267,6 +268,12 @@ public enum OccurrenceEsField implements EsField {
   // DNA
   DNA_SEQUENCE_ID(new BaseEsField("dnaSequenceID", GbifTerm.dnaSequenceID)),
 
+  // MoF
+  MEASUREMENT_TYPE(new BaseEsField("measurementTypes", DwcTerm.measurementType)),
+
+  // eMoF
+  MEASUREMENT_TYPE_ID(new BaseEsField("measurementTypeIDs", ObisTerm.measurementTypeID)),
+
   //Issues
   ISSUE(new BaseEsField("issues", GbifTerm.issue)),
   NON_TAXONOMIC_ISSUE(new BaseEsField("nonTaxonomicIssues", GbifTerm.nonTaxonomicIssue)),
@@ -424,6 +431,8 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .put(OccurrenceSearchParameter.DNA_SEQUENCE_ID, DNA_SEQUENCE_ID)
+      .put(OccurrenceSearchParameter.MEASUREMENT_TYPE, MEASUREMENT_TYPE)
+      .put(OccurrenceSearchParameter.MEASUREMENT_TYPE_ID, MEASUREMENT_TYPE_ID)
       .build();
 
   public static final ImmutableMap<OccurrenceSearchParameter, EsField> FACET_TO_ES_MAPPING =
