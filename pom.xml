@@ -10,7 +10,7 @@
 
   <groupId>org.gbif.occurrence</groupId>
   <artifactId>occurrence-motherpom</artifactId>
-  <version>1.1.21-SNAPSHOT</version>
+  <version>1.1.21-473-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Occurrence</name>
@@ -65,7 +65,6 @@
 
   <modules>
     <module>event-ws</module>
-    <module>maven-extension-avsc-schema-generator</module>
     <module>occurrence-cli</module>
     <module>occurrence-registry-sync</module>
     <module>occurrence-common</module>
@@ -74,13 +73,11 @@
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
     <module>occurrence-download</module>
-    <module>occurrence-hdfs-table</module>
     <module>occurrence-heatmaps</module>
     <module>occurrence-integration-tests</module>
     <module>occurrence-mail</module>
     <module>occurrence-es-mapping</module>
     <module>occurrence-download-service</module>
-    <module>occurrence-table-build-spark</module>
     <module>occurrence-download-launcher</module>
     <module>occurrence-spark-udf</module>
   </modules>
@@ -202,6 +199,7 @@
     <gbif-predicates.version>2.1.5</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.2</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
+    <gbif-hdfs-tables.version>1.0-SNAPSHOT</gbif-hdfs-tables.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
@@ -414,9 +412,9 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-hdfs-table</artifactId>
-        <version>${project.version}</version>
+        <groupId>org.gbif.download</groupId>
+        <artifactId>hdfs-tables</artifactId>
+        <version>${gbif-hdfs-tables.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
@@ -452,11 +450,6 @@
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-spark-udf</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-table-build-spark</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

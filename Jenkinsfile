@@ -174,38 +174,21 @@ pipeline {
       }
     }
 
-     stage('Docker Release: Downloads') {
-       when {
-        allOf {
-          expression { params.RELEASE };
-          not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
-        }
+   stage('Docker Release: Downloads') {
+     when {
+      allOf {
+        expression { params.RELEASE };
+        not { expression { params.DRY_RUN_RELEASE } }
+        branch 'master';
       }
-      environment {
-          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
-      }
-      steps {
-        sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
-      }
-     }
-
-     stage('Docker Release: Table build') {
-      when {
-        allOf {
-          expression { params.RELEASE };
-          not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
-        }
-      }
-      environment {
-          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
-      }
-      steps {
-        sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
-      }
-     }
     }
+    environment {
+        VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
+    }
+    steps {
+      sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
+    }
+   }
 
     post {
       success {
