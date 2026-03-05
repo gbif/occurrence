@@ -15,7 +15,7 @@ package org.gbif.occurrence.download.hive;
 
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 
 import java.util.Locale;
 

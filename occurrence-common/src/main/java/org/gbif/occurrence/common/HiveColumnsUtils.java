@@ -20,6 +20,7 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.terms.utils.TermUtils;
 
 /**
  * Utility class to handle column names in Hive for Terms, OccurrenceIssues and Extensions.

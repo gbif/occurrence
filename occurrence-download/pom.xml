@@ -285,6 +285,14 @@
       <artifactId>occurrence-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.download</groupId>
+      <artifactId>term-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.download</groupId>
+      <artifactId>hdfs-tables</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-es-mapping</artifactId>
       <!-- Excluded to avoid log4j collisions with other dependencies in libraries-->

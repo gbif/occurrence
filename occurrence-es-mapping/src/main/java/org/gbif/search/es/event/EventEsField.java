@@ -31,7 +31,7 @@ import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.BaseEsField;
 import org.gbif.search.es.ChecklistEsField;

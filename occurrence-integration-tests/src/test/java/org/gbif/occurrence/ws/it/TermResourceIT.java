@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.ws.it;
 
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.ws.resources.TermResource;
 
 import java.util.List;

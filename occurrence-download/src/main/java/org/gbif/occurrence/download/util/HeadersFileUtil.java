@@ -18,7 +18,7 @@ import org.apache.commons.compress.utils.IOUtils;
 
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 

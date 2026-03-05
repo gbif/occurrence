@@ -14,7 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating the AVRO download schemas.

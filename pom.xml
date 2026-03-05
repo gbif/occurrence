@@ -417,6 +417,11 @@
         <version>${gbif-hdfs-tables.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.gbif.download</groupId>
+        <artifactId>term-utils</artifactId>
+        <version>${gbif-hdfs-tables.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-ws</artifactId>
         <version>${project.version}</version>

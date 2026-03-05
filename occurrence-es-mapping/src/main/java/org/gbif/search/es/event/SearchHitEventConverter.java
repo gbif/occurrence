@@ -54,8 +54,8 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.EventTermUtils;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.EventTermUtils;
+import org.gbif.terms.utils.TermUtils;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.SearchHitConverter;
 
