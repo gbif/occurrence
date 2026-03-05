@@ -50,6 +50,10 @@
       <artifactId>sql-predicates</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.download</groupId>
+      <artifactId>term-utils</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>

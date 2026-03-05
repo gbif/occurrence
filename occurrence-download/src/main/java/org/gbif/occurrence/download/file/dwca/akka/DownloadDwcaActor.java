@@ -42,7 +42,7 @@ import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;

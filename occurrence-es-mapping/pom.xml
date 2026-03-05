@@ -47,8 +47,8 @@
       <artifactId>dwc-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-common</artifactId>
+      <groupId>org.gbif.download</groupId>
+      <artifactId>term-utils</artifactId>
     </dependency>
     <dependency>
       <groupId>jakarta.validation</groupId>

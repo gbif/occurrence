@@ -13,7 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import static org.gbif.occurrence.common.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
+import static org.gbif.terms.utils.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.LinkedHashMap;
@@ -25,7 +25,7 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 
 /**
  * Utilities related to the actual queries executed at runtime.

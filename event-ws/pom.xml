@@ -235,8 +235,8 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-hdfs-table</artifactId>
+      <groupId>org.gbif.download</groupId>
+      <artifactId>hdfs-tables</artifactId>
     </dependency>
     <dependency>
       <groupId>org.gbif.occurrence</groupId>

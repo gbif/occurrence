@@ -91,20 +91,6 @@ pipeline {
       }
     }
 
-    stage('Build and push Docker images: Table build') {
-      when {
-        allOf {
-          not { expression { params.RELEASE } };
-          not { expression { params.RELEASE_TRINO } };
-        }
-      }
-      steps {
-        sh '''
-          build/occurrence-table-build-spark-docker-build.sh $POM_VERSION
-        '''
-      }
-    }
-
     stage('Trigger WS deploy dev') {
       when {
         allOf {
@@ -187,22 +173,6 @@ pipeline {
       }
       steps {
         sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
-      }
-     }
-
-     stage('Docker Release: Table build') {
-      when {
-        allOf {
-          expression { params.RELEASE };
-          not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
-        }
-      }
-      environment {
-          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
-      }
-      steps {
-        sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
       }
      }
     }
