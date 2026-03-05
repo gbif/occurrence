@@ -91,20 +91,6 @@ pipeline {
       }
     }
 
-    stage('Build and push Docker images: Table build') {
-      when {
-        allOf {
-          not { expression { params.RELEASE } };
-          not { expression { params.RELEASE_TRINO } };
-        }
-      }
-      steps {
-        sh '''
-          build/occurrence-table-build-spark-docker-build.sh $POM_VERSION
-        '''
-      }
-    }
-
     stage('Trigger WS deploy dev') {
       when {
         allOf {
