@@ -1,0 +1,52 @@
+# DEVELOPMENT FILE: This file is excluded from the final build.
+# Occurrence Search WS (ES-backed metrics/count API).
+
+api:
+  url: http://api.gbif-dev.org/v1/
+
+# Species name matching (used by occurrence-search when scientific_name param is present)
+nameUsageMatchingService:
+  ws:
+    url: http://api.gbif-dev.org/v1/species/match/
+
+# GBIF backbone checklist key when checklistKey is not specified
+defaultChecklistKey: d7dddbf4-2cf0-4f39-9b2a-bb099caae36c
+
+#Cache2k config
+metrics-cache:
+  expireAfterWrite: 3600000
+  entryCapacity: 1000000
+  refreshAhead: true
+
+occurrence:
+  search:
+    es:
+      connectTimeout: 6000
+      socketTimeout: 90000
+      hosts: @es9host@
+      index: occurrence
+    max:
+      limit: 300
+      offset: 200000
+
+spring:
+  application:
+    name: occurrence-search-ws
+  config:
+    import: "optional:zookeeper:"
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration
+  cloud:
+    zookeeper:
+      enabled: false
+      discovery:
+        enabled: false
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

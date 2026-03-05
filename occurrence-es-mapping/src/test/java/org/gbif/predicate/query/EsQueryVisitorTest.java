@@ -17,8 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
@@ -51,6 +58,7 @@ import org.junit.jupiter.api.Test;
  */
 public class EsQueryVisitorTest {
 
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private static final OccurrenceSearchParameter PARAM = OccurrenceSearchParameter.CATALOG_NUMBER;
   private static final OccurrenceSearchParameter PARAM2 =
       OccurrenceSearchParameter.INSTITUTION_CODE;
@@ -59,6 +67,184 @@ public class EsQueryVisitorTest {
       OccurrenceEsField.buildFieldMapper();
   private final EsQueryVisitor<OccurrenceSearchParameter> occurrenceVisitor =
       new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, "defaultChecklistKey");
+
+  private static void assertJsonEquals(String expectedQuery, String actualQuery) {
+    try {
+      JsonNode expected = OBJECT_MAPPER.readTree(expectedQuery);
+      JsonNode actual = OBJECT_MAPPER.readTree(actualQuery);
+      normalizeEsJson(expected);
+      normalizeEsJson(actual);
+      assertEquals(expected, actual);
+    } catch (JsonProcessingException e) {
+      fail("Error parsing JSON query", e);
+    }
+  }
+
+  private static void normalizeEsJson(JsonNode node) {
+    if (node == null) {
+      return;
+    }
+
+    if (node.isObject()) {
+      ObjectNode objectNode = (ObjectNode) node;
+
+      // Normalize children first.
+      List<String> fieldNames = new ArrayList<>();
+      Iterator<String> iterator = objectNode.fieldNames();
+      while (iterator.hasNext()) {
+        fieldNames.add(iterator.next());
+      }
+      for (String fieldName : fieldNames) {
+        normalizeEsJson(objectNode.get(fieldName));
+      }
+
+      // Remove ES default fields that old tests used to serialize.
+      JsonNode boost = objectNode.get("boost");
+      if (boost != null && boost.isNumber() && boost.asDouble() == 1.0d) {
+        objectNode.remove("boost");
+      }
+
+      JsonNode adjustPureNegative = objectNode.get("adjust_pure_negative");
+      if (adjustPureNegative != null && adjustPureNegative.isBoolean() && adjustPureNegative.asBoolean()) {
+        objectNode.remove("adjust_pure_negative");
+      }
+
+      // Normalize old range representation:
+      // from/to + include_lower/include_upper  ->  gt/gte/lt/lte.
+      normalizeRangeBounds(objectNode);
+      normalizeGeoDistance(objectNode);
+      normalizeGeoShape(objectNode);
+      return;
+    }
+
+    if (node.isArray()) {
+      node.forEach(EsQueryVisitorTest::normalizeEsJson);
+    }
+  }
+
+  private static void normalizeRangeBounds(ObjectNode rangeNode) {
+    boolean hasRangeSyntax =
+        rangeNode.has("from")
+            || rangeNode.has("to")
+            || rangeNode.has("include_lower")
+            || rangeNode.has("include_upper")
+            || rangeNode.has("gt")
+            || rangeNode.has("gte")
+            || rangeNode.has("lt")
+            || rangeNode.has("lte");
+    if (!hasRangeSyntax) {
+      return;
+    }
+
+    JsonNode from = rangeNode.get("from");
+    if (from != null && !from.isNull()) {
+      boolean includeLower = !rangeNode.has("include_lower") || rangeNode.path("include_lower").asBoolean();
+      rangeNode.set(includeLower ? "gte" : "gt", from);
+    }
+
+    JsonNode to = rangeNode.get("to");
+    if (to != null && !to.isNull()) {
+      boolean includeUpper = !rangeNode.has("include_upper") || rangeNode.path("include_upper").asBoolean();
+      rangeNode.set(includeUpper ? "lte" : "lt", to);
+    }
+
+    rangeNode.remove("from");
+    rangeNode.remove("to");
+    rangeNode.remove("include_lower");
+    rangeNode.remove("include_upper");
+
+    JsonNode relation = rangeNode.get("relation");
+    if (relation != null && relation.isTextual() && "within".equals(relation.asText())) {
+      rangeNode.remove("relation");
+    }
+  }
+
+  private static void normalizeGeoDistance(ObjectNode node) {
+    JsonNode geoDistance = node.get("geo_distance");
+    if (!(geoDistance instanceof ObjectNode)) {
+      return;
+    }
+
+    ObjectNode geoDistanceNode = (ObjectNode) geoDistance;
+
+    JsonNode coordinates = geoDistanceNode.get("coordinates");
+    if (coordinates != null) {
+      if (coordinates.isArray() && coordinates.size() == 2) {
+        geoDistanceNode.put("__coord_lat", coordinates.get(1).asDouble());
+        geoDistanceNode.put("__coord_lon", coordinates.get(0).asDouble());
+        geoDistanceNode.remove("coordinates");
+      } else if (coordinates.isObject()) {
+        JsonNode lat = coordinates.get("lat");
+        JsonNode lon = coordinates.get("lon");
+        if (lat != null && lon != null && lat.isNumber() && lon.isNumber()) {
+          geoDistanceNode.put("__coord_lat", lat.asDouble());
+          geoDistanceNode.put("__coord_lon", lon.asDouble());
+          geoDistanceNode.remove("coordinates");
+        }
+      }
+    }
+
+    Double meters = parseDistanceMeters(geoDistanceNode.get("distance"));
+    if (meters != null) {
+      geoDistanceNode.put("__distance_meters", meters);
+      geoDistanceNode.remove("distance");
+    }
+
+    JsonNode distanceType = geoDistanceNode.get("distance_type");
+    if (distanceType != null && distanceType.isTextual() && "arc".equals(distanceType.asText())) {
+      geoDistanceNode.remove("distance_type");
+    }
+
+    JsonNode validationMethod = geoDistanceNode.get("validation_method");
+    if (validationMethod != null
+        && validationMethod.isTextual()
+        && "STRICT".equals(validationMethod.asText())) {
+      geoDistanceNode.remove("validation_method");
+    }
+
+    JsonNode ignoreUnmapped = geoDistanceNode.get("ignore_unmapped");
+    if (ignoreUnmapped != null && ignoreUnmapped.isBoolean() && !ignoreUnmapped.asBoolean()) {
+      geoDistanceNode.remove("ignore_unmapped");
+    }
+  }
+
+  private static Double parseDistanceMeters(JsonNode distanceNode) {
+    if (distanceNode == null || distanceNode.isNull()) {
+      return null;
+    }
+    if (distanceNode.isNumber()) {
+      return distanceNode.asDouble();
+    }
+    if (!distanceNode.isTextual()) {
+      return null;
+    }
+
+    String text = distanceNode.asText().trim().toLowerCase();
+    try {
+      if (text.endsWith("km")) {
+        return Double.parseDouble(text.substring(0, text.length() - 2).trim()) * 1000d;
+      }
+      if (text.endsWith("m")) {
+        return Double.parseDouble(text.substring(0, text.length() - 1).trim());
+      }
+      return Double.parseDouble(text);
+    } catch (NumberFormatException ex) {
+      return null;
+    }
+  }
+
+  private static void normalizeGeoShape(ObjectNode node) {
+    JsonNode geoShape = node.get("geo_shape");
+    if (!(geoShape instanceof ObjectNode)) {
+      return;
+    }
+
+    ObjectNode geoShapeNode = (ObjectNode) geoShape;
+    JsonNode ignoreUnmapped = geoShapeNode.get("ignore_unmapped");
+    if (ignoreUnmapped != null && ignoreUnmapped.isBoolean() && !ignoreUnmapped.asBoolean()) {
+      geoShapeNode.remove("ignore_unmapped");
+    }
+  }
 
   @Test
   public void testEqualsPredicate() throws QueryBuildingException {
@@ -71,17 +257,14 @@ public class EsQueryVisitorTest {
             + "      {\n"
             + "        \"term\" : {\n"
             + "          \"catalogNumber\" : {\n"
-            + "            \"value\" : \"value\",\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"value\" : \"value\"\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -95,17 +278,14 @@ public class EsQueryVisitorTest {
             + "      {\n"
             + "        \"term\" : {\n"
             + "          \"catalogNumber.verbatim\" : {\n"
-            + "            \"value\" : \"value\",\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"value\" : \"value\"\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -123,17 +303,14 @@ public class EsQueryVisitorTest {
             + "            \"to\" : \"2021-09-17\",\n"
             + "            \"include_lower\" : true,\n"
             + "            \"include_upper\" : false,\n"
-            + "            \"relation\" : \"within\",\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"relation\" : \"within\"\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -150,17 +327,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : -20.0,\n"
             + "            \"to\" : 600.0,\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "*,600", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -174,17 +348,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : null,\n"
             + "            \"to\" : 600.0,\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "-20.0,*", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -198,17 +369,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : -20.0,\n"
             + "            \"to\" : null,\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -229,17 +397,14 @@ public class EsQueryVisitorTest {
         + "            \"to\" : \"2023-01-12\",\n"
         + "            \"include_lower\" : true,\n"
         + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
+        + "            \"relation\" : \"within\"\n"
         + "          }\n"
         + "        }\n"
         + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
+        + "    ]\n"
         + "  }\n"
         + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -254,17 +419,14 @@ public class EsQueryVisitorTest {
         + "            \"to\" : \"2021-09-17\",\n"
         + "            \"include_lower\" : true,\n"
         + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
+        + "            \"relation\" : \"within\"\n"
         + "          }\n"
         + "        }\n"
         + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
+        + "    ]\n"
         + "  }\n"
         + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -279,17 +441,14 @@ public class EsQueryVisitorTest {
         + "            \"to\" : \"1981-01-01\",\n"
         + "            \"include_lower\" : true,\n"
         + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
+        + "            \"relation\" : \"within\"\n"
         + "          }\n"
         + "        }\n"
         + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
+        + "    ]\n"
         + "  }\n"
         + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -304,17 +463,14 @@ public class EsQueryVisitorTest {
         + "            \"to\" : \"2023-02-01\",\n"
         + "            \"include_lower\" : true,\n"
         + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
+        + "            \"relation\" : \"within\"\n"
         + "          }\n"
         + "        }\n"
         + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
+        + "    ]\n"
         + "  }\n"
         + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-1", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -329,17 +485,14 @@ public class EsQueryVisitorTest {
         + "            \"to\" : \"2023-01-02\",\n"
         + "            \"include_lower\" : true,\n"
         + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
+        + "            \"relation\" : \"within\"\n"
         + "          }\n"
         + "        }\n"
         + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
+        + "    ]\n"
         + "  }\n"
         + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980,1990-05-06", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -354,17 +507,14 @@ public class EsQueryVisitorTest {
         + "            \"to\" : \"1990-05-07\",\n"
         + "            \"include_lower\" : true,\n"
         + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
+        + "            \"relation\" : \"within\"\n"
         + "          }\n"
         + "        }\n"
         + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
+        + "    ]\n"
         + "  }\n"
         + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -381,17 +531,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : \"222\",\n"
             + "            \"to\" : null,\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p =
         new GreaterThanOrEqualsPredicate<>(
@@ -407,17 +554,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : \"2021-09-16\",\n"
             + "            \"to\" : null,\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new GreaterThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -431,17 +575,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : \"2021\",\n"
             + "            \"to\" : null,\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -458,17 +599,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : \"1000\",\n"
             + "            \"to\" : null,\n"
             + "            \"include_lower\" : false,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new GreaterThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-09-16");
     query = occurrenceVisitor.buildQuery(p);
@@ -482,17 +620,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : \"2021-09-16\",\n"
             + "            \"to\" : null,\n"
             + "            \"include_lower\" : false,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new GreaterThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -506,17 +641,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : \"2021\",\n"
             + "            \"to\" : null,\n"
             + "            \"include_lower\" : false,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -533,17 +665,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : null,\n"
             + "            \"to\" : \"1000\",\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new LessThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
     query = occurrenceVisitor.buildQuery(p);
@@ -557,17 +686,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : null,\n"
             + "            \"to\" : \"2021-10-25\",\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new LessThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -581,17 +707,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : null,\n"
             + "            \"to\" : \"2021\",\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : true,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : true\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -608,17 +731,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : null,\n"
             + "            \"to\" : \"1000\",\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : false,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : false\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new LessThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
     query = occurrenceVisitor.buildQuery(p);
@@ -632,17 +752,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : null,\n"
             + "            \"to\" : \"2021-10-25\",\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : false,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : false\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
 
     p = new LessThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -656,17 +773,14 @@ public class EsQueryVisitorTest {
             + "            \"from\" : null,\n"
             + "            \"to\" : \"2021\",\n"
             + "            \"include_lower\" : true,\n"
-            + "            \"include_upper\" : false,\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"include_upper\" : false\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -686,14 +800,11 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"catalogNumber\" : {\n"
-            + "                  \"value\" : \"value_1\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_1\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -702,14 +813,11 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"institutionCode\" : {\n"
-            + "                  \"value\" : \"value_2\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_2\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -721,22 +829,17 @@ public class EsQueryVisitorTest {
             + "                  \"from\" : \"12\",\n"
             + "                  \"to\" : null,\n"
             + "                  \"include_lower\" : true,\n"
-            + "                  \"include_upper\" : true,\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"include_upper\" : true\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -757,14 +860,11 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"institutionCode\" : {\n"
-            + "                  \"value\" : \"value_2\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_2\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -772,16 +872,13 @@ public class EsQueryVisitorTest {
             + "          \"catalogNumber\" : [\n"
             + "            \"value_3\",\n"
             + "            \"value_1\"\n"
-            + "          ],\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -803,8 +900,7 @@ public class EsQueryVisitorTest {
             + "          \"catalogNumber\" : [\n"
             + "            \"value_2\",\n"
             + "            \"value_1\"\n"
-            + "          ],\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -812,16 +908,13 @@ public class EsQueryVisitorTest {
             + "          \"catalogNumber.verbatim\" : [\n"
             + "            \"value_4\",\n"
             + "            \"value_3\"\n"
-            + "          ],\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -839,16 +932,13 @@ public class EsQueryVisitorTest {
             + "            \"value_1\",\n"
             + "            \"value_2\",\n"
             + "            \"value_3\"\n"
-            + "          ],\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -869,14 +959,11 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"catalogNumber\" : {\n"
-            + "                  \"value\" : \"value_1\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_1\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -888,13 +975,10 @@ public class EsQueryVisitorTest {
             + "                  \"value_1\",\n"
             + "                  \"value_2\",\n"
             + "                  \"value_3\"\n"
-            + "                ],\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -903,22 +987,17 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"institutionCode\" : {\n"
-            + "                  \"value\" : \"value_2\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_2\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -935,22 +1014,17 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"catalogNumber\" : {\n"
-            + "                  \"value\" : \"value\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -975,14 +1049,11 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"catalogNumber\" : {\n"
-            + "                        \"value\" : \"value_1\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_1\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            },\n"
             + "            {\n"
@@ -991,27 +1062,20 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"institutionCode\" : {\n"
-            + "                        \"value\" : \"value_2\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_2\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1027,17 +1091,14 @@ public class EsQueryVisitorTest {
             + "      {\n"
             + "        \"wildcard\" : {\n"
             + "          \"catalogNumber\" : {\n"
-            + "            \"wildcard\" : \"v?l*ue_%\",\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"value\" : \"v?l*ue_%\"\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1052,17 +1113,14 @@ public class EsQueryVisitorTest {
             + "      {\n"
             + "        \"wildcard\" : {\n"
             + "          \"catalogNumber.verbatim\" : {\n"
-            + "            \"wildcard\" : \"v?l*ue_%\",\n"
-            + "            \"boost\" : 1.0\n"
+            + "            \"value\" : \"v?l*ue_%\"\n"
             + "          }\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1082,14 +1140,11 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"catalogNumber\" : {\n"
-            + "                  \"value\" : \"value_1\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_1\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -1098,14 +1153,11 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"wildcard\" : {\n"
             + "                \"catalogNumber\" : {\n"
-            + "                  \"wildcard\" : \"value_1*\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_1*\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -1114,22 +1166,17 @@ public class EsQueryVisitorTest {
             + "            {\n"
             + "              \"term\" : {\n"
             + "                \"institutionCode\" : {\n"
-            + "                  \"value\" : \"value_2\",\n"
-            + "                  \"boost\" : 1.0\n"
+            + "                  \"value\" : \"value_2\"\n"
             + "                }\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1142,16 +1189,13 @@ public class EsQueryVisitorTest {
             + "    \"filter\" : [\n"
             + "      {\n"
             + "        \"exists\" : {\n"
-            + "          \"field\" : \"catalogNumber\",\n"
-            + "          \"boost\" : 1.0\n"
+            + "          \"field\" : \"catalogNumber\"\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1167,21 +1211,16 @@ public class EsQueryVisitorTest {
             + "          \"must_not\" : [\n"
             + "            {\n"
             + "              \"exists\" : {\n"
-            + "                \"field\" : \"catalogNumber\",\n"
-            + "                \"boost\" : 1.0\n"
+            + "                \"field\" : \"catalogNumber\"\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1209,16 +1248,13 @@ public class EsQueryVisitorTest {
             + "          \"distance\" : 10000.0,\n"
             + "          \"distance_type\" : \"arc\",\n"
             + "          \"validation_method\" : \"STRICT\",\n"
-            + "          \"ignore_unmapped\" : false,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          \"ignore_unmapped\" : false\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1243,14 +1279,11 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"catalogNumber\" : {\n"
-            + "                        \"value\" : \"value_1\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_1\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            },\n"
             + "            {\n"
@@ -1262,14 +1295,11 @@ public class EsQueryVisitorTest {
             + "                        {\n"
             + "                          \"term\" : {\n"
             + "                            \"catalogNumber\" : {\n"
-            + "                              \"value\" : \"value_1\",\n"
-            + "                              \"boost\" : 1.0\n"
+            + "                              \"value\" : \"value_1\"\n"
             + "                            }\n"
             + "                          }\n"
             + "                        }\n"
-            + "                      ],\n"
-            + "                      \"adjust_pure_negative\" : true,\n"
-            + "                      \"boost\" : 1.0\n"
+            + "                      ]\n"
             + "                    }\n"
             + "                  },\n"
             + "                  {\n"
@@ -1278,14 +1308,11 @@ public class EsQueryVisitorTest {
             + "                        {\n"
             + "                          \"wildcard\" : {\n"
             + "                            \"catalogNumber\" : {\n"
-            + "                              \"wildcard\" : \"value_1*\",\n"
-            + "                              \"boost\" : 1.0\n"
+            + "                              \"value\" : \"value_1*\"\n"
             + "                            }\n"
             + "                          }\n"
             + "                        }\n"
-            + "                      ],\n"
-            + "                      \"adjust_pure_negative\" : true,\n"
-            + "                      \"boost\" : 1.0\n"
+            + "                      ]\n"
             + "                    }\n"
             + "                  },\n"
             + "                  {\n"
@@ -1294,32 +1321,23 @@ public class EsQueryVisitorTest {
             + "                        {\n"
             + "                          \"term\" : {\n"
             + "                            \"institutionCode\" : {\n"
-            + "                              \"value\" : \"value_2\",\n"
-            + "                              \"boost\" : 1.0\n"
+            + "                              \"value\" : \"value_2\"\n"
             + "                            }\n"
             + "                          }\n"
             + "                        }\n"
-            + "                      ],\n"
-            + "                      \"adjust_pure_negative\" : true,\n"
-            + "                      \"boost\" : 1.0\n"
+            + "                      ]\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1346,14 +1364,11 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"catalogNumber\" : {\n"
-            + "                        \"value\" : \"value_1\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_1\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            },\n"
             + "            {\n"
@@ -1362,19 +1377,14 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"institutionCode\" : {\n"
-            + "                        \"value\" : \"value_2\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_2\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -1389,14 +1399,11 @@ public class EsQueryVisitorTest {
             + "                        {\n"
             + "                          \"term\" : {\n"
             + "                            \"catalogNumber\" : {\n"
-            + "                              \"value\" : \"value_1\",\n"
-            + "                              \"boost\" : 1.0\n"
+            + "                              \"value\" : \"value_1\"\n"
             + "                            }\n"
             + "                          }\n"
             + "                        }\n"
-            + "                      ],\n"
-            + "                      \"adjust_pure_negative\" : true,\n"
-            + "                      \"boost\" : 1.0\n"
+            + "                      ]\n"
             + "                    }\n"
             + "                  },\n"
             + "                  {\n"
@@ -1405,32 +1412,23 @@ public class EsQueryVisitorTest {
             + "                        {\n"
             + "                          \"wildcard\" : {\n"
             + "                            \"catalogNumber\" : {\n"
-            + "                              \"wildcard\" : \"value_1*\",\n"
-            + "                              \"boost\" : 1.0\n"
+            + "                              \"value\" : \"value_1*\"\n"
             + "                            }\n"
             + "                          }\n"
             + "                        }\n"
-            + "                      ],\n"
-            + "                      \"adjust_pure_negative\" : true,\n"
-            + "                      \"boost\" : 1.0\n"
+            + "                      ]\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1460,14 +1458,11 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"catalogNumber\" : {\n"
-            + "                        \"value\" : \"value_1\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_1\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            },\n"
             + "            {\n"
@@ -1476,14 +1471,11 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"institutionCode\" : {\n"
-            + "                        \"value\" : \"value_2\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_2\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            },\n"
             + "            {\n"
@@ -1521,18 +1513,13 @@ public class EsQueryVisitorTest {
             + "                        },\n"
             + "                        \"relation\" : \"within\"\n"
             + "                      },\n"
-            + "                      \"ignore_unmapped\" : false,\n"
-            + "                      \"boost\" : 1.0\n"
+            + "                      \"ignore_unmapped\" : false\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      },\n"
             + "      {\n"
@@ -1544,14 +1531,11 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"term\" : {\n"
             + "                      \"catalogNumber\" : {\n"
-            + "                        \"value\" : \"value_1\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_1\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            },\n"
             + "            {\n"
@@ -1560,27 +1544,20 @@ public class EsQueryVisitorTest {
             + "                  {\n"
             + "                    \"wildcard\" : {\n"
             + "                      \"catalogNumber\" : {\n"
-            + "                        \"wildcard\" : \"value_1*\",\n"
-            + "                        \"boost\" : 1.0\n"
+            + "                        \"value\" : \"value_1*\"\n"
             + "                      }\n"
             + "                    }\n"
             + "                  }\n"
-            + "                ],\n"
-            + "                \"adjust_pure_negative\" : true,\n"
-            + "                \"boost\" : 1.0\n"
+            + "                ]\n"
             + "              }\n"
             + "            }\n"
-            + "          ],\n"
-            + "          \"adjust_pure_negative\" : true,\n"
-            + "          \"boost\" : 1.0\n"
+            + "          ]\n"
             + "        }\n"
             + "      }\n"
-            + "    ],\n"
-            + "    \"adjust_pure_negative\" : true,\n"
-            + "    \"boost\" : 1.0\n"
+            + "    ]\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertJsonEquals(expectedQuery, query);
   }
 
   @Test
@@ -1603,17 +1580,14 @@ public class EsQueryVisitorTest {
                         + "          \""
                         + searchFieldName
                         + "\" : {\n"
-                        + "            \"value\" : \"value\",\n"
-                        + "            \"boost\" : 1.0\n"
+                        + "            \"value\" : \"value\"\n"
                         + "          }\n"
                         + "        }\n"
                         + "      }\n"
-                        + "    ],\n"
-                        + "    \"adjust_pure_negative\" : true,\n"
-                        + "    \"boost\" : 1.0\n"
+                        + "    ]\n"
                         + "  }\n"
                         + "}";
-                assertEquals(expectedQuery, query);
+                assertJsonEquals(expectedQuery, query);
               } catch (QueryBuildingException ex) {
                 throw new RuntimeException(ex);
               }

@@ -63,7 +63,7 @@ import static org.gbif.ws.paths.OccurrencePaths.OCCURRENCE_PATH;
 import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
 
 /**
- * Occurrence resource, the verbatim sub resource, and occurrence metrics.
+ * Occurrence resource, the verbatim sub resource.
  */
 @OpenAPIDefinition(
   info = @Info(
@@ -86,7 +86,7 @@ import static org.gbif.ws.paths.OccurrencePaths.VERBATIM_PATH;
       description = "This API provides statistics about occurrence downloads.",
       extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0500"))
     ),
-    // These are for the methods from metrics-ws.
+    // These are for the methods from occurrence-search-ws.
     @Tag(
       name = "Occurrence metrics",
       description = "This API provides services to retrieve various counts and metrics " +
@@ -204,64 +204,6 @@ public class OccurrenceResource {
   @interface OccurrenceErrorResponses {}
 
   /**
-   * This retrieves a single Occurrence detail by its gbifId from the occurrence store.
-   *
-   * @param gbifId Occurrence gbifId
-   * @return requested Occurrence or null if none could be found
-   */
-  @Operation(
-    operationId = "getOccurrenceById",
-    summary = "Occurrence by id",
-    description = "Retrieve details for a single, interpreted occurrence.\n\n" +
-      "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
-      "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names.",
-    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0100"))
-  )
-  @GbifIdPathParameter
-  @ApiResponse(
-    responseCode = "200",
-    description = "Occurrence found"
-  )
-  @OccurrenceErrorResponses
-  @NullToNotFound
-  @GetMapping({"{gbifId}"})
-  public Occurrence get(@PathVariable("gbifId") Long gbifId) {
-    LOG.debug("Request Occurrence [{}]:", gbifId);
-    return occurrenceGetByKey.get(gbifId);
-  }
-
-  /**
-   * This retrieves a single Occurrence detail from the occurrence store.
-   *
-   * @param datasetKey dataset UUID identifier
-   * @param occurrenceId record identifier in the dataset
-   *
-   * @return requested occurrence or null if none could be found
-   */
-  @Operation(
-    operationId = "getOccurrenceByDatasetKeyAndOccurrenceId",
-    summary = "Occurrence by dataset key and occurrence id",
-    description = "Retrieve a single, interpreted occurrence by its dataset key and occurrenceId in that dataset.\n\n" +
-      "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
-      "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names.",
-    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0110")))
-  @DatasetKeyOccurrenceIdPathParameters
-  @ApiResponse(
-    responseCode = "200",
-    description = "Occurrence found"
-  )
-  @OccurrenceErrorResponses
-  @GetMapping("/{datasetKey}/{occurrenceId}")
-  @ResponseBody
-  @NullToNotFound
-  public Occurrence get(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
-    LOG.debug("Retrieve occurrence by dataset [{}] and occcurrenceId [{}]", datasetKey, occurrenceId);
-    return occurrenceGetByKey.get(datasetKey, occurrenceId);
-  }
-
-  /**
    * This retrieves a single occurrence fragment in its raw form as a string.
    *
    * @param gbifId The Occurrence gbifId
@@ -335,61 +277,6 @@ public class OccurrenceResource {
       return getFragment(occurrence.getKey());
     }
     return null;
-  }
-
-  /**
-   * This retrieves a single VerbatimOccurrence detail by its key from the occurrence store and transforms it into the API
-   * version which uses Maps.
-   *
-   * @param gbifId The Occurrence gbifId
-   * @return requested VerbatimOccurrence or null if none could be found
-   */
-  @Operation(
-    operationId = "getVerbatimOccurrenceById",
-    summary = "Verbatim occurrence by id",
-    description = "Retrieve a single, verbatim occurrence without any interpretation\n\n" +
-      "The returned occurrence includes additional fields, not shown in the response below.  They are verbatim " +
-      "fields which are not interpreted by GBIF's system, e.g. `location`.  The names are the short Darwin Core " +
-      "Term names.",
-    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0210")))
-  @GbifIdPathParameter
-  @ApiResponse(
-    responseCode = "200",
-    description = "Verbatim occurrence found"
-  )
-  @OccurrenceErrorResponses
-  @GetMapping("/{gbifId}/" + VERBATIM_PATH)
-  @NullToNotFound
-  public VerbatimOccurrence getVerbatim(@PathVariable("gbifId") Long gbifId) {
-    LOG.debug("Request VerbatimOccurrence [{}]:", gbifId);
-    return occurrenceGetByKey.getVerbatim(gbifId);
-  }
-
-  /**
-   * This retrieves a single occurrence fragment in its raw form as a string.
-   *
-   * @param datasetKey dataset UUID identifier
-   * @param occurrenceId record identifier in the dataset
-   *
-   * @return requested VerbatimOccurrence or null if none could be found
-   */
-  @Operation(
-    operationId = "getVerbatimOccurrenceByDatasetKeyAndOccurrenceId",
-    summary = "Verbatim occurrence by dataset key and occurrence id",
-    description = "Retrieve a single, verbatim occurrence without any interpretation by its dataset key and occurrenceId",
-    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0220")))
-  @DatasetKeyOccurrenceIdPathParameters
-  @ApiResponse(
-    responseCode = "200",
-    description = "Verbatim occurrence found"
-  )
-  @OccurrenceErrorResponses
-  @GetMapping("/{datasetKey}/{occurrenceId}/" + VERBATIM_PATH)
-  @ResponseBody
-  @NullToNotFound
-  public VerbatimOccurrence getVerbatim(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId) {
-    LOG.debug("Retrieve occurrence verbatim by dataset [{}] and occurrenceId [{}]", datasetKey, occurrenceId);
-    return occurrenceGetByKey.getVerbatim(datasetKey, occurrenceId);
   }
 
   /**

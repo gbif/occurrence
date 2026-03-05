@@ -348,12 +348,22 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
   @Override
   public long countRecords(Predicate predicate) {
-    Query query = EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey);
+    Query query =
+        predicate == null
+            ? totalCountQuery()
+            : EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey);
     try {
       return esClient.count(CountRequest.of(c -> c.index(esIndex).query(query))).count();
     } catch (IOException e) {
       throw new SearchException(e);
     }
+  }
+
+  private Query totalCountQuery() {
+    return esFieldMapper
+        .getDefaultFilter()
+        .map(df -> Query.of(q -> q.bool(b -> b.filter(df))))
+        .orElseGet(() -> Query.of(q -> q.matchAll(m -> m)));
   }
 
   /**

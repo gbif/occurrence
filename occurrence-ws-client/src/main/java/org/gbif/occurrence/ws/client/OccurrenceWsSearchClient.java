@@ -13,10 +13,9 @@
  */
 package org.gbif.occurrence.ws.client;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
@@ -24,11 +23,16 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import jakarta.annotation.Nullable;
 
 import org.springframework.cloud.openfeign.SpringQueryMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -303,11 +307,37 @@ public interface OccurrenceWsSearchClient extends  OccurrenceSearchService {
                                                                @RequestParam(value = "associatedSequences", required = false) Set<String> associatedSequences,
                                                                @RequestParam(value = "facet", required = false) Set<OccurrenceSearchParameter> facets);
 
+  /**
+   * Count by predicate (POST to occurrence-search-ws occurrence/count).
+   * Used when occurrence-ws is deployed without ES and delegates to occurrence-search-ws.
+   */
+  @PostMapping(value = "count", consumes = MediaType.APPLICATION_JSON_VALUE)
+  Long countByPredicate(@RequestBody Predicate predicate);
+
   @Override
   default long countRecords(Predicate predicate) {
-    throw new NotImplementedException("Not implemented");
+    return countByPredicate(predicate);
   }
 
+  /** Occurrence by gbifId (delegates to occurrence-search-ws). */
+  @GetMapping("{gbifId}")
+  @Nullable
+  Occurrence get(@PathVariable("gbifId") Long gbifId);
+
+  /** Occurrence by datasetKey and occurrenceId (delegates to occurrence-search-ws). */
+  @GetMapping("{datasetKey}/{occurrenceId}")
+  @Nullable
+  Occurrence get(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId);
+
+  /** Verbatim occurrence by gbifId (delegates to occurrence-search-ws). */
+  @GetMapping("{gbifId}/" + VERBATIM_PATH)
+  @Nullable
+  VerbatimOccurrence getVerbatim(@PathVariable("gbifId") Long gbifId);
+
+  /** Verbatim occurrence by datasetKey and occurrenceId (delegates to occurrence-search-ws). */
+  @GetMapping("{datasetKey}/{occurrenceId}/" + VERBATIM_PATH)
+  @Nullable
+  VerbatimOccurrence getVerbatim(@PathVariable("datasetKey") UUID datasetKey, @PathVariable("occurrenceId") String occurrenceId);
 
   @RequestMapping(
     method = RequestMethod.GET,

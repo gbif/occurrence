@@ -19,15 +19,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.json.JsonpMapper;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
+import jakarta.json.stream.JsonGenerator;
 import org.gbif.search.es.ChecklistEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.heatmap.es.occurrence.OccurrenceEsHeatmapRequestBuilder;
@@ -38,6 +42,7 @@ import org.junit.jupiter.api.Test;
 public class OccurrenceEsHeatmapRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final JsonpMapper JSONP_MAPPER = new JacksonJsonpMapper();
   private static final String INDEX = "index";
   private final OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder =
       new OccurrenceEsHeatmapRequestBuilder(
@@ -50,7 +55,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
     request.setZoom(1);
 
     SearchRequest query = esHeatmapRequestBuilder.buildHeatmapRequest(request, INDEX);
-    JsonNode json = MAPPER.readTree(query.toString());
+    JsonNode json = parseRequest(query);
 
     assertEquals(0, json.get(SIZE).asInt());
 
@@ -95,6 +100,15 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
         OccurrenceEsField.COORDINATE_POINT.getSearchFieldName(), jsonGeobounds.get(FIELD).asText());
   }
 
+  /** Serialize Elasticsearch SearchRequest to JSON and parse as JsonNode (client's toString() is not JSON). */
+  private static JsonNode parseRequest(SearchRequest request) throws IOException {
+    StringWriter writer = new StringWriter();
+    try (JsonGenerator generator = JSONP_MAPPER.jsonProvider().createGenerator(writer)) {
+      JSONP_MAPPER.serialize(request, generator);
+    }
+    return MAPPER.readTree(writer.toString());
+  }
+
   /** Tries to find a field in the list of term filters. */
   private static Optional<String> findTermFilter(
       JsonNode node, ChecklistEsField field, String defaultChecklistKey) {
@@ -116,7 +130,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
     request.setZoom(1);
 
     SearchRequest query = esHeatmapRequestBuilder.buildHeatmapRequest(request, INDEX);
-    JsonNode json = MAPPER.readTree(query.toString());
+    JsonNode json = parseRequest(query);
 
     assertEquals(0, json.get(SIZE).asInt());
     assertTrue(json.path(QUERY).path(BOOL).path(FILTER).isArray());

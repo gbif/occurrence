@@ -18,10 +18,10 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfiguration;
 import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
-import org.gbif.occurrence.search.configuration.OccurrenceSearchConfiguration;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
+import org.gbif.occurrence.ws.client.OccurrenceGetByKeyClientAdapter;
+import org.gbif.occurrence.ws.client.OccurrenceWsSearchClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
-import org.gbif.search.es.occurrence.OccurrenceEsField;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,13 +50,25 @@ public class OccurrenceWsConfiguration {
         .build(OccurrenceDownloadClient.class);
   }
 
-  @Configuration
-  public static class OccurrenceSearchConfigurationWs extends OccurrenceSearchConfiguration {
+  /**
+   * HTTP client for occurrence-search-ws. Implements OccurrenceSearchService;
+   * inject this bean where OccurrenceSearchService is required (e.g. download count).
+   */
+  @Bean
+  public OccurrenceWsSearchClient occurrenceWsSearchClient(
+      @Value("${occurrence.search.ws.url}") String occurrenceSearchWsUrl) {
+    return new ClientBuilder()
+        .withUrl(occurrenceSearchWsUrl)
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withFormEncoder()
+        .withExponentialBackoffRetry(Duration.ofSeconds(1), 1.0, 5)
+        .build(OccurrenceWsSearchClient.class);
+  }
 
-    @Bean
-    public OccurrenceEsFieldMapper esFieldMapper() {
-      return OccurrenceEsField.buildFieldMapper();
-    }
+  /** OccurrenceGetByKey backed by occurrence-search-ws (fragment by key, Annosys). */
+  @Bean
+  public OccurrenceGetByKey occurrenceGetByKey(OccurrenceWsSearchClient occurrenceWsSearchClient) {
+    return new OccurrenceGetByKeyClientAdapter(occurrenceWsSearchClient);
   }
 
   @Configuration

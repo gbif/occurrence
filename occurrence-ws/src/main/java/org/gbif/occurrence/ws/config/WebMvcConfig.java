@@ -26,13 +26,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.gbif.ws.server.processor.ParamNameProcessor;
 import org.gbif.ws.server.provider.CountryHandlerMethodArgumentResolver;
 import org.gbif.ws.server.provider.PageableHandlerMethodArgumentResolver;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
@@ -55,8 +52,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
-  @Autowired protected ChecklistAwareSearchRequestHandlerMethodArgumentResolver resolver;
-
   @Override
   public void configurePathMatch(PathMatchConfigurer configurer) {
     configurer.setUseTrailingSlashMatch(true);
@@ -66,7 +61,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
     argumentResolvers.add(new PageableHandlerMethodArgumentResolver());
     argumentResolvers.add(new CountryHandlerMethodArgumentResolver());
-    argumentResolvers.add(resolver);
   }
 
   @Override
@@ -115,23 +109,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         if (bean instanceof AbstractJackson2HttpMessageConverter) {
           AbstractJackson2HttpMessageConverter converter =
               (AbstractJackson2HttpMessageConverter) bean;
-          ObjectMapper objectMapper = converter.getObjectMapper();
-          objectMapper.registerModule(new JavaTimeModule());
-
-          objectMapper.registerModule(
-              new SimpleModule()
-                  .addKeyDeserializer(
-                      SearchParameter.class,
-                      new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
-                  .addDeserializer(
-                      SearchParameter.class,
-                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer())
-                  .addKeyDeserializer(
-                      OccurrenceSearchParameter.class,
-                      new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
-                  .addDeserializer(
-                      OccurrenceSearchParameter.class,
-                      new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
+          converter.getObjectMapper().registerModule(new JavaTimeModule());
         }
         return bean;
       }
@@ -142,15 +120,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
   @Bean
   public ObjectMapper objectMapper() {
     return JacksonJsonObjectMapperProvider.getObjectMapper()
-        .registerModule(new JavaTimeModule())
-        .registerModule(
-            new SimpleModule()
-                .addKeyDeserializer(
-                    SearchParameter.class,
-                    new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
-                .addDeserializer(
-                    SearchParameter.class,
-                    new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
+        .registerModule(new JavaTimeModule());
   }
 
   @Bean

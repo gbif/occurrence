@@ -43,6 +43,7 @@ mvn -Pdev clean verify
 * [Occurrence registry sync](occurrence-registry-sync/README.md)
 * [Occurrence Hive](occurrence-hive/README.md)
 * [Occurrence search](occurrence-search/README.md)
+* [Occurrence Search WS](occurrence-search-ws/README.md)
 * [Occurrence heatmaps](occurrence-heatmaps/README.md)
 * [Occurrence processor](occurrence-processor/README.md)
 * [Occurrence processor (Default values)](occurrence-processor/doc/DefaultValues.md)

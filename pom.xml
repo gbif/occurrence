@@ -71,6 +71,7 @@
     <module>occurrence-common</module>
     <module>occurrence-persistence</module>
     <module>occurrence-search</module>
+    <module>occurrence-search-ws</module>
     <module>occurrence-ws</module>
     <module>occurrence-ws-client</module>
     <module>occurrence-download</module>
@@ -165,6 +166,7 @@
 
     <junit-jupiter.version>5.12.2</junit-jupiter.version>
     <mockito-junit-jupiter.version>5.20.0</mockito-junit-jupiter.version>
+    <wiremock.version>3.3.1</wiremock.version>
 
     <!-- slf4j must be 1.7.6+ because log4j-over-slf4j at 1.7.5 (at least) has broken impl of AppenderSkeleton, and so
      will break when used with yarn -->
@@ -385,6 +387,11 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-search-ws</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-persistence</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -559,6 +566,11 @@
         <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-autoconfigure</artifactId>
+        <version>${spring-boot.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.cloud</groupId>
@@ -1335,6 +1347,12 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-junit-jupiter</artifactId>
         <version>${mockito-junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock-standalone</artifactId>
+        <version>${wiremock.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

@@ -672,8 +672,19 @@ public class OccurrenceEsSearchRequestBuilderTest {
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
     JsonNode jsonQuery = parseRequest(request);
     LOG.debug("Query: {}", jsonQuery);
+    JsonNode mustNode = jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0);
 
-    JsonNode matchNode = jsonQuery.path(QUERY).path(BOOL).path(MUST).get(0).path(MATCH);
+    // New ES client serializes this as multi_match instead of match.
+    JsonNode multiMatchNode = mustNode.path("multi_match");
+    if (!multiMatchNode.isMissingNode()) {
+      assertEquals("puma", multiMatchNode.path(QUERY).asText());
+      assertTrue(multiMatchNode.path("fields").isArray());
+      assertFalse(multiMatchNode.path("fields").isEmpty());
+      return;
+    }
+
+    // Backward-compatible assertion for old serialization.
+    JsonNode matchNode = mustNode.path(MATCH);
     assertTrue(matchNode.has(FULL_TEXT.getSearchFieldName()));
     assertEquals("puma", matchNode.path(FULL_TEXT.getSearchFieldName()).path(QUERY).asText());
   }

@@ -28,7 +28,6 @@ import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.occurrence.test.mocks.*;
 import org.gbif.occurrence.test.servers.EsManageServer;
 import org.gbif.occurrence.test.servers.HBaseServer;
-import org.gbif.occurrence.ws.config.ChecklistAwareSearchRequestHandlerMethodArgumentResolver;
 import org.gbif.occurrence.ws.config.WebMvcConfig;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
@@ -175,11 +174,6 @@ public class OccurrenceWsItConfiguration {
   public CallbackService downloadCallbackService(
       OccurrenceDownloadService occurrenceDownloadService) {
     return new DownloadCallbackServiceMock(occurrenceDownloadService);
-  }
-
-  @Bean
-  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver checklistAwareSearchRequestHandlerMethodArgumentResolver() {
-    return new ChecklistAwareSearchRequestHandlerMethodArgumentResolver(null);
   }
 
   /** Creates a DownloadRequestService using the available mock instances. */

@@ -13,19 +13,16 @@
  */
 package org.gbif.occurrence.ws.it;
 
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.occurrence.test.extensions.ElasticsearchInitializer;
 import org.gbif.occurrence.test.extensions.FragmentInitializer;
 import org.gbif.occurrence.test.extensions.OccurrenceRelationshipInitializer;
+import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.ws.client.OccurrenceWsClient;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
 import org.gbif.occurrence.ws.resources.OccurrenceResource;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
-
-import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,12 +80,16 @@ public class OccurrenceResourceIT {
 
   private final OccurrenceResource occurrenceResource;
 
+  private final OccurrenceGetByKey occurrenceGetByKey;
+
   private final OccurrenceWsClient occurrenceWsClient;
 
   @Autowired
   public OccurrenceResourceIT(@LocalServerPort int localServerPort,
-                              OccurrenceResource occurrenceResource) {
+                              OccurrenceResource occurrenceResource,
+                              OccurrenceGetByKey occurrenceGetByKey) {
     this.occurrenceResource = occurrenceResource;
+    this.occurrenceGetByKey = occurrenceGetByKey;
     ClientBuilder clientBuilder =
         new ClientBuilder()
             .withUrl("http://localhost:" + localServerPort)
@@ -98,29 +99,9 @@ public class OccurrenceResourceIT {
   }
 
   @Test
-  public void testGetByKey() {
-    Occurrence occurrence = occurrenceWsClient.get(TEST_KEY);
-    assertNotNull(occurrence, "Empty occurrence received");
-  }
-
-  @Test
-  public void testGetByDatasetKeyAndOccurrenceId() {
-    //See occurrence-test.json for tests data used in this test
-    Occurrence occurrence = occurrenceWsClient.get(UUID.fromString("d596fccb-2319-42eb-b13b-986c932780ad"),
-                                                   "MGYA00167231_Bacteria");
-    assertNotNull(occurrence, "Empty occurrence received");
-  }
-
-  @Test
   public void testGetFragment() {
     String fragment = occurrenceWsClient.getFragment(TEST_KEY);
     assertNotNull(fragment, "Empty fragment received");
-  }
-
-  @Test
-  public void testGetVerbatim() {
-    VerbatimOccurrence verbatim = occurrenceWsClient.getVerbatim(TEST_KEY);
-    assertNotNull(verbatim, "Empty verbatim record!");
   }
 
   @Test
@@ -142,7 +123,7 @@ public class OccurrenceResourceIT {
     String annosysVerbatim = occurrenceResource.getAnnosysVerbatim(TEST_KEY);
     assertNotNull(annosysVerbatim, "Empty Annosys response");
 
-    String verbatimXml = OccurrenceVerbatimDwcXMLConverter.verbatimOccurrenceXMLAsString(occurrenceResource.getVerbatim(TEST_KEY));
+    String verbatimXml = OccurrenceVerbatimDwcXMLConverter.verbatimOccurrenceXMLAsString(occurrenceGetByKey.getVerbatim(TEST_KEY));
     assertEquals(annosysVerbatim, verbatimXml, "XML records different to expected response");
   }
 
@@ -151,7 +132,7 @@ public class OccurrenceResourceIT {
     String annosysOccurrence = occurrenceResource.getAnnosysOccurrence(TEST_KEY);
     assertNotNull(annosysOccurrence, "Empty verbatim Annosys!");
 
-    String occurrenceXml = OccurrenceDwcXMLConverter.occurrenceXMLAsString(occurrenceResource.get(TEST_KEY));
+    String occurrenceXml = OccurrenceDwcXMLConverter.occurrenceXMLAsString(occurrenceGetByKey.get(TEST_KEY));
     assertEquals(annosysOccurrence, occurrenceXml, "XML records different to expected response");
 
   }

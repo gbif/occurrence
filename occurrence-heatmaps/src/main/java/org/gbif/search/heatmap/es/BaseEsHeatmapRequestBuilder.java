@@ -17,13 +17,10 @@ import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import com.google.common.annotations.VisibleForTesting;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
@@ -136,19 +133,10 @@ public abstract class BaseEsHeatmapRequestBuilder<
   }
 
   /**
-   * Kept as a compatibility adapter while dependent modules in local builds may still expose
-   * buildQueryNode as Optional of a legacy query type.
+   * Adds the query from buildQueryNode to the filter list. buildQueryNode returns the new
+   * Elasticsearch client's Query type, so we add it directly instead of re-serializing.
    */
-  @SuppressWarnings({"rawtypes", "unchecked"})
   private void addBuildQueryNodeFilter(R request, List<Query> filters) {
-    Optional<?> queryNode = buildQueryNode(request);
-    queryNode.ifPresent(
-        q ->
-            filters.add(
-                Query.of(
-                    qb ->
-                        qb.withJson(
-                            new ByteArrayInputStream(
-                                q.toString().getBytes(StandardCharsets.UTF_8))))));
+    buildQueryNode(request).ifPresent(filters::add);
   }
 }

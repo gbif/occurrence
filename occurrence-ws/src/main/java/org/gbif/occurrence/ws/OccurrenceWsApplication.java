@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
-import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +42,7 @@ import org.springframework.context.annotation.FilterType;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@SpringBootApplication(exclude = {RabbitAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class})
+@SpringBootApplication(exclude = {RabbitAutoConfiguration.class})
 @ComponentScan(
     basePackages = {
       "org.gbif.ws.server.interceptor",
@@ -53,7 +52,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
       "org.gbif.ws.server.mapper",
       "org.gbif.ws.remoteauth",
       "org.gbif.ws.security",
-      "org.gbif.occurrence.search",
       "org.gbif.occurrence.ws",
       "org.gbif.occurrence.download.service",
       "org.gbif.occurrence.persistence",

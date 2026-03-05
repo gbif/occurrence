@@ -32,14 +32,6 @@ To run this project from your machine you have to:
         occurrence.db.hbasePoolSize
         occurrence.db.zkConnectionString
 
-
-        occurrence.search.es.hosts
-        occurrence.search.es.index
-        occurrence.search.es.connect_timeout
-        occurrence.search.es.socket_timeout
-        occurrence.search.max.offset
-        occurrence.search.max.limit
-
         occurrence.download.ws.username
         occurrence.download.ws.password
         occurrence.download.ws.url
@@ -67,18 +59,18 @@ To run this project from your machine you have to:
         appkeys.testfile
         appkeys.file
         appkeys.whitelist
-``` 
+```
 
  2. Copy the reference config files located in [src/test/resources/ref-conf/](src/test/resources/ref-conf/) to
 *src/main/resources*.
  3. Run the Maven wrapper command:
- 
-``` 
-  ./mvnw -Poccurrence-dev spring-boot:run
-``` 
-  
 
-Then test it with [http://localhost:8080/occurrence/search](http://localhost:8080/occurrence/search)
+```
+  ./mvnw -Poccurrence-dev spring-boot:run
+```
+
+
+Then test it with [http://localhost:8080/occurrence/{gbifId}/fragment](http://localhost:8080/occurrence/term)
 
 ## Downloads
 This is the webservice that orchestrates occurrence downloads by accepting a JSON download string, translating it
