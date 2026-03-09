@@ -17,6 +17,8 @@ import org.gbif.sequencing.SequenceProcessor;
 
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
+import org.apache.spark.sql.api.java.UDF1;
+import org.apache.spark.sql.api.java.UDF2;
 import org.apache.spark.sql.api.java.UDF11;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
@@ -27,11 +29,70 @@ import org.apache.spark.sql.types.StructType;
  * Takes a sequence string, optional sequence ID, and optional config parameters.
  * Returns a struct containing the cleaned sequence and various quality metrics.
  *
+ * <p>Multiple overloaded versions are available:
+ * <ul>
+ *   <li>{@link Udf1} - Takes only the sequence (uses default config)</li>
+ *   <li>{@link Udf2} - Takes sequence and seqId (uses default config)</li>
+ *   <li>{@link SequenceProcessorUdf} - Takes all 11 parameters for full customization</li>
+ * </ul>
+ *
  * <p>Config parameters are optional - if null, default values from SequenceProcessor.Config.defaultConfig() are used.
  */
 public class SequenceProcessorUdf implements UDF11<String, String, String, Integer, String, String, String, String, String, Integer, Integer, Row> {
 
   private static final SequenceProcessor.Config DEFAULT_CONFIG = SequenceProcessor.Config.defaultConfig();
+
+  /**
+   * Simple UDF that takes only the sequence string.
+   * Uses default configuration for all processing options.
+   *
+   * <p>Usage in SQL: {@code SELECT processSequence(dnasequence) FROM table}
+   */
+  public static class Udf1 implements UDF1<String, Row> {
+    @Override
+    public Row call(String sequence) throws Exception {
+      return processSequence(sequence, null);
+    }
+  }
+
+  /**
+   * UDF that takes sequence string and sequence ID.
+   * Uses default configuration for all processing options.
+   *
+   * <p>Usage in SQL: {@code SELECT processSequence(dnasequence, seqId) FROM table}
+   */
+  public static class Udf2 implements UDF2<String, String, Row> {
+    @Override
+    public Row call(String sequence, String seqId) throws Exception {
+      return processSequence(sequence, seqId);
+    }
+  }
+
+  private static Row processSequence(String sequence, String seqId) {
+    if (sequence == null) {
+      return null;
+    }
+
+    SequenceProcessor processor = new SequenceProcessor(DEFAULT_CONFIG);
+    SequenceProcessor.Result result = processor.processOneSequence(sequence, seqId);
+
+    return RowFactory.create(
+      result.seqId(),
+      result.rawSequence(),
+      result.sequence(),
+      result.sequenceLength(),
+      result.nonIupacFraction(),
+      result.nonACGTNFraction(),
+      result.nFraction(),
+      result.nNrunsCapped(),
+      result.gcContent(),
+      result.naturalLanguageDetected(),
+      result.endsTrimmed(),
+      result.gapsOrWhitespaceRemoved(),
+      result.nucleotideSequenceID(),
+      result.invalid()
+    );
+  }
 
   /**
    * Returns the schema for the result struct.

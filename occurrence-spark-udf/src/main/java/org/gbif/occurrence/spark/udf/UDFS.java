@@ -32,7 +32,7 @@ public class UDFS {
     sparkSession.udf().register("stringArrayLike", new StringArrayLikeGenericUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("contains", new ContainsUdf(), DataTypes.BooleanType);
     sparkSession.udf().register("geoDistance", new GeoDistanceUdf(), DataTypes.BooleanType);
-    sparkSession.udf().register("processSequence", new SequenceProcessorUdf(), SequenceProcessorUdf.resultSchema());
+    sparkSession.sql("CREATE OR REPLACE TEMPORARY FUNCTION processSequence AS 'org.gbif.occurrence.spark.udf.ProcessSequenceUdf'");
 
     // SQL Downloads — public-visible names.
     sparkSession.udf().register(SqlDownloadFunction.DEGREE_MINUTE_SECOND_GRID_CELL_CODE.getSqlIdentifier(), new DegreeMinuteSecondGridCellCodeUdf(), DataTypes.StringType);
