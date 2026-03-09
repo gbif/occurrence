@@ -11,6 +11,54 @@ mvn clean package -DskipTests
 This produces:
 - `target/occurrence-spark-udf-<version>.jar` - The main UDF library
 
+## Nucleotide Sequence Processing
+
+The `processSequence` UDF cleans and validates DNA/RNA sequences, returning quality metrics.
+
+### Quick Start
+
+```sql
+-- Register the UDF
+CREATE FUNCTION processSequence AS 'org.gbif.occurrence.spark.udf.ProcessSequenceUdf';
+
+-- Create nucleotide sequence table with all quality metrics
+CREATE TABLE prod.occurrence_nucleotide_sequence AS
+SELECT gbifid, datasetkey, inline(array(processSequence(dnasequence)))
+FROM occurrence_ext_gbif_dnaderiveddata
+WHERE dnasequence IS NOT NULL;
+```
+
+### Output Columns
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `seqId` | String | Sequence identifier |
+| `rawSequence` | String | Original input sequence |
+| `sequence` | String | Cleaned sequence (null if invalid) |
+| `sequenceLength` | Integer | Length of cleaned sequence |
+| `nonIupacFraction` | Double | Fraction of non-IUPAC characters |
+| `nonACGTNFraction` | Double | Fraction of non-ACGTN characters |
+| `nFraction` | Double | Fraction of N characters |
+| `nNrunsCapped` | Integer | Number of N-runs that were capped |
+| `gcContent` | Double | GC content ratio |
+| `naturalLanguageDetected` | Boolean | Natural language contamination detected |
+| `endsTrimmed` | Boolean | Sequence ends were trimmed |
+| `gapsOrWhitespaceRemoved` | Boolean | Gaps/whitespace were removed |
+| `nucleotideSequenceID` | String | MD5 hash of cleaned sequence |
+| `invalid` | Boolean | Sequence is invalid |
+
+### Alternative Usage
+
+```sql
+-- Select specific fields only
+SELECT
+  gbifid,
+  processSequence(dnasequence).sequence AS cleansequence,
+  processSequence(dnasequence).gcContent
+FROM occurrence_ext_gbif_dnaderiveddata
+WHERE dnasequence IS NOT NULL;
+```
+
 ## Available UDFs
 
 | UDF Name | Class | Description |
