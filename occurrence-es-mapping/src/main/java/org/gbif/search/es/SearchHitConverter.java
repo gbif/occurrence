@@ -257,7 +257,13 @@ public abstract class SearchHitConverter<T> implements Function<SearchHit, T> {
 
           fields = new HashMap<>(listAsMap);
           continue;
-          }
+        }
+      }
+
+      if (fields.get(paths[i]) instanceof List && ((List) fields.get(paths[i])).isEmpty()) {
+        // if the list is empty, we return an empty map to avoid class cast
+        // see https://github.com/gbif/occurrence/issues/475
+        return new HashMap<>();
       }
 
       // update the fields with the current path
