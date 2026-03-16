@@ -44,6 +44,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter;
+import org.springframework.security.web.firewall.HttpFirewall;
+import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -180,6 +182,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
         return new CustomRequestMappingHandlerMapping();
       }
     };
+  }
+
+  @Bean
+  public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
+    StrictHttpFirewall firewall = new StrictHttpFirewall();
+    firewall.setAllowUrlEncodedSlash(true);
+    firewall.setAllowUrlEncodedDoubleSlash(true);
+    return firewall;
   }
 
   private static class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {

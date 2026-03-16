@@ -36,10 +36,13 @@ import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestCli
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.stereotype.Component;
 
 @SpringBootApplication(
     exclude = {
@@ -110,4 +113,14 @@ public class EventWsApplication {
 
   @Configuration
   public class SecurityConfiguration  extends RemoteAuthWebSecurityConfigurer {}
+
+  @Component
+  public class EmbeddedTomcatServerCustomizer
+    implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
+
+    @Override
+    public void customize(TomcatServletWebServerFactory factory) {
+      factory.getTomcatConnectorCustomizers().add(connector -> connector.setEncodedSolidusHandling("decode"));
+    }
+  }
 }
