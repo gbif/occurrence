@@ -1,0 +1,4508 @@
+[
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "d8d20ccd646512d0af8039a994439c0ac0bfddc1",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.688",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S216058193"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.604075",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.1763225",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "09:09:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-01",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L7240596",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S216058193",
+          "http://rs.tdwg.org/dwc/terms/day": "1"
+        },
+        "coreId": "S216058193",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Traveling",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L7240596",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "1.85",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "75",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "3",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr2867602",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "d8d20ccd646512d0af8039a994439c0ac0bfddc1",
+      "firstLoaded": "2026-03-10T15:21:48.686",
+      "id": "S216058193",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.176322,
+        "decimalLongitude": -87.604075,
+        "id": "S216058193",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.176322,
+          "lon": -87.604075
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 1,
+        "decimalLatitude": 33.176322,
+        "decimalLongitude": -87.604075,
+        "endDayOfYear": 60,
+        "eventDate": {
+          "gte": "2025-03-01T00:00:00.000",
+          "lte": "2025-03-01T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-01",
+        "eventDateSingle": "2025-03-01T00:00",
+        "eventHierarchy": [
+          "S216058193"
+        ],
+        "eventHierarchyJoined": "S216058193",
+        "eventHierarchyLevels": 1,
+        "eventID": "S216058193",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 75.0,
+            "eventDurationValueInMinutes": 75.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Traveling"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 3.0,
+            "samplingPerformedBy": [
+              "obsr2867602"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [
+              { "concept" : "Tadpole",
+                "lineage": ["Larva"]
+              },
+              { "concept" : "Tiddler",
+                "lineage": ["Palova"]
+              }
+            ],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "totalAreaSampledValue": 1.85,
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L7240596"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S216058193",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "COORDINATE_ROUNDED"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L7240596",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.604075 33.176322)",
+        "startDayOfYear": 60,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S216058193"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 1,
+        "id": "S216058193",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.176322 -87.604075)",
+        "temporalCoverage": {},
+        "id": "S216058193"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "42d1a192cc7b5d5944e5b3e13c9fd046b41ce29d",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.705",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S217007718"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.5396724",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.1882745",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "06:21:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-07",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L12228602",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S217007718",
+          "http://rs.tdwg.org/dwc/terms/day": "7"
+        },
+        "coreId": "S217007718",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Stationary",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L12228602",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "NA",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "15",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "1",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr451424",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "42d1a192cc7b5d5944e5b3e13c9fd046b41ce29d",
+      "firstLoaded": "2026-03-10T15:21:48.704",
+      "id": "S217007718",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.188275,
+        "decimalLongitude": -87.539672,
+        "id": "S217007718",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.188275,
+          "lon": -87.539672
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 7,
+        "decimalLatitude": 33.188275,
+        "decimalLongitude": -87.539672,
+        "endDayOfYear": 66,
+        "eventDate": {
+          "gte": "2025-03-07T00:00:00.000",
+          "lte": "2025-03-07T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-07",
+        "eventDateSingle": "2025-03-07T00:00",
+        "eventHierarchy": [
+          "S217007718"
+        ],
+        "eventHierarchyJoined": "S217007718",
+        "eventHierarchyLevels": 1,
+        "eventID": "S217007718",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 15.0,
+            "eventDurationValueInMinutes": 15.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Stationary"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 1.0,
+            "samplingPerformedBy": [
+              "obsr451424"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L12228602"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S217007718",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "TOTAL_AREA_SAMPLED_VALUE_INVALID",
+          "COORDINATE_ROUNDED"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L12228602",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.539672 33.188275)",
+        "startDayOfYear": 66,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S217007718"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 7,
+        "id": "S217007718",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.188275 -87.539672)",
+        "temporalCoverage": {},
+        "id": "S217007718"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "d2cd9e85d73f2eaa6cd8e09705564b79a9543902",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.740",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S218153599"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.567602",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.214843",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "16:38:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-12",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L7287743",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S218153599",
+          "http://rs.tdwg.org/dwc/terms/day": "12"
+        },
+        "coreId": "S218153599",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Traveling",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L7287743",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "1.426",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "71",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "1",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr850449",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "d2cd9e85d73f2eaa6cd8e09705564b79a9543902",
+      "firstLoaded": "2026-03-10T15:21:48.739",
+      "id": "S218153599",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.214843,
+        "decimalLongitude": -87.567602,
+        "id": "S218153599",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.214843,
+          "lon": -87.567602
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 12,
+        "decimalLatitude": 33.214843,
+        "decimalLongitude": -87.567602,
+        "endDayOfYear": 71,
+        "eventDate": {
+          "gte": "2025-03-12T00:00:00.000",
+          "lte": "2025-03-12T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-12",
+        "eventDateSingle": "2025-03-12T00:00",
+        "eventHierarchy": [
+          "S218153599"
+        ],
+        "eventHierarchyJoined": "S218153599",
+        "eventHierarchyLevels": 1,
+        "eventID": "S218153599",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 71.0,
+            "eventDurationValueInMinutes": 71.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Traveling"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 1.0,
+            "samplingPerformedBy": [
+              "obsr850449"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "totalAreaSampledValue": 1.426,
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L7287743"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S218153599",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L7287743",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.567602 33.214843)",
+        "startDayOfYear": 71,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S218153599"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 12,
+        "id": "S218153599",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.214843 -87.567602)",
+        "temporalCoverage": {},
+        "id": "S218153599"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "38fab6a629b834c3224f42610767126ef417ab51",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.758",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S218605785"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.5396724",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.1882745",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "07:40:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-15",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L12228602",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S218605785",
+          "http://rs.tdwg.org/dwc/terms/day": "15"
+        },
+        "coreId": "S218605785",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Stationary",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L12228602",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "NA",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "15",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "1",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr451424",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "38fab6a629b834c3224f42610767126ef417ab51",
+      "firstLoaded": "2026-03-10T15:21:48.757",
+      "id": "S218605785",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.188275,
+        "decimalLongitude": -87.539672,
+        "id": "S218605785",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.188275,
+          "lon": -87.539672
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 15,
+        "decimalLatitude": 33.188275,
+        "decimalLongitude": -87.539672,
+        "endDayOfYear": 74,
+        "eventDate": {
+          "gte": "2025-03-15T00:00:00.000",
+          "lte": "2025-03-15T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-15",
+        "eventDateSingle": "2025-03-15T00:00",
+        "eventHierarchy": [
+          "S218605785"
+        ],
+        "eventHierarchyJoined": "S218605785",
+        "eventHierarchyLevels": 1,
+        "eventID": "S218605785",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 15.0,
+            "eventDurationValueInMinutes": 15.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Stationary"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 1.0,
+            "samplingPerformedBy": [
+              "obsr451424"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L12228602"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S218605785",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "TOTAL_AREA_SAMPLED_VALUE_INVALID",
+          "COORDINATE_ROUNDED"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L12228602",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.539672 33.188275)",
+        "startDayOfYear": 74,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S218605785"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 15,
+        "id": "S218605785",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.188275 -87.539672)",
+        "temporalCoverage": {},
+        "id": "S218605785"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "2e419f1a88b481ac6cdd995a3495c17bd6af3216",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.766",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S218911648"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.6534175",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.1335213",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "12:27:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-16",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L5039140",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S218911648",
+          "http://rs.tdwg.org/dwc/terms/day": "16"
+        },
+        "coreId": "S218911648",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Traveling",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L5039140",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "2.527",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "19",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "2",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr212979",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "2e419f1a88b481ac6cdd995a3495c17bd6af3216",
+      "firstLoaded": "2026-03-10T15:21:48.765",
+      "id": "S218911648",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.133521,
+        "decimalLongitude": -87.653417,
+        "id": "S218911648",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.133521,
+          "lon": -87.653417
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 16,
+        "decimalLatitude": 33.133521,
+        "decimalLongitude": -87.653417,
+        "endDayOfYear": 75,
+        "eventDate": {
+          "gte": "2025-03-16T00:00:00.000",
+          "lte": "2025-03-16T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-16",
+        "eventDateSingle": "2025-03-16T00:00",
+        "eventHierarchy": [
+          "S218911648"
+        ],
+        "eventHierarchyJoined": "S218911648",
+        "eventHierarchyLevels": 1,
+        "eventID": "S218911648",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 19.0,
+            "eventDurationValueInMinutes": 19.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Traveling"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 2.0,
+            "samplingPerformedBy": [
+              "obsr212979"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "totalAreaSampledValue": 2.527,
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L5039140"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S218911648",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "COORDINATE_ROUNDED"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L5039140",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.653417 33.133521)",
+        "startDayOfYear": 75,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S218911648"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 16,
+        "id": "S218911648",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.133521 -87.653417)",
+        "temporalCoverage": {},
+        "id": "S218911648"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "66f63f50b43202ee80856bdf6616aef779bbed4a",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.832",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S220376433"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.565854",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.221523",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "16:34:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-23",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L41593260",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S220376433",
+          "http://rs.tdwg.org/dwc/terms/day": "23"
+        },
+        "coreId": "S220376433",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Traveling",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L41593260",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "2.414",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "60",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "2",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr3423678",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "66f63f50b43202ee80856bdf6616aef779bbed4a",
+      "firstLoaded": "2026-03-10T15:21:48.831",
+      "id": "S220376433",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.221523,
+        "decimalLongitude": -87.565854,
+        "id": "S220376433",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.221523,
+          "lon": -87.565854
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 23,
+        "decimalLatitude": 33.221523,
+        "decimalLongitude": -87.565854,
+        "endDayOfYear": 82,
+        "eventDate": {
+          "gte": "2025-03-23T00:00:00.000",
+          "lte": "2025-03-23T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-23",
+        "eventDateSingle": "2025-03-23T00:00",
+        "eventHierarchy": [
+          "S220376433"
+        ],
+        "eventHierarchyJoined": "S220376433",
+        "eventHierarchyLevels": 1,
+        "eventID": "S220376433",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 60.0,
+            "eventDurationValueInMinutes": 60.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Traveling"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 2.0,
+            "samplingPerformedBy": [
+              "obsr3423678"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "totalAreaSampledValue": 2.414,
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L41593260"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S220376433",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L41593260",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.565854 33.221523)",
+        "startDayOfYear": 82,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S220376433"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 23,
+        "id": "S220376433",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.221523 -87.565854)",
+        "temporalCoverage": {},
+        "id": "S220376433"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "0c10f01e191e2edd00beab5d9153a43304d5c4d2",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.839",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S220776913"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.6534175",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.1335213",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "16:34:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-25",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L5039140",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S220776913",
+          "http://rs.tdwg.org/dwc/terms/day": "25"
+        },
+        "coreId": "S220776913",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Traveling",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L5039140",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "5.23",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "7",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "1",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr2915343",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "0c10f01e191e2edd00beab5d9153a43304d5c4d2",
+      "firstLoaded": "2026-03-10T15:21:48.838",
+      "id": "S220776913",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.133521,
+        "decimalLongitude": -87.653417,
+        "id": "S220776913",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.133521,
+          "lon": -87.653417
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 25,
+        "decimalLatitude": 33.133521,
+        "decimalLongitude": -87.653417,
+        "endDayOfYear": 84,
+        "eventDate": {
+          "gte": "2025-03-25T00:00:00.000",
+          "lte": "2025-03-25T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-25",
+        "eventDateSingle": "2025-03-25T00:00",
+        "eventHierarchy": [
+          "S220776913"
+        ],
+        "eventHierarchyJoined": "S220776913",
+        "eventHierarchyLevels": 1,
+        "eventID": "S220776913",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 7.0,
+            "eventDurationValueInMinutes": 7.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Traveling"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 1.0,
+            "samplingPerformedBy": [
+              "obsr2915343"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "totalAreaSampledValue": 5.23,
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L5039140"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S220776913",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "COORDINATE_ROUNDED"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L5039140",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.653417 33.133521)",
+        "startDayOfYear": 84,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S220776913"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 25,
+        "id": "S220776913",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.133521 -87.653417)",
+        "temporalCoverage": {},
+        "id": "S220776913"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "da0754b336ac730691baeffd729ed786d8cf9d63",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.851",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S222185558"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.5334964",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.1856486",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "19:15:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-31",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L7241704",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S222185558",
+          "http://rs.tdwg.org/dwc/terms/day": "31"
+        },
+        "coreId": "S222185558",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Stationary",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L7241704",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "NA",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "2",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "1",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr1073731",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "da0754b336ac730691baeffd729ed786d8cf9d63",
+      "firstLoaded": "2026-03-10T15:21:48.850",
+      "id": "S222185558",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.185649,
+        "decimalLongitude": -87.533496,
+        "id": "S222185558",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.185649,
+          "lon": -87.533496
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 31,
+        "decimalLatitude": 33.185649,
+        "decimalLongitude": -87.533496,
+        "endDayOfYear": 90,
+        "eventDate": {
+          "gte": "2025-03-31T00:00:00.000",
+          "lte": "2025-03-31T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-31",
+        "eventDateSingle": "2025-03-31T00:00",
+        "eventHierarchy": [
+          "S222185558"
+        ],
+        "eventHierarchyJoined": "S222185558",
+        "eventHierarchyLevels": 1,
+        "eventID": "S222185558",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 2.0,
+            "eventDurationValueInMinutes": 2.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Stationary"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 1.0,
+            "samplingPerformedBy": [
+              "obsr1073731"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L7241704"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S222185558",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "TOTAL_AREA_SAMPLED_VALUE_INVALID",
+          "COORDINATE_ROUNDED"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L7241704",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.533496 33.185649)",
+        "startDayOfYear": 90,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S222185558"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 31,
+        "id": "S222185558",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.185649 -87.533496)",
+        "temporalCoverage": {},
+        "id": "S222185558"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "e526288d0cbf9d7de084ad2eaa43017811a27920",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.900",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S218453229"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.422758",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.1879866",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "11:44:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-14",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L4921819",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S218453229",
+          "http://rs.tdwg.org/dwc/terms/day": "14"
+        },
+        "coreId": "S218453229",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Traveling",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L4921819",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "0.08",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "5",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "true",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "1",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr447687",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "e526288d0cbf9d7de084ad2eaa43017811a27920",
+      "firstLoaded": "2026-03-10T15:21:48.899",
+      "id": "S218453229",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.187987,
+        "decimalLongitude": -87.422758,
+        "id": "S218453229",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.187987,
+          "lon": -87.422758
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 14,
+        "decimalLatitude": 33.187987,
+        "decimalLongitude": -87.422758,
+        "endDayOfYear": 73,
+        "eventDate": {
+          "gte": "2025-03-14T00:00:00.000",
+          "lte": "2025-03-14T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-14",
+        "eventDateSingle": "2025-03-14T00:00",
+        "eventHierarchy": [
+          "S218453229"
+        ],
+        "eventHierarchyJoined": "S218453229",
+        "eventHierarchyLevels": 1,
+        "eventID": "S218453229",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "eventDurationValue": 5.0,
+            "eventDurationValueInMinutes": 5.0,
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": true,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Traveling"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 1.0,
+            "samplingPerformedBy": [
+              "obsr447687"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "totalAreaSampledValue": 0.08,
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L4921819"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S218453229",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "COORDINATE_ROUNDED"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L4921819",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.422758 33.187987)",
+        "startDayOfYear": 73,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S218453229"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 14,
+        "id": "S218453229",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.187987 -87.422758)",
+        "temporalCoverage": {},
+        "id": "S218453229"
+      }
+    }
+  },
+  {
+    "_index": "default_dev_event_d_1773155941007",
+    "_type": "_doc",
+    "_id": "b65d90f564b25a4aaaf01110430b698f150e06b6",
+    "_score": 0.025752496,
+    "_source": {
+      "metadata": {
+        "datasetKey": "64de3c90-11dd-49d9-b71e-df220166a92e",
+        "datasetPublishingCountry": "ZZ",
+        "datasetTitle": "EOD (Test with Humboldt)",
+        "endorsingNodeKey": "02c40d2a-1cba-4633-90b7-e36e5e97aba8",
+        "hostingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce",
+        "installationKey": "17a83780-3060-4851-9d6f-029d5fcb81c9",
+        "networkKeys": [],
+        "protocol": "EML",
+        "publisherTitle": "GBIF Secretariat",
+        "publishingOrganizationKey": "fbca90e3-8aed-48b1-84e3-369afbd000ce"
+      },
+      "created": "2026-03-10T15:21:48.902",
+      "eventInherited": {
+        "eventType": [],
+        "id": "S218537896"
+      },
+      "type": "event",
+      "verbatim": {
+        "core": {
+          "http://rs.tdwg.org/dwc/terms/stateProvince": "US-AL",
+          "http://rs.tdwg.org/dwc/terms/decimalLongitude": "-87.625391",
+          "http://rs.tdwg.org/dwc/terms/county": "Tuscaloosa",
+          "http://rs.tdwg.org/dwc/terms/month": "3",
+          "http://rs.tdwg.org/dwc/terms/decimalLatitude": "33.14168",
+          "http://rs.tdwg.org/dwc/terms/institutionCode": "CLO",
+          "http://rs.tdwg.org/dwc/terms/eventTime": "19:03:00",
+          "http://rs.tdwg.org/dwc/terms/countryCode": "US",
+          "http://rs.tdwg.org/dwc/terms/eventDate": "2025-03-14",
+          "http://rs.tdwg.org/dwc/terms/year": "2025",
+          "http://purl.org/dc/terms/license": "CC_BY_4_0",
+          "http://rs.tdwg.org/dwc/terms/locality": "L41216605",
+          "http://rs.tdwg.org/dwc/terms/eventID": "S218537896",
+          "http://rs.tdwg.org/dwc/terms/day": "14"
+        },
+        "coreId": "S218537896",
+        "extensions": {
+          "http://rs.tdwg.org/eco/terms/Event": [
+            {
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledUnit": "kilometers distance traveled",
+              "http://rs.tdwg.org/eco/terms/hasMaterialSamples": "false",
+              "http://rs.tdwg.org/eco/terms/protocolNames": "Incidental",
+              "http://rs.tdwg.org/eco/terms/samplingEffortUnit": "person",
+              "http://rs.tdwg.org/eco/terms/excludedDegreeOfEstablishmentScope": "captive (category B1) | cultivated (category B2)",
+              "http://rs.tdwg.org/eco/terms/hasNonTargetOrganisms": "false",
+              "http://rs.tdwg.org/eco/terms/verbatimSiteNames": "L41216605",
+              "http://rs.tdwg.org/eco/terms/isVegetationCoverReported": "false",
+              "http://rs.tdwg.org/eco/terms/totalAreaSampledValue": "NA",
+              "http://rs.tdwg.org/eco/terms/eventDurationValue": "NA",
+              "http://rs.tdwg.org/eco/terms/absentTaxa": "false",
+              "http://rs.tdwg.org/eco/terms/isTaxonomicScopeFullyReported": "false",
+              "http://rs.tdwg.org/eco/terms/isLeastSpecificTargetCategoryQuantityInclusive": "false",
+              "http://rs.tdwg.org/eco/terms/taxonCompletenessReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/samplingEffortValue": "1",
+              "http://rs.tdwg.org/eco/terms/hasVouchers": "false",
+              "http://rs.tdwg.org/eco/terms/siteCount": "1",
+              "http://rs.tdwg.org/eco/terms/areNonTargetTaxaFullyReported": "not reported",
+              "http://rs.tdwg.org/eco/terms/isAbsenceReported": "false",
+              "http://rs.tdwg.org/eco/terms/isAbundanceCapReported": "false",
+              "http://rs.tdwg.org/eco/terms/targetTaxonomicScope": "Aves",
+              "http://rs.tdwg.org/eco/terms/samplingPerformedBy": "obsr1643970",
+              "http://rs.tdwg.org/eco/terms/isAbundanceReported": "true",
+              "http://rs.tdwg.org/eco/terms/abundanceCap": "false",
+              "http://rs.tdwg.org/eco/terms/eventDurationUnit": "minutes"
+            }
+          ]
+        }
+      },
+      "internalId": "b65d90f564b25a4aaaf01110430b698f150e06b6",
+      "firstLoaded": "2026-03-10T15:21:48.901",
+      "id": "S218537896",
+      "locationInherited": {
+        "countryCode": "US",
+        "decimalLatitude": 33.14168,
+        "decimalLongitude": -87.625391,
+        "id": "S218537896",
+        "stateProvince": "US-AL"
+      },
+      "event": {
+        "continent": "NORTH_AMERICA",
+        "coordinates": {
+          "lat": 33.14168,
+          "lon": -87.625391
+        },
+        "country": "United States of America",
+        "countryCode": "US",
+        "datasetID": [],
+        "datasetName": [],
+        "day": 14,
+        "decimalLatitude": 33.14168,
+        "decimalLongitude": -87.625391,
+        "endDayOfYear": 73,
+        "eventDate": {
+          "gte": "2025-03-14T00:00:00.000",
+          "lte": "2025-03-14T23:59:59.999"
+        },
+        "eventDateInterval": "2025-03-14",
+        "eventDateSingle": "2025-03-14T00:00",
+        "eventHierarchy": [
+          "S218537896"
+        ],
+        "eventHierarchyJoined": "S218537896",
+        "eventHierarchyLevels": 1,
+        "eventID": "S218537896",
+        "eventType": {
+          "concept": "Event",
+          "lineage": [
+            "Event"
+          ]
+        },
+        "eventTypeHierarchy": [
+          "Event"
+        ],
+        "eventTypeHierarchyJoined": "Event",
+        "extensions": [
+          "http://rs.tdwg.org/eco/terms/Event",
+          "http://rs.tdwg.org/dwc/terms/Occurrence"
+        ],
+        "fundingAttribution": [],
+        "fundingAttributionID": [],
+        "gadm": {
+          "gids": [
+            "USA",
+            "USA.1_1",
+            "USA.1.63_1"
+          ],
+          "level0Gid": "USA",
+          "level0Name": "United States",
+          "level1Gid": "USA.1_1",
+          "level1Name": "Alabama",
+          "level2Gid": "USA.1.63_1",
+          "level2Name": "Tuscaloosa"
+        },
+        "gbifRegion": "NORTH_AMERICA",
+        "georeferencedBy": [],
+        "hasCoordinate": true,
+        "hasGeospatialIssue": false,
+        "higherGeography": [],
+        "humboldt": [
+          {
+            "absentTaxa": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "classification": {
+                    "KINGDOM": "incertae sedis"
+                  },
+                  "classificationKeys": {
+                    "KINGDOM": "0"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_NONE"
+                  ],
+                  "taxonKeys": [
+                    "0"
+                  ],
+                  "usage": {
+                    "key": "0",
+                    "name": "incertae sedis",
+                    "rank": "KINGDOM"
+                  }
+                }
+              ]
+            },
+            "compilationSourceTypes": [],
+            "compilationTypes": [],
+            "eventDurationUnit": "MINUTES",
+            "excludedDegreeOfEstablishmentScope": [],
+            "excludedGrowthFormScope": [],
+            "excludedHabitatScope": [],
+            "excludedLifeStageScope": [],
+            "excludedTaxonomicScope": {},
+            "hasMaterialSamples": false,
+            "hasNonTargetOrganisms": false,
+            "hasVouchers": false,
+            "inventoryTypes": [],
+            "isAbsenceReported": false,
+            "isAbundanceCapReported": false,
+            "isAbundanceReported": true,
+            "isLeastSpecificTargetCategoryQuantityInclusive": false,
+            "isTaxonomicScopeFullyReported": false,
+            "isVegetationCoverReported": false,
+            "materialSampleTypes": [],
+            "nonTargetTaxa": {},
+            "protocolDescriptions": [],
+            "protocolNames": [
+              "Incidental"
+            ],
+            "protocolReferences": [],
+            "samplingEffortUnit": "person",
+            "samplingEffortValue": 1.0,
+            "samplingPerformedBy": [
+              "obsr1643970"
+            ],
+            "siteCount": 1,
+            "targetDegreeOfEstablishmentScope": [],
+            "targetGrowthFormScope": [],
+            "targetHabitatScope": [],
+            "targetLifeStageScope": [],
+            "targetTaxonomicScope": {
+              "7ddf754f-d193-4cc9-b351-99906754a03b": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ],
+              "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": [
+                {
+                  "acceptedUsage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  },
+                  "classification": {
+                    "PHYLUM": "Chordata",
+                    "KINGDOM": "Animalia",
+                    "CLASS": "Aves"
+                  },
+                  "classificationKeys": {
+                    "PHYLUM": "44",
+                    "KINGDOM": "1",
+                    "CLASS": "212"
+                  },
+                  "issues": [
+                    "TAXON_MATCH_HIGHERRANK"
+                  ],
+                  "taxonKeys": [
+                    "1",
+                    "44",
+                    "212"
+                  ],
+                  "usage": {
+                    "key": "212",
+                    "name": "Aves",
+                    "rank": "CLASS"
+                  }
+                }
+              ]
+            },
+            "taxonCompletenessProtocols": [],
+            "totalAreaSampledUnit": "kilometers distance traveled",
+            "verbatimSiteDescriptions": [],
+            "verbatimSiteNames": [
+              "L41216605"
+            ],
+            "voucherInstitutions": []
+          }
+        ],
+        "id": "S218537896",
+        "institutionCode": "CLO",
+        "issues": [
+          "ARE_NON_TARGET_TAXA_FULLY_REPORTED_INVALID",
+          "GEODETIC_DATUM_ASSUMED_WGS84",
+          "CONTINENT_DERIVED_FROM_COORDINATES",
+          "ABUNDANCE_CAP_INVALID",
+          "TOTAL_AREA_SAMPLED_VALUE_INVALID",
+          "EVENT_DURATION_VALUE_INVALID"
+        ],
+        "license": "CC_BY_4_0",
+        "locality": "L41216605",
+        "measurementOrFactMethods": [],
+        "measurementOrFactTypes": [],
+        "measurementOrFacts": [],
+        "measurementTypeIDs": [],
+        "measurementTypes": [],
+        "mediaLicenses": [],
+        "mediaTypes": [],
+        "month": 3,
+        "multimediaItems": [],
+        "notIssues": [
+          "COORDINATE_PRECISION_UNCERTAINTY_MISMATCH",
+          "MODIFIED_DATE_INVALID",
+          "GEOREFERENCED_DATE_UNLIKELY",
+          "AGE_OR_STAGE_RANK_MISMATCH",
+          "COORDINATE_INVALID",
+          "COLLECTION_MATCH_NONE",
+          "COORDINATE_PRECISION_INVALID",
+          "ELEVATION_NON_NUMERIC",
+          "COUNTRY_INVALID",
+          "ELEVATION_NOT_METRIC",
+          "AGE_OR_STAGE_INFERRED_FROM_PARENT_RANK",
+          "PRESUMED_NEGATED_LONGITUDE",
+          "IDENTIFIED_DATE_INVALID",
+          "TAXON_CONCEPT_ID_NOT_FOUND",
+          "AMBIGUOUS_INSTITUTION",
+          "PERIOD_OR_SYSTEM_AND_EPOCH_OR_SERIES_MISMATCH",
+          "BASIS_OF_RECORD_INVALID",
+          "TYPE_STATUS_INVALID",
+          "EPOCH_OR_SERIES_RANK_MISMATCH",
+          "TAXON_ID_NOT_FOUND",
+          "TAXON_MATCH_FUZZY",
+          "CONTINENT_INVALID",
+          "FOOTPRINT_SRS_INVALID",
+          "ERA_OR_ERATHEM_INFERRED_FROM_PARENT_RANK",
+          "MODIFIED_DATE_UNLIKELY",
+          "PERIOD_OR_SYSTEM_RANK_MISMATCH",
+          "EPOCH_OR_SERIES_AND_AGE_OR_STAGE_MISMATCH",
+          "EON_OR_EONOTHEM_AND_ERA_OR_ERATHEM_MISMATCH",
+          "COORDINATE_ROUNDED",
+          "IDENTIFIED_DATE_UNLIKELY",
+          "COUNTRY_DERIVED_FROM_COORDINATES",
+          "COORDINATE_REPROJECTION_FAILED",
+          "MULTIMEDIA_URI_INVALID",
+          "ERA_OR_ERATHEM_RANK_MISMATCH",
+          "ELEVATION_UNLIKELY",
+          "SUSPECTED_TYPE",
+          "COLLECTION_MATCH_FUZZY",
+          "DIFFERENT_OWNER_INSTITUTION",
+          "EON_OR_EONOTHEM_RANK_MISMATCH",
+          "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+          "INDIVIDUAL_COUNT_INVALID",
+          "ERA_OR_ERATHEM_AND_PERIOD_OR_SYSTEM_MISMATCH",
+          "RECORDED_DATE_MISMATCH",
+          "PERIOD_OR_SYSTEM_INVALID_RANGE",
+          "ERA_OR_ERATHEM_INVALID_RANGE",
+          "ZERO_COORDINATE",
+          "SCIENTIFIC_NAME_ID_NOT_FOUND",
+          "COUNTRY_MISMATCH",
+          "FOOTPRINT_WKT_MISMATCH",
+          "CONTINENT_COUNTRY_MISMATCH",
+          "OCCURRENCE_STATUS_UNPARSABLE",
+          "INSTITUTION_COLLECTION_MISMATCH",
+          "EON_OR_EONOTHEM_INVALID_RANGE",
+          "COORDINATE_OUT_OF_RANGE",
+          "FOOTPRINT_WKT_INVALID",
+          "COORDINATE_REPROJECTION_SUSPICIOUS",
+          "DEPTH_UNLIKELY",
+          "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+          "ELEVATION_MIN_MAX_SWAPPED",
+          "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+          "TAXON_MATCH_NONE",
+          "GEODETIC_DATUM_INVALID",
+          "AGE_OR_STAGE_INVALID_RANGE",
+          "TAXON_MATCH_AGGREGATE",
+          "COORDINATE_REPROJECTED",
+          "PRESUMED_SWAPPED_COORDINATE",
+          "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+          "REFERENCES_URI_INVALID",
+          "COUNTRY_COORDINATE_MISMATCH",
+          "DEPTH_NON_NUMERIC",
+          "COORDINATE_UNCERTAINTY_METERS_INVALID",
+          "PRESUMED_NEGATED_LATITUDE",
+          "COORDINATE_ACCURACY_INVALID",
+          "GEOREFERENCED_DATE_INVALID",
+          "TAXON_MATCH_HIGHERRANK",
+          "CONTINENT_DERIVED_FROM_COUNTRY",
+          "AMBIGUOUS_COLLECTION",
+          "DEPTH_MIN_MAX_SWAPPED",
+          "EPOCH_OR_SERIES_INFERRED_FROM_PARENT_RANK",
+          "POSSIBLY_ON_LOAN",
+          "RECORDED_DATE_INVALID",
+          "PERIOD_OR_SYSTEM_INFERRED_FROM_PARENT_RANK",
+          "INSTITUTION_MATCH_FUZZY",
+          "TAXON_MATCH_TAXON_ID_IGNORED",
+          "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+          "EPOCH_OR_SERIES_INVALID_RANGE",
+          "DEPTH_NOT_METRIC",
+          "MULTIMEDIA_DATE_INVALID",
+          "INTERPRETATION_ERROR",
+          "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+          "RECORDED_DATE_UNLIKELY",
+          "CONTINENT_COORDINATE_MISMATCH",
+          "INSTITUTION_MATCH_NONE",
+          "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD"
+        ],
+        "parentsLineage": [],
+        "projectID": [],
+        "projectTitle": [],
+        "publishingCountry": "ZZ",
+        "repatriated": true,
+        "samplingProtocol": [],
+        "scoordinates": "POINT (-87.625391 33.14168)",
+        "startDayOfYear": 73,
+        "stateProvince": "US-AL",
+        "verbatimEventType": "Event",
+        "verbatimEventTypeHierarchy": [
+          "Event"
+        ],
+        "verbatimEventTypeHierarchyJoined": "Event",
+        "year": 2025,
+        "yearMonthEventIDSort": "0797403S218537896"
+      },
+      "crawlId": 81,
+      "lastCrawled": "2026-03-10T15:19:35.926",
+      "temporalInherited": {
+        "day": 14,
+        "id": "S218537896",
+        "month": 3,
+        "year": 2025
+      },
+      "derivedMetadata": {
+        "wktConvexHull": "POINT(33.14168 -87.625391)",
+        "temporalCoverage": {},
+        "id": "S218537896"
+      }
+    }
+  }
+]
