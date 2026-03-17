@@ -223,7 +223,7 @@
     <lucene.version>8.7.0</lucene.version>
 
     <!-- Spark -->
-    <spark.version>3.5.1</spark.version>
+    <spark.version>3.5.7</spark.version>
     <scala.tools.version>2.12</scala.tools.version>
     <iceberg.version>1.6.1</iceberg.version>
     <scala.library.version>2.12.18</scala.library.version>
