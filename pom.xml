@@ -199,7 +199,7 @@
     <gbif-predicates.version>2.1.5</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.2</gbif-occurrence-cube-functions.version>
     <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
-    <gbif-hdfs-tables.version>1.0-SNAPSHOT</gbif-hdfs-tables.version>
+    <gbif-hdfs-tables.version>1.3.0</gbif-hdfs-tables.version>
 
     <!-- Sonar -->
     <sonar.language>java</sonar.language>
