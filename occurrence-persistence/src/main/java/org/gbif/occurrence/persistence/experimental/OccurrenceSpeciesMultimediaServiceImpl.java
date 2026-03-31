@@ -110,6 +110,7 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
   /**
    * Queries multimedia information for a given species and media type with pagination support.
    *
+   * @param checklistKey taxonomy checklist dataset key
    * @param taxonKey   the species identifier
    * @param mediaType    the type of media (e.g., image, video)
    * @param limitRequest maximum number of records to return
@@ -118,7 +119,7 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
    */
   @SneakyThrows
   @Override
-  public TaxonMultimediaSearchResponse queryMediaInfo(String taxonKey, String mediaType, int limitRequest, int offset) {
+  public TaxonMultimediaSearchResponse queryMediaInfo(String checklistKey, String taxonKey, String mediaType, int limitRequest, int offset) {
     TableMeta meta = tableMetaRef.get();
     if (meta == null) {
       throw new IllegalStateException("Table metadata not initialized");
@@ -130,7 +131,7 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
     int startChunk = offset / chunkSize;
     int endChunk = (offset + limit - 1) / chunkSize;
     String mediaTypeValue = mediaType !=null? mediaType.toLowerCase(Locale.ROOT) : "";
-    var gets = getGets(taxonKey, mediaTypeValue, startChunk, endChunk);
+    var gets = getGets(checklistKey, taxonKey, mediaTypeValue, startChunk, endChunk);
     try (Table table = connection.getTable(meta.tableName)) {
       Long totalCount = null;
       List<Map<String,Object>> results = new ArrayList<>();
@@ -161,16 +162,17 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
   /**
    * Generates a list of HBase Get operations for the specified species key, media type, and chunk range.
    *
+   * @param checklistKey taxonomy checklist dataset key
    * @param taxonKey the taxon identifier
    * @param mediaType  the type of media (e.g., image, video)
    * @param startChunk the starting chunk index
    * @param endChunk   the ending chunk index
    * @return a list of Get operations for HBase
    */
-  private List<Get> getGets(String taxonKey, String mediaType, int startChunk, int endChunk) {
+  private List<Get> getGets(String checklistKey, String taxonKey, String mediaType, int startChunk, int endChunk) {
     List<Get> gets = new ArrayList<>();
     for (int chunkIndex = startChunk; chunkIndex <= endChunk; chunkIndex++) {
-      String logicalKey = taxonKey + mediaType +  chunkIndex;
+      String logicalKey = checklistKey + taxonKey + mediaType +  chunkIndex;
       byte[] rowKey = computeKey(logicalKey);
       gets.add(new Get(rowKey));
     }

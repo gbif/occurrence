@@ -30,5 +30,5 @@ public interface OccurrenceSpeciesMultimediaService {
     }
   }
 
-  TaxonMultimediaSearchResponse queryMediaInfo(String taxonKey, String mediaType, int limitRequest, int offset);
+  TaxonMultimediaSearchResponse queryMediaInfo(String checklistKey, String taxonKey, String mediaType, int limitRequest, int offset);
 }

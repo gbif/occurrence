@@ -4,7 +4,7 @@ import org.gbif.occurrence.persistence.OccurrenceSpeciesMultimediaService;
 
 public class OccurrenceSpeciesMultimediaServiceMock implements OccurrenceSpeciesMultimediaService {
   @Override
-  public TaxonMultimediaSearchResponse queryMediaInfo(String taxonKey, String mediaType, int limitRequest, int offset) {
+  public TaxonMultimediaSearchResponse queryMediaInfo(String checklistKey, String taxonKey, String mediaType, int limitRequest, int offset) {
     return null;
   }
 }
