@@ -148,7 +148,7 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
           }
         }
         if (value != null) {
-          List<Map<String, Object>> mediaInfos = MAPPER.readValue(Bytes.toString(value), List.class);
+          List<Map<String, Object>> mediaInfos = MediaInfosAvroSerializer.deserializeMediaInfosAvro(value);
           for (int i = currentOffset; i < mediaInfos.size() && remaining > 0; i++, remaining--) {
             results.add(mediaInfos.get(i));
           }
