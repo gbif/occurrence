@@ -86,6 +86,14 @@ public class SqlValidation {
   protected static List<SqlOperator> additionalSqlOperators() {
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
+    // Built-in Hive function
+    additionalOperators.add(new SqlFunction("arrays_overlap",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.BOOLEAN,
+      null,
+      OperandTypes.ARRAY_ARRAY,
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.ContainsUDF
     additionalOperators.add(new SqlFunction(SqlDownloadFunction.CONTAINS.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,

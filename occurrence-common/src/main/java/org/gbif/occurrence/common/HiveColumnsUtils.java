@@ -83,15 +83,17 @@ public class HiveColumnsUtils {
         || GbifInternalTerm.dwcaExtension == term
         || DwcTerm.datasetID == term
         || DwcTerm.datasetName == term
+        || DwcTerm.typeStatus == term
         || DwcTerm.otherCatalogNumbers == term
         || DwcTerm.recordedBy == term
         || DwcTerm.identifiedBy == term
         || DwcTerm.preparations == term
         || DwcTerm.samplingProtocol == term
-        || DwcTerm.associatedSequences == term
         || DwcTerm.higherGeography == term
         || DwcTerm.georeferencedBy == term
         || GbifTerm.projectId == term
+        || GbifTerm.lithostratigraphy == term
+        || GbifTerm.biostratigraphy == term
         || GbifTerm.nonTaxonomicIssue == term
         || EcoTerm.voucherInstitutions == term
         || EcoTerm.verbatimSiteNames == term

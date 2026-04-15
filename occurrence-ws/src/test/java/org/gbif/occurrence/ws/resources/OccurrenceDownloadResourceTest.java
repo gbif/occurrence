@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws.resources;
 
+import org.gbif.api.model.Constants;
 import org.gbif.api.model.common.GbifUser;
 import org.gbif.api.model.common.GbifUserPrincipal;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -22,7 +23,9 @@ import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.DisjunctionPredicate;
 import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.InPredicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
@@ -31,6 +34,7 @@ import org.gbif.occurrence.download.service.CallbackService;
 
 import java.security.Principal;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -100,6 +104,77 @@ public class OccurrenceDownloadResourceTest {
     prepareMocks(USER, false);
     ResponseEntity<String> response = resource.startDownload(badSqlDl, null, principal, null);
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+  }
+
+  @Test
+  public void testSearchToSql() {
+    prepareMocks(USER, false);
+
+    PredicateDownloadRequest complex =
+      new PredicateDownloadRequest(
+        new DisjunctionPredicate(
+          List.of(
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false, Constants.NUB_DATASET_KEY.toString()),
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "A", false, Constants.COL_DATASET_KEY.toString()),
+            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("2", "3"), false, Constants.NUB_DATASET_KEY.toString()),
+            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("F", "N"), false, Constants.COL_DATASET_KEY.toString()),
+            new InPredicate(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, List.of("AGAC", "CAGA"), false),
+            new InPredicate(OccurrenceSearchParameter.BIOSTRATIGRAPHY, List.of("AGAC", "CAGA"), false),
+            new InPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, List.of("AGAC", "CAGA"), false)
+          )
+        ),
+        USER,
+        null,
+        true,
+        DownloadFormat.DWCA,
+        DownloadType.OCCURRENCE,
+        "testDescription",
+        null,
+        Collections.singleton(Extension.AUDUBON),
+        null,
+        null);
+
+    ResponseEntity<Object> response = resource.downloadSqlPost(complex);
+    System.out.println(response);
+    assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+  }
+
+  // Needs to be resolved as part of https://github.com/gbif/gbif-api/issues/199
+  @Disabled
+  @Test
+  public void failingTestSearchToSql() {
+    prepareMocks(USER, false);
+
+    PredicateDownloadRequest complex =
+      new PredicateDownloadRequest(
+        new DisjunctionPredicate(
+          List.of(
+            new EqualsPredicate(OccurrenceSearchParameter.GEOREFERENCED_BY, "Matt", false),
+            new InPredicate(OccurrenceSearchParameter.GEOREFERENCED_BY, List.of("Matt", "Blissett"), false),
+            new EqualsPredicate(OccurrenceSearchParameter.HIGHER_GEOGRAPHY, "Land", false),
+            new InPredicate(OccurrenceSearchParameter.HIGHER_GEOGRAPHY, List.of("Land", "Sea"), false),
+            new EqualsPredicate(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, "AGAC", false),
+            new InPredicate(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, List.of("AGAC", "CAGA"), false),
+            new EqualsPredicate(OccurrenceSearchParameter.GEOLOGICAL_TIME, "Ages ago", false),
+            new InPredicate(OccurrenceSearchParameter.GEOLOGICAL_TIME, List.of("Ages ago", "Really ages ago"), false),
+            new EqualsPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, "Incorrect", false),
+            new InPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, List.of("Incorrect", "Incorrect-ish"), false)
+          )
+        ),
+        USER,
+        null,
+        true,
+        DownloadFormat.DWCA,
+        DownloadType.OCCURRENCE,
+        "testDescription",
+        null,
+        Collections.singleton(Extension.AUDUBON),
+        null,
+        null);
+
+    ResponseEntity<Object> response = resource.downloadSqlPost(complex);
+    System.out.println(response);
+    assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
   }
 
   private void prepareMocks(String user, boolean failedCreation) {
