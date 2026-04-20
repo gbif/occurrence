@@ -40,7 +40,7 @@ CREATE TABLE ${r"${interpretedTable}"} (
 
 <#if includeOccurrenceExtInterpreted>
   -- aux table to avoid clashes between column names in the joins since changing that in the code is pretty invasive
-  CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING);
+  CREATE TABLE ${r"${eventIdsTable}"} (event_id STRING, dataset_key STRING);
 </#if>
 
 --
@@ -65,7 +65,7 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
   WHERE ${r"${whereClause}"}<#if !includeOccurrenceExtInterpreted>;</#if>
 <#if includeOccurrenceExtInterpreted>
   INSERT INTO TABLE ${r"${eventIdsTable}"}
-  SELECT DISTINCT eventid
+  SELECT DISTINCT eventid, datasetkey
   WHERE ${r"${whereClause}"};
 </#if>
 
@@ -114,7 +114,7 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
      ${field.hiveField}<#if field_has_next>,</#if>
    </#list>
    FROM iceberg.${r"${hiveDB}"}.occurrence
-   JOIN ${r"${eventIdsTable}"} ON eventid = event_id;
+   JOIN ${r"${eventIdsTable}"} ON eventid = event_id AND datasetkey = dataset_key;
 </#if>
 
 SET hive.auto.convert.join=true;
