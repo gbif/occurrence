@@ -24,6 +24,7 @@ import org.gbif.occurrence.download.hive.AvroQueries;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.HiveQueries;
 import org.gbif.occurrence.download.hive.InitializableField;
+import org.gbif.predicate.query.SQLColumnsUtils;
 
 import java.util.List;
 import java.util.Locale;
@@ -101,7 +102,7 @@ public class OccurrenceDownloadDescribeResource {
    * Delimiter for array values.
    */
   private static String fieldDelimiter(Term term) {
-    if (HiveColumnsUtils.isHiveArray(term)) {
+    if (SQLColumnsUtils.isSQLArray(term)) {
       return ";";
     }
     return null;

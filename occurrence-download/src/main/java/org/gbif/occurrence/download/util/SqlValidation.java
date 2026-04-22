@@ -257,6 +257,12 @@ public class SqlValidation {
         new AbstractMap.SimpleEntry<>("eventType", varChar)));
       RelDataType parentEventGbifId = tdf.createArrayType(keyValuePair, -1);
 
+      //   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
+      RelDataType doubleRange = tdf.createStructType(Arrays.asList(
+        new AbstractMap.SimpleEntry<>("gt", doubleType),
+        new AbstractMap.SimpleEntry<>("lte", doubleType)));
+      RelDataType geologicalRange = tdf.createArrayType(keyValuePair, -1);
+
       //  Map definition - needed for multiple classifications
       RelDataType structMap = tdf.createMapType(varChar, varChar);
       RelDataType structMapOfArrays = tdf.createMapType(varChar, varCharArray);
@@ -298,7 +304,7 @@ public class SqlValidation {
 
             case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
               // geologicalTime
-              builder.add(field.getColumnName(), parentEventGbifId);
+              builder.add(field.getColumnName(), geologicalRange);
               break;
 
             default:

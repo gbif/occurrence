@@ -118,9 +118,18 @@ public class OccurrenceDownloadResourceTest {
             new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "A", false, Constants.COL_DATASET_KEY.toString()),
             new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("2", "3"), false, Constants.NUB_DATASET_KEY.toString()),
             new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("F", "N"), false, Constants.COL_DATASET_KEY.toString()),
+
+            new EqualsPredicate(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, "AGAC", false),
             new InPredicate(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, List.of("AGAC", "CAGA"), false),
+
+            new EqualsPredicate(OccurrenceSearchParameter.BIOSTRATIGRAPHY, "AGAC", false),
             new InPredicate(OccurrenceSearchParameter.BIOSTRATIGRAPHY, List.of("AGAC", "CAGA"), false),
-            new InPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, List.of("AGAC", "CAGA"), false)
+
+            new EqualsPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, "AGAC", false),
+            new InPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, List.of("AGAC", "CAGA"), false),
+
+            new EqualsPredicate(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, "AGAC", false),
+            new InPredicate(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, List.of("AGAC", "CAGA"), false)
           )
         ),
         USER,
@@ -153,10 +162,8 @@ public class OccurrenceDownloadResourceTest {
             new InPredicate(OccurrenceSearchParameter.GEOREFERENCED_BY, List.of("Matt", "Blissett"), false),
             new EqualsPredicate(OccurrenceSearchParameter.HIGHER_GEOGRAPHY, "Land", false),
             new InPredicate(OccurrenceSearchParameter.HIGHER_GEOGRAPHY, List.of("Land", "Sea"), false),
-            new EqualsPredicate(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, "AGAC", false),
-            new InPredicate(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, List.of("AGAC", "CAGA"), false),
-            new EqualsPredicate(OccurrenceSearchParameter.GEOLOGICAL_TIME, "Ages ago", false),
-            new InPredicate(OccurrenceSearchParameter.GEOLOGICAL_TIME, List.of("Ages ago", "Really ages ago"), false),
+            new EqualsPredicate(OccurrenceSearchParameter.GEOLOGICAL_TIME, "123.45", false),
+            new InPredicate(OccurrenceSearchParameter.GEOLOGICAL_TIME, List.of("123.45", "678.90"), false),
             new EqualsPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, "Incorrect", false),
             new InPredicate(OccurrenceSearchParameter.TAXONOMIC_ISSUE, List.of("Incorrect", "Incorrect-ish"), false)
           )

@@ -16,8 +16,8 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.HiveColumnsUtils;
 import org.gbif.occurrence.common.TermUtils;
+import org.gbif.predicate.query.SQLColumnsUtils;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating TSV
@@ -51,7 +51,7 @@ public class HiveQueries extends TsvQueries {
       return secondsToISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateMilliseconds(term)) {
       return millisecondsToISO8601Initializer(term);
-    } else if (HiveColumnsUtils.isHiveArray(term)) {
+    } else if (SQLColumnsUtils.isSQLArray(term)) {
       return String.format(toArrayInitializer(term), HiveColumns.columnFor(term));
     } else {
       return HiveColumns.columnFor(term);
