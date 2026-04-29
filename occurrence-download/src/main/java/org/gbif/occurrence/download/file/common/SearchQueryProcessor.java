@@ -55,6 +55,12 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
    *
    * @param downloadFileWork it's used to determine how to page through the results and the search query to be used
    * @param resultHandler    predicate that process each result, receives as parameter the occurrence key
+   * 
+   * POTENTIAL HANG POINT: This method makes multiple ES search requests in a loop without explicit
+   * query-level timeouts. Each search relies on the HTTP client's socketTimeout (default 100 seconds).
+   * If Elasticsearch becomes slow or overloaded during download processing, each iteration could hang
+   * for up to socketTimeout duration. For large downloads with many iterations, this compounds the issue.
+   * Consider adding: searchSourceBuilder.timeout(TimeValue) to set an explicit query timeout.
    */
   public void processQuery(DownloadFileWork downloadFileWork, Consumer<T> resultHandler) {
 
