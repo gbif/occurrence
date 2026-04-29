@@ -172,7 +172,7 @@
     <occurrence.environment>dev</occurrence.environment>
     <occurrence.env_prefix>dev</occurrence.env_prefix>
 
-    <avro.version>1.11.3</avro.version>
+    <avro.version>1.11.5</avro.version>
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
