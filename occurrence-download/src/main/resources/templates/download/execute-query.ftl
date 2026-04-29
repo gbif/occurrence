@@ -54,13 +54,13 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
   INSERT INTO TABLE ${r"${verbatimTable}"}
   SELECT
 <#list verbatimFields as field>
-    <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
+    <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
   WHERE ${r"${whereClause}"}
   INSERT INTO TABLE ${r"${interpretedTable}"}
   SELECT
 <#list initializedInterpretedFields as field>
-    <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
+    <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
   WHERE ${r"${whereClause}"}<#if !includeOccurrenceExtInterpreted>;</#if>
 <#if includeOccurrenceExtInterpreted>
