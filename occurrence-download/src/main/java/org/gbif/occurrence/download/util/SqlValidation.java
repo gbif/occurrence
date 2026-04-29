@@ -86,6 +86,14 @@ public class SqlValidation {
   protected static List<SqlOperator> additionalSqlOperators() {
     List<SqlOperator> additionalOperators = new ArrayList<>();
 
+    // Built-in Hive function
+    additionalOperators.add(new SqlFunction("arrays_overlap",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.BOOLEAN,
+      null,
+      OperandTypes.ARRAY_ARRAY,
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.ContainsUDF
     additionalOperators.add(new SqlFunction(SqlDownloadFunction.CONTAINS.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
@@ -249,6 +257,12 @@ public class SqlValidation {
         new AbstractMap.SimpleEntry<>("eventType", varChar)));
       RelDataType parentEventGbifId = tdf.createArrayType(keyValuePair, -1);
 
+      //   public static final String GEOLOGICAL_RANGE_STRUCT = "STRUCT<gt: DOUBLE,lte: DOUBLE>";
+      RelDataType doubleRange = tdf.createStructType(Arrays.asList(
+        new AbstractMap.SimpleEntry<>("gt", doubleType),
+        new AbstractMap.SimpleEntry<>("lte", doubleType)));
+      RelDataType geologicalRange = tdf.createArrayType(keyValuePair, -1);
+
       //  Map definition - needed for multiple classifications
       RelDataType structMap = tdf.createMapType(varChar, varChar);
       RelDataType structMapOfArrays = tdf.createMapType(varChar, varCharArray);
@@ -290,7 +304,7 @@ public class SqlValidation {
 
             case HiveDataTypes.GEOLOGICAL_RANGE_STRUCT:
               // geologicalTime
-              builder.add(field.getColumnName(), parentEventGbifId);
+              builder.add(field.getColumnName(), geologicalRange);
               break;
 
             default:

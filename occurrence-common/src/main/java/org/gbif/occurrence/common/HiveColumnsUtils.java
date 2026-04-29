@@ -14,12 +14,8 @@
 package org.gbif.occurrence.common;
 
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.EcoTerm;
-import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.ObisTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.predicate.query.SQLColumnsUtils;
 
 /**
  * Utility class to handle column names in Hive for Terms, OccurrenceIssues and Extensions.
@@ -56,9 +52,9 @@ public class HiveColumnsUtils {
       return "DOUBLE";
     } else if (TermUtils.isInterpretedBoolean(term)) {
       return "BOOLEAN";
-    } else if (isHiveArray(term)) {
+    } else if (SQLColumnsUtils.isSQLArray(term)) {
       return "ARRAY<STRING>";
-    } else if(TermUtils.isVocabulary(term)) {
+    } else if (TermUtils.isVocabulary(term)) {
       if (TermUtils.isArray(term)) {
         return "STRUCT<concepts: ARRAY<STRING>,lineage: ARRAY<STRING>>";
       } else {
@@ -71,52 +67,5 @@ public class HiveColumnsUtils {
 
   public static boolean isDate(Term term) {
     return TermUtils.isInterpretedLocalDateSeconds(term) || TermUtils.isInterpretedUtcDateSeconds(term) || TermUtils.isInterpretedUtcDateMilliseconds(term);
-  }
-
-  /** Checks if the term is stored as a Hive array. */
-  public static boolean isHiveArray(Term term) {
-    return GbifTerm.mediaType == term
-        || GbifTerm.issue == term
-        || GbifInternalTerm.networkKey == term
-        || DwcTerm.identifiedByID == term
-        || DwcTerm.recordedByID == term
-        || GbifInternalTerm.dwcaExtension == term
-        || DwcTerm.datasetID == term
-        || DwcTerm.datasetName == term
-        || DwcTerm.otherCatalogNumbers == term
-        || DwcTerm.recordedBy == term
-        || DwcTerm.identifiedBy == term
-        || DwcTerm.preparations == term
-        || DwcTerm.samplingProtocol == term
-        || DwcTerm.associatedSequences == term
-        || DwcTerm.higherGeography == term
-        || DwcTerm.georeferencedBy == term
-        || GbifTerm.projectId == term
-        || GbifTerm.nonTaxonomicIssue == term
-        || EcoTerm.voucherInstitutions == term
-        || EcoTerm.verbatimSiteNames == term
-        || EcoTerm.verbatimSiteDescriptions == term
-        || EcoTerm.compilationSourceTypes == term
-        || EcoTerm.targetHabitatScope == term
-        || EcoTerm.excludedHabitatScope == term
-        || EcoTerm.targetGrowthFormScope == term
-        || EcoTerm.excludedGrowthFormScope == term
-        || EcoTerm.taxonCompletenessProtocols == term
-        || EcoTerm.samplingPerformedBy == term
-        || EcoTerm.compilationTypes == term
-        || EcoTerm.materialSampleTypes == term
-        || EcoTerm.inventoryTypes == term
-        || EcoTerm.protocolNames == term
-        || EcoTerm.protocolDescriptions == term
-        || EcoTerm.protocolReferences == term
-        || EcoTerm.targetLifeStageScope == term
-        || EcoTerm.targetDegreeOfEstablishmentScope == term
-        || EcoTerm.excludedLifeStageScope == term
-        || EcoTerm.excludedDegreeOfEstablishmentScope == term
-        || DwcTerm.projectTitle == term
-        || DwcTerm.fundingAttribution == term
-        || DwcTerm.fundingAttributionID == term
-        || DwcTerm.measurementType == term
-        || ObisTerm.measurementTypeID == term;
   }
 }
