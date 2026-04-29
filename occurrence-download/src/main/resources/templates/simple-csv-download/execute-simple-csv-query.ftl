@@ -23,7 +23,7 @@ CREATE TABLE ${r"${downloadTableName}"} ROW FORMAT DELIMITED FIELDS TERMINATED B
 TBLPROPERTIES ("serialization.null.format"="")
 AS SELECT
 <#list fields as field>
-  <#if field.hiveField == "gbifid">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
+  <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">iceberg.${r"${hiveDB}"}.${r"${tableName}"}.</#if>${field.hiveField}<#if field_has_next>,</#if>
 </#list>
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#if isHumboldtSearch>
