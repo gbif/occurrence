@@ -65,7 +65,7 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
   WHERE ${r"${whereClause}"}<#if !includeOccurrenceExtInterpreted>;</#if>
 <#if includeOccurrenceExtInterpreted>
   INSERT INTO TABLE ${r"${eventIdsTable}"}
-  SELECT DISTINCT eventid, datasetkey
+  SELECT DISTINCT eventid, iceberg.${r"${hiveDB}"}.${r"${tableName}"}.datasetkey
   WHERE ${r"${whereClause}"};
 </#if>
 
