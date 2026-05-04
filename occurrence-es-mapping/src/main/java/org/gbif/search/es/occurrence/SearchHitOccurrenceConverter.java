@@ -542,6 +542,9 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getListValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.dnaSequenceID))
         .ifPresent(occ::setDnaSequenceID);
 
+    // get the nucleotide field name
+    Function<EsField, String> fn = e -> e.getValueFieldName().replace("nucleotideSequence.", "");
+
     getObjectsListValue(
             hit, occurrenceEsFieldMapper.getEsField(EsField.NUCLEOTIDE).getValueFieldName())
         .map(
@@ -551,68 +554,43 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
                         ns -> {
                           NucleotideSequence nucleotideSequence = new NucleotideSequence();
 
-                          extractStringValue(
-                                  ns, OccurrenceEsField.NUCLEOTIDE_SEQUENCE_ID.getValueFieldName())
+                          getStringValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_SEQUENCE_ID))
                               .ifPresent(nucleotideSequence::setNucleotideSequenceID);
-                          extractStringValue(
-                                  ns, OccurrenceEsField.NUCLEOTIDE_TARGET_GENE.getValueFieldName())
+                          getStringValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_TARGET_GENE))
                               .ifPresent(nucleotideSequence::setTargetGene);
-                          getStringValue(
-                                  ns, OccurrenceEsField.NUCLEOTIDE_SEQUENCE.getValueFieldName())
+                          getStringValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_SEQUENCE))
                               .ifPresent(nucleotideSequence::setSequence);
-                          extractStringValue(
+                          getValue(
                                   ns,
-                                  OccurrenceEsField.NUCLEOTIDE_SEQUENCE_LENGTH.getValueFieldName(),
+                                  fn.apply(OccurrenceEsField.NUCLEOTIDE_SEQUENCE_LENGTH),
                                   Integer::parseInt)
                               .ifPresent(nucleotideSequence::setSequenceLength);
-                          extractStringValue(
-                                  ns,
-                                  OccurrenceEsField.NUCLEOTIDE_GC_CONTENT.getValueFieldName(),
-                                  Double::parseDouble)
+                          getDoubleValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_GC_CONTENT))
                               .ifPresent(nucleotideSequence::setGcContent);
-                          extractStringValue(
-                                  ns,
-                                  OccurrenceEsField.NUCLEOTIDE_NON_IUPAC_FRACTION
-                                      .getValueFieldName(),
-                                  Double::parseDouble)
+                          getDoubleValue(
+                                  ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_NON_IUPAC_FRACTION))
                               .ifPresent(nucleotideSequence::setNonIupacFraction);
-                          extractStringValue(
-                                  ns,
-                                  OccurrenceEsField.NUCLEOTIDE_NON_ACGTN_FRACTION
-                                      .getValueFieldName(),
-                                  Double::parseDouble)
+                          getDoubleValue(
+                                  ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_NON_ACGTN_FRACTION))
                               .ifPresent(nucleotideSequence::setNonACGTNFraction);
-                          extractStringValue(
-                                  ns,
-                                  OccurrenceEsField.NUCLEOTIDE_N_FRACTION.getValueFieldName(),
-                                  Double::parseDouble)
+                          getDoubleValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_N_FRACTION))
                               .ifPresent(nucleotideSequence::setNFraction);
-                          extractStringValue(
+                          getValue(
                                   ns,
-                                  OccurrenceEsField.NUCLEOTIDE_N_RUNS_CAPPED.getValueFieldName(),
+                                  fn.apply(OccurrenceEsField.NUCLEOTIDE_N_RUNS_CAPPED),
                                   Integer::parseInt)
                               .ifPresent(nucleotideSequence::setNRunsCapped);
-                          extractStringValue(
+                          getBooleanValue(
                                   ns,
-                                  OccurrenceEsField.NUCLEOTIDE_NATURAL_LANGUAGE_DETECTED
-                                      .getValueFieldName(),
-                                  Boolean::parseBoolean)
+                                  fn.apply(OccurrenceEsField.NUCLEOTIDE_NATURAL_LANGUAGE_DETECTED))
                               .ifPresent(nucleotideSequence::setNaturalLanguageDetected);
-                          extractStringValue(
-                                  ns,
-                                  OccurrenceEsField.NUCLEOTIDE_ENDS_TRIMMED.getValueFieldName(),
-                                  Boolean::parseBoolean)
+                          getBooleanValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_ENDS_TRIMMED))
                               .ifPresent(nucleotideSequence::setEndsTrimmed);
-                          extractStringValue(
+                          getBooleanValue(
                                   ns,
-                                  OccurrenceEsField.NUCLEOTIDE_GAPS_OR_WHITESPACE_REMOVED
-                                      .getValueFieldName(),
-                                  Boolean::parseBoolean)
+                                  fn.apply(OccurrenceEsField.NUCLEOTIDE_GAPS_OR_WHITESPACE_REMOVED))
                               .ifPresent(nucleotideSequence::setGapsOrWhitespaceRemoved);
-                          extractStringValue(
-                                  ns,
-                                  OccurrenceEsField.NUCLEOTIDE_INVALID.getValueFieldName(),
-                                  Boolean::parseBoolean)
+                          getBooleanValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_INVALID))
                               .ifPresent(nucleotideSequence::setInvalid);
 
                           return nucleotideSequence;

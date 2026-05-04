@@ -496,7 +496,9 @@ public enum OccurrenceEsField implements EsField {
 
   @Override
   public String getNestedPath() {
-    return esField.getNestedPath();
+    return esField.getSearchFieldName().startsWith("nucleotideSequence.")
+        ? "nucleotideSequence"
+        : esField.getNestedPath();
   }
 
   @Override
@@ -516,7 +518,8 @@ public enum OccurrenceEsField implements EsField {
 
   @Override
   public boolean isNestedField() {
-    return esField.isNestedField();
+    return esField.getSearchFieldName().startsWith("nucleotideSequence.")
+        || esField.isNestedField();
   }
 
   @Override
