@@ -543,10 +543,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
         .ifPresent(occ::setDnaSequenceID);
 
     getObjectsListValue(
-            hit,
-            occurrenceEsFieldMapper
-                .getEsField(UnknownTerm.build("nucleotideSequence"))
-                .getValueFieldName())
+            hit, occurrenceEsFieldMapper.getEsField(EsField.NUCLEOTIDE).getValueFieldName())
         .map(
             list ->
                 list.stream()

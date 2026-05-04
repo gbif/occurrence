@@ -265,6 +265,7 @@ public enum OccurrenceEsField implements EsField {
 
   // DNA
   DNA_SEQUENCE_ID(new BaseEsField("dnaSequenceID", GbifTerm.dnaSequenceID)),
+  NUCLEOTIDE(new BaseEsField("nucleotideSequence", EsField.NUCLEOTIDE)),
   NUCLEOTIDE_SEQUENCE_ID(new BaseEsField("nucleotideSequence.nucleotideSequenceID", null)),
   NUCLEOTIDE_TARGET_GENE(
       new BaseEsField(
