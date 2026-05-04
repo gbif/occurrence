@@ -30,8 +30,6 @@ import org.junit.jupiter.api.Test;
 public class OccurrenceSearchResourceTest {
 
   @Test
-  // TODO: disabled temporarily until adding docs
-  @Disabled
   public void searchParametersDocumented() throws Exception {
 
     Set<String> documentedParameters =
@@ -45,7 +43,16 @@ public class OccurrenceSearchResourceTest {
 
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
       String name = null;
-      if (param == OccurrenceSearchParameter.IDENTIFIED_BY_ID
+
+      if (param.name().startsWith("NUCLEOTIDE")) {
+        name =
+            CaseFormat.LOWER_UNDERSCORE
+                .to(
+                    CaseFormat.LOWER_CAMEL,
+                    param.name().replaceFirst("NUCLEOTIDE_", "nucleotide_sequence."))
+                .replace("Id", "ID")
+                .replace("Acgtn", "ACGTN");
+      } else if (param == OccurrenceSearchParameter.IDENTIFIED_BY_ID
           || param == OccurrenceSearchParameter.RECORDED_BY_ID
           || param == OccurrenceSearchParameter.MEASUREMENT_TYPE_ID) {
         name =
