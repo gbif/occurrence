@@ -37,6 +37,7 @@ import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.AgentIdentifier;
 import org.gbif.api.model.occurrence.Gadm;
 import org.gbif.api.model.occurrence.GadmFeature;
+import org.gbif.api.model.occurrence.NucleotideSequence;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.OccurrenceRelation;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -540,6 +541,87 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   private void setDnaFields(SearchHit hit, Occurrence occ) {
     getListValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.dnaSequenceID))
         .ifPresent(occ::setDnaSequenceID);
+
+    getObjectsListValue(
+            hit,
+            occurrenceEsFieldMapper
+                .getEsField(UnknownTerm.build("nucleotideSequence"))
+                .getValueFieldName())
+        .map(
+            list ->
+                list.stream()
+                    .map(
+                        ns -> {
+                          NucleotideSequence nucleotideSequence = new NucleotideSequence();
+
+                          extractStringValue(
+                                  ns, OccurrenceEsField.NUCLEOTIDE_SEQUENCE_ID.getValueFieldName())
+                              .ifPresent(nucleotideSequence::setNucleotideSequenceID);
+                          extractStringValue(
+                                  ns, OccurrenceEsField.NUCLEOTIDE_TARGET_GENE.getValueFieldName())
+                              .ifPresent(nucleotideSequence::setTargetGene);
+                          getStringValue(
+                                  ns, OccurrenceEsField.NUCLEOTIDE_SEQUENCE.getValueFieldName())
+                              .ifPresent(nucleotideSequence::setSequence);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_SEQUENCE_LENGTH.getValueFieldName(),
+                                  Integer::parseInt)
+                              .ifPresent(nucleotideSequence::setSequenceLength);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_GC_CONTENT.getValueFieldName(),
+                                  Double::parseDouble)
+                              .ifPresent(nucleotideSequence::setGcContent);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_NON_IUPAC_FRACTION
+                                      .getValueFieldName(),
+                                  Double::parseDouble)
+                              .ifPresent(nucleotideSequence::setNonIupacFraction);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_NON_ACGTN_FRACTION
+                                      .getValueFieldName(),
+                                  Double::parseDouble)
+                              .ifPresent(nucleotideSequence::setNonACGTNFraction);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_N_FRACTION.getValueFieldName(),
+                                  Double::parseDouble)
+                              .ifPresent(nucleotideSequence::setNFraction);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_N_RUNS_CAPPED.getValueFieldName(),
+                                  Integer::parseInt)
+                              .ifPresent(nucleotideSequence::setNRunsCapped);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_NATURAL_LANGUAGE_DETECTED
+                                      .getValueFieldName(),
+                                  Boolean::parseBoolean)
+                              .ifPresent(nucleotideSequence::setNaturalLanguageDetected);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_ENDS_TRIMMED.getValueFieldName(),
+                                  Boolean::parseBoolean)
+                              .ifPresent(nucleotideSequence::setEndsTrimmed);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_GAPS_OR_WHITESPACE_REMOVED
+                                      .getValueFieldName(),
+                                  Boolean::parseBoolean)
+                              .ifPresent(nucleotideSequence::setGapsOrWhitespaceRemoved);
+                          extractStringValue(
+                                  ns,
+                                  OccurrenceEsField.NUCLEOTIDE_INVALID.getValueFieldName(),
+                                  Boolean::parseBoolean)
+                              .ifPresent(nucleotideSequence::setInvalid);
+
+                          return nucleotideSequence;
+                        })
+                    .collect(Collectors.toList()))
+        .ifPresent(occ::setNucleotideSequence);
   }
 
   private void parseMultimediaItems(SearchHit hit, Occurrence occ) {

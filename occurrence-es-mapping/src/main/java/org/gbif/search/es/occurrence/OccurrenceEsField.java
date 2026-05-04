@@ -265,6 +265,23 @@ public enum OccurrenceEsField implements EsField {
 
   // DNA
   DNA_SEQUENCE_ID(new BaseEsField("dnaSequenceID", GbifTerm.dnaSequenceID)),
+  NUCLEOTIDE_SEQUENCE_ID(new BaseEsField("nucleotideSequence.nucleotideSequenceID", null)),
+  NUCLEOTIDE_TARGET_GENE(
+      new BaseEsField(
+          "nucleotideSequence.targetGene.lineage", "nucleotideSequence.targetGene.concept", null)),
+  NUCLEOTIDE_SEQUENCE(new BaseEsField("nucleotideSequence.sequence", null)),
+  NUCLEOTIDE_SEQUENCE_LENGTH(new BaseEsField("nucleotideSequence.sequenceLength", null)),
+  NUCLEOTIDE_GC_CONTENT(new BaseEsField("nucleotideSequence.gcContent", null)),
+  NUCLEOTIDE_NON_IUPAC_FRACTION(new BaseEsField("nucleotideSequence.nonIupacFraction", null)),
+  NUCLEOTIDE_NON_ACGTN_FRACTION(new BaseEsField("nucleotideSequence.nonACGTNFraction", null)),
+  NUCLEOTIDE_N_FRACTION(new BaseEsField("nucleotideSequence.nFraction", null)),
+  NUCLEOTIDE_N_RUNS_CAPPED(new BaseEsField("nucleotideSequence.nRunsCapped", null)),
+  NUCLEOTIDE_NATURAL_LANGUAGE_DETECTED(
+      new BaseEsField("nucleotideSequence.naturalLanguageDetected", null)),
+  NUCLEOTIDE_ENDS_TRIMMED(new BaseEsField("nucleotideSequence.endsTrimmed", null)),
+  NUCLEOTIDE_GAPS_OR_WHITESPACE_REMOVED(
+      new BaseEsField("nucleotideSequence.gapsOrWhitespaceRemoved", null)),
+  NUCLEOTIDE_INVALID(new BaseEsField("nucleotideSequence.invalid", null)),
 
   // MoF
   MEASUREMENT_TYPE(new BaseEsField("measurementTypes", DwcTerm.measurementType)),
@@ -429,8 +446,22 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
       .put(OccurrenceSearchParameter.DNA_SEQUENCE_ID, DNA_SEQUENCE_ID)
-      .put(OccurrenceSearchParameter.MEASUREMENT_TYPE, MEASUREMENT_TYPE)
-      .put(OccurrenceSearchParameter.MEASUREMENT_TYPE_ID, MEASUREMENT_TYPE_ID)
+
+      // TODO: DNA
+
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_NUCLEOTIDE_SEQUENCE_ID, NUCLEOTIDE_SEQUENCE_ID)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_TARGET_GENE, NUCLEOTIDE_TARGET_GENE)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE, NUCLEOTIDE_SEQUENCE)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_LENGTH, NUCLEOTIDE_SEQUENCE_LENGTH)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_GC_CONTENT, NUCLEOTIDE_GC_CONTENT)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_NON_IUPAC_FRACTION, NUCLEOTIDE_NON_IUPAC_FRACTION)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_NON_ACGTN_FRACTION, NUCLEOTIDE_NON_ACGTN_FRACTION)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_N_FRACTION, NUCLEOTIDE_N_FRACTION)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_N_RUNS_CAPPED, NUCLEOTIDE_N_RUNS_CAPPED)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_NATURAL_LANGUAGE_DETECTED, NUCLEOTIDE_NATURAL_LANGUAGE_DETECTED)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_ENDS_TRIMMED, NUCLEOTIDE_ENDS_TRIMMED)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_GAPS_OR_WHITESPACE_REMOVED, NUCLEOTIDE_GAPS_OR_WHITESPACE_REMOVED)
+      .put(OccurrenceSearchParameter.NUCLEOTIDE_INVALID, NUCLEOTIDE_INVALID)
       .build();
 
   public static final ImmutableMap<OccurrenceSearchParameter, EsField> FACET_TO_ES_MAPPING =
