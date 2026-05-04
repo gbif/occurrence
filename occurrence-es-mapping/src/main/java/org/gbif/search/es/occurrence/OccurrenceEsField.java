@@ -445,10 +445,9 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.BIOSTRATIGRAPHY, BIOSTRATIGRAPHY)
       .put(OccurrenceSearchParameter.ASSOCIATED_SEQUENCES, ASSOCIATED_SEQUENCES)
       .put(OccurrenceSearchParameter.GBIF_ID, GBIF_ID)
+      .put(OccurrenceSearchParameter.MEASUREMENT_TYPE, MEASUREMENT_TYPE)
+      .put(OccurrenceSearchParameter.MEASUREMENT_TYPE_ID, MEASUREMENT_TYPE_ID)
       .put(OccurrenceSearchParameter.DNA_SEQUENCE_ID, DNA_SEQUENCE_ID)
-
-      // TODO: DNA
-
       .put(OccurrenceSearchParameter.NUCLEOTIDE_NUCLEOTIDE_SEQUENCE_ID, NUCLEOTIDE_SEQUENCE_ID)
       .put(OccurrenceSearchParameter.NUCLEOTIDE_TARGET_GENE, NUCLEOTIDE_TARGET_GENE)
       .put(OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE, NUCLEOTIDE_SEQUENCE)
