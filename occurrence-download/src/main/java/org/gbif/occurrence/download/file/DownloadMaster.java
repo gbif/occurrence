@@ -33,6 +33,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.HttpAsyncResponseConsumerFactory;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -83,6 +84,8 @@ public class DownloadMaster extends AbstractActor {
   private final Function<Occurrence,Map<String,String>> verbatimMapper;
   private final Function<Occurrence,Map<String,String>> interpretedMapper;
   private final SearchHitConverter<Occurrence> searchHitConverter;
+  private final RequestOptions defaultOptions;
+
 
   /**
    * Default constructor.
@@ -116,7 +119,19 @@ public class DownloadMaster extends AbstractActor {
     this.interpretedMapper = interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;
+    this.defaultOptions = getDefaultRequestOptions(workflowConfiguration.getEsRequestBufferLimit());
   }
+
+  private RequestOptions getDefaultRequestOptions(int bufferLimitBytes) {
+    RequestOptions.Builder defaultBuilder = RequestOptions.DEFAULT.toBuilder();
+    defaultBuilder.setHttpAsyncResponseConsumerFactory(
+      new HttpAsyncResponseConsumerFactory
+        .HeapBufferedResponseConsumerFactory(bufferLimitBytes) // 200MB
+    );
+    return defaultBuilder.build();
+  }
+
+}
 
   @Override
   public Receive createReceive() {

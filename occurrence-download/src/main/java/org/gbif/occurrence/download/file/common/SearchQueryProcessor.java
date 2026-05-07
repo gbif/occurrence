@@ -31,6 +31,7 @@ import org.elasticsearch.search.sort.SortOrder;
 
 import com.google.common.base.Strings;
 
+import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
 import org.gbif.search.es.EsResponseParser;
 
 /**
@@ -56,9 +57,7 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
     DEFAULT_OPTIONS = defaultBuilder.build();
   }
 
-  private static final String[] EXCLUDE_SOURCE = {"all", "notIssues",  "*.suggest"};
-
-  public SearchQueryProcessor(EsResponseParser<T, P> esResponseParser) {
+  public SearchQueryProcessor(EsResponseParser<T, P> esResponseParser, RequestOptions defaultOptions) {
     this.esResponseParser = esResponseParser;
   }
 
@@ -84,7 +83,7 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
         searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
         searchSourceBuilder.from(downloadFileWork.getFrom() + recordCount);
         //Fields not needed in the response
-        searchSourceBuilder.fetchSource(null, EXCLUDE_SOURCE);
+        searchSourceBuilder.fetchSource(null, BaseEsSearchRequestBuilder.SOURCE_EXCLUDE);
         SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
 
         SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, DEFAULT_OPTIONS);
