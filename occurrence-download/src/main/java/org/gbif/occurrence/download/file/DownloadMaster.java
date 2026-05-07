@@ -309,7 +309,7 @@ public class DownloadMaster extends AbstractActor {
     DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();
     SearchQueryProcessor<Occurrence, OccurrenceSearchParameter> queryProcessor =
         new SearchQueryProcessor<>(
-            new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter));
+            new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter), defaultOptions);
 
     Props props;
     switch (downloadFormat) {
