@@ -13,10 +13,10 @@
  */
 package org.gbif.occurrence.download.file.common;
 
+import org.elasticsearch.client.HttpAsyncResponseConsumerFactory;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 
 import java.io.IOException;
@@ -30,7 +30,6 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 
 import org.gbif.search.es.EsResponseParser;
 
@@ -45,6 +44,19 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
   private static final String KEY_FIELD = "_id";
 
   private final EsResponseParser<T, P> esResponseParser;
+  private static final RequestOptions DEFAULT_OPTIONS;
+  private static final int DEFAULT_BUFFER_LIMIT = 209715200; // 200MB
+
+  static {
+    RequestOptions.Builder defaultBuilder = RequestOptions.DEFAULT.toBuilder();
+    defaultBuilder.setHttpAsyncResponseConsumerFactory(
+      new HttpAsyncResponseConsumerFactory
+        .HeapBufferedResponseConsumerFactory(DEFAULT_BUFFER_LIMIT) // 200MB
+    );
+    DEFAULT_OPTIONS = defaultBuilder.build();
+  }
+
+  private static final String[] EXCLUDE_SOURCE = {"all", "notIssues",  "*.suggest"};
 
   public SearchQueryProcessor(EsResponseParser<T, P> esResponseParser) {
     this.esResponseParser = esResponseParser;
@@ -67,18 +79,15 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
       // Creates a search request instance using the search request that comes in the fileJob
       SearchSourceBuilder searchSourceBuilder = createSearchQuery(downloadFileWork.getQuery());
 
-
       while (recordCount < nrOfOutputRecords) {
 
         searchSourceBuilder.size(recordCount + LIMIT > nrOfOutputRecords ? nrOfOutputRecords - recordCount : LIMIT);
         searchSourceBuilder.from(downloadFileWork.getFrom() + recordCount);
-        searchSourceBuilder.fetchSource(null, new String[]{
-          "all",
-          "notIssues"
-        }); //Fields are not needed in the response
+        //Fields not needed in the response
+        searchSourceBuilder.fetchSource(null, EXCLUDE_SOURCE);
         SearchRequest searchRequest = new SearchRequest().indices(downloadFileWork.getEsIndex()).source(searchSourceBuilder);
 
-        SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, RequestOptions.DEFAULT);
+        SearchResponse searchResponse = downloadFileWork.getEsClient().search(searchRequest, DEFAULT_OPTIONS);
         consume(searchResponse, resultHandler);
 
         SearchHit[] searchHits = searchResponse.getHits().getHits();
@@ -86,7 +95,7 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
 
       }
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 
