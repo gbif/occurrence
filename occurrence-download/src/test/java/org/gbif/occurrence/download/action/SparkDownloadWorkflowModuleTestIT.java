@@ -78,7 +78,7 @@ public class SparkDownloadWorkflowModuleTestIT {
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY, "occurrence");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_HOSTS_KEY, "http://localhost:" + embeddedElastic.getMappedPort(9200));
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_SNIFF_INTERVAL_KEY, "-1");
-    properties.put(DefaultSettings.ES_REQUEST_BUFFER_LIMIT, "209715200");
+    properties.put(DownloadWorkflowModule.DefaultSettings.ES_REQUEST_BUFFER_LIMIT, "209715200");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE, "occurrence");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_NESTED, "false");
 

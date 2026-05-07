@@ -340,7 +340,7 @@ public class DownloadWorkflowModule {
     public static final String ES_SOCKET_TIMEOUT_KEY = "es.socket_timeout";
     public static final String ES_SNIFF_INTERVAL_KEY = "es.sniff_interval";
     public static final String ES_SNIFF_AFTER_FAILURE_DELAY_KEY = "es.sniff_after_failure_delay";
-    public static final String ES_REQUEST_BUFFER_LIMIT = "es.request_buffer_Limit_Bytes";
+    public static final String ES_REQUEST_BUFFER_LIMIT = "es.request_buffer_limit_bytes";
 
     public static final String DEFAULT_CHECKLIST_KEY = PROPERTIES_PREFIX + "default_checklist_key";
 
