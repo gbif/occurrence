@@ -131,8 +131,6 @@ public class DownloadMaster extends AbstractActor {
     return defaultBuilder.build();
   }
 
-}
-
   @Override
   public Receive createReceive() {
     return receiveBuilder()
