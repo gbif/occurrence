@@ -17,6 +17,7 @@ import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule.DefaultSettings;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public class WorkflowConfiguration {
 
   private final Properties settings;
   private final Configuration hadoopConf;
+  private static final int DEFAULT_ES_REQUEST_BUFFER_LIMIT = 209715200; // 200MB
 
   /**
    *
@@ -142,6 +144,14 @@ public class WorkflowConfiguration {
   }
 
   /**
+   * Elasticsearch request buffer limit in bytes for each request.
+   */
+  public int getEsRequestBufferLimit() {
+    Preconditions.checkNotNull(settings);
+    return getIntSetting(DefaultSettings.ES_REQUEST_BUFFER_LIMIT, DEFAULT_ES_REQUEST_BUFFER_LIMIT);
+  }
+
+  /**
    *
    * @param downloadKey download id
    * @return a link to the download file
@@ -169,6 +179,7 @@ public class WorkflowConfiguration {
    */
   public String getHiveDBPath() {
     Preconditions.checkNotNull(settings);
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
   }
 
@@ -210,6 +221,10 @@ public class WorkflowConfiguration {
 
   public Integer getIntSetting(String key) {
     return Integer.parseInt(settings.getProperty(key));
+  }
+
+  public Integer getIntSetting(String key, Integer defaultValue) {
+    return Integer.parseInt(settings.getProperty(key, defaultValue.toString()));
   }
 
   public Boolean getBoolSetting(String key) {

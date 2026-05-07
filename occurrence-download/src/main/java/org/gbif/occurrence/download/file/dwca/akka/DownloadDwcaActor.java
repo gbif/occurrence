@@ -243,7 +243,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
               log.debug("Excluding columns from DwCA download: {}", DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD);
               List<String> interpretedColumns = new ArrayList<>(List.of(INT_COLUMNS));
               interpretedColumns.removeAll(DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD
-                .stream().map(Term::simpleName).collect(Collectors.toList()));
+                .stream().map(Term::simpleName).toList());
 
               String[] interpretedFieldWithExclusions = interpretedColumns.toArray(new String[0]);
 

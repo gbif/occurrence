@@ -24,6 +24,7 @@ import java.util.Properties;
 import org.apache.curator.test.TestingCluster;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule.DefaultSettings;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.junit.jupiter.api.AfterAll;
@@ -77,6 +78,7 @@ public class SparkDownloadWorkflowModuleTestIT {
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY, "occurrence");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_HOSTS_KEY, "http://localhost:" + embeddedElastic.getMappedPort(9200));
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_SNIFF_INTERVAL_KEY, "-1");
+    properties.put(DefaultSettings.ES_REQUEST_BUFFER_LIMIT, "209715200");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE, "occurrence");
     properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_NESTED, "false");
 
