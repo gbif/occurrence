@@ -180,7 +180,6 @@ public class WorkflowConfiguration {
   public String getHiveDBPath() {
     Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
-    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
   }
 
 
