@@ -49,7 +49,7 @@ public class OccurrenceSearchResourceTest {
             CaseFormat.LOWER_UNDERSCORE
                 .to(
                     CaseFormat.LOWER_CAMEL,
-                    param.name().replaceFirst("NUCLEOTIDE_", "nucleotide_sequence."))
+                    param.name().replaceFirst("NUCLEOTIDE_SEQUENCE_", "nucleotide_sequence."))
                 .replace("Id", "ID")
                 .replace("Acgtn", "ACGTN");
       } else if (param == OccurrenceSearchParameter.IDENTIFIED_BY_ID
