@@ -1507,6 +1507,7 @@ public class OccurrenceSearchResource {
             example = "Rhynchonella cuvieri Zone"),
         @Parameter(
             name = "dnaSequenceId",
+            deprecated = true,
             description =
                 "Deprecated: use the nucleotideSequence instead.\n\n MD5 hash of the uppercased DNA sequence, cleaned from non-IUPAC chars",
             explode = Explode.FALSE,
@@ -1515,6 +1516,7 @@ public class OccurrenceSearchResource {
             hidden = true),
         @Parameter(
             name = "dnaSequence",
+            deprecated = true,
             description =
                 "Deprecated: use the nucleotideSequence instead.\n\n The DNA sequence of a record as it comes in the DNA derived data extension",
             explode = Explode.FALSE,
@@ -1638,9 +1640,6 @@ public class OccurrenceSearchResource {
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
           explode = Explode.TRUE,
           in = ParameterIn.QUERY),
-
-
-
         @Parameter(
             name = "measurementType",
             description =
