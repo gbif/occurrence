@@ -1531,7 +1531,8 @@ public class OccurrenceSearchResource {
           array =
           @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.targetGene",
           description =
@@ -1540,7 +1541,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.sequence",
           description =
@@ -1549,7 +1551,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.sequenceLength",
           description =
@@ -1558,7 +1561,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.gcContent",
           description =
@@ -1567,7 +1571,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.nonIupacFraction",
           description =
@@ -1576,7 +1581,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.nonACGTNFraction",
           description =
@@ -1585,7 +1591,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.nFraction",
           description =
@@ -1594,7 +1601,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.nRunsCapped",
           description =
@@ -1603,7 +1611,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.naturalLanguageDetected",
           description =
@@ -1612,7 +1621,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.endsTrimmed",
           description =
@@ -1621,7 +1631,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.gapsOrWhitespaceRemoved",
           description =
@@ -1630,7 +1641,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
           name = "nucleotideSequence.invalid",
           description =
@@ -1639,7 +1651,8 @@ public class OccurrenceSearchResource {
           array =
             @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
           explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
             name = "measurementType",
             description =
