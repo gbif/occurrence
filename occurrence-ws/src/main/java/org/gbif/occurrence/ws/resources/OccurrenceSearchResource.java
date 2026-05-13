@@ -1507,19 +1507,152 @@ public class OccurrenceSearchResource {
             example = "Rhynchonella cuvieri Zone"),
         @Parameter(
             name = "dnaSequenceId",
-            description = "MD5 hash of the uppercased DNA sequence, cleaned from non-IUPAC chars",
+            deprecated = true,
+            description =
+                "Deprecated: use the nucleotideSequence instead.\n\n MD5 hash of the uppercased DNA sequence, cleaned from non-IUPAC chars",
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
             example = "273f6ecc41f1c809d3fa26a720e5ca21",
             hidden = true),
         @Parameter(
             name = "dnaSequence",
+            deprecated = true,
             description =
-                "The DNA sequence of a record as it comes in the DNA derived data extension",
+                "Deprecated: use the nucleotideSequence instead.\n\n The DNA sequence of a record as it comes in the DNA derived data extension",
             explode = Explode.FALSE,
             in = ParameterIn.QUERY,
             example = "TATTCTTTATTTTATTTTTGGAATATGAATACAACCTTTTTTGATCCATCAGGAGGAGGAGATCCTATTCTTTAT",
             hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.nucleotideSequenceID",
+          description =
+            "MD5 hash of the final cleaned sequence."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+          @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.targetGene",
+          description =
+            "Normalized gene name using the target_gene vocabulary."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.sequence",
+          description =
+            "Final cleaned sequence. null if flagged invalid."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.sequenceLength",
+          description =
+            "Length of cleaned sequence in base pairs."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.gcContent",
+          description =
+            "GC content (0-1, based on A/C/G/T only)."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.nonIupacFraction",
+          description =
+            "Fraction of non-IUPAC characters (0-1)."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.nonACGTNFraction",
+          description =
+            "Fraction of ambiguous IUPAC codes, not A/C/G/T/N (0-1)."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.nFraction",
+          description =
+            "Fraction of N characters (0-1)."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.nRunsCapped",
+          description =
+            "Number of N-runs that were capped."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.naturalLanguageDetected",
+          description =
+            "Whether UNMERGED marker was found."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.endsTrimmed",
+          description =
+            "Whether ends were trimmed."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.gapsOrWhitespaceRemoved",
+          description =
+            "Whether gaps and/or whitespace were removed."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
+        @Parameter(
+          name = "nucleotideSequence.invalid",
+          description =
+            "nonIupacFraction > 0 and/or naturalLanguageDetected is true."
+              + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+            @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY,
+          hidden = true),
         @Parameter(
             name = "measurementType",
             description =
