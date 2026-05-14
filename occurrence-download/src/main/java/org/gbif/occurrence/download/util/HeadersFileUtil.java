@@ -18,7 +18,7 @@ import org.apache.commons.compress.utils.IOUtils;
 
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 
@@ -32,7 +32,6 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
 
 import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.hive.DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID;

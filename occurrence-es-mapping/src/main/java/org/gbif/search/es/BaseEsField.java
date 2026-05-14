@@ -18,7 +18,7 @@ import org.gbif.dwc.terms.Term;
 import lombok.Data;
 import lombok.Getter;
 
-import org.gbif.occurrence.common.TermUtils;
+import org.gbif.terms.utils.TermUtils;
 import org.gbif.predicate.query.EsField;
 
 @Data

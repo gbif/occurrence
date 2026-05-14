@@ -285,6 +285,14 @@
       <artifactId>occurrence-common</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.gbif.download</groupId>
+      <artifactId>term-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.download</groupId>
+      <artifactId>hdfs-tables</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-es-mapping</artifactId>
       <!-- Excluded to avoid log4j collisions with other dependencies in libraries-->
@@ -312,10 +320,6 @@
     <dependency>
       <groupId>org.gbif</groupId>
       <artifactId>dwca-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.gbif.occurrence</groupId>
-      <artifactId>occurrence-hdfs-table</artifactId>
     </dependency>
     <dependency>
       <groupId>jakarta.ws.rs</groupId>
@@ -513,16 +517,6 @@
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client-sniffer</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>commmons-logging</groupId>
-          <artifactId>commmons-logging</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.elasticsearch.client</groupId>
-      <artifactId>elasticsearch-rest-client</artifactId>
       <exclusions>
         <exclusion>
           <groupId>commmons-logging</groupId>

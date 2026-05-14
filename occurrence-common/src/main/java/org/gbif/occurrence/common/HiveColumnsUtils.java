@@ -14,8 +14,9 @@
 package org.gbif.occurrence.common;
 
 import org.gbif.api.vocabulary.Extension;
-import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.*;
 import org.gbif.predicate.query.SQLColumnsUtils;
+import org.gbif.terms.utils.TermUtils;
 
 /**
  * Utility class to handle column names in Hive for Terms, OccurrenceIssues and Extensions.
