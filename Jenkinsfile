@@ -155,7 +155,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE_TRINO };
-              branch 'master';
+              branch 'occurrence-1.1.26.1';
           }
       }
       environment {
@@ -179,7 +179,7 @@ pipeline {
         allOf {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
+          branch 'occurrence-1.1.26.1';
         }
       }
       environment {
@@ -188,23 +188,6 @@ pipeline {
       steps {
         sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
       }
-     }
-
-     stage('Docker Release: Table build') {
-      when {
-        allOf {
-          expression { params.RELEASE };
-          not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
-        }
-      }
-      environment {
-          VERSION = utils.getReleaseVersion(params.RELEASE_VERSION, POM_VERSION)
-      }
-      steps {
-        sh 'build/occurrence-table-build-spark-docker-build.sh ${VERSION}'
-      }
-     }
     }
 
     post {
