@@ -189,6 +189,7 @@ pipeline {
         sh 'build/occurrence-download-spark-docker-build.sh ${VERSION}'
       }
     }
+    }
 
     post {
       success {
