@@ -123,7 +123,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE };
-              branch 'master';
+              branch 'occurrence-1.1.26.1';
           }
       }
       environment {
