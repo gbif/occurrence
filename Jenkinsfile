@@ -123,7 +123,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE };
-              branch 'master';
+              branch 'occurrence-1.1.26-hotfix509';
           }
       }
       environment {
@@ -155,7 +155,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE_TRINO };
-              branch 'master';
+              branch 'occurrence-1.1.26-hotfix509';
           }
       }
       environment {
@@ -179,7 +179,7 @@ pipeline {
         allOf {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
+          branch 'occurrence-1.1.26-hotfix509';
         }
       }
       environment {
@@ -195,7 +195,7 @@ pipeline {
         allOf {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
+          branch 'occurrence-1.1.26-hotfix509';
         }
       }
       environment {
