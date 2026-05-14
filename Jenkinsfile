@@ -140,7 +140,10 @@ pipeline {
                                       variable: 'MAVEN_SETTINGS_XML'),
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
-              git 'https://github.com/gbif/occurrence.git'
+              git(
+                  url: 'https://github.com/gbif/occurrence.git',
+                  branch: 'occurrence-1.1.26-hotfix509'
+              )
               sh 'mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -Darguments="-Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE" $RELEASE_ARGS'
             }
           }
@@ -165,7 +168,10 @@ pipeline {
           configFileProvider(
                   [configFile(fileId: 'org.jenkinsci.plugins.configfiles.maven.GlobalMavenSettingsConfig1387378707709',
                           variable: 'MAVEN_SETTINGS_XML')]) {
-              git 'https://github.com/gbif/occurrence.git'
+              git(
+                  url: 'https://github.com/gbif/occurrence.git',
+                  branch: 'occurrence-1.1.26-hotfix509'
+              )
               sh '''
                 cd occurrence-trino-udf
                 mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS_TRINO
