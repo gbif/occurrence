@@ -574,12 +574,12 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
                                   ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_NON_ACGTN_FRACTION))
                               .ifPresent(nucleotideSequence::setNonACGTNFraction);
                           getDoubleValue(ns, fn.apply(OccurrenceEsField.NUCLEOTIDE_N_FRACTION))
-                              .ifPresent(nucleotideSequence::setNFraction);
+                              .ifPresent(nucleotideSequence::setnFraction);
                           getValue(
                                   ns,
                                   fn.apply(OccurrenceEsField.NUCLEOTIDE_N_RUNS_CAPPED),
                                   Integer::parseInt)
-                              .ifPresent(nucleotideSequence::setNRunsCapped);
+                              .ifPresent(nucleotideSequence::setnRunsCapped);
                           getBooleanValue(
                                   ns,
                                   fn.apply(OccurrenceEsField.NUCLEOTIDE_NATURAL_LANGUAGE_DETECTED))
