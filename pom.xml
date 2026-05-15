@@ -194,7 +194,7 @@
     <gbif-wrangler.version>1.0.0</gbif-wrangler.version>
     <gbif-common-mybatis.version>2.0.0</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
-    <gbif.kvs.version>3.1.2</gbif.kvs.version>
+    <gbif.kvs.version>3.0</gbif.kvs.version>
     <gbif-cli.version>3.0.1</gbif-cli.version>
     <gbif-predicates.version>2.1.10</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.2</gbif-occurrence-cube-functions.version>
