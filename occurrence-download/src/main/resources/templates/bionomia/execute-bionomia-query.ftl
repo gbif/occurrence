@@ -31,7 +31,7 @@ AS SELECT
   countryCode,
   secondsToLocalISO8601(dateidentified) AS dateIdentified,
   secondsToLocalISO8601(eventdategte) AS eventDate,
-  array_contains(mediaType, 'StillImage') AS hasImage,
+  COALESCE(array_contains(mediaType, 'StillImage'), false) AS hasImage,
   kingdom,
   family,
   scientificName,
