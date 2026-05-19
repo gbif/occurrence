@@ -1130,33 +1130,25 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "nucleotideSequence.naturalLanguageDetected",
             description = "Whether UNMERGED marker was found." + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
-            explode = Explode.TRUE,
+            schema = @Schema(implementation = Boolean.class),
             in = ParameterIn.QUERY),
         @Parameter(
             name = "nucleotideSequence.endsTrimmed",
             description = "Whether ends were trimmed." + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
-            explode = Explode.TRUE,
+            schema = @Schema(implementation = Boolean.class),
             in = ParameterIn.QUERY),
         @Parameter(
             name = "nucleotideSequence.gapsOrWhitespaceRemoved",
             description =
                 "Whether gaps and/or whitespace were removed." + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
-            explode = Explode.TRUE,
+            schema = @Schema(implementation = Boolean.class),
             in = ParameterIn.QUERY),
         @Parameter(
             name = "nucleotideSequence.invalid",
             description =
                 "nonIupacFraction > 0 and/or naturalLanguageDetected is true."
                     + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Boolean.class)),
-            explode = Explode.TRUE,
+            schema = @Schema(implementation = Boolean.class),
             in = ParameterIn.QUERY),
         @Parameter(
             name = "occurrenceId",
