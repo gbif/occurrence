@@ -45,7 +45,8 @@ public class OpenAPIUtilsTest {
 
       String name = null;
       if (param == EventSearchParameter.MEASUREMENT_TYPE_ID
-          || param == EventSearchParameter.FUNDING_ATTRIBUTION_ID) {
+          || param == EventSearchParameter.FUNDING_ATTRIBUTION_ID
+          || param == EventSearchParameter.LOCATION_ID) {
         name =
             CaseFormat.LOWER_UNDERSCORE
                 .to(CaseFormat.LOWER_CAMEL, param.name())
