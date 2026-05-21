@@ -317,6 +317,7 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.GBIF_ID, GBIF_ID)
       .put(EventSearchParameter.EVENT_TYPE, EVENT_TYPE)
       .put(EventSearchParameter.VERBATIM_EVENT_TYPE, VERBATIM_EVENT_TYPE)
+      .put(EventSearchParameter.LOCATION_ID, LOCATION_ID)
       .put(EventSearchParameter.HUMBOLDT_SITE_COUNT, HUMBOLDT_SITE_COUNT)
       .put(EventSearchParameter.HUMBOLDT_VERBATIM_SITE_NAMES, HUMBOLDT_VERBATIM_SITE_NAMES)
       .put(EventSearchParameter.HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE, HUMBOLDT_GEOSPATIAL_SCOPE_AREA_VALUE)

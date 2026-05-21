@@ -1058,6 +1058,14 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
         @Parameter(
+          name = "locationID",
+          description =
+            "The location ID of the event.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+          @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY),
+        @Parameter(
             name = "measurementType",
             description =
                 "The measurement type of the record as it comes in the measurement or fact extension.\n\n"
