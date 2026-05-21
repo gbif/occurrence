@@ -18,17 +18,17 @@ public class DownloadCleaner {
           workflowConfiguration.getHiveDb() + "." + DownloadUtils.downloadTableName(downloadKey);
 
       Consumer<String> dropTableFn =
-          suffix -> {
-            queryExecutor.accept(
-                "DROP " + downloadTableName + suffix,
-                "DROP TABLE IF EXISTS " + downloadTableName + suffix + " PURGE");
-          };
+          suffix -> queryExecutor.accept(
+              "DROP " + downloadTableName + suffix,
+              "DROP TABLE IF EXISTS " + downloadTableName + suffix + " PURGE");
 
       log.info("Dropping tables with prefix {}", downloadTableName);
       dropTableFn.accept("");
       dropTableFn.accept("_interpreted");
       dropTableFn.accept("_verbatim");
       dropTableFn.accept("_multimedia");
+      dropTableFn.accept("_fasta");
+      dropTableFn.accept("_sequences");
       dropTableFn.accept("_humboldt");
       dropTableFn.accept("_occurrence");
       dropTableFn.accept("_event_ids");

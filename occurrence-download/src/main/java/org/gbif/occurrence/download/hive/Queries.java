@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.hive;
 
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
+import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.LinkedHashMap;
@@ -162,6 +163,32 @@ public abstract class Queries {
           columnName = toInterpretedHiveInitializer(term, checklistKey);
         }
       }
+
+      result.put(term.simpleName(), new InitializableField(term, columnName, toHiveDataType(term)));
+    }
+
+    return result;
+  }
+
+  public Map<String, InitializableField> selectSequencesFields(boolean useInitializers) {
+    Map<String, InitializableField> result = new LinkedHashMap<>();
+
+    // always add the GBIF ID
+    result.put(GbifTerm.gbifID.simpleName(), selectGbifId());
+
+    for (Term term : DOWNLOAD_SEQUENCE_TERMS) {
+      if (GbifTerm.gbifID == term) {
+        continue; // for safety, we code defensively as it may be added
+      }
+
+      String columnName;
+      if (useInitializers) {
+        columnName = toInterpretedHiveInitializer(term, null);
+      } else {
+        columnName = toHiveInitializer(term);
+      }
+
+      columnName = columnName.replace("nucleotide_", "");
 
       result.put(term.simpleName(), new InitializableField(term, columnName, toHiveDataType(term)));
     }

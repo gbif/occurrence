@@ -197,6 +197,29 @@ public class DownloadJobConfiguration {
   }
 
   /**
+   * FASTA table/file name. This is used for FASTA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_fasta/ - small downloads
+   * format: sourceDir/downloadKey/sequence.fasta
+   */
+  public String getFastaDataFileName() {
+    return isSmallDownload
+        ? getDownloadTempDir() + DwcDownloadsConstants.FASTA_FILENAME
+        : getDownloadTempDir(TableSuffixes.FASTA_SUFFIX);
+  }
+
+  /**
+   * Sequences table/file name. This is used for FASTA downloads only, it varies if it's a small or
+   * big download. - big downloads format: sourceDir/downloadTableName_sequences/ - small downloads
+   * format: sourceDir/downloadKey/sequences.txt
+   */
+  public String getSequencesDataFileName() {
+    return isSmallDownload
+      ? getDownloadTempDir() + DwcDownloadsConstants.SEQUENCES_FILENAME
+      : getDownloadTempDir(TableSuffixes.SEQUENCES_SUFFIX);
+  }
+
+
+  /**
    * Humboldt table/file name. This is used for DwcA downloads only, it varies if it's a small or
    * big download. - big downloads format: sourceDir/downloadTableName_humboldt/ - small downloads
    * format: sourceDir/downloadKey/humboldt

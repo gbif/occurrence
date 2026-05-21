@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -180,6 +181,18 @@ public class DownloadArchiveBuilder {
         MULTIMEDIA_FILENAME,
         HeadersFileUtil.getMultimediaTableHeader());
 
+    if (DwcTerm.Occurrence == configuration.getCoreTerm()
+        && download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      appendPreCompressedFile(
+          out, new Path(configuration.getFastaDataFileName()), FASTA_FILENAME, null);
+
+      appendPreCompressedFile(
+          out,
+          new Path(configuration.getSequencesDataFileName()),
+          SEQUENCES_FILENAME,
+          HeadersFileUtil.getSequencesTableHeader());
+    }
+
     if (DwcTerm.Event == configuration.getCoreTerm()) {
       if (configuration.getInterpretedExtensions().contains(Extension.HUMBOLDT)) {
         appendPreCompressedFile(
@@ -208,9 +221,11 @@ public class DownloadArchiveBuilder {
     List<InputStream> parts = Lists.newArrayList();
 
     // Add the header first, which must also be compressed
-    ByteArrayOutputStream header = new ByteArrayOutputStream();
-    D2Utils.compress(new ByteArrayInputStream(headerRow.getBytes()), header);
-    parts.add(new ByteArrayInputStream(header.toByteArray()));
+    if (headerRow != null) {
+      ByteArrayOutputStream header = new ByteArrayOutputStream();
+      D2Utils.compress(new ByteArrayInputStream(headerRow.getBytes()), header);
+      parts.add(new ByteArrayInputStream(header.toByteArray()));
+    }
 
     // Locate the streams to the compressed content on HDFS
     while (files.hasNext()) {

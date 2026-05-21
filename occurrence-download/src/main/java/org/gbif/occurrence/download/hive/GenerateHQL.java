@@ -67,6 +67,7 @@ public class GenerateHQL {
 
   private static final String FIELDS = "fields";
   private static final String IS_HUMBOLDT_SEARCH = "isHumboldtSearch";
+  private static final String IS_FASTA_DOWNLOAD = "isFastaDownload";
   private static final String INCLUDE_HUMBOLDT_INTERPRETED = "includeHumboldtInterpreted";
   private static final String INCLUDE_OCCURRENCE_EXT_INTERPRETED = "includeOccurrenceExtInterpreted";
 
@@ -234,7 +235,13 @@ public class GenerateHQL {
                 includeInterpretedExtension(queryParameters, Extension.HUMBOLDT))
             .put(
                 INCLUDE_OCCURRENCE_EXT_INTERPRETED,
-                includeInterpretedExtension(queryParameters, Extension.OCCURRENCE));
+                includeInterpretedExtension(queryParameters, Extension.OCCURRENCE))
+            .put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload());
+
+    if (queryParameters.isFastaDownload()) {
+      dataBuilder.put("sequencesFields", HIVE_QUERIES.selectSequencesFields(false).values());
+      dataBuilder.put("sequencesSelectFields", HIVE_QUERIES.selectSequencesFields(true).values());
+    }
 
     if (includeInterpretedExtension(queryParameters, Extension.HUMBOLDT)) {
       dataBuilder.put(

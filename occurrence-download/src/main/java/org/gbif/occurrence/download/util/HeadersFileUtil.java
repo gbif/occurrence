@@ -147,6 +147,10 @@ public class HeadersFileUtil {
     return getTableHeader(TermUtils.humboldtTerms());
   }
 
+  public static String getSequencesTableHeader() {
+    return getTableHeader(TermUtils.sequencesTerms());
+  }
+
   public static String getExtensionInterpretedHeader(ExtensionTable extensionTable) {
     return TAB_JOINER.join(extensionTable.getInterpretedFields()) + '\n';
   }

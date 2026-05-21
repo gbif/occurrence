@@ -26,6 +26,8 @@ public class DwcDownloadsConstants {
   public static final String EVENT_INTERPRETED_FILENAME = "event.txt";
   public static final String VERBATIM_FILENAME = "verbatim.txt";
   public static final String MULTIMEDIA_FILENAME = "multimedia.txt";
+  public static final String FASTA_FILENAME = "sequences.fasta";
+  public static final String SEQUENCES_FILENAME = "sequences.txt";
   public static final String HUMBOLDT_FILENAME = "humboldt.txt";
   public static final String CITATIONS_FILENAME = "citations.txt";
   public static final String RIGHTS_FILENAME = "rights.txt";
