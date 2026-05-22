@@ -107,6 +107,17 @@ public class ElasticDownloadWorkflow {
                 + ES_COUNT_MARGIN_ERROR;
   }
 
+  /**
+   * Gets the record count for the download.
+   * If the download already has a total records count set, returns that value.
+   * Otherwise, queries Elasticsearch to get an accurate count.
+   * 
+   * POTENTIAL HANG POINT: The call to downloadEsClient.getRecordCount() can hang if ES is slow.
+   * This is often the "calling ES" log message that appears before a hang, as reported in issue
+   * for small downloads. The ES count request has no explicit query timeout and relies on the
+   * HTTP client socketTimeout (default 100 seconds). If ES is overloaded, this can appear as
+   * a hang at the end of the Spark job initialization.
+   */
   private long recordCount(Download download) {
     // if set, dont recalculate
     if (download.getTotalRecords() > 0){

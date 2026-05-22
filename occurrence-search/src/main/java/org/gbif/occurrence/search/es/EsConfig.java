@@ -35,8 +35,15 @@ public class EsConfig {
   private static final Splitter SPLITTER = Splitter.on(",");
 
   // defaults
-  private static final int CONNECT_TIMEOUT_DEFAULT = 6000;
-  private static final int SOCKET_TIMEOUT_DEFAULT = 100000;
+  // TIMEOUT NOTE: connectTimeout is the time to establish a connection to ES server
+  private static final int CONNECT_TIMEOUT_DEFAULT = 6000; // 6 seconds
+  
+  // TIMEOUT NOTE: socketTimeout is the time to wait for data after connection is established.
+  // This is the timeout for the entire HTTP request/response cycle, NOT the query execution time.
+  // If an ES query takes longer than this to return results, the request will timeout.
+  // Default of 100 seconds may not be sufficient for slow queries or overloaded ES clusters.
+  private static final int SOCKET_TIMEOUT_DEFAULT = 100000; // 100 seconds
+  
   private static final int SNIFF_INTERVAL_DEFAULT = -1;
   private static final int SNIFF_AFTER_FAILURE_DELAY_DEFAULT = 60000;
 
