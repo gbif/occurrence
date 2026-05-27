@@ -148,7 +148,7 @@ public class HeadersFileUtil {
   }
 
   public static String getSequencesTableHeader() {
-    return getTableHeader(TermUtils.sequencesTerms());
+    return getTableHeader(TermUtils.sequenceTerms());
   }
 
   public static String getExtensionInterpretedHeader(ExtensionTable extensionTable) {
