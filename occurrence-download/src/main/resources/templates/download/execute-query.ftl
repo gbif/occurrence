@@ -109,7 +109,7 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
     FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
     JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId AND dna.sequence IS NOT NULL
     INSERT INTO TABLE ${r"${fastaTable}"}
-    SELECT concat('>', coalesce(dna.nucleotidesequenceid, ''), '|', dna.gbifid, '|', coalesce(dna.targetgene, ''), '\n', dna.sequence)
+    SELECT concat('>', coalesce(dna.nucleotidesequenceid, ''), '|', dna.gbifid, '|', coalesce(dna.targetgene.concept, ''), '\n', dna.sequence)
     INSERT INTO TABLE ${r"${sequencesTable}"}
     SELECT
       <#list sequencesSelectFields as field>
