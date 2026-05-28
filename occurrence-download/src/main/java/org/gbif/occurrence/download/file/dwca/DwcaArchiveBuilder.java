@@ -18,12 +18,15 @@ import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.file.dwca.archive.CitationFileReader;
 import org.gbif.occurrence.download.file.dwca.archive.ConstituentsDatasetsProcessor;
 import org.gbif.occurrence.download.file.dwca.archive.DownloadArchiveBuilder;
 import org.gbif.occurrence.download.file.dwca.archive.DownloadMetadataBuilder;
 import org.gbif.occurrence.download.file.dwca.archive.DownloadUsagesPersist;
+import org.gbif.occurrence.download.file.dwca.archive.FastaCitationBuilder;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
+import org.gbif.occurrence.query.TitleLookupService;
 import org.gbif.occurrence.query.TitleLookupServiceFactory;
 
 import java.io.Closeable;
@@ -142,9 +145,15 @@ public class DwcaArchiveBuilder {
   }
 
   private ConstituentsDatasetsProcessor getConstituentsDatasetsProcessor() {
+    String downloadCitation = null;
+    if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      TitleLookupService titleLookup = TitleLookupServiceFactory.getInstance(workflowConfiguration.getApiUrl());
+      downloadCitation = FastaCitationBuilder.buildCitation(download, titleLookup);
+    }
     return ConstituentsDatasetsProcessor.builder()
             .datasetService(datasetService)
             .archiveDir(archiveDir)
+            .downloadCitation(downloadCitation)
             .build();
   }
 
