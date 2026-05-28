@@ -56,7 +56,7 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
   LEFT JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h ON h.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
 </#if>
 <#if isFastaDownload>
-  INNER JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_dna_derived_data dna ON dna.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
+  LEFT SEMI JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_dna_derived_data dna ON dna.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
     AND dna.sequence IS NOT NULL
 </#if>
   INSERT INTO TABLE ${r"${verbatimTable}"}
