@@ -100,8 +100,8 @@ public class FastaCitationBuilder {
 
     if (!targetGenes.isEmpty()) {
       citation.append(" of ").append(String.join(", ", targetGenes)).append(" sequences");
-    } else {
-      citation.append(" of ").append(" sequences");
+    } else if (!taxonScopes.isEmpty() || !geoScopes.isEmpty()) {
+      citation.append(" of sequences");
     }
     if (!taxonScopes.isEmpty()) {
       citation.append(" from ").append(String.join(", ", taxonScopes));
