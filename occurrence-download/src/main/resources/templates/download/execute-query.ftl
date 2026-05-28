@@ -113,7 +113,7 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
     INSERT INTO TABLE ${r"${sequencesTable}"}
     SELECT
       <#list sequencesSelectFields as field>
-          <#if field.hiveField == "gbifid">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
+          <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
       </#list>;
 </#if>
 
