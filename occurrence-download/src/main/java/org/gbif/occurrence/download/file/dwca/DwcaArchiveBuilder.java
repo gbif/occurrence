@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
+import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
@@ -41,6 +42,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.gbif.registry.doi.DoiInteractionService;
+import org.gbif.registry.domain.doi.DoiType;
 
 import static org.gbif.occurrence.download.util.ArchiveFileUtils.initializeArchiveDir;
 
@@ -67,6 +70,7 @@ public class DwcaArchiveBuilder {
   private final ConstituentsDatasetsProcessor constituentsDatasetsProcessor;
   private final DownloadUsagesPersist downloadUsagesPersist;
   private final OccurrenceDownloadService occurrenceDownloadService;
+  private final DoiInteractionService doiInteractionService;
   private final DatasetService datasetService;
 
 
@@ -78,6 +82,7 @@ public class DwcaArchiveBuilder {
     //Ws clients and client utils
     this.registryClientUtil = new RegistryClientUtil(workflowConfiguration.getRegistryUser(), workflowConfiguration.getRegistryPassword(), workflowConfiguration.getRegistryWsUrl());
     occurrenceDownloadService = getOccurrenceDownloadService();
+    doiInteractionService = getDoiInteractionService();
     datasetService = getDatasetService();
     download = getDownload();
     downloadUsagesPersist = getDownloadUsagesPersist();
@@ -130,6 +135,10 @@ public class DwcaArchiveBuilder {
     return registryClientUtil.occurrenceDownloadService(jobConfiguration.getCoreTerm());
   }
 
+  private DoiInteractionService getDoiInteractionService(){
+    return registryClientUtil.doiInteractionService();
+  }
+
   @SneakyThrows
   private URI getDownloadLink(Download download) {
     return new URI(workflowConfiguration.getDownloadLink(download.getKey()));
@@ -148,6 +157,10 @@ public class DwcaArchiveBuilder {
     String downloadCitation = null;
     if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
       TitleLookupService titleLookup = TitleLookupServiceFactory.getInstance(workflowConfiguration.getApiUrl());
+      //Generate and persist a Download DOI: required to create the citation
+      DOI downloadDOI = doiInteractionService.generate(DoiType.DOWNLOAD);
+      download.setDoi(downloadDOI);
+      occurrenceDownloadService.update(download);
       downloadCitation = FastaCitationBuilder.buildCitation(download, titleLookup);
     }
     return ConstituentsDatasetsProcessor.builder()
