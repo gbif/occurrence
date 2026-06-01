@@ -188,8 +188,6 @@ public abstract class Queries {
         columnName = toHiveInitializer(term);
       }
 
-      columnName = columnName.replace("nucleotide_", "").replace("_","");
-
       result.put(term.simpleName(), new InitializableField(term, columnName, toHiveDataType(term)));
     }
 
