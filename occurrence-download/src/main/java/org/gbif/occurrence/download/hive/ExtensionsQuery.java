@@ -13,7 +13,11 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import java.util.List;
+import java.util.Set;
 import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
@@ -67,14 +71,22 @@ public class ExtensionsQuery {
   private Map<String, Object> templateVariables(Download download) {
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String, Object> variables = new HashMap<>();
+    if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
+
+    }
     Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
         .ifPresent(
-            verbatimExtensions ->
-                variables.put(
-                    "verbatim_extensions",
-                    verbatimExtensions.stream()
-                        .map(ExtensionTable::new)
-                        .collect(Collectors.toList())));
+            verbatimExtensions -> {
+                Set<ExtensionTable> extensionTables = verbatimExtensions.stream()
+                  .map(ExtensionTable::new)
+                  .collect(Collectors.toSet());
+                //FASTA Archives include the verbatim DNA data by default
+                if (DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat() &&
+                   !verbatimExtensions.contains(Extension.DNA_DERIVED_DATA)) {
+                  extensionTables.add(new ExtensionTable(Extension.DNA_DERIVED_DATA));
+                }
+                variables.put("verbatim_extensions", extensionTables);
+            });
     variables.put("downloadTableName", downloadTableName);
     variables.put("interpretedTable", downloadTableName + "_interpreted");
     variables.put("tableName", download.getRequest().getType().toString().toLowerCase());
