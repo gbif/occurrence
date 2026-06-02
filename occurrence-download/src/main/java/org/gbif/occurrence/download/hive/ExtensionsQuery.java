@@ -87,11 +87,7 @@ public class ExtensionsQuery {
       verbatimExtensions.stream()
         .map(ExtensionTable::new)
         .toList());
-    //FASTA Archives include the verbatim DNA data by default
-    if (DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat() &&
-       !verbatimExtensions.contains(Extension.DNA_DERIVED_DATA)) {
-      extensionTables.add(new ExtensionTable(Extension.DNA_DERIVED_DATA));
-    }
+
     variables.put("verbatim_extensions", extensionTables);
     variables.put("downloadTableName", downloadTableName);
     variables.put("interpretedTable", downloadTableName + "_interpreted");
