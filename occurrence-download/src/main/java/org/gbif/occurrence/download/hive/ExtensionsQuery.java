@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.gbif.api.model.occurrence.Download;
@@ -74,20 +76,23 @@ public class ExtensionsQuery {
     if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
 
     }
-    Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
-        .ifPresent(
-            verbatimExtensions -> {
-                List<ExtensionTable> extensionTables = new java.util.ArrayList<>(
-                  verbatimExtensions.stream()
-                    .map(ExtensionTable::new)
-                    .toList());
-                //FASTA Archives include the verbatim DNA data by default
-                if (DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat() &&
-                   !verbatimExtensions.contains(Extension.DNA_DERIVED_DATA)) {
-                  extensionTables.add(new ExtensionTable(Extension.DNA_DERIVED_DATA));
-                }
-                variables.put("verbatim_extensions", extensionTables);
-            });
+    Set<Extension> verbatimExtensions = Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+      .orElse(new HashSet<>());
+
+    if (DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat()) {
+      verbatimExtensions.add(Extension.DNA_DERIVED_DATA);
+    }
+
+    List<ExtensionTable> extensionTables = new java.util.ArrayList<>(
+      verbatimExtensions.stream()
+        .map(ExtensionTable::new)
+        .toList());
+    //FASTA Archives include the verbatim DNA data by default
+    if (DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat() &&
+       !verbatimExtensions.contains(Extension.DNA_DERIVED_DATA)) {
+      extensionTables.add(new ExtensionTable(Extension.DNA_DERIVED_DATA));
+    }
+    variables.put("verbatim_extensions", extensionTables);
     variables.put("downloadTableName", downloadTableName);
     variables.put("interpretedTable", downloadTableName + "_interpreted");
     variables.put("tableName", download.getRequest().getType().toString().toLowerCase());
