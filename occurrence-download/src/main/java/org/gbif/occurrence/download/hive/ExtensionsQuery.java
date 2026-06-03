@@ -73,9 +73,6 @@ public class ExtensionsQuery {
   private Map<String, Object> templateVariables(Download download) {
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String, Object> variables = new HashMap<>();
-    if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
-
-    }
     Set<Extension> verbatimExtensions = Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
       .orElse(new HashSet<>());
 
@@ -101,3 +98,5 @@ public class ExtensionsQuery {
     template().process(templateVariables(download), writer);
   }
 }
+
+
