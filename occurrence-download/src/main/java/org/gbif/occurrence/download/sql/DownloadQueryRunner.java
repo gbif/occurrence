@@ -28,7 +28,8 @@ public class DownloadQueryRunner {
             downloadQuery,
             queryParameters.toMapDwca(),
             queryExecutor);
-        if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest())) {
+        //FASTA Archives always include dna derived extension
+        if (DownloadRequestUtils.hasVerbatimExtensions(download.getRequest()) || DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat()) {
           SqlQueryUtils.runMultiSQL(
               "Extensions DWCA Download query",
               extensionQuery(download),
