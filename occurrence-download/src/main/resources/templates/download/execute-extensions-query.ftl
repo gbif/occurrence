@@ -46,7 +46,7 @@ INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
       ext.${field}<#if field_has_next>,</#if>
   </#list>
     FROM ${downloadTableName}_${tableName}_gbifId f
-    JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ext
+    JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.leafNamespace}_${verbatim_extension.hiveTableName} ext
     ON f.gbifid = ext.gbifid
     WHERE ext.gbifid IS NOT NULL;
 </#list>
