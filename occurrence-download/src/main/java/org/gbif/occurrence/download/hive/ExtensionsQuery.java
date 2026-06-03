@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
@@ -42,6 +43,7 @@ import lombok.Data;
 import lombok.SneakyThrows;
 
 /** Generates a query file to be used to query the requested extensions of a download. */
+@Slf4j
 @Data
 @Builder
 public class ExtensionsQuery {
@@ -56,7 +58,9 @@ public class ExtensionsQuery {
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(TEMPLATE_FILE)) {
       StringWriter writer = new StringWriter();
       IOUtils.copy(is, writer, StandardCharsets.UTF_8);
-      return writer.toString();
+      String query = writer.toString();
+      log.info("Extensions query: {}", query);
+      return query;
     }
   }
 
