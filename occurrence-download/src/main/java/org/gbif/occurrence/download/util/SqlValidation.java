@@ -24,23 +24,23 @@ import org.gbif.occurrence.query.sql.HiveSqlValidator;
 
 import java.util.*;
 
-import com.google.common.collect.ImmutableMap;
-import org.apache.calcite.rel.type.RelDataType;
-import org.apache.calcite.rel.type.RelDataTypeFactory;
-import org.apache.calcite.rel.type.RelDataTypeSystem;
-import org.apache.calcite.rel.type.StructKind;
-import org.apache.calcite.schema.SchemaPlus;
-import org.apache.calcite.schema.Table;
-import org.apache.calcite.schema.impl.AbstractSchema;
-import org.apache.calcite.schema.impl.AbstractTable;
-import org.apache.calcite.sql.SqlFunction;
-import org.apache.calcite.sql.SqlFunctionCategory;
-import org.apache.calcite.sql.SqlKind;
-import org.apache.calcite.sql.SqlOperator;
-import org.apache.calcite.sql.type.*;
-import org.apache.calcite.tools.Frameworks;
+import calcite_gbif_shaded.com.google.common.collect.ImmutableMap;
+import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataType;
+import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeFactory;
+import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeSystem;
+import calcite_gbif_shaded.org.apache.calcite.rel.type.StructKind;
+import calcite_gbif_shaded.org.apache.calcite.schema.SchemaPlus;
+import calcite_gbif_shaded.org.apache.calcite.schema.Table;
+import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractSchema;
+import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractTable;
+import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunction;
+import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunctionCategory;
+import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
+import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
+import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
+import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
 
-import static org.apache.calcite.sql.type.OperandTypes.family;
+import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 
 @Slf4j
 public class SqlValidation {
