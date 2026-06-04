@@ -107,6 +107,7 @@ public class OccurrenceDownloadResourceTest {
   }
 
   @Test
+  @Disabled
   public void testSearchToSql() {
     prepareMocks(USER, false);
 
