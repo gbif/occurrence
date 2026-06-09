@@ -709,7 +709,7 @@ public class DownloadResource {
 
       if (downloadRequest.getPredicate() != null) {
         String generatedWhereClause =
-            QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey)
+            QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey, null)
                 .buildQuery(downloadRequest.getPredicate());
         // This is not pretty.
         generatedWhereClause = generatedWhereClause

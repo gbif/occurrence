@@ -110,21 +110,29 @@ public class DownloadJobConfiguration {
     this.checklistKey = checklistKey;
   }
 
-  public static DownloadJobConfiguration forSqlDownload(Download download,
-                                                        WorkflowConfiguration workflowConfiguration) {
+  public static DownloadJobConfiguration forSqlDownload(
+      Download download, WorkflowConfiguration workflowConfiguration) {
     return DownloadJobConfiguration.builder()
         .downloadKey(download.getKey())
         .downloadFormat(download.getRequest().getFormat())
         .coreTerm(download.getRequest().getType().getCoreTerm())
         .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
         .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
-        .filter(getDownloadFilter(download, workflowConfiguration.getDefaultChecklistKey()))
+        .filter(
+            getDownloadFilter(
+                download,
+                workflowConfiguration.getDefaultChecklistKey(),
+                "iceberg."
+                    + workflowConfiguration.getHiveDb()
+                    + "."
+                    + download.getRequest().getType().getCoreTerm().name().toLowerCase()))
         .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))
         .isSmallDownload(false)
         .sourceDir(workflowConfiguration.getHiveDBPath())
-        .checklistKey(download.getRequest().getChecklistKey() != null
-            ? download.getRequest().getChecklistKey()
-            : workflowConfiguration.getDefaultChecklistKey())
+        .checklistKey(
+            download.getRequest().getChecklistKey() != null
+                ? download.getRequest().getChecklistKey()
+                : workflowConfiguration.getDefaultChecklistKey())
         .build();
   }
 
@@ -132,12 +140,14 @@ public class DownloadJobConfiguration {
    * Returns the string representation of a download base on the download format: Json Predicate or
    * Sql clause.
    */
-  private static String getDownloadFilter(Download download, String defaultChecklistKey) {
+  private static String getDownloadFilter(
+      Download download, String defaultChecklistKey, String disambiguationTable) {
     return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
         ? ((SqlDownloadRequest) download.getRequest()).getSql()
         : toSqlQuery(
-            ((PredicateDownloadRequest) download.getRequest()).getPredicate(), defaultChecklistKey
-    );
+            ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
+            defaultChecklistKey,
+            disambiguationTable);
   }
 
   public EsFieldMapper<? extends SearchParameter> esFieldMapper(Download download) {
@@ -197,9 +207,9 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * FASTA table/file name. This is used for FASTA downloads only, it varies if it's a small or
-   * big download. - big downloads format: sourceDir/downloadTableName_fasta/ - small downloads
-   * format: sourceDir/downloadKey/sequence.fasta
+   * FASTA table/file name. This is used for FASTA downloads only, it varies if it's a small or big
+   * download. - big downloads format: sourceDir/downloadTableName_fasta/ - small downloads format:
+   * sourceDir/downloadKey/sequence.fasta
    */
   public String getFastaDataFileName() {
     return isSmallDownload
@@ -214,10 +224,9 @@ public class DownloadJobConfiguration {
    */
   public String getSequencesDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DwcDownloadsConstants.SEQUENCES_FILENAME
-      : getDownloadTempDir(TableSuffixes.SEQUENCES_SUFFIX);
+        ? getDownloadTempDir() + DwcDownloadsConstants.SEQUENCES_FILENAME
+        : getDownloadTempDir(TableSuffixes.SEQUENCES_SUFFIX);
   }
-
 
   /**
    * Humboldt table/file name. This is used for DwcA downloads only, it varies if it's a small or
@@ -231,14 +240,14 @@ public class DownloadJobConfiguration {
   }
 
   /**
-   * Occurrence extension table/file name. This is used for DwcA downloads only, it varies if it's a small or
-   * big download. - big downloads format: sourceDir/downloadTableName_occurrence/ - small downloads
-   * format: sourceDir/downloadKey/occurrence
+   * Occurrence extension table/file name. This is used for DwcA downloads only, it varies if it's a
+   * small or big download. - big downloads format: sourceDir/downloadTableName_occurrence/ - small
+   * downloads format: sourceDir/downloadKey/occurrence
    */
   public String getOccurrenceExtDataFileName() {
     return isSmallDownload
-      ? getDownloadTempDir() + DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME
-      : getDownloadTempDir(TableSuffixes.OCCURRENCE_EXT_SUFFIX);
+        ? getDownloadTempDir() + DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME
+        : getDownloadTempDir(TableSuffixes.OCCURRENCE_EXT_SUFFIX);
   }
 
   /**
@@ -256,9 +265,10 @@ public class DownloadJobConfiguration {
   }
 
   public String getExtensionDataFileName(ExtensionTable extensionTable) {
-    String out = isSmallDownload
-        ? getDownloadTempDir() + "verbatim/" + extensionTable.getHiveTableName() + ".txt"
-        : getDownloadTempDir("_ext_" + extensionTable.getHiveTableName());
+    String out =
+        isSmallDownload
+            ? getDownloadTempDir() + "verbatim/" + extensionTable.getHiveTableName() + ".txt"
+            : getDownloadTempDir("_ext_" + extensionTable.getHiveTableName());
     log.info("Extension data file name: {}", out);
     return out;
   }
@@ -273,7 +283,9 @@ public class DownloadJobConfiguration {
   }
 
   @SneakyThrows
-  private static String toSqlQuery(Predicate predicate, String defaultChecklistKey) {
-    return QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey).buildQuery(predicate);
+  private static String toSqlQuery(
+      Predicate predicate, String defaultChecklistKey, String disambiguationTable) {
+    return QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey, disambiguationTable)
+        .buildQuery(predicate);
   }
 }
