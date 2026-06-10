@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.spark;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.QueryExecutor;
 
@@ -25,6 +26,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
+@Slf4j
 public class SparkQueryExecutor implements QueryExecutor {
   private SparkSession sparkSession;
 
@@ -35,6 +37,7 @@ public class SparkQueryExecutor implements QueryExecutor {
 
   @Override
   public void accept(String description, String sql) {
+    log.info("Running {}", sql);
     sparkSession.sparkContext().setJobDescription(description);
     sparkSession.sql(sql);
   }
