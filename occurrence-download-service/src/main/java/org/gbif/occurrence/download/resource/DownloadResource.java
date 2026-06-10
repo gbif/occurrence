@@ -439,6 +439,11 @@ public class DownloadResource {
           new HashSet<>(predicateDownloadRequest.getVerbatimExtensions());
       verbatimExtensions.add(org.gbif.api.vocabulary.Extension.DNA_DERIVED_DATA);
       predicateDownloadRequest.setVerbatimExtensions(verbatimExtensions);
+
+      Set<org.gbif.api.vocabulary.Extension> interpretedExtensions =
+        new HashSet<>(predicateDownloadRequest.getInterpretedExtensions());
+      interpretedExtensions.add(org.gbif.api.vocabulary.Extension.DNA_DERIVED_DATA);
+      predicateDownloadRequest.setInterpretedExtensions(interpretedExtensions);
     }
 
     try {

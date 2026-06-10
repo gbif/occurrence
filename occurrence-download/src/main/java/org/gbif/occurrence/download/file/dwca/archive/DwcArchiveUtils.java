@@ -125,13 +125,16 @@ public class DwcArchiveUtils {
   }
 
   /** Creates a meta.xml occurrence descriptor file in the directory parameter. */
-  public static void createOccurrenceArchiveDescriptor(File directory, Set<Extension> extensions) {
+  public static void createOccurrenceArchiveDescriptor(
+      File directory,
+      Set<Extension> verbatimExtensions,
+      Set<Extension> interpretedExtensions) {
     createArchiveDescriptor(
         directory,
         OCCURRENCE_INTERPRETED_FILENAME,
         DwcTerm.Occurrence,
-        extensions,
-        Collections.emptySet());
+        verbatimExtensions,
+        interpretedExtensions);
   }
 
   /** Creates a meta.xml event descriptor file in the directory parameter. */

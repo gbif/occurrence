@@ -67,7 +67,9 @@ public class DownloadArchiveBuilder {
           DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
     } else {
       DwcArchiveUtils.createOccurrenceArchiveDescriptor(
-          archiveDir, DownloadRequestUtils.getVerbatimExtensions(download.getRequest()));
+          archiveDir,
+          DownloadRequestUtils.getVerbatimExtensions(download.getRequest()),
+          DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
     }
   }
 
