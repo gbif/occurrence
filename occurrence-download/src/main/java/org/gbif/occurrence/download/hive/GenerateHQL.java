@@ -70,6 +70,7 @@ public class GenerateHQL {
   private static final String IS_FASTA_DOWNLOAD = "isFastaDownload";
   private static final String INCLUDE_HUMBOLDT_INTERPRETED = "includeHumboldtInterpreted";
   private static final String INCLUDE_OCCURRENCE_EXT_INTERPRETED = "includeOccurrenceExtInterpreted";
+  private static final String INCLUDE_DNA_INTERPRETED = "includeDnaInterpreted";
 
   private static final HiveQueries HIVE_QUERIES = new HiveQueries();
   private static final EventsHiveQueries EVENTS_HIVE_QUERIES = new EventsHiveQueries();
@@ -213,7 +214,9 @@ public class GenerateHQL {
 
     ImmutableMap.Builder<String, Object> dataBuilder =
         ImmutableMap.<String, Object>builder()
-            .put("verbatimFields", HIVE_QUERIES.selectVerbatimFields(queryParameters.getCoreTerm()).values())
+            .put(
+                "verbatimFields",
+                HIVE_QUERIES.selectVerbatimFields(queryParameters.getCoreTerm()).values())
             .put(
                 "interpretedFields",
                 getQueries(queryParameters.getCoreTerm())
@@ -236,6 +239,9 @@ public class GenerateHQL {
             .put(
                 INCLUDE_OCCURRENCE_EXT_INTERPRETED,
                 includeInterpretedExtension(queryParameters, Extension.OCCURRENCE))
+            .put(
+                INCLUDE_DNA_INTERPRETED,
+                includeInterpretedExtension(queryParameters, Extension.DNA_DERIVED_DATA))
             .put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload());
 
     if (queryParameters.isFastaDownload()) {

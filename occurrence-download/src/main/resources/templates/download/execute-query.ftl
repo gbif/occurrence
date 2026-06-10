@@ -97,7 +97,9 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
     CREATE TABLE ${r"${fastaTable}"} (
      fasta STRING
     ) STORED AS TEXTFILE TBLPROPERTIES ("serialization.null.format"="");
+</#if>
 
+<#if isFastaDownload || includeDnaInterpreted>
     -- sequences table
     CREATE TABLE ${r"${sequencesTable}"} (
       <#list sequencesFields as field>
@@ -108,8 +110,10 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
     -- multi insert
     FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
     JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId AND dna.sequence IS NOT NULL
-    INSERT INTO TABLE ${r"${fastaTable}"}
-    SELECT concat('>', coalesce(dna.nucleotidesequenceid, ''), '|', dna.gbifid, '|', coalesce(dna.targetgene.concept, ''), '\n', dna.sequence)
+    <#if isFastaDownload>
+      INSERT INTO TABLE ${r"${fastaTable}"}
+      SELECT concat('>', coalesce(dna.nucleotidesequenceid, ''), '|', dna.gbifid, '|', coalesce(dna.targetgene.concept, ''), '\n', dna.sequence)
+    </#if>
     INSERT INTO TABLE ${r"${sequencesTable}"}
     SELECT
       <#list sequencesSelectFields as field>
