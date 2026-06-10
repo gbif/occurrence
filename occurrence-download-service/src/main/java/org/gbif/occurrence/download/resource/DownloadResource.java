@@ -435,9 +435,10 @@ public class DownloadResource {
 
     if (downloadRequest.getFormat().equals(DownloadFormat.FASTA_ARCHIVE)
         && downloadRequest instanceof PredicateDownloadRequest predicateDownloadRequest) {
-      predicateDownloadRequest
-          .getVerbatimExtensions()
-          .add(org.gbif.api.vocabulary.Extension.DNA_DERIVED_DATA);
+      Set<org.gbif.api.vocabulary.Extension> verbatimExtensions =
+          new HashSet<>(predicateDownloadRequest.getVerbatimExtensions());
+      verbatimExtensions.add(org.gbif.api.vocabulary.Extension.DNA_DERIVED_DATA);
+      predicateDownloadRequest.setVerbatimExtensions(verbatimExtensions);
     }
 
     try {
