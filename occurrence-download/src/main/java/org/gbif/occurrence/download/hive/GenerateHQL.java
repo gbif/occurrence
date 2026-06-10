@@ -244,7 +244,8 @@ public class GenerateHQL {
                 includeInterpretedExtension(queryParameters, Extension.DNA_DERIVED_DATA))
             .put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload());
 
-    if (queryParameters.isFastaDownload()) {
+    if (queryParameters.isFastaDownload()
+        || includeInterpretedExtension(queryParameters, Extension.DNA_DERIVED_DATA)) {
       dataBuilder.put("sequencesFields", HIVE_QUERIES.selectSequencesFields(false).values());
       dataBuilder.put("sequencesSelectFields", HIVE_QUERIES.selectSequencesFields(true).values());
     }
