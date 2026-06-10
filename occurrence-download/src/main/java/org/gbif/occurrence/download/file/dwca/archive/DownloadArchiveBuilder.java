@@ -185,7 +185,11 @@ public class DownloadArchiveBuilder {
         && download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
       appendPreCompressedFile(
           out, new Path(configuration.getFastaDataFileName()), FASTA_FILENAME, null);
+    }
 
+    if (DwcTerm.Occurrence == configuration.getCoreTerm()
+        && (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE
+            || configuration.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA))) {
       appendPreCompressedFile(
           out,
           new Path(configuration.getSequencesDataFileName()),
