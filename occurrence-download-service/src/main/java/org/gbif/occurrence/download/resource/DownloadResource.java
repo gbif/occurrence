@@ -375,6 +375,7 @@ public class DownloadResource {
     if (Objects.isNull(downloadRequest.getCreator())) {
       downloadRequest.setCreator(userAuthenticated.getName());
     }
+
     LOG.info("New download request: [{}]", downloadRequest);
     // User matches (or admin user)
     assertLoginMatches(downloadRequest, authentication, userAuthenticated);
@@ -430,6 +431,13 @@ public class DownloadResource {
         LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
       }
+    }
+
+    if (downloadRequest.getFormat().equals(DownloadFormat.FASTA_ARCHIVE)
+        && downloadRequest instanceof PredicateDownloadRequest predicateDownloadRequest) {
+      predicateDownloadRequest
+          .getVerbatimExtensions()
+          .add(org.gbif.api.vocabulary.Extension.DNA_DERIVED_DATA);
     }
 
     try {

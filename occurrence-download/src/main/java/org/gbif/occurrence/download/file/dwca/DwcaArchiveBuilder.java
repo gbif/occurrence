@@ -159,6 +159,7 @@ public class DwcaArchiveBuilder {
       TitleLookupService titleLookup = TitleLookupServiceFactory.getInstance(workflowConfiguration.getApiUrl());
       //Generate and persist a Download DOI: required to create the citation
       DOI downloadDOI = doiInteractionService.generate(DoiType.DOWNLOAD);
+      // TODO: rollback it if the download fails
       download.setDoi(downloadDOI);
       occurrenceDownloadService.update(download);
       downloadCitation = FastaCitationBuilder.buildCitation(download, titleLookup);

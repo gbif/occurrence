@@ -80,10 +80,6 @@ public class ExtensionsQuery {
     Set<Extension> verbatimExtensions = Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
       .orElse(new HashSet<>());
 
-    if (DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat()) {
-      verbatimExtensions.add(Extension.DNA_DERIVED_DATA);
-    }
-
     List<ExtensionTable> extensionTables = new java.util.ArrayList<>(
       verbatimExtensions.stream()
         .map(ExtensionTable::new)
