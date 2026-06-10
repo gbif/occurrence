@@ -256,7 +256,10 @@ public class DownloadJobConfiguration {
   @SneakyThrows
   private static String toSqlQuery(Predicate predicate, String defaultChecklistKey) {
     String sql = QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey).buildQuery(predicate);
+    log.info("SQL query: {}", sql);
     HiveSqlQuery query = sqlValidation.validateAndParse(sql, false);
-    return query.getSql();
+    String aftervalidation =  query.getSql();
+    log.info("SQL query after validation: {}", aftervalidation);
+    return aftervalidation;
   }
 }
