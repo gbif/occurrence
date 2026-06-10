@@ -20,6 +20,8 @@ import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -81,6 +83,8 @@ public class DownloadJobConfiguration {
 
   /** Requested extensions. */
   private final String checklistKey;
+
+  private static final SqlValidation sqlValidation = new SqlValidation();
 
   @Builder
   private DownloadJobConfiguration(
@@ -251,6 +255,8 @@ public class DownloadJobConfiguration {
 
   @SneakyThrows
   private static String toSqlQuery(Predicate predicate, String defaultChecklistKey) {
-    return QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey).buildQuery(predicate);
+    String sql = QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey).buildQuery(predicate);
+    HiveSqlQuery query = sqlValidation.validateAndParse(sql, false);
+    return query.getSql();
   }
 }
