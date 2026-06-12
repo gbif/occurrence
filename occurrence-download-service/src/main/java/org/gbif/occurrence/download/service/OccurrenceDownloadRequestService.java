@@ -21,6 +21,7 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.registry.ws.client.DoiInteractionClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -41,7 +42,8 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       DownloadLimitsService downloadLimitsService,
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
-      MessagePublisher messagePublisher) {
+      MessagePublisher messagePublisher,
+      DoiInteractionClient doiInteractionClient) {
     super(
         portalUrl,
         wsUrl,
@@ -51,7 +53,8 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
         emailManager,
         emailSender,
         messagePublisher,
-        DownloadType.OCCURRENCE);
+        DownloadType.OCCURRENCE,
+        doiInteractionClient);
     this.occurrenceSearchService = occurrenceSearchService;
   }
 
