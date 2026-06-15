@@ -46,6 +46,7 @@ public enum OccurrenceEsField implements EsField {
   HOSTING_ORGANIZATION_KEY(new BaseEsField("hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey)),
   INSTALLATION_KEY(new BaseEsField("installationKey", GbifInternalTerm.installationKey)),
   NETWORK_KEY(new BaseEsField("networkKeys", GbifInternalTerm.networkKey)),
+  DATASET_CATEGORY(new BaseEsField("datasetCategory", GbifInternalTerm.datasetCategory)),
   PROTOCOL(new BaseEsField("protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("license", DcTerm.license)),
   PROJECT_ID(new BaseEsField("projectId", GbifTerm.projectId)),
@@ -395,6 +396,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.CRAWL_ID, CRAWL_ID)
       .put(OccurrenceSearchParameter.INSTALLATION_KEY, INSTALLATION_KEY)
       .put(OccurrenceSearchParameter.NETWORK_KEY, NETWORK_KEY)
+      .put(OccurrenceSearchParameter.DATASET_CATEGORY, DATASET_CATEGORY)
       .put(OccurrenceSearchParameter.EVENT_ID, EVENT_ID)
       .put(OccurrenceSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
       .put(OccurrenceSearchParameter.SAMPLING_PROTOCOL, SAMPLING_PROTOCOL)

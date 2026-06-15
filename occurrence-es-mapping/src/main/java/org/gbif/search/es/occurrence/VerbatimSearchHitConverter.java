@@ -14,6 +14,7 @@
 package org.gbif.search.es.occurrence;
 
 import static org.gbif.search.es.occurrence.OccurrenceEsField.CRAWL_ID;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.DATASET_CATEGORY;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.DATASET_KEY;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.GBIF_ID;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.HOSTING_ORGANIZATION_KEY;
@@ -76,6 +77,7 @@ public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccur
         .ifPresent(
             v ->
                 vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+    getListValue(hit, DATASET_CATEGORY).ifPresent(vOcc::setDatasetCategory);
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(vOcc::setCrawlId);
     getDateValue(hit, LAST_PARSED).ifPresent(vOcc::setLastParsed);
     getDateValue(hit, LAST_CRAWLED).ifPresent(vOcc::setLastCrawled);

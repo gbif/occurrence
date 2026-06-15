@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -157,6 +159,31 @@ public class RegistryBasedOccurrenceMutatorTest {
     //Null checks
     newDataset.setNetworkKeys(networkKeys);
     oldDataset.setNetworkKeys(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+  }
+
+  @Test
+  public void testDatasetCategoryUpdate() {
+    Set<String> categories = new HashSet<>(Arrays.asList("eDNA", "Observation"));
+
+    Dataset oldDataset = new Dataset();
+    oldDataset.setKey(UUID.randomUUID());
+    oldDataset.setCategory(categories);
+
+    Dataset newDataset = new Dataset();
+    newDataset.setKey(oldDataset.getKey());
+    newDataset.setCategory(new HashSet<>(categories));
+
+    assertFalse(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    newDataset.setCategory(new HashSet<>(Collections.singletonList("SensorBased")));
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    newDataset.setCategory(null);
+    assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
+
+    newDataset.setCategory(categories);
+    oldDataset.setCategory(null);
     assertTrue(OCC_MUTATOR.requiresUpdate(oldDataset, newDataset));
   }
 

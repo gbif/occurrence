@@ -155,6 +155,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
         .ifPresent(
             v ->
                 vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+    getListValue(hit, DATASET_CATEGORY).ifPresent(vOcc::setDatasetCategory);
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(vOcc::setCrawlId);
     getDateValue(hit, LAST_PARSED).ifPresent(vOcc::setLastParsed);
     getDateValue(hit, LAST_CRAWLED).ifPresent(vOcc::setLastCrawled);
@@ -358,6 +359,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
             v ->
                 event.setNetworkKeys(
                     v.stream().map(UUID::fromString).collect(Collectors.toList())));
+    getListValue(hit, DATASET_CATEGORY).ifPresent(event::setDatasetCategory);
   }
 
   private void setCrawlingFields(SearchHit hit, Event event) {

@@ -159,6 +159,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getListValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.networkKey).getValueFieldName())
       .ifPresent(
         v -> vOcc.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+    getListValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.datasetCategory))
+      .ifPresent(vOcc::setDatasetCategory);
     getValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.crawlId), Integer::valueOf).ifPresent(vOcc::setCrawlId);
     getDateValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.lastParsed)).ifPresent(vOcc::setLastParsed);
     getDateValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.lastCrawled)).ifPresent(vOcc::setLastCrawled);
@@ -529,6 +531,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getListValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.networkKey).getValueFieldName())
       .ifPresent(
         v -> occ.setNetworkKeys(v.stream().map(UUID::fromString).collect(Collectors.toList())));
+    getListValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.datasetCategory))
+      .ifPresent(occ::setDatasetCategory);
   }
 
   private void setCrawlingFields(SearchHit hit, Occurrence occ) {

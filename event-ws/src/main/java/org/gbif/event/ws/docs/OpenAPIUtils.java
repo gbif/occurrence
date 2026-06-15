@@ -254,6 +254,17 @@ public class OpenAPIUtils {
             in = ParameterIn.QUERY,
             example = "13b70480-bd69-11dd-b15f-b8a03c50a862"),
         @Parameter(
+            name = "datasetCategory",
+            description =
+                "Category of the dataset, as defined in the "
+                    + "[GBIF DatasetCategory vocabulary](https://registry.gbif.org/vocabulary/DatasetCategory/concepts).\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "eDNA"),
+        @Parameter(
             name = "datasetName",
             description = "The exact name of the dataset.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
             array =
@@ -1053,6 +1064,15 @@ public class OpenAPIUtils {
             name = "locality",
             description =
                 "The specific description of the place.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY),
+        @Parameter(
+            name = "locationId",
+            description =
+                "An identifier for the set of location information (data associated with the Location term).\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
