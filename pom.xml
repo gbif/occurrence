@@ -177,7 +177,7 @@
 
     <!-- GBIF VERSIONS -->
     <hbase-utils.version>1.0.0</hbase-utils.version>
-    <download-query-tools.version>2.0.5</download-query-tools.version>
+    <download-query-tools.version>2.0.7</download-query-tools.version>
     <dwc-api.version>2.1.12-fasta-SNAPSHOT</dwc-api.version>
     <dwca-io.version>3.0.2</dwca-io.version>
     <gbif-api.version>2.4.9-fasta-SNAPSHOT</gbif-api.version>
