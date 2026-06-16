@@ -97,9 +97,7 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
     CREATE TABLE ${r"${fastaTable}"} (
      fasta STRING
     ) STORED AS TEXTFILE TBLPROPERTIES ("serialization.null.format"="");
-</#if>
 
-<#if isFastaDownload || includeDnaInterpreted>
     -- sequences table
     CREATE TABLE ${r"${sequencesTable}"} (
       <#list sequencesFields as field>
@@ -110,15 +108,30 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
     -- multi insert
     FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
     JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId AND dna.sequence IS NOT NULL
-    <#if isFastaDownload>
       INSERT INTO TABLE ${r"${fastaTable}"}
       SELECT concat('>', coalesce(dna.nucleotidesequenceid, ''), '|', dna.gbifid, '|', coalesce(dna.targetgene.concept, ''), '\n', dna.sequence)
-    </#if>
     INSERT INTO TABLE ${r"${sequencesTable}"}
     SELECT
       <#list sequencesSelectFields as field>
           <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
       </#list>;
+</#if>
+
+<#if includeDnaInterpreted>
+    -- dna interpreted table
+    CREATE TABLE ${r"${dnaTable}"} (
+      <#list dnaFields as field>
+        ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+      </#list>
+    ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+    INSERT INTO TABLE ${r"${dnaTable}"}
+      SELECT
+        <#list dnaSelectFields as field>
+            <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
+        </#list>;
+      FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
+      JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId
 </#if>
 
 <#if includeHumboldtInterpreted>

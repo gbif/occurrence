@@ -229,6 +229,17 @@ public class DownloadJobConfiguration {
   }
 
   /**
+   * DNA table/file name. It varies if it's a small or big download. - big downloads format:
+   * sourceDir/downloadTableName_dna/ - small downloads format:
+   * sourceDir/downloadKey/dna_derived_data.txt
+   */
+  public String getDnaDataFileName() {
+    return isSmallDownload
+        ? getDownloadTempDir() + DwcDownloadsConstants.DNA_FILENAME
+        : getDownloadTempDir(TableSuffixes.DNA_SUFFIX);
+  }
+
+  /**
    * Humboldt table/file name. This is used for DwcA downloads only, it varies if it's a small or
    * big download. - big downloads format: sourceDir/downloadTableName_humboldt/ - small downloads
    * format: sourceDir/downloadKey/humboldt

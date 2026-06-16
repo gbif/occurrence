@@ -137,6 +137,7 @@ public class DownloadQueryParameters {
     parameters.put("multimediaTable", downloadTableName + "_multimedia");
     parameters.put("fastaTable", downloadTableName + "_fasta");
     parameters.put("sequencesTable", downloadTableName + "_sequences");
+    parameters.put("dnaTable", downloadTableName + "_dna");
     parameters.put("humboldtTable", downloadTableName + "_humboldt");
     parameters.put("eventIdsTable", downloadTableName + "_event_ids");
     parameters.put("occurrenceExtensionTable", downloadTableName + "_occurrence");

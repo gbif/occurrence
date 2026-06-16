@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DNA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.HUMBOLDT_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.METADATA_FILENAME;
@@ -186,9 +187,9 @@ public class DwcArchiveUtils {
       // dna interpreted extension
       ArchiveFile dna =
           createArchiveFile(
-              SEQUENCES_FILENAME,
+              DNA_FILENAME,
               UnknownTerm.build(Extension.DNA_DERIVED_DATA.getRowType()),
-              TermUtils.sequenceTerms());
+              TermUtils.dnaTerms());
       downloadArchive.addExtension(dna);
     }
 

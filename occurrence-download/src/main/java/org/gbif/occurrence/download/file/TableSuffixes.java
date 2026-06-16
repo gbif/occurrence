@@ -27,6 +27,7 @@ public final class TableSuffixes {
   public static final String MULTIMEDIA_SUFFIX = "_multimedia";
   public static final String FASTA_SUFFIX = "_fasta";
   public static final String SEQUENCES_SUFFIX = "_sequences";
+  public static final String DNA_SUFFIX = "_dna";
   public static final String HUMBOLDT_SUFFIX = "_humboldt";
   public static final String OCCURRENCE_EXT_SUFFIX = "_occurrence";
   public static final String CITATION_SUFFIX = "_citation";

@@ -190,13 +190,21 @@ public class DownloadArchiveBuilder {
     }
 
     if (DwcTerm.Occurrence == configuration.getCoreTerm()
-        && (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE
-            || configuration.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA))) {
+        && (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE)) {
       appendPreCompressedFile(
           out,
           new Path(configuration.getSequencesDataFileName()),
           SEQUENCES_FILENAME,
           HeadersFileUtil.getSequencesTableHeader());
+    }
+
+    if (DwcTerm.Occurrence == configuration.getCoreTerm()
+        && configuration.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA)) {
+      appendPreCompressedFile(
+          out,
+          new Path(configuration.getDnaDataFileName()),
+          DNA_FILENAME,
+          HeadersFileUtil.getDnaTableHeader());
     }
 
     if (DwcTerm.Event == configuration.getCoreTerm()) {
