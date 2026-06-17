@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.hive;
 
 import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_DNA_TERMS;
+import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -244,17 +245,18 @@ public class GenerateHQL {
             .put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload());
 
     if (queryParameters.isFastaDownload()) {
-      dataBuilder.put("sequencesFields", HIVE_QUERIES.selectSequencesFields(false).values());
-      dataBuilder.put("sequencesSelectFields", HIVE_QUERIES.selectSequencesFields(true).values());
+      dataBuilder.put(
+          "sequencesFields", HIVE_QUERIES.selectDnaFields(DOWNLOAD_SEQUENCE_TERMS, false).values());
+      dataBuilder.put(
+          "sequencesSelectFields",
+          HIVE_QUERIES.selectDnaFields(DOWNLOAD_SEQUENCE_TERMS, true).values());
     }
 
     if (includeInterpretedExtension(queryParameters, Extension.DNA_DERIVED_DATA)) {
       dataBuilder.put(
-          "dnaFields",
-          HIVE_QUERIES.selectDownloadFields(DOWNLOAD_DNA_TERMS, false, null).values());
+          "dnaFields", HIVE_QUERIES.selectDnaFields(DOWNLOAD_DNA_TERMS, false).values());
       dataBuilder.put(
-          "dnaSelectFields",
-          HIVE_QUERIES.selectDownloadFields(DOWNLOAD_DNA_TERMS, true, null).values());
+          "dnaSelectFields", HIVE_QUERIES.selectDnaFields(DOWNLOAD_DNA_TERMS, true).values());
     }
 
     if (includeInterpretedExtension(queryParameters, Extension.HUMBOLDT)) {

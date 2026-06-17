@@ -18,6 +18,7 @@ import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -170,13 +171,13 @@ public abstract class Queries {
     return result;
   }
 
-  public Map<String, InitializableField> selectSequencesFields(boolean useInitializers) {
+  public Map<String, InitializableField> selectDnaFields(List<Term> terms, boolean useInitializers) {
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
     result.put(GbifTerm.gbifID.simpleName(), selectGbifId());
 
-    for (Term term : DOWNLOAD_SEQUENCE_TERMS) {
+    for (Term term : terms) {
       if (GbifTerm.gbifID == term) {
         continue; // for safety, we code defensively as it may be added
       }

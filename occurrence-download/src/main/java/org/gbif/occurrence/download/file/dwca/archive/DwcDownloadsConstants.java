@@ -28,7 +28,7 @@ public class DwcDownloadsConstants {
   public static final String MULTIMEDIA_FILENAME = "multimedia.txt";
   public static final String FASTA_FILENAME = "sequences.fasta";
   public static final String SEQUENCES_FILENAME = "sequences.txt";
-  public static final String DNA_FILENAME = "dna_derived_data.txt";
+  public static final String DNA_FILENAME = "dnaderiveddata.txt";
   public static final String HUMBOLDT_FILENAME = "humboldt.txt";
   public static final String CITATIONS_FILENAME = "citations.txt";
   public static final String RIGHTS_FILENAME = "rights.txt";

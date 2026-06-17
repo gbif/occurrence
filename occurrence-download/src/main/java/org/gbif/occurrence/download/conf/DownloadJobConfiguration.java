@@ -231,7 +231,7 @@ public class DownloadJobConfiguration {
   /**
    * DNA table/file name. It varies if it's a small or big download. - big downloads format:
    * sourceDir/downloadTableName_dna/ - small downloads format:
-   * sourceDir/downloadKey/dna_derived_data.txt
+   * sourceDir/downloadKey/dnaderiveddata.txt
    */
   public String getDnaDataFileName() {
     return isSmallDownload
