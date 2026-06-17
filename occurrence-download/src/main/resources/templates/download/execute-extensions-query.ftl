@@ -40,13 +40,13 @@ CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.leafNam
   TBLPROPERTIES ("serialization.null.format"="");
 
 -- load ${verbatim_extension.extension} extension
-INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.hiveTableName}
+INSERT INTO TABLE ${downloadTableName}_ext_${verbatim_extension.leafNamespace}_${verbatim_extension.hiveTableName}
   SELECT
   <#list verbatim_extension.verbatimFields as field>
       ext.${field}<#if field_has_next>,</#if>
   </#list>
     FROM ${downloadTableName}_${tableName}_gbifId f
-    JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.hiveTableName} ext
+    JOIN iceberg.${r"${hiveDB}"}.${tableName}_ext_${verbatim_extension.leafNamespace}_${verbatim_extension.hiveTableName} ext
     ON f.gbifid = ext.gbifid
     WHERE ext.gbifid IS NOT NULL;
 </#list>
