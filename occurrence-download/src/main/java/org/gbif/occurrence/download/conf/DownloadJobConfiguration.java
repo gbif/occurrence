@@ -235,7 +235,7 @@ public class DownloadJobConfiguration {
   public String getExtensionDataFileName(ExtensionTable extensionTable) {
     String out = isSmallDownload
         ? getDownloadTempDir() + "verbatim/" + extensionTable.getHiveTableName() + ".txt"
-        : getDownloadTempDir("_ext_" + extensionTable.getHiveTableName());
+        : getDownloadTempDir("_ext_" + extensionTable.getLeafNamespace() + "_" + extensionTable.getHiveTableName());
     log.info("Extension data file name: {}", out);
     return out;
   }
