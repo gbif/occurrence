@@ -126,12 +126,12 @@ JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
     ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
 
     INSERT INTO TABLE ${r"${dnaTable}"}
-      SELECT
-        <#list dnaSelectFields as field>
-            <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
-        </#list>;
-      FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
-      JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId
+    SELECT
+      <#list dnaSelectFields as field>
+          <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
+      </#list>
+    FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
+    JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId;
 </#if>
 
 <#if includeHumboldtInterpreted>
