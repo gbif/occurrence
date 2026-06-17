@@ -30,7 +30,7 @@ SELECT gbifid FROM ${interpretedTable};
 
 <#list verbatim_extensions as verbatim_extension>
 -- ${verbatim_extension.extension} extension
-CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.hiveTableName} (
+CREATE TABLE IF NOT EXISTS ${downloadTableName}_ext_${verbatim_extension.leafNamespace}_${verbatim_extension.hiveTableName} (
   <#list verbatim_extension.interpretedFields as field>
     ${field} string<#if field_has_next>,</#if>
   </#list>
