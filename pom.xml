@@ -180,7 +180,7 @@
     <download-query-tools.version>2.0.7</download-query-tools.version>
     <dwc-api.version>2.1.11</dwc-api.version>
     <dwca-io.version>3.0.2</dwca-io.version>
-    <gbif-api.version>2.4.8</gbif-api.version>
+    <gbif-api.version>2.4.9-SNAPSHOT</gbif-api.version>
     <gbif-common.version>0.60</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
