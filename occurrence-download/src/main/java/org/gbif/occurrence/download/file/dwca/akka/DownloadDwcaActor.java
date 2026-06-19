@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
+import static org.gbif.api.util.TermNormalizationUtils.normalizeFieldName;
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 import akka.actor.AbstractActor;
@@ -342,17 +343,5 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     public String execute(Object value, CsvContext context) {
       return value != null ? DownloadUtils.ISO_8601_ZONED.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
     }
-  }
-
-  // Copied from XmlToAvscGeneratorMojo. They must match to use the same names as in the avro schemas
-  private String normalizeFieldName(String name) {
-    String normalizedNamed = name.toLowerCase().trim()
-      .replace("-", "")
-      .replace("_", "")
-      .replace(":", "_");
-    if (Character.isDigit(normalizedNamed.charAt(0))) {
-      return '_' + normalizedNamed;
-    }
-    return normalizedNamed;
   }
 }
