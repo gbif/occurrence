@@ -249,6 +249,10 @@ public class EventSearchEs
   }
 
   private List<Lineage> lineage(Event event) {
+    if (event == null) {
+      return new ArrayList<>();
+    }
+
     List<Lineage> lineage = new ArrayList<>();
     Optional<Event> parent =
         event.getParentEventID() == null
