@@ -276,7 +276,7 @@ public class EventSearchEs
       parent =
           p.getParentEventID() == null
               ? Optional.empty()
-              : Optional.of(get(p.getDatasetKey().toString(), p.getParentEventID()));
+              : Optional.ofNullable(get(p.getDatasetKey().toString(), p.getParentEventID()));
 
       depth++;
     }
