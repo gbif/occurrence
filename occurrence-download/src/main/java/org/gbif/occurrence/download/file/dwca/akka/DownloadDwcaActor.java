@@ -17,7 +17,7 @@ import static org.gbif.api.util.TermNormalizationUtils.normalizeFieldName;
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 import akka.actor.AbstractActor;
-import com.google.common.base.Throwables;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -40,8 +40,10 @@ import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.util.TermNormalizationUtils;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -181,18 +183,36 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     }
   }
 
-  private Map<String,String> toExtensionRecord(Map<Term, String> row, T record) {
+  @VisibleForTesting
+  protected Map<String,String> toExtensionRecord(Map<Term, String> row, T record) {
     Map<String,String> extensionData = new LinkedHashMap<>();
-    extensionData.put("gbifid", getRecordKey(record));
-    extensionData.put("datasetkey", record.getDatasetKey().toString());
-    extensionData.putAll(
-        row.entrySet().stream()
-            .collect(
-                Collectors.toMap(
-                    // the normalization is needed because the avro schemas of the extensions tables
-                    // do it but ES fields aren't normalized so they don't match
-                    e -> normalizeFieldName(HiveColumns.columnFor(e.getKey())),
-                    Map.Entry::getValue)));
+    extensionData.put(GbifTerm.gbifID.simpleName().toLowerCase(), getRecordKey(record));
+    extensionData.put(GbifTerm.datasetKey.simpleName().toLowerCase(), record.getDatasetKey().toString());
+
+
+    Map<String, Integer> duplicatesMap = new HashMap<>();
+    row.forEach((key, value) -> {
+      if (duplicatesMap.containsKey(key.simpleName().toLowerCase())) {
+        duplicatesMap.computeIfPresent(key.simpleName().toLowerCase(), (s, i) -> ++i);
+      } else {
+        duplicatesMap.put(key.simpleName().toLowerCase(), 1);
+      }
+    });
+
+    // fix for https://github.com/gbif/occurrence/issues/526
+    // handle duplicate keys (which are duplicates when the base url is stripped for the CSV)
+    // Build the normalized map by iterating so we can log duplicates when they occur.
+    Map<String, String> normalized = new LinkedHashMap<>();
+    for (Map.Entry<Term, String> e : row.entrySet()) {
+      Term term = e.getKey();
+      String fName = term.simpleName();
+      if (duplicatesMap.get(fName) != null && duplicatesMap.get(fName) > 1) {
+        fName = term.prefixedName();
+      }
+      String normalizeFieldName = TermNormalizationUtils.normalizeFieldName(fName);
+      normalized.put(normalizeFieldName, e.getValue());
+    }
+    extensionData.putAll(normalized);
     return extensionData;
   }
 
@@ -253,9 +273,12 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
               writeMediaObjects(multimediaCsvWriter, record);
               writeExtensions(work, record);
             }
+          } catch (RuntimeException e) {
+            getSender().tell(e, getSelf()); // inform our master
+            throw e;
           } catch (Exception e) {
             getSender().tell(e, getSelf()); // inform our master
-            throw Throwables.propagate(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
           }
         });
       getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
@@ -292,7 +315,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
         BeanUtils.copyProperties(this, mediaObject);
         this.gbifID = gbifID;
       } catch (IllegalAccessException | InvocationTargetException e) {
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
     }
   }
