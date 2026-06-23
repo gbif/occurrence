@@ -21,9 +21,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -86,6 +88,9 @@ public class EventSearchEs
 
   private static final String SUB_OCCURRENCES_QUERY =
       "{\"parent_id\":{\"type\":\"occurrence\",\"id\":\"%s\"}}";
+
+  // Maximum lineage depth to prevent infinite loops and memory issues
+  private static final int MAX_LINEAGE_DEPTH = 300;
 
   public EventSearchEs(
       RestHighLevelClient esClient,
@@ -244,19 +249,49 @@ public class EventSearchEs
   }
 
   private List<Lineage> lineage(Event event) {
+    if (event == null) {
+      return new ArrayList<>();
+    }
+
     List<Lineage> lineage = new ArrayList<>();
     Optional<Event> parent =
         event.getParentEventID() == null
             ? Optional.empty()
             : Optional.ofNullable(get(event.getDatasetKey().toString(), event.getParentEventID()));
-    do {
-      parent.ifPresent(
-          p -> lineage.add(new Lineage(p.getId(), p.getEventID(), p.getParentEventID())));
+
+    // Track visited event IDs to detect cycles and prevent infinite loops
+    Set<String> visitedEventIds = new HashSet<>();
+    int depth = 0;
+    while (parent.isPresent() && depth < MAX_LINEAGE_DEPTH) {
+      Event p = parent.get();
+
+      // Check if we've already visited this event (cycle detection)
+      if (visitedEventIds.contains(p.getEventID())) {
+        LOG.warn(
+            "Circular reference detected in lineage for event: {}. Parent event {} was already visited.",
+            event.getEventID(),
+            p.getEventID());
+        break;
+      }
+
+      visitedEventIds.add(p.getEventID());
+      lineage.add(new Lineage(p.getId(), p.getEventID(), p.getParentEventID()));
+
       parent =
-          parent
-              .filter(p -> p.getParentEventID() != null)
-              .flatMap(p -> getParentEvent(p.getDatasetKey().toString(), p.getParentEventID()));
-    } while (parent.isPresent());
+          p.getParentEventID() == null
+              ? Optional.empty()
+              : Optional.ofNullable(get(p.getDatasetKey().toString(), p.getParentEventID()));
+
+      depth++;
+    }
+
+    if (depth >= MAX_LINEAGE_DEPTH && parent.isPresent()) {
+      LOG.warn(
+          "Maximum lineage depth ({}) exceeded for event: {}",
+          MAX_LINEAGE_DEPTH,
+          event.getEventID());
+    }
+
     return lineage;
   }
 
