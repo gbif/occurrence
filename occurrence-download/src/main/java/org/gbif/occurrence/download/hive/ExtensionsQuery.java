@@ -13,34 +13,28 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.vocabulary.Extension;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.util.DownloadRequestUtils;
-
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.apache.commons.io.IOUtils;
-
-import freemarker.template.Configuration;
-import freemarker.template.Template;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 /** Generates a query file to be used to query the requested extensions of a download. */
 @Slf4j

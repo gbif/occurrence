@@ -26,6 +26,7 @@ DROP TABLE IF EXISTS ${r"${multimediaTable}"};
 DROP TABLE IF EXISTS ${r"${humboldtTable}"};
 DROP TABLE IF EXISTS ${r"${fastaTable}"};
 DROP TABLE IF EXISTS ${r"${sequencesTable}"};
+DROP TABLE IF EXISTS ${r"${dnaTable}"};
 
 
 -- pre-create verbatim table so it can be used in the multi-insert

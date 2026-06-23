@@ -344,7 +344,16 @@ public abstract class DownloadRequestServiceImpl
             && download.getDoi() != null) {
           // we need to rollback the DOI because it's created when archiving the download to include
           // it in the citations.txt file
-          doiInteractionClient.delete(download.getDoi().getPrefix(), download.getDoi().getSuffix());
+          try {
+            doiInteractionClient.delete(
+                download.getDoi().getPrefix(), download.getDoi().getSuffix());
+          } catch (Exception e) {
+            log.warn(
+                "Failed to rollback DOI {} for failed FASTA download {}",
+                download.getDoi(),
+                downloadId,
+                e);
+      }
         }
 
         download = updateDownloadStatus(download, newStatus);

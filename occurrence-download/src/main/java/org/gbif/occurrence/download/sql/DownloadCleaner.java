@@ -29,6 +29,7 @@ public class DownloadCleaner {
       dropTableFn.accept("_multimedia");
       dropTableFn.accept("_fasta");
       dropTableFn.accept("_sequences");
+      dropTableFn.accept("_dna");
       dropTableFn.accept("_humboldt");
       dropTableFn.accept("_occurrence");
       dropTableFn.accept("_event_ids");
