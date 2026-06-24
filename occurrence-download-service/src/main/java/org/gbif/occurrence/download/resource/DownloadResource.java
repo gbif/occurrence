@@ -731,7 +731,7 @@ public class DownloadResource {
       LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
       LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
       SqlDownloadRequest request = new SqlDownloadRequest(
-        sqlQuery.getUserSql(),
+        generatedSql.toString(),
         downloadRequest.getCreator(),
         downloadRequest.getNotificationAddresses(),
         downloadRequest.getSendNotification(),
