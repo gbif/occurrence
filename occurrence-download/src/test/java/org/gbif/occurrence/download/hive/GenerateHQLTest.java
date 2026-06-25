@@ -42,6 +42,26 @@ public class GenerateHQLTest {
   }
 
   @Test
+  public void fastaDwcaTest() throws Exception {
+    String fastaDwcaDownloadQuery =
+        GenerateHQL.generateDwcaQueryHQL(
+            DownloadQueryParameters.builder()
+                .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .isFastaDownload(true)
+                .build());
+
+    assertTrue(
+        fastaDwcaDownloadQuery.contains("fastaTable"),
+        "FASTA DwC-A query should create the FASTA table");
+    assertTrue(
+        fastaDwcaDownloadQuery.contains("sequencesTable"),
+        "FASTA DwC-A query should create the sequences table");
+    assertTrue(
+        fastaDwcaDownloadQuery.contains("occurrence_dna_derived_data dna"),
+        "FASTA DwC-A query should read the DNA derived data table");
+  }
+
+  @Test
   public void simpleParquetTest() throws Exception {
     String simpleParquetDownloadQuery =
         GenerateHQL.simpleParquetQueryHQL(

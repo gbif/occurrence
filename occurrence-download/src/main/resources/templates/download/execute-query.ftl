@@ -23,6 +23,11 @@ DROP TABLE IF EXISTS ${r"${verbatimTable}"};
 DROP TABLE IF EXISTS ${r"${interpretedTable}"};
 DROP TABLE IF EXISTS ${r"${citationTable}"};
 DROP TABLE IF EXISTS ${r"${multimediaTable}"};
+DROP TABLE IF EXISTS ${r"${humboldtTable}"};
+DROP TABLE IF EXISTS ${r"${fastaTable}"};
+DROP TABLE IF EXISTS ${r"${sequencesTable}"};
+DROP TABLE IF EXISTS ${r"${dnaTable}"};
+
 
 -- pre-create verbatim table so it can be used in the multi-insert
 CREATE TABLE ${r"${verbatimTable}"} (
@@ -50,6 +55,10 @@ CREATE TABLE ${r"${interpretedTable}"} (
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#if isHumboldtSearch>
   LEFT JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h ON h.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
+</#if>
+<#if isFastaDownload>
+  INNER JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_dna_derived_data dna ON dna.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
+    AND dna.sequence IS NOT NULL
 </#if>
   INSERT INTO TABLE ${r"${verbatimTable}"}
   SELECT
@@ -83,6 +92,48 @@ AS SELECT m.gbifid, m.type, m.format, m.identifier, m.references, m.title, m.des
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}_multimedia m
 JOIN ${r"${interpretedTable}"} i ON m.gbifId = i.gbifId;
 
+
+<#if isFastaDownload>
+    -- fasta table
+    CREATE TABLE ${r"${fastaTable}"} (
+     fasta STRING
+    ) STORED AS TEXTFILE TBLPROPERTIES ("serialization.null.format"="");
+
+    -- sequences table
+    CREATE TABLE ${r"${sequencesTable}"} (
+      <#list sequencesFields as field>
+        ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+      </#list>
+    ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+    -- multi insert
+    FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
+    JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId AND dna.sequence IS NOT NULL
+      INSERT INTO TABLE ${r"${fastaTable}"}
+      SELECT concat('>', coalesce(dna.nucleotidesequenceid, ''), '|', dna.gbifid, '|', coalesce(dna.targetgene.concept, ''), '\n', dna.sequence)
+    INSERT INTO TABLE ${r"${sequencesTable}"}
+    SELECT
+      <#list sequencesSelectFields as field>
+          <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
+      </#list>;
+</#if>
+
+<#if includeDnaInterpreted>
+    -- dna interpreted table
+    CREATE TABLE ${r"${dnaTable}"} (
+      <#list dnaFields as field>
+        ${field.hiveField} ${field.hiveDataType}<#if field_has_next>,</#if>
+      </#list>
+    ) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' TBLPROPERTIES ("serialization.null.format"="");
+
+    INSERT INTO TABLE ${r"${dnaTable}"}
+    SELECT
+      <#list dnaSelectFields as field>
+          <#if field.hiveField == "gbifid" || field.hiveField == "datasetkey">dna.</#if>${field.hiveField}<#if field_has_next>,</#if>
+      </#list>
+    FROM iceberg.${r"${hiveDB}"}.occurrence_dna_derived_data dna
+    JOIN ${r"${interpretedTable}"} i ON dna.gbifId = i.gbifId;
+</#if>
 
 <#if includeHumboldtInterpreted>
   -- Humboldt interpreted table

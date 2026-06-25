@@ -375,6 +375,7 @@ public class DownloadResource {
     if (Objects.isNull(downloadRequest.getCreator())) {
       downloadRequest.setCreator(userAuthenticated.getName());
     }
+
     LOG.info("New download request: [{}]", downloadRequest);
     // User matches (or admin user)
     assertLoginMatches(downloadRequest, authentication, userAuthenticated);
@@ -430,6 +431,14 @@ public class DownloadResource {
         LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
       }
+    }
+
+    if (downloadRequest.getFormat().equals(DownloadFormat.FASTA_ARCHIVE)
+        && downloadRequest instanceof PredicateDownloadRequest predicateDownloadRequest) {
+      Set<org.gbif.api.vocabulary.Extension> verbatimExtensions =
+          new HashSet<>(predicateDownloadRequest.getVerbatimExtensions());
+      verbatimExtensions.add(org.gbif.api.vocabulary.Extension.DNA_DERIVED_DATA);
+      predicateDownloadRequest.setVerbatimExtensions(verbatimExtensions);
     }
 
     try {
@@ -710,7 +719,7 @@ public class DownloadResource {
 
       if (downloadRequest.getPredicate() != null) {
         String generatedWhereClause =
-            QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey)
+            QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey, null)
                 .buildQuery(downloadRequest.getPredicate());
         // This is not pretty.
         generatedWhereClause = generatedWhereClause

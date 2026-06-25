@@ -54,6 +54,8 @@ public class DownloadQueryParameters {
 
   private boolean isHumboldtSearch;
 
+  private boolean isFastaDownload;
+
   private String checklistKey;
 
   private Set<Extension> interpretedExtensions;
@@ -96,11 +98,15 @@ public class DownloadQueryParameters {
       builder.isHumboldtSearch(true);
     }
 
-    builder
-        .checklistKey(
-            download.getRequest().getChecklistKey() != null
-                ? download.getRequest().getChecklistKey()
-                : workflowConfiguration.getDefaultChecklistKey());
+    if (DwcTerm.Occurrence == jobConfiguration.getCoreTerm()
+        && download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      builder.isFastaDownload(true);
+    }
+
+    builder.checklistKey(
+        download.getRequest().getChecklistKey() != null
+            ? download.getRequest().getChecklistKey()
+            : workflowConfiguration.getDefaultChecklistKey());
 
     return builder.build();
   }
@@ -129,6 +135,9 @@ public class DownloadQueryParameters {
     parameters.put("interpretedTable", downloadTableName + "_interpreted");
     parameters.put("citationTable", downloadTableName + "_citation");
     parameters.put("multimediaTable", downloadTableName + "_multimedia");
+    parameters.put("fastaTable", downloadTableName + "_fasta");
+    parameters.put("sequencesTable", downloadTableName + "_sequences");
+    parameters.put("dnaTable", downloadTableName + "_dna");
     parameters.put("humboldtTable", downloadTableName + "_humboldt");
     parameters.put("eventIdsTable", downloadTableName + "_event_ids");
     parameters.put("occurrenceExtensionTable", downloadTableName + "_occurrence");

@@ -147,6 +147,14 @@ public class HeadersFileUtil {
     return getTableHeader(TermUtils.humboldtTerms());
   }
 
+  public static String getSequencesTableHeader() {
+    return getTableHeader(TermUtils.sequenceTerms()).replace("nucleotide_", "");
+  }
+
+  public static String getDnaTableHeader() {
+    return getTableHeader(TermUtils.dnaTerms());
+  }
+
   public static String getExtensionInterpretedHeader(ExtensionTable extensionTable) {
     return TAB_JOINER.join(extensionTable.getInterpretedFields()) + '\n';
   }
