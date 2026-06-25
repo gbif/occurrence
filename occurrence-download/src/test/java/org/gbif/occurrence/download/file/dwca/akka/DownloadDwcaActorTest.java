@@ -20,7 +20,7 @@ public class DownloadDwcaActorTest {
 
     ActorSystem system = ActorSystem.create("test");
     TestActorRef actor =  TestActorRef.apply(
-      Props.create(DownloadDwcaActor.class, null, null, null, null),
+      Props.create(DownloadDwcaActor.class, null, null, null),
       system
     );
 
