@@ -88,6 +88,7 @@ public class ElasticDownloadWorkflow {
             .downloadFormat(configuration.getDownloadFormat())
             .coreTerm(coreDwcTerm)
             .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+            .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
             .build());
 
     updateTotalRecordsCount(download.getKey(), recordCount);

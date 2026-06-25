@@ -271,19 +271,22 @@ public class DownloadMaster extends AbstractActor {
         }
         // Awaits for an available thread
         Lock lock = getLock();
-        DownloadFileWork work = new DownloadFileWork(from,
-                                                     to,
-                                                     jobConfiguration.getSourceDir()
-                                                     + Path.SEPARATOR
-                                                     + jobConfiguration.getDownloadKey()
-                                                     + Path.SEPARATOR
-                                                     + jobConfiguration.getDownloadTableName(),
-                                                     i,
-                                                     jobConfiguration.getSearchQuery(),
-                                                     lock,
-                                                     esClient,
-                                                     esIndex,
-                                                     jobConfiguration.getVerbatimExtensions());
+        DownloadFileWork work =
+            new DownloadFileWork(
+                from,
+                to,
+                jobConfiguration.getSourceDir()
+                    + Path.SEPARATOR
+                    + jobConfiguration.getDownloadKey()
+                    + Path.SEPARATOR
+                    + jobConfiguration.getDownloadTableName(),
+                i,
+                jobConfiguration.getSearchQuery(),
+                lock,
+                esClient,
+                esIndex,
+                jobConfiguration.getVerbatimExtensions(),
+                jobConfiguration.getInterpretedExtensions());
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work);
         lock.lock();

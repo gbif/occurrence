@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
-import static org.gbif.api.util.TermNormalizationUtils.normalizeFieldName;
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 import akka.actor.AbstractActor;
@@ -27,6 +26,7 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -38,11 +38,14 @@ import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
+import org.gbif.api.model.occurrence.NucleotideSequence;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.TermNormalizationUtils;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
+import org.gbif.dwc.terms.GbifDnaTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
@@ -54,7 +57,6 @@ import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
-import org.gbif.occurrence.download.hive.HiveColumns;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.encoder.DefaultCsvEncoder;
@@ -78,7 +80,9 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
 
   private final Function<T,Map<String,String>> interpretedMapper;
 
-  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new EnumMap<>(Extension.class);
+  private final Map<Extension,ICsvMapWriter> verbatimExtensionICsvMapWriterMap = new EnumMap<>(Extension.class);
+
+  private final Map<Extension,ICsvBeanWriter> interpretedExtensionICsvBeanWriterMap = new EnumMap<>(Extension.class);
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -108,14 +112,24 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     new CleanStringProcessor(), // license
     new CleanStringProcessor() // rightsHolder
   };
+  private static final String[] DNA_INTERPRETED_HEADERS =
+    Lists.transform(Lists.newArrayList(TermUtils.dnaTerms()), Term::simpleName).toArray(new String[0]);
+  private static final String[] DNA_INTERPRETED_COLUMNS =
+    Lists.transform(Lists.newArrayList(TermUtils.dnaTerms()), t -> { if (t == GbifDnaTerm.dna_sequence) {
+      t = GbifInternalTerm.nucleotide_sequence; } return t.simpleName();}).toArray(new String[0]);
+  private static final CellProcessor[] DNA_INTERPRETED_CELL_PROCESSORS = {
+    new NotNull(), // gbifId
+    new CleanStringProcessor(), // targetGene
+    new CleanStringProcessor() // dnaSequence
+  };
 
 
   @SneakyThrows
-  private ICsvMapWriter getExtensionWriter(Extension extension, DownloadFileWork work) {
-    return extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
+  private ICsvMapWriter getVerbatimExtensionWriter(Extension extension, DownloadFileWork work) {
+    return verbatimExtensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
       try {
         String outPath = work.getJobDataFileName() + '_' + new ExtensionTable(ext).getHiveTableName();
-        log.info("Writing to extension file {}", outPath);
+        log.info("Writing to verbatim extension file {}", outPath);
         CsvPreference preference =
           new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
             .useEncoder(new DefaultCsvEncoder())
@@ -124,6 +138,29 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
       } catch (IOException ex) {
         throw new RuntimeException(ex);
     }
+    });
+  }
+
+  @SneakyThrows
+  private ICsvBeanWriter getInterpretedExtensionWriter(Extension extension, DownloadFileWork work, String tableSuffix) {
+    return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(extension, ext -> {
+      try {
+        CsvPreference preference =
+          new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+            .useEncoder(new DefaultCsvEncoder())
+            .build();
+
+        ICsvBeanWriter interpretedExtensionCsvWriter =
+          new CsvBeanWriter(
+            new FileWriterWithEncoding(
+              work.getJobDataFileName() + tableSuffix,
+              StandardCharsets.UTF_8),
+            preference);
+
+        return interpretedExtensionCsvWriter;
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
     });
   }
 
@@ -151,9 +188,31 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     }
   }
 
-  /**
-   * Extracts media objects from known types.
-   */
+  private void writeInterpretedExtensions(DownloadFileWork work, T record) {
+    if (work.getInterpretedExtensions() != null
+      && work.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA)) {
+      ICsvBeanWriter dnaDerivedDataCsvWriter =
+        getInterpretedExtensionWriter(
+          Extension.DNA_DERIVED_DATA, work, TableSuffixes.DNA_SUFFIX);
+      writeDnaInterpretedData(dnaDerivedDataCsvWriter, record);
+    }
+  }
+
+  /** Writes the DNA interpreted data into the csv file. */
+  @SneakyThrows
+  private void writeDnaInterpretedData(ICsvBeanWriter dnaDerivedDataCsvWriter, T record) {
+    if (record instanceof Occurrence occurrence) {
+      for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+        dnaDerivedDataCsvWriter.writeHeader(DNA_INTERPRETED_HEADERS);
+        dnaDerivedDataCsvWriter.write(
+            new InnerDnaObject(nucleotideSequence, getRecordKey(record)),
+            DNA_INTERPRETED_COLUMNS,
+            DNA_INTERPRETED_CELL_PROCESSORS);
+      }
+    }
+  }
+
+  /** Extracts media objects from known types. */
   private List<MediaObject> getMedia(T record) {
     if (record instanceof Event) {
       return ((Event)record).getMedia();
@@ -168,15 +227,15 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
    * Writes the extensions objects into the file referenced by extensionCsvWriter.
    */
   private void writeExtensions(DownloadFileWork work, T record) throws IOException {
-    if (!work.getExtensions().isEmpty()) {
+    if (!work.getVerbatimExtensions().isEmpty()) {
       Map<String,List<Map<Term, String>>> exportExtensions = record.getExtensions()
         .entrySet().stream()
-        .filter(e ->  work.getExtensions().contains(Extension.fromRowType(e.getKey())))
+        .filter(e ->  work.getVerbatimExtensions().contains(Extension.fromRowType(e.getKey())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : exportExtensions.entrySet()) {
         CsvExtension csvExtension = CsvExtension.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
-          getExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
+          getVerbatimExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
             .write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
         }
       }
@@ -218,7 +277,11 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
 
   @SneakyThrows
   private void closeExtensionWriters() {
-    for (ICsvMapWriter writer : extensionICsvMapWriterMap.values()) {
+    for (ICsvMapWriter writer : verbatimExtensionICsvMapWriterMap.values()) {
+      writer.flush();
+      writer.close();
+    }
+    for (ICsvBeanWriter writer : interpretedExtensionICsvBeanWriterMap.values()) {
       writer.flush();
       writer.close();
     }
@@ -254,33 +317,40 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                     work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX,
                     StandardCharsets.UTF_8),
                 preference)) {
-      searchQueryProcessor.processQuery(work, record -> {
-          try {
-            // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
+      searchQueryProcessor.processQuery(
+          work,
+          record -> {
+            try {
+              // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
 
-            if (record != null) {
-              datasetUsagesCollector.incrementDatasetUsage(record.getDatasetKey().toString());
+              if (record != null) {
+                datasetUsagesCollector.incrementDatasetUsage(record.getDatasetKey().toString());
 
-              log.debug("Excluding columns from DwCA download: {}", DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD);
-              List<String> interpretedColumns = new ArrayList<>(List.of(INT_COLUMNS));
-              interpretedColumns.removeAll(DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD
-                .stream().map(Term::simpleName).toList());
+                log.debug(
+                    "Excluding columns from DwCA download: {}",
+                    DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD);
+                List<String> interpretedColumns = new ArrayList<>(List.of(INT_COLUMNS));
+                interpretedColumns.removeAll(
+                    DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD.stream().map(Term::simpleName).toList());
 
-              String[] interpretedFieldWithExclusions = interpretedColumns.toArray(new String[0]);
+                String[] interpretedFieldWithExclusions = interpretedColumns.toArray(new String[0]);
 
-              intCsvWriter.write(interpretedMapper.apply(record), interpretedFieldWithExclusions);
-              verbCsvWriter.write(verbatimMapper.apply(record), VERB_COLUMNS);
-              writeMediaObjects(multimediaCsvWriter, record);
-              writeExtensions(work, record);
+                intCsvWriter.write(interpretedMapper.apply(record), interpretedFieldWithExclusions);
+                verbCsvWriter.write(verbatimMapper.apply(record), VERB_COLUMNS);
+                writeMediaObjects(multimediaCsvWriter, record);
+                writeExtensions(work, record);
+                writeInterpretedExtensions(work, record);
+              }
+            } catch (RuntimeException e) {
+              getSender().tell(e, getSelf()); // inform our master
+              throw e;
+            } catch (Exception e) {
+              getSender().tell(e, getSelf()); // inform our master
+              throw (e instanceof RuntimeException)
+                  ? (RuntimeException) e
+                  : new RuntimeException(e);
             }
-          } catch (RuntimeException e) {
-            getSender().tell(e, getSelf()); // inform our master
-            throw e;
-          } catch (Exception e) {
-            getSender().tell(e, getSelf()); // inform our master
-            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
-          }
-        });
+          });
       getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
     } finally {
       closeExtensionWriters();
@@ -319,6 +389,29 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
       }
     }
   }
+
+/**
+ * Inner class used to export data into dnaDerivedData.txt files.
+ * The structure must match the headers defined in DNA_INTERPRETED_HEADERS.
+ */
+@Data
+public static class InnerDnaObject extends MediaObject {
+
+  private String gbifID;
+
+  /**
+   * Default constructor.
+   * Copies the fields of the media object parameter and assigns the coreid.
+   */
+  public InnerDnaObject(NucleotideSequence nucleotideSequence, String gbifID) {
+    try {
+      BeanUtils.copyProperties(this, nucleotideSequence);
+      this.gbifID = gbifID;
+    } catch (IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+}
 
   /**
    * Produces a MediaType instance.

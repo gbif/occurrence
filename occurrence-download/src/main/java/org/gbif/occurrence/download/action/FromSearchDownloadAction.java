@@ -73,7 +73,8 @@ public class FromSearchDownloadAction {
     settings.setProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, args[0]);
     WorkflowConfiguration workflowConfiguration = new WorkflowConfiguration(settings);
     DwcTerm coreTerm =  DwcTerm.valueOf(args[6]);
-    Set<Extension> extensions = parseExtensionsArgument(args[7]);
+    Set<Extension> verbatimExtensions = parseExtensionsArgument(args[7]);
+    Set<Extension> interpretedExtensions = parseExtensionsArgument(args[8]);
     run(workflowConfiguration, DownloadJobConfiguration.builder()
           .searchQuery(args[1])
           .downloadKey(args[2])
@@ -84,7 +85,8 @@ public class FromSearchDownloadAction {
           .downloadFormat(workflowConfiguration.getDownloadFormat())
           .user(args[5])
           .coreTerm(coreTerm)
-          .verbatimExtensions(extensions)
+          .verbatimExtensions(verbatimExtensions)
+          .interpretedExtensions(interpretedExtensions)
           .build());
 
   }
