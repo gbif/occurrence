@@ -17,6 +17,7 @@ import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH
 
 import akka.actor.AbstractActor;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -121,7 +122,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                 if (t == GbifDnaTerm.dna_sequence) {
                   t = GbifInternalTerm.nucleotide_sequence;
                 }
-                return t.simpleName();
+                return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, t.simpleName());
               })
           .toArray(new String[0]);
   private static final CellProcessor[] DNA_INTERPRETED_CELL_PROCESSORS = {
@@ -207,12 +208,15 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   @SneakyThrows
   private void writeDnaInterpretedData(ICsvBeanWriter dnaDerivedDataCsvWriter, T record) {
     if (record instanceof Occurrence occurrence) {
-      dnaDerivedDataCsvWriter.writeHeader(DNA_INTERPRETED_HEADERS);
-      for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
-        dnaDerivedDataCsvWriter.write(
-            new InnerDnaObject(nucleotideSequence, getRecordKey(record)),
-            DNA_INTERPRETED_COLUMNS,
-            DNA_INTERPRETED_CELL_PROCESSORS);
+      if (occurrence.getNucleotideSequence() != null
+          && !occurrence.getNucleotideSequence().isEmpty()) {
+        dnaDerivedDataCsvWriter.writeHeader(DNA_INTERPRETED_HEADERS);
+        for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          dnaDerivedDataCsvWriter.write(
+              new InnerDnaObject(nucleotideSequence, getRecordKey(record)),
+              DNA_INTERPRETED_COLUMNS,
+              DNA_INTERPRETED_CELL_PROCESSORS);
+        }
       }
     }
   }
