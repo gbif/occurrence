@@ -14,17 +14,13 @@
 package org.gbif.occurrence.download.sql;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadType;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -53,6 +49,8 @@ public class DownloadQueryParameters {
   private String userSqlHeader;
 
   private boolean isHumboldtSearch;
+
+  private boolean isDnaSearch;
 
   private boolean isFastaDownload;
 
@@ -96,6 +94,11 @@ public class DownloadQueryParameters {
     if (DwcTerm.Event == jobConfiguration.getCoreTerm()
         && download.getRequest().toString().contains("HUMBOLDT_")) {
       builder.isHumboldtSearch(true);
+    }
+
+    if (DwcTerm.Occurrence == jobConfiguration.getCoreTerm()
+        && download.getRequest().toString().contains("NUCLEOTIDE_")) {
+      builder.isDnaSearch(true);
     }
 
     if (DwcTerm.Occurrence == jobConfiguration.getCoreTerm()

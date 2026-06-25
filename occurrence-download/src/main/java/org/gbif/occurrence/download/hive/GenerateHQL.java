@@ -67,6 +67,7 @@ public class GenerateHQL {
 
   private static final String FIELDS = "fields";
   private static final String IS_HUMBOLDT_SEARCH = "isHumboldtSearch";
+  private static final String IS_DNA_SEARCH = "isDnaSearch";
   private static final String IS_FASTA_DOWNLOAD = "isFastaDownload";
   private static final String INCLUDE_HUMBOLDT_INTERPRETED = "includeHumboldtInterpreted";
   private static final String INCLUDE_OCCURRENCE_EXT_INTERPRETED = "includeOccurrenceExtInterpreted";
@@ -242,7 +243,8 @@ public class GenerateHQL {
             .put(
                 INCLUDE_DNA_INTERPRETED,
                 includeInterpretedExtension(queryParameters, Extension.DNA_DERIVED_DATA))
-            .put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload());
+            .put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload())
+            .put(IS_DNA_SEARCH, queryParameters.isDnaSearch());
 
     if (queryParameters.isFastaDownload()) {
       dataBuilder.put(

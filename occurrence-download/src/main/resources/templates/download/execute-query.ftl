@@ -56,9 +56,11 @@ FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 <#if isHumboldtSearch>
   LEFT JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_humboldt h ON h.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
 </#if>
-<#if isFastaDownload>
+<#if isFastaDownload || isDnaSearch>
   INNER JOIN iceberg.${r"${hiveDB}"}.${r"${tableName}"}_dna_derived_data dna ON dna.gbifId = iceberg.${r"${hiveDB}"}.${r"${tableName}"}.gbifId
+  <#if isFastaDownload>
     AND dna.sequence IS NOT NULL
+  </#if>
 </#if>
   INSERT INTO TABLE ${r"${verbatimTable}"}
   SELECT
