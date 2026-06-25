@@ -115,8 +115,15 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   private static final String[] DNA_INTERPRETED_HEADERS =
     Lists.transform(Lists.newArrayList(TermUtils.dnaTerms()), Term::simpleName).toArray(new String[0]);
   private static final String[] DNA_INTERPRETED_COLUMNS =
-    Lists.transform(Lists.newArrayList(TermUtils.dnaTerms()), t -> { if (t == GbifDnaTerm.dna_sequence) {
-      t = GbifInternalTerm.nucleotide_sequence; } return t.simpleName();}).toArray(new String[0]);
+      Lists.transform(
+              Lists.newArrayList(TermUtils.dnaTerms()),
+              t -> {
+                if (t == GbifDnaTerm.dna_sequence) {
+                  t = GbifInternalTerm.nucleotide_sequence;
+                }
+                return t.simpleName();
+              })
+          .toArray(new String[0]);
   private static final CellProcessor[] DNA_INTERPRETED_CELL_PROCESSORS = {
     new NotNull(), // gbifId
     new CleanStringProcessor(), // targetGene
@@ -143,25 +150,23 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
 
   @SneakyThrows
   private ICsvBeanWriter getInterpretedExtensionWriter(Extension extension, DownloadFileWork work, String tableSuffix) {
-    return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(extension, ext -> {
-      try {
-        CsvPreference preference =
-          new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
-            .useEncoder(new DefaultCsvEncoder())
-            .build();
+    return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(
+        extension,
+        ext -> {
+          try {
+            CsvPreference preference =
+                new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+                    .useEncoder(new DefaultCsvEncoder())
+                    .build();
 
-        ICsvBeanWriter interpretedExtensionCsvWriter =
-          new CsvBeanWriter(
-            new FileWriterWithEncoding(
-              work.getJobDataFileName() + tableSuffix,
-              StandardCharsets.UTF_8),
-            preference);
-
-        return interpretedExtensionCsvWriter;
-      } catch (IOException ex) {
-        throw new RuntimeException(ex);
-      }
-    });
+            return new CsvBeanWriter(
+                new FileWriterWithEncoding(
+                    work.getJobDataFileName() + tableSuffix, StandardCharsets.UTF_8),
+                preference);
+          } catch (IOException ex) {
+            throw new RuntimeException(ex);
+          }
+        });
   }
 
   /**
@@ -202,8 +207,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   @SneakyThrows
   private void writeDnaInterpretedData(ICsvBeanWriter dnaDerivedDataCsvWriter, T record) {
     if (record instanceof Occurrence occurrence) {
+      dnaDerivedDataCsvWriter.writeHeader(DNA_INTERPRETED_HEADERS);
       for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
-        dnaDerivedDataCsvWriter.writeHeader(DNA_INTERPRETED_HEADERS);
         dnaDerivedDataCsvWriter.write(
             new InnerDnaObject(nucleotideSequence, getRecordKey(record)),
             DNA_INTERPRETED_COLUMNS,
