@@ -194,7 +194,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     }
   }
 
-  private void writeInterpretedExtensions(DownloadFileWork work, T record) {
+  private void writeInterpretedExtensions(DownloadFileWork work, T record) throws IOException {
     if (work.getInterpretedExtensions() != null
       && work.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA)) {
       ICsvBeanWriter dnaDerivedDataCsvWriter =
@@ -205,8 +205,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   }
 
   /** Writes the DNA interpreted data into the csv file. */
-  @SneakyThrows
-  private void writeDnaInterpretedData(ICsvBeanWriter dnaDerivedDataCsvWriter, T record) {
+  private void writeDnaInterpretedData(ICsvBeanWriter dnaDerivedDataCsvWriter, T record)
+      throws IOException {
     if (record instanceof Occurrence occurrence) {
       if (occurrence.getNucleotideSequence() != null
           && !occurrence.getNucleotideSequence().isEmpty()) {
