@@ -157,7 +157,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
         extension,
         ext -> {
           try {
-            String outPath = work.getJobDataFileName() + '_' + filename;
+            String outPath = work.getBaseDataFileName() + '_' + filename;
             log.info("Writing to interpreted extension file {}", outPath);
             CsvPreference preference =
                 new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
