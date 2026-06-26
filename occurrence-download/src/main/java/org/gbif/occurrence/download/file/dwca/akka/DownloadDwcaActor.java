@@ -122,7 +122,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                 if (t == GbifDnaTerm.dna_sequence) {
                   t = GbifInternalTerm.nucleotide_sequence;
                 }
-                return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, t.simpleName());
+                return CaseFormat.LOWER_UNDERSCORE.to(
+                    CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", ""));
               })
           .toArray(new String[0]);
   private static final CellProcessor[] DNA_INTERPRETED_CELL_PROCESSORS = {
