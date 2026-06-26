@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
+import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
@@ -34,11 +35,13 @@ import org.gbif.occurrence.download.util.HeadersFileUtil;
 public class InterpretedExtensionFilesWriter implements Closeable {
 
   private static final Map<Extension, String> EXTENSION_HEADERS = new HashMap<>();
+  private static final Map<Extension, String> EXTENSION_SUFFIXES = new HashMap<>();
   private static final Map<Extension, String> EXTENSION_FILE_NAMES = new HashMap<>();
 
   static {
     EXTENSION_HEADERS.put(Extension.DNA_DERIVED_DATA, HeadersFileUtil.getDnaTableHeader());
     EXTENSION_FILE_NAMES.put(Extension.DNA_DERIVED_DATA, DwcDownloadsConstants.DNA_FILENAME);
+    EXTENSION_SUFFIXES.put(Extension.DNA_DERIVED_DATA, TableSuffixes.DNA_SUFFIX);
   }
 
   private final Map<Extension, FileOutputStream> filesMap = new HashMap<>();
@@ -55,7 +58,8 @@ public class InterpretedExtensionFilesWriter implements Closeable {
   @SneakyThrows
   private static FileOutputStream extensionOutput(
       Extension extension, DownloadJobConfiguration configuration) {
-    File outFile = new File(EXTENSION_FILE_NAMES.get(extension));
+    File outFile =
+        new File(configuration.getDownloadTempDir(), EXTENSION_FILE_NAMES.get(extension));
     log.info("Aggregating interpreted extension file {}", outFile);
     return new FileOutputStream(outFile, true);
   }
@@ -81,7 +85,7 @@ public class InterpretedExtensionFilesWriter implements Closeable {
   private String extensionJobFileName(Result result, Extension extension) {
     return result.getDownloadFileWork().getJobDataFileName()
         + '_'
-        + EXTENSION_FILE_NAMES.get(extension);
+        + EXTENSION_SUFFIXES.get(extension);
   }
 
   @SneakyThrows
