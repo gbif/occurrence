@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.akka;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
+import static org.gbif.occurrence.download.util.HeadersFileUtil.getTableHeader;
 
 import akka.actor.AbstractActor;
 import com.google.common.annotations.VisibleForTesting;
@@ -245,8 +246,12 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
       for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : exportExtensions.entrySet()) {
         CsvExtension csvExtension = CsvExtension.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
-          getVerbatimExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
-            .write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
+          ICsvMapWriter mapWriter = getVerbatimExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work);
+          mapWriter.writeHeader(
+              getTableHeader(
+                  new ExtensionTable(Extension.fromRowType(dwcExtension.getKey()))
+                      .getInterpretedFieldsAsTerms()));
+          mapWriter.write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
         }
       }
     }
