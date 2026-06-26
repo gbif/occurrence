@@ -54,7 +54,6 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
-import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.terms.utils.TermUtils;

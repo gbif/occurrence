@@ -80,12 +80,15 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
       FileOutputStream interpretedFileWriter = createFileOutStream(configuration.getInterpretedDataFileName());
       FileOutputStream verbatimFileWriter = createFileOutStream(configuration.getVerbatimDataFileName());
       FileOutputStream multimediaFileWriter = createFileOutStream(configuration.getMultimediaDataFileName());
-      ExtensionFilesWriter extensionFilesWriter = new ExtensionFilesWriter(configuration)) {
+      ExtensionFilesWriter extensionFilesWriter = new ExtensionFilesWriter(configuration);
+      InterpretedExtensionFilesWriter interpretedExtensionFilesWriter = new InterpretedExtensionFilesWriter(configuration)) {
 
       HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
       HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
       HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
+
       extensionFilesWriter.writerHeaders();
+      interpretedExtensionFilesWriter.writerHeaders();
       if (!results.isEmpty()) {
         // Results are sorted to respect the original ordering
         Collections.sort(results);
