@@ -152,12 +152,12 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
 
   @SneakyThrows
   private ICsvBeanWriter getInterpretedExtensionWriter(
-      Extension extension, DownloadFileWork work, String filename) {
+      Extension extension, DownloadFileWork work, String fileSuffix) {
     return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(
         extension,
         ext -> {
           try {
-            String outPath = filename;
+            String outPath = work.getJobDataFileName() + fileSuffix;
             log.info("Writing to interpreted extension file {}", outPath);
             CsvPreference preference =
                 new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
@@ -201,7 +201,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
       && work.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA)) {
       ICsvBeanWriter dnaDerivedDataCsvWriter =
           getInterpretedExtensionWriter(
-              Extension.DNA_DERIVED_DATA, work, DwcDownloadsConstants.DNA_FILENAME);
+              Extension.DNA_DERIVED_DATA, work, TableSuffixes.DNA_SUFFIX);
       writeDnaInterpretedData(dnaDerivedDataCsvWriter, record);
     }
   }
