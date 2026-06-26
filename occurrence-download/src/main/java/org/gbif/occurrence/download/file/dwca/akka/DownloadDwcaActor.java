@@ -49,6 +49,7 @@ import org.gbif.dwc.terms.GbifDnaTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
+import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
@@ -151,7 +152,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   }
 
   @SneakyThrows
-  private ICsvBeanWriter getInterpretedExtensionWriter(Extension extension, DownloadFileWork work, String tableSuffix) {
+  private ICsvBeanWriter getInterpretedExtensionWriter(Extension extension, String filename) {
     return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(
         extension,
         ext -> {
@@ -162,8 +163,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                     .build();
 
             return new CsvBeanWriter(
-                new FileWriterWithEncoding(
-                    work.getJobDataFileName() + tableSuffix, StandardCharsets.UTF_8),
+                new FileWriterWithEncoding(filename, StandardCharsets.UTF_8),
                 preference);
           } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -199,8 +199,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     if (work.getInterpretedExtensions() != null
       && work.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA)) {
       ICsvBeanWriter dnaDerivedDataCsvWriter =
-        getInterpretedExtensionWriter(
-          Extension.DNA_DERIVED_DATA, work, TableSuffixes.DNA_SUFFIX);
+          getInterpretedExtensionWriter(
+              Extension.DNA_DERIVED_DATA, DwcDownloadsConstants.DNA_FILENAME);
       writeDnaInterpretedData(dnaDerivedDataCsvWriter, record);
     }
   }
