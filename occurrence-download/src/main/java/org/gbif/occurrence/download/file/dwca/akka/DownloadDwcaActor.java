@@ -153,7 +153,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   }
 
   @SneakyThrows
-  private ICsvBeanWriter getInterpretedExtensionWriter(Extension extension, String filename) {
+  private ICsvBeanWriter getInterpretedExtensionWriter(Extension extension, DownloadFileWork work, String filename) {
     return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(
         extension,
         ext -> {
@@ -164,7 +164,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                     .build();
 
             return new CsvBeanWriter(
-                new FileWriterWithEncoding(filename, StandardCharsets.UTF_8),
+                new FileWriterWithEncoding(work.getJobDataFileName() + filename, StandardCharsets.UTF_8),
                 preference);
           } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -201,7 +201,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
       && work.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA)) {
       ICsvBeanWriter dnaDerivedDataCsvWriter =
           getInterpretedExtensionWriter(
-              Extension.DNA_DERIVED_DATA, DwcDownloadsConstants.DNA_FILENAME);
+              Extension.DNA_DERIVED_DATA, work, DwcDownloadsConstants.DNA_FILENAME);
       writeDnaInterpretedData(dnaDerivedDataCsvWriter, record);
     }
   }
