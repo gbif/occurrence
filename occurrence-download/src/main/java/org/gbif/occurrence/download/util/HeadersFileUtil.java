@@ -78,7 +78,7 @@ public class HeadersFileUtil {
   /**
    * Utility method that generates a String that contains the column names of terms.
    */
-  public static String getTableHeader(Iterable<? extends Term> terms) {
+  private static String getTableHeader(Iterable<? extends Term> terms) {
     List<String> headers = Lists.newArrayList();
     for (Term term : terms) {
       headers.add(term.simpleName());
@@ -156,7 +156,7 @@ public class HeadersFileUtil {
   }
 
   public static String getExtensionInterpretedHeader(ExtensionTable extensionTable) {
-    return getTableHeader(extensionTable.getInterpretedFieldsAsTerms());
+    return TAB_JOINER.join(extensionTable.getInterpretedFields()) + '\n';
   }
 
   public static void main(String[] args) throws IOException {

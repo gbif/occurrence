@@ -14,7 +14,6 @@
 package org.gbif.occurrence.download.file.dwca.akka;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
-import static org.gbif.occurrence.download.util.HeadersFileUtil.getTableHeader;
 
 import akka.actor.AbstractActor;
 import com.google.common.annotations.VisibleForTesting;
@@ -28,7 +27,6 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -50,16 +48,16 @@ import org.gbif.dwc.terms.GbifDnaTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.terms.utils.TermUtils;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.encoder.DefaultCsvEncoder;
@@ -153,19 +151,21 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   }
 
   @SneakyThrows
-  private ICsvBeanWriter getInterpretedExtensionWriter(Extension extension, DownloadFileWork work, String filename) {
+  private ICsvBeanWriter getInterpretedExtensionWriter(
+      Extension extension, DownloadFileWork work, String filename) {
     return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(
         extension,
         ext -> {
           try {
+            String outPath = work.getJobDataFileName() + '_' + filename;
+            log.info("Writing to interpreted extension file {}", outPath);
             CsvPreference preference =
                 new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
                     .useEncoder(new DefaultCsvEncoder())
                     .build();
 
             return new CsvBeanWriter(
-                new FileWriterWithEncoding(work.getJobDataFileName() + filename, StandardCharsets.UTF_8),
-                preference);
+                new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), preference);
           } catch (IOException ex) {
             throw new RuntimeException(ex);
           }
@@ -246,12 +246,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
       for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : exportExtensions.entrySet()) {
         CsvExtension csvExtension = CsvExtension.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
-          ICsvMapWriter mapWriter = getVerbatimExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work);
-          mapWriter.writeHeader(
-              getTableHeader(
-                  new ExtensionTable(Extension.fromRowType(dwcExtension.getKey()))
-                      .getInterpretedFieldsAsTerms()));
-          mapWriter.write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
+          getVerbatimExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
+            .write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
         }
       }
     }
