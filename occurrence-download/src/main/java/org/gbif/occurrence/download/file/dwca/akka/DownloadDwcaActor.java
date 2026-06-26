@@ -404,7 +404,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
  * The structure must match the headers defined in DNA_INTERPRETED_HEADERS.
  */
 @Data
-public static class InnerDnaObject extends MediaObject {
+public static class InnerDnaObject extends NucleotideSequence{
 
   private String gbifID;
 
