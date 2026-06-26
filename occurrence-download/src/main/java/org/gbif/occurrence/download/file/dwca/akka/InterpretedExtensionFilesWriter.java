@@ -83,9 +83,7 @@ public class InterpretedExtensionFilesWriter implements Closeable {
 
   /** Creates the job file name for the extension. */
   private String extensionJobFileName(Result result, Extension extension) {
-    return result.getDownloadFileWork().getJobDataFileName()
-        + '_'
-        + EXTENSION_SUFFIXES.get(extension);
+    return result.getDownloadFileWork().getJobDataFileName() + EXTENSION_SUFFIXES.get(extension);
   }
 
   @SneakyThrows
