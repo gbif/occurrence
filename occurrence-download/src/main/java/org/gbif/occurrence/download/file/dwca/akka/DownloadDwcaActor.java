@@ -112,8 +112,6 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     new CleanStringProcessor(), // license
     new CleanStringProcessor() // rightsHolder
   };
-  private static final String[] DNA_INTERPRETED_HEADERS =
-    Lists.transform(Lists.newArrayList(TermUtils.dnaTerms()), Term::simpleName).toArray(new String[0]);
   private static final String[] DNA_INTERPRETED_COLUMNS =
       Lists.transform(
               Lists.newArrayList(TermUtils.dnaTerms()),
@@ -211,7 +209,6 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     if (record instanceof Occurrence occurrence) {
       if (occurrence.getNucleotideSequence() != null
           && !occurrence.getNucleotideSequence().isEmpty()) {
-        dnaDerivedDataCsvWriter.writeHeader(DNA_INTERPRETED_HEADERS);
         for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
           dnaDerivedDataCsvWriter.write(
               new InnerDnaObject(nucleotideSequence, getRecordKey(record)),
