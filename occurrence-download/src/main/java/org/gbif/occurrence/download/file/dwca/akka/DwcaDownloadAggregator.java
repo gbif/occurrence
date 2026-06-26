@@ -54,11 +54,15 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
     return new FileOutputStream(fileName, true);
   }
 
-  /**
-   * Appends the result files to the output file.
-   */
-  private static void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
-                                   OutputStream multimediaFileWriter, ExtensionFilesWriter extensionFilesWriter) throws IOException {
+  /** Appends the result files to the output file. */
+  private static void appendResult(
+      Result result,
+      OutputStream interpretedFileWriter,
+      OutputStream verbatimFileWriter,
+      OutputStream multimediaFileWriter,
+      ExtensionFilesWriter extensionFilesWriter,
+      InterpretedExtensionFilesWriter interpretedExtensionFilesWriter)
+      throws IOException {
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
                                       + TableSuffixes.INTERPRETED_SUFFIX, interpretedFileWriter);
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
@@ -66,7 +70,7 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
                                       + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
     extensionFilesWriter.appendAndDelete(result);
-
+    interpretedExtensionFilesWriter.appendAndDelete(result);
   }
 
   /**
@@ -95,7 +99,13 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
         DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
         for (Result result : results) {
           datasetUsagesCollector.sumUsages(result.getDatasetUsages());
-          appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter, extensionFilesWriter);
+          appendResult(
+              result,
+              interpretedFileWriter,
+              verbatimFileWriter,
+              multimediaFileWriter,
+              extensionFilesWriter,
+              interpretedExtensionFilesWriter);
         }
         CitationsFileWriter.createCitationsFile(datasetUsagesCollector.getDatasetUsages(),
                                                 configuration.getCitationDataFileName());
