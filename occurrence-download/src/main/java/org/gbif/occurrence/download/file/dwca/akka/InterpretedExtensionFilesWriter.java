@@ -59,7 +59,7 @@ public class InterpretedExtensionFilesWriter implements Closeable {
   private static FileOutputStream extensionOutput(
       Extension extension, DownloadJobConfiguration configuration) {
     File outFile =
-        new File(configuration.getDownloadTempDir(), EXTENSION_FILE_NAMES.get(extension));
+        new File(configuration.getDownloadTempDir() + EXTENSION_FILE_NAMES.get(extension));
     log.info("Aggregating interpreted extension file {}", outFile);
     return new FileOutputStream(outFile, true);
   }
