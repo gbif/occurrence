@@ -14,7 +14,6 @@
 package org.gbif.occurrence.download.file.dwca.akka;
 
 import static org.gbif.occurrence.download.util.HeadersFileUtil.appendHeaders;
-import static org.gbif.occurrence.download.util.HeadersFileUtil.getExtensionInterpretedHeader;
 
 import java.io.Closeable;
 import java.io.File;
@@ -28,35 +27,37 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
-import org.gbif.utils.file.FileUtils;
 
 @Slf4j
 public class InterpretedExtensionFilesWriter implements Closeable {
 
   private static final Map<Extension, String> EXTENSION_HEADERS = new HashMap<>();
+  private static final Map<Extension, String> EXTENSION_FILE_NAMES = new HashMap<>();
 
   static {
     EXTENSION_HEADERS.put(Extension.DNA_DERIVED_DATA, HeadersFileUtil.getDnaTableHeader());
+    EXTENSION_FILE_NAMES.put(Extension.DNA_DERIVED_DATA, DwcDownloadsConstants.DNA_FILENAME);
   }
 
   private final Map<Extension, FileOutputStream> filesMap = new HashMap<>();
 
-  private final Map<Extension, ExtensionTable> tableMap = new HashMap<>();
-
   public InterpretedExtensionFilesWriter(DownloadJobConfiguration configuration) {
-    configuration.getInterpretedExtensions().forEach(extension -> {
-      filesMap.put(extension, extensionOutput(extension, configuration));
-      tableMap.put(extension, new ExtensionTable(extension));
-    });
+    configuration
+        .getInterpretedExtensions()
+        .forEach(
+            extension -> {
+              filesMap.put(extension, extensionOutput(extension, configuration));
+            });
   }
 
   @SneakyThrows
-  private static FileOutputStream extensionOutput(Extension extension, DownloadJobConfiguration configuration) {
-      File outFile = new File(configuration.getExtensionDataFileName(new ExtensionTable(extension)));
-      log.info("Aggregating interpreted extension file {}", outFile);
-      return new FileOutputStream(outFile, true);
+  private static FileOutputStream extensionOutput(
+      Extension extension, DownloadJobConfiguration configuration) {
+    File outFile = new File(EXTENSION_FILE_NAMES.get(extension));
+    log.info("Aggregating interpreted extension file {}", outFile);
+    return new FileOutputStream(outFile, true);
   }
 
   @Override
@@ -76,17 +77,18 @@ public class InterpretedExtensionFilesWriter implements Closeable {
     filesMap.forEach(this::appendExtensionHeaders);
   }
 
-  /**
-   * Creates the job file name for the extension.
-   */
+  /** Creates the job file name for the extension. */
   private String extensionJobFileName(Result result, Extension extension) {
-    return result.getDownloadFileWork().getJobDataFileName() + '_' + tableMap.get(extension).getHiveTableName();
+    return result.getDownloadFileWork().getJobDataFileName()
+        + '_'
+        + EXTENSION_FILE_NAMES.get(extension);
   }
 
   @SneakyThrows
   private void appendResult(Result result, Extension extension, FileOutputStream fileOutputStream) {
     DownloadFileUtils.appendAndDelete(extensionJobFileName(result, extension), fileOutputStream);
   }
+
   @SneakyThrows
   public void appendAndDelete(Result result) {
     filesMap.forEach((extension, fileOutput) -> appendResult(result, extension, fileOutput));
