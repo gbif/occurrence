@@ -15,6 +15,7 @@ package org.gbif.event.ws;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.gbif.occurrence.download.service.OccurrenceDownloadRequestService;
+import org.gbif.registry.ws.client.DoiInteractionClient;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -45,9 +46,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.stereotype.Component;
 
 @SpringBootApplication(
-    exclude = {
-      RabbitAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class
-    })
+    exclude = {RabbitAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class})
 @EnableConfigurationProperties
 @ComponentScan(
     basePackages = {
@@ -99,28 +98,40 @@ public class EventWsApplication {
     return RestTemplateRemoteAuthClient.createInstance(builder, gbifApiUrl);
   }
 
-
-
   @Bean
   public ConceptClient conceptClient(@Value("${api.url}") String apiUrl) {
     return new ClientBuilder()
-      .withObjectMapper(
-        JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
-          .registerModule(new JavaTimeModule()))
-      .withUrl(apiUrl)
-      .build(ConceptClient.class);
+        .withObjectMapper(
+            JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport()
+                .registerModule(new JavaTimeModule()))
+        .withUrl(apiUrl)
+        .build(ConceptClient.class);
+  }
+
+  @Bean
+  public DoiInteractionClient doiInteractionClient(
+      @Value("${registry.ws.url}") String gbifApiUrl,
+      @Value("${gbif.ws.security.appKey}") String appKey,
+      @Value("${gbif.ws.security.appSecret}") String appSecret) {
+    return new ClientBuilder()
+        .withUrl(gbifApiUrl)
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withAppKeyCredentials(appKey, appKey, appSecret)
+        .build(DoiInteractionClient.class);
   }
 
   @Configuration
-  public class SecurityConfiguration  extends RemoteAuthWebSecurityConfigurer {}
+  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {}
 
   @Component
   public class EmbeddedTomcatServerCustomizer
-    implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
+      implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
 
     @Override
     public void customize(TomcatServletWebServerFactory factory) {
-      factory.getTomcatConnectorCustomizers().add(connector -> connector.setEncodedSolidusHandling("decode"));
+      factory
+          .getTomcatConnectorCustomizers()
+          .add(connector -> connector.setEncodedSolidusHandling("decode"));
     }
   }
 }

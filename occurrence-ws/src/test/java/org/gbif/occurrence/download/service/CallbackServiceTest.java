@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.gbif.registry.ws.client.DoiInteractionClient;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -70,6 +72,7 @@ class CallbackServiceTest {
   private EmailSender emailSender;
   private DownloadLimitsService downloadLimitsService;
   private MessagePublisher messagePublisher;
+  private DoiInteractionClient doiInteractionClient;
 
   /** Creates a mock download object. */
   private static Download mockDownload() {
@@ -104,6 +107,7 @@ class CallbackServiceTest {
     occurrenceSearchService = mock(OccurrenceSearchService.class);
     downloadLimitsService = mock(DownloadLimitsService.class);
     messagePublisher = mock(MessagePublisher.class);
+    doiInteractionClient = mock(DoiInteractionClient.class);
 
     when(downloadLimitsService.exceedsSimultaneousDownloadLimit(any(String.class)))
         .thenReturn(null);
@@ -121,7 +125,8 @@ class CallbackServiceTest {
             downloadLimitsService,
             emailManager,
             emailSender,
-            messagePublisher);
+            messagePublisher,
+            doiInteractionClient);
   }
 
   @Test

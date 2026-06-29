@@ -23,6 +23,8 @@ import org.gbif.occurrence.download.service.DownloadLimitsService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.registry.ws.client.DoiInteractionClient;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -35,15 +37,16 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
 
   @Autowired
   public EventDownloadRequestService(
-      @Value("${occurrence.download.portal.url}") String portalUrl,
-      @Value("${occurrence.download.ws.url}") String wsUrl,
-      @Value("${occurrence.download.ws.mount}") String wsMountDir,
-      @Value("${defaultChecklistKey}") String defaultChecklistKey,
-      OccurrenceDownloadService occurrenceDownloadService,
-      DownloadLimitsService downloadLimitsService,
-      OccurrenceEmailManager emailManager,
-      EmailSender emailSender,
-      MessagePublisher messagePublisher) {
+    @Value("${occurrence.download.portal.url}") String portalUrl,
+    @Value("${occurrence.download.ws.url}") String wsUrl,
+    @Value("${occurrence.download.ws.mount}") String wsMountDir,
+    @Value("${defaultChecklistKey}") String defaultChecklistKey,
+    OccurrenceDownloadService occurrenceDownloadService,
+    DownloadLimitsService downloadLimitsService,
+    OccurrenceEmailManager emailManager,
+    EmailSender emailSender,
+    MessagePublisher messagePublisher,
+    DoiInteractionClient doiInteractionClient) {
     super(
         portalUrl,
         wsUrl,
@@ -53,7 +56,8 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
         emailManager,
         emailSender,
         messagePublisher,
-        DownloadType.EVENT);
+        DownloadType.EVENT,
+        doiInteractionClient);
     this.defaultChecklistKey = defaultChecklistKey;
   }
 

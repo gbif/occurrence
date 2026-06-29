@@ -274,6 +274,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getListValueAsString(hit, PROJECT_TITLE).ifPresent(event::setProjectTitle);
     getListValueAsString(hit, FUNDING_ATTRIBUTION).ifPresent(event::setFundingAttribution);
     getListValueAsString(hit, FUNDING_ATTRIBUTION_ID).ifPresent(event::setFundingAttributionID);
+    getStringValue(hit, LOCATION_ID).ifPresent(event::setLocationID);
     setEventLineageData(hit, event);
   }
 

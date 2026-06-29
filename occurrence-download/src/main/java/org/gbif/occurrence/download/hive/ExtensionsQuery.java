@@ -13,29 +13,31 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.util.DownloadRequestUtils;
-
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import org.apache.commons.io.IOUtils;
-
-import freemarker.template.Configuration;
-import freemarker.template.Template;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 /** Generates a query file to be used to query the requested extensions of a download. */
+@Slf4j
 @Data
 @Builder
 public class ExtensionsQuery {
@@ -50,7 +52,9 @@ public class ExtensionsQuery {
     try (InputStream is = getClass().getClassLoader().getResourceAsStream(TEMPLATE_FILE)) {
       StringWriter writer = new StringWriter();
       IOUtils.copy(is, writer, StandardCharsets.UTF_8);
-      return writer.toString();
+      String query = writer.toString();
+      log.info("Extensions query: {}", query);
+      return query;
     }
   }
 
@@ -67,14 +71,15 @@ public class ExtensionsQuery {
   private Map<String, Object> templateVariables(Download download) {
     String downloadTableName = DownloadUtils.downloadTableName(download.getKey());
     HashMap<String, Object> variables = new HashMap<>();
-    Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
-        .ifPresent(
-            verbatimExtensions ->
-                variables.put(
-                    "verbatim_extensions",
-                    verbatimExtensions.stream()
-                        .map(ExtensionTable::new)
-                        .collect(Collectors.toList())));
+    Set<Extension> verbatimExtensions = Optional.ofNullable(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
+      .orElse(new HashSet<>());
+
+    List<ExtensionTable> extensionTables = new java.util.ArrayList<>(
+      verbatimExtensions.stream()
+        .map(ExtensionTable::new)
+        .toList());
+
+    variables.put("verbatim_extensions", extensionTables);
     variables.put("downloadTableName", downloadTableName);
     variables.put("interpretedTable", downloadTableName + "_interpreted");
     variables.put("tableName", download.getRequest().getType().toString().toLowerCase());
@@ -87,3 +92,5 @@ public class ExtensionsQuery {
     template().process(templateVariables(download), writer);
   }
 }
+
+

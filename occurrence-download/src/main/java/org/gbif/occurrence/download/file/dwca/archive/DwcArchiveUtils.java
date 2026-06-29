@@ -14,11 +14,13 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DNA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.HUMBOLDT_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.METADATA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.SEQUENCES_FILENAME;
 import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 import com.google.common.base.Charsets;
@@ -38,12 +40,12 @@ import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.terms.utils.EventTermUtils;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.predicate.query.SQLColumnsUtils;
+import org.gbif.terms.utils.EventTermUtils;
+import org.gbif.terms.utils.TermUtils;
 
 /** Utility class for Darwin Core Archive handling during the download file creation. */
 @Slf4j
@@ -124,13 +126,16 @@ public class DwcArchiveUtils {
   }
 
   /** Creates a meta.xml occurrence descriptor file in the directory parameter. */
-  public static void createOccurrenceArchiveDescriptor(File directory, Set<Extension> extensions) {
+  public static void createOccurrenceArchiveDescriptor(
+      File directory,
+      Set<Extension> verbatimExtensions,
+      Set<Extension> interpretedExtensions) {
     createArchiveDescriptor(
         directory,
         OCCURRENCE_INTERPRETED_FILENAME,
         DwcTerm.Occurrence,
-        extensions,
-        Collections.emptySet());
+        verbatimExtensions,
+        interpretedExtensions);
   }
 
   /** Creates a meta.xml event descriptor file in the directory parameter. */
@@ -176,6 +181,17 @@ public class DwcArchiveUtils {
     ArchiveFile multimedia =
         createArchiveFile(MULTIMEDIA_FILENAME, GbifTerm.Multimedia, TermUtils.multimediaTerms());
     downloadArchive.addExtension(multimedia);
+
+    if (DwcTerm.Occurrence == coreTerm
+        && interpretedExtensions.contains(Extension.DNA_DERIVED_DATA)) {
+      // dna interpreted extension
+      ArchiveFile dna =
+          createArchiveFile(
+              DNA_FILENAME,
+              UnknownTerm.build(Extension.DNA_DERIVED_DATA.getRowType()),
+              TermUtils.dnaTerms());
+      downloadArchive.addExtension(dna);
+    }
 
     if (DwcTerm.Event == coreTerm) {
       if (interpretedExtensions.contains(Extension.HUMBOLDT)) {

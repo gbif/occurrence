@@ -44,9 +44,17 @@ public class ConstituentsCitationWriter implements Closeable, Consumer<Dataset> 
 
   @SneakyThrows
   public ConstituentsCitationWriter(File archiveDir) {
+    this(archiveDir, null);
+  }
+
+  @SneakyThrows
+  public ConstituentsCitationWriter(File archiveDir, String downloadCitation) {
     writer = FileUtils.startNewUtf8File(new File(archiveDir, CITATIONS_FILENAME));
-    // write fixed citations header
     writer.write(CITATION_HEADER);
+    if (downloadCitation != null) {
+      writer.write(downloadCitation);
+      writer.write("\n\n");
+    }
   }
 
 

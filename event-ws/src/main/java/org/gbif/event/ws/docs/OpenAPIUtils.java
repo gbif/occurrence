@@ -1069,14 +1069,13 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
         @Parameter(
-            name = "locationId",
-            description =
-                "An identifier for the set of location information (data associated with the Location term).\n\n"
-                    + API_PARAMETER_MAY_BE_REPEATED,
-            array =
-                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            explode = Explode.TRUE,
-            in = ParameterIn.QUERY),
+          name = "locationID",
+          description =
+            "The location ID of the event.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
+          array =
+          @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+          explode = Explode.TRUE,
+          in = ParameterIn.QUERY),
         @Parameter(
             name = "measurementType",
             description =

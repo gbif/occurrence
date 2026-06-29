@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.ws;
 
+import org.gbif.registry.ws.client.DoiInteractionClient;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -102,6 +103,18 @@ public class OccurrenceWsApplication {
         .build(ConceptClient.class);
   }
 
+  @Bean
+  public DoiInteractionClient doiInteractionClient(
+      @Value("${registry.ws.url}") String gbifApiUrl,
+      @Value("${gbif.ws.security.appKey}") String appKey,
+      @Value("${gbif.ws.security.appSecret}") String appSecret) {
+    return new ClientBuilder()
+        .withUrl(gbifApiUrl)
+        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
+        .withAppKeyCredentials(appKey, appKey, appSecret)
+        .build(DoiInteractionClient.class);
+  }
+
   @Configuration
-  public class SecurityConfiguration  extends RemoteAuthWebSecurityConfigurer {}
+  public class SecurityConfiguration extends RemoteAuthWebSecurityConfigurer {}
 }

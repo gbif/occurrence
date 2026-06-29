@@ -21,7 +21,8 @@ public class DownloadQueryRunner {
   public void runDownloadQuery() {
     String downloadQuery = downloadQuery();
     try (SparkQueryExecutor queryExecutor = queryExecutorSupplier.get()) {
-      if (download.getRequest().getFormat() == DownloadFormat.DWCA) {
+      if (download.getRequest().getFormat() == DownloadFormat.DWCA
+          || download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
         SqlQueryUtils.runMultiSQL(
             "Initial DWCA Download query",
             downloadQuery,
@@ -47,7 +48,7 @@ public class DownloadQueryRunner {
   @SneakyThrows
   private String downloadQuery() {
     return switch (download.getRequest().getFormat()) {
-      case DWCA -> GenerateHQL.generateDwcaQueryHQL(queryParameters);
+      case DWCA, FASTA_ARCHIVE -> GenerateHQL.generateDwcaQueryHQL(queryParameters);
       case SPECIES_LIST -> GenerateHQL.speciesListQueryHQL();
       case SIMPLE_CSV -> GenerateHQL.simpleCsvQueryHQL(queryParameters);
       case SIMPLE_AVRO -> GenerateHQL.simpleAvroQueryHQL(queryParameters);
