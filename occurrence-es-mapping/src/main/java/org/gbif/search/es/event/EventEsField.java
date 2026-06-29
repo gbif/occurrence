@@ -285,7 +285,6 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.ISSUE, ISSUE)
       .put(EventSearchParameter.REPATRIATED, REPATRIATED)
       .put(EventSearchParameter.LOCALITY, LOCALITY)
-      .put(EventSearchParameter.LOCATION_ID, LOCATION_ID)
       .put(EventSearchParameter.COORDINATE_UNCERTAINTY_IN_METERS, COORDINATE_UNCERTAINTY_IN_METERS)
       .put(EventSearchParameter.GADM_GID, GADM_GID)
       .put(EventSearchParameter.GADM_LEVEL_0_GID, GADM_LEVEL_0_GID)
