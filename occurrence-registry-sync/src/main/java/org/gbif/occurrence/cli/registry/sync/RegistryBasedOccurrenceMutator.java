@@ -75,6 +75,18 @@ public class RegistryBasedOccurrenceMutator {
   }
 
   /**
+   * Has the dataset category changed.
+   */
+  private boolean datasetCategoryChanged(Set<String> currentCategory, Set<String> newCategory) {
+    return (nullChange(currentCategory, newCategory) && nonNull(currentCategory, newCategory))
+           || !toSet(currentCategory).equals(toSet(newCategory));
+  }
+
+  private <T> Set<T> toSet(Set<T> s) {
+    return Objects.isNull(s) ? Collections.emptySet() : s;
+  }
+
+  /**
    * Has the dataset title changed?.
    */
   private boolean datasetTitleChanged(Dataset currentDataset, Dataset newDataset) {
@@ -103,6 +115,7 @@ public class RegistryBasedOccurrenceMutator {
             datasetProjectChanged(currentDataset.getProject(), newDataset.getProject()) ||
             !Objects.equals(currentDataset.getTitle(), newDataset.getTitle()) ||
             datasetNetworkChanged(currentDataset.getNetworkKeys(), newDataset.getNetworkKeys()) ||
+            datasetCategoryChanged(currentDataset.getCategory(), newDataset.getCategory()) ||
             !Objects.equals(currentDataset.getInstallationKey(), newDataset.getInstallationKey()) ||
             datasetTitleChanged(currentDataset, newDataset);
 
