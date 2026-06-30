@@ -160,10 +160,10 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     new ParseDouble(), // nonACGTNFraction
     new ParseDouble(), // nFraction
     new ParseInt(), // nRunsCapped
-    new ParseBool(), // naturalLanguageDetected
-    new ParseBool(), // endsTrimmed
-    new ParseBool(), // gapsOrWhitespaceRemoved
-    new ParseBool() // invalid
+    null, // naturalLanguageDetected
+    null, // endsTrimmed
+    null, // gapsOrWhitespaceRemoved
+    null // invalid
   };
 
   @SneakyThrows
