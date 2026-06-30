@@ -19,6 +19,7 @@ import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.wrangler.lock.Lock;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.elasticsearch.client.RestHighLevelClient;
@@ -76,8 +77,8 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     this.lock = lock;
     this.esClient = esClient;
     this.esIndex = esIndex;
-    this.verbatimExtensions = verbatimExtensions;
-    this.interpretedExtensions = interpretedExtensions;
+    this.verbatimExtensions = verbatimExtensions != null ? verbatimExtensions : new HashSet<>();
+    this.interpretedExtensions = interpretedExtensions != null ? interpretedExtensions : new HashSet<>();
     this.downloadFormat = downloadFormat;
   }
 

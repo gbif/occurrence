@@ -72,7 +72,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
 
   // NOTE: this has to match with the ElasticDownloadWorkflow#isSmallDownload method
   protected boolean isSmallDownload(Download download) {
-    // event and fasta downloads never go thru ES
+    // event downloads never go thru ES
     return download.getRequest().getType() != DownloadType.EVENT
         && (download.getRequest().getFormat() == DownloadFormat.DWCA
             || download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE

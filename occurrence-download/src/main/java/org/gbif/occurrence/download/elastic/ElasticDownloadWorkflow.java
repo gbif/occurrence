@@ -54,7 +54,7 @@ public class ElasticDownloadWorkflow {
     if (download.getRequest().getFormat() != DownloadFormat.DWCA
         && download.getRequest().getFormat() != DownloadFormat.FASTA_ARCHIVE
         && download.getRequest().getFormat() != DownloadFormat.SIMPLE_CSV) {
-      throw new IllegalArgumentException("Only dwca and simple csv downloads can be run in ES");
+      throw new IllegalArgumentException("Only dwca, fasta and simple csv downloads can be run in ES");
     }
 
     long recordCount = recordCount(download);

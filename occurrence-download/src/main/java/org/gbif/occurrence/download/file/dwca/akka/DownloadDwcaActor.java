@@ -344,19 +344,24 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     for (ICsvMapWriter writer : verbatimExtensionICsvMapWriterMap.values()) {
       writer.flush();
       writer.close();
+      verbatimExtensionICsvMapWriterMap.remove(writer);
     }
+
     for (ICsvBeanWriter writer : interpretedExtensionICsvBeanWriterMap.values()) {
       writer.flush();
       writer.close();
+      interpretedExtensionICsvBeanWriterMap.remove(writer);
     }
 
     if (fastaWriters.getSequencesCsvWriter() != null) {
       fastaWriters.getSequencesCsvWriter().flush();
       fastaWriters.getSequencesCsvWriter().close();
+      fastaWriters.setSequencesCsvWriter(null);
     }
     if (fastaWriters.getFastaFileWriter() != null) {
       fastaWriters.getFastaFileWriter().flush();
       fastaWriters.getFastaFileWriter().close();
+      fastaWriters.setFastaFileWriter(null);
     }
   }
 
@@ -415,19 +420,9 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                 writeInterpretedExtensions(work, record);
 
                 if (work.getDownloadFormat() == DownloadFormat.FASTA_ARCHIVE) {
-                  ICsvBeanWriter sequencesCsvWriter =
-                    new CsvBeanWriter(
-                      new FileWriterWithEncoding(
-                        work.getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX, StandardCharsets.UTF_8),
-                      preference);
-                  fastaWriters.setSequencesCsvWriter(sequencesCsvWriter);
-                  BufferedWriter fastaFileWriter = new BufferedWriter(
-                    new FileWriterWithEncoding(
-                      work.getJobDataFileName() + TableSuffixes.FASTA_SUFFIX, StandardCharsets.UTF_8));
-                  fastaWriters.setFastaFileWriter(fastaFileWriter);
-
-                  writeSequencesFile(sequencesCsvWriter, record);
-                  writeFastaFile(fastaFileWriter, record);
+                  createFastaWriters(work, preference, fastaWriters);
+                  writeSequencesFile(fastaWriters.sequencesCsvWriter, record);
+                  writeFastaFile(fastaWriters.fastaFileWriter, record);
                 }
               }
             } catch (RuntimeException e) {
@@ -547,6 +542,27 @@ public static class InnerNucleotideObject extends NucleotideSequence{
     @Override
     public String execute(Object value, CsvContext context) {
       return value != null ? DownloadUtils.ISO_8601_ZONED.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
+    }
+  }
+
+  private void createFastaWriters(
+      DownloadFileWork work, CsvPreference preference, FastaWriters fastaWriters)
+      throws IOException {
+    if (fastaWriters.getSequencesCsvWriter() == null) {
+      ICsvBeanWriter sequencesCsvWriter =
+          new CsvBeanWriter(
+              new FileWriterWithEncoding(
+                  work.getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX,
+                  StandardCharsets.UTF_8),
+              preference);
+      fastaWriters.setSequencesCsvWriter(sequencesCsvWriter);
+    }
+    if (fastaWriters.getFastaFileWriter() == null) {
+      BufferedWriter fastaFileWriter =
+          new BufferedWriter(
+              new FileWriterWithEncoding(
+                  work.getJobDataFileName() + TableSuffixes.FASTA_SUFFIX, StandardCharsets.UTF_8));
+      fastaWriters.setFastaFileWriter(fastaFileWriter);
     }
   }
 

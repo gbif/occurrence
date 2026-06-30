@@ -136,6 +136,15 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
       }
       //Creates the DwcA zip file
       DwcaArchiveBuilder.of(configuration).buildArchive();
+
+      if (sequencesFileWriter != null) {
+        sequencesFileWriter.flush();
+        sequencesFileWriter.close();
+      }
+      if (fastaFileWriter != null) {
+        fastaFileWriter.flush();
+        fastaFileWriter.close();
+      }
     }
   }
 

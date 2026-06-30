@@ -321,7 +321,7 @@ public class DownloadMaster extends AbstractActor {
         props = Props.create(SimpleCsvDownloadActor.class, queryProcessor, interpretedMapper);
         break;
 
-      case DWCA:
+      case DWCA, FASTA_ARCHIVE:
         props =
             Props.create(
                 DownloadDwcaActor.class, queryProcessor, verbatimMapper, interpretedMapper);

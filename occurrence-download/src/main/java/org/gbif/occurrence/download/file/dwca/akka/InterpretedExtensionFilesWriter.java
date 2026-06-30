@@ -47,12 +47,14 @@ public class InterpretedExtensionFilesWriter implements Closeable {
   private final Map<Extension, FileOutputStream> filesMap = new HashMap<>();
 
   public InterpretedExtensionFilesWriter(DownloadJobConfiguration configuration) {
-    configuration
-        .getInterpretedExtensions()
-        .forEach(
-            extension -> {
-              filesMap.put(extension, extensionOutput(extension, configuration));
-            });
+    if (configuration.getInterpretedExtensions() != null) {
+      configuration.getInterpretedExtensions().stream()
+          .filter(EXTENSION_FILE_NAMES::containsKey)
+          .forEach(
+              extension -> {
+                filesMap.put(extension, extensionOutput(extension, configuration));
+              });
+    }
   }
 
   @SneakyThrows
