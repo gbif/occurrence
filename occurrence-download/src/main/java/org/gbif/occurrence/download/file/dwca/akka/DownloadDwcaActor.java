@@ -13,12 +13,13 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
-import static org.gbif.api.util.TermNormalizationUtils.normalizeFieldName;
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 import akka.actor.AbstractActor;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
@@ -38,14 +39,18 @@ import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.NucleotideSequence;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.util.TermNormalizationUtils;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.MediaType;
+import org.gbif.dwc.terms.GbifDnaTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.MixsTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
 import org.gbif.occurrence.download.file.Result;
@@ -54,7 +59,9 @@ import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
-import org.gbif.occurrence.download.hive.HiveColumns;
+import org.gbif.terms.utils.TermUtils;
+import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.encoder.DefaultCsvEncoder;
@@ -78,7 +85,11 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
 
   private final Function<T,Map<String,String>> interpretedMapper;
 
-  private final Map<Extension,ICsvMapWriter> extensionICsvMapWriterMap = new EnumMap<>(Extension.class);
+  private final Map<Extension,ICsvMapWriter> verbatimExtensionICsvMapWriterMap = new EnumMap<>(Extension.class);
+
+  private final Map<Extension,ICsvBeanWriter> interpretedExtensionICsvBeanWriterMap = new EnumMap<>(Extension.class);
+
+  private final FastaWriters fastaWriters = new FastaWriters();
 
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
@@ -108,14 +119,56 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     new CleanStringProcessor(), // license
     new CleanStringProcessor() // rightsHolder
   };
+  private static final String[] DNA_INTERPRETED_COLUMNS =
+      Lists.transform(
+              Lists.newArrayList(TermUtils.dnaTerms()),
+              t -> {
+                if (t == GbifDnaTerm.dna_sequence) {
+                  t = GbifInternalTerm.nucleotide_sequence;
+                }
+                return CaseFormat.LOWER_UNDERSCORE.to(
+                    CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", ""));
+              })
+          .toArray(new String[0]);
+  private static final CellProcessor[] DNA_INTERPRETED_CELL_PROCESSORS = {
+    new NotNull(), // gbifId
+    new CleanStringProcessor(), // targetGene
+    new CleanStringProcessor() // dnaSequence
+  };
+  private static final String[] SEQUENCES_COLUMNS =
+      Lists.transform(
+              Lists.newArrayList(TermUtils.sequenceTerms()),
+              t -> {
+                if (t == MixsTerm.target_gene) {
+                  return CaseFormat.LOWER_UNDERSCORE.to(
+                      CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", ""));
+                }
 
+                return t.simpleName().replace("nucleotide_", "").replace("_", "");
+              })
+          .toArray(new String[0]);
+  private static final CellProcessor[] SEQUENCES_CELL_PROCESSORS = {
+    new NotNull(), // gbifId
+    new CleanStringProcessor(), // sequenceID
+    new CleanStringProcessor(), // targetGene
+    new ParseInt(), // sequenceLength
+    new ParseDouble(), // gcContent
+    new ParseDouble(), // nonIupacFraction
+    new ParseDouble(), // nonACGTNFraction
+    new ParseDouble(), // nFraction
+    new ParseInt(), // nRunsCapped
+    null, // naturalLanguageDetected
+    null, // endsTrimmed
+    null, // gapsOrWhitespaceRemoved
+    null // invalid
+  };
 
   @SneakyThrows
-  private ICsvMapWriter getExtensionWriter(Extension extension, DownloadFileWork work) {
-    return extensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
+  private ICsvMapWriter getVerbatimExtensionWriter(Extension extension, DownloadFileWork work) {
+    return verbatimExtensionICsvMapWriterMap.computeIfAbsent(extension, ext -> {
       try {
         String outPath = work.getJobDataFileName() + '_' + new ExtensionTable(ext).getHiveTableName();
-        log.info("Writing to extension file {}", outPath);
+        log.info("Writing to verbatim extension file {}", outPath);
         CsvPreference preference =
           new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
             .useEncoder(new DefaultCsvEncoder())
@@ -125,6 +178,28 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
         throw new RuntimeException(ex);
     }
     });
+  }
+
+  @SneakyThrows
+  private ICsvBeanWriter getInterpretedExtensionWriter(
+      Extension extension, DownloadFileWork work, String fileSuffix) {
+    return interpretedExtensionICsvBeanWriterMap.computeIfAbsent(
+        extension,
+        ext -> {
+          try {
+            String outPath = work.getJobDataFileName() + fileSuffix;
+            log.info("Writing to interpreted extension file {}", outPath);
+            CsvPreference preference =
+                new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
+                    .useEncoder(new DefaultCsvEncoder())
+                    .build();
+
+            return new CsvBeanWriter(
+                new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), preference);
+          } catch (IOException ex) {
+            throw new RuntimeException(ex);
+          }
+        });
   }
 
   /**
@@ -151,9 +226,69 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     }
   }
 
-  /**
-   * Extracts media objects from known types.
-   */
+  private void writeInterpretedExtensions(DownloadFileWork work, T record) throws IOException {
+    if (work.getInterpretedExtensions() != null
+      && work.getInterpretedExtensions().contains(Extension.DNA_DERIVED_DATA)) {
+      ICsvBeanWriter dnaDerivedDataCsvWriter =
+          getInterpretedExtensionWriter(
+              Extension.DNA_DERIVED_DATA, work, TableSuffixes.DNA_SUFFIX);
+      writeDnaInterpretedData(dnaDerivedDataCsvWriter, record);
+    }
+  }
+
+  /** Writes the DNA interpreted data into the csv file. */
+  private void writeDnaInterpretedData(ICsvBeanWriter dnaDerivedDataCsvWriter, T record)
+      throws IOException {
+    if (record instanceof Occurrence occurrence) {
+      if (occurrence.getNucleotideSequence() != null
+          && !occurrence.getNucleotideSequence().isEmpty()) {
+        for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          dnaDerivedDataCsvWriter.write(
+              new InnerNucleotideObject(nucleotideSequence, getRecordKey(record)),
+              DNA_INTERPRETED_COLUMNS,
+              DNA_INTERPRETED_CELL_PROCESSORS);
+        }
+      }
+    }
+  }
+
+  /** Writes the sequences into the csv file for a FASTA download. */
+  private void writeSequencesFile(ICsvBeanWriter sequencesCsvWriter, T record)
+    throws IOException {
+    if (record instanceof Occurrence occurrence) {
+      if (occurrence.getNucleotideSequence() != null
+        && !occurrence.getNucleotideSequence().isEmpty()) {
+        for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          sequencesCsvWriter.write(
+            new InnerNucleotideObject(nucleotideSequence, getRecordKey(record)),
+            SEQUENCES_COLUMNS,
+            SEQUENCES_CELL_PROCESSORS);
+        }
+      }
+    }
+  }
+
+  /** Writes a fasta file for a FASTA download. */
+  private void writeFastaFile(BufferedWriter fastaWriter, T record) throws IOException {
+    if (record instanceof Occurrence occurrence) {
+      if (occurrence.getNucleotideSequence() != null
+          && !occurrence.getNucleotideSequence().isEmpty()) {
+        for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          fastaWriter.write(">");
+          fastaWriter.write(nucleotideSequence.getNucleotideSequenceID());
+          fastaWriter.write("|");
+          fastaWriter.write(getRecordKey(record));
+          fastaWriter.write("|");
+          fastaWriter.write(nucleotideSequence.getTargetGene());
+          fastaWriter.newLine();
+          fastaWriter.write(nucleotideSequence.getSequence());
+          fastaWriter.newLine();
+        }
+      }
+    }
+  }
+
+  /** Extracts media objects from known types. */
   private List<MediaObject> getMedia(T record) {
     if (record instanceof Event) {
       return ((Event)record).getMedia();
@@ -168,15 +303,15 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
    * Writes the extensions objects into the file referenced by extensionCsvWriter.
    */
   private void writeExtensions(DownloadFileWork work, T record) throws IOException {
-    if (!work.getExtensions().isEmpty()) {
+    if (!work.getVerbatimExtensions().isEmpty()) {
       Map<String,List<Map<Term, String>>> exportExtensions = record.getExtensions()
         .entrySet().stream()
-        .filter(e ->  work.getExtensions().contains(Extension.fromRowType(e.getKey())))
+        .filter(e ->  work.getVerbatimExtensions().contains(Extension.fromRowType(e.getKey())))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       for (Map.Entry<String,List<Map<Term, String>>> dwcExtension : exportExtensions.entrySet()) {
         CsvExtension csvExtension = CsvExtension.getCsvExtension(dwcExtension.getKey());
         for (Map<Term, String> row : dwcExtension.getValue()) {
-          getExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
+          getVerbatimExtensionWriter(Extension.fromRowType(dwcExtension.getKey()), work)
             .write(toExtensionRecord(row, record), csvExtension.getColumns(), csvExtension.getProcessors());
         }
       }
@@ -217,10 +352,28 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   }
 
   @SneakyThrows
-  private void closeExtensionWriters() {
-    for (ICsvMapWriter writer : extensionICsvMapWriterMap.values()) {
+  private void closeWriters() {
+    for (ICsvMapWriter writer : verbatimExtensionICsvMapWriterMap.values()) {
       writer.flush();
       writer.close();
+      verbatimExtensionICsvMapWriterMap.remove(writer);
+    }
+
+    for (ICsvBeanWriter writer : interpretedExtensionICsvBeanWriterMap.values()) {
+      writer.flush();
+      writer.close();
+      interpretedExtensionICsvBeanWriterMap.remove(writer);
+    }
+
+    if (fastaWriters.getSequencesCsvWriter() != null) {
+      fastaWriters.getSequencesCsvWriter().flush();
+      fastaWriters.getSequencesCsvWriter().close();
+      fastaWriters.setSequencesCsvWriter(null);
+    }
+    if (fastaWriters.getFastaFileWriter() != null) {
+      fastaWriters.getFastaFileWriter().flush();
+      fastaWriters.getFastaFileWriter().close();
+      fastaWriters.setFastaFileWriter(null);
     }
   }
 
@@ -254,36 +407,49 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                     work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX,
                     StandardCharsets.UTF_8),
                 preference)) {
-      searchQueryProcessor.processQuery(work, record -> {
-          try {
-            // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
+      searchQueryProcessor.processQuery(
+          work,
+          record -> {
+            try {
+              // Writes the occurrence record obtained from Elasticsearch as Map<String,Object>.
 
-            if (record != null) {
-              datasetUsagesCollector.incrementDatasetUsage(record.getDatasetKey().toString());
+              if (record != null) {
+                datasetUsagesCollector.incrementDatasetUsage(record.getDatasetKey().toString());
 
-              log.debug("Excluding columns from DwCA download: {}", DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD);
-              List<String> interpretedColumns = new ArrayList<>(List.of(INT_COLUMNS));
-              interpretedColumns.removeAll(DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD
-                .stream().map(Term::simpleName).toList());
+                log.debug(
+                    "Excluding columns from DwCA download: {}",
+                    DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD);
+                List<String> interpretedColumns = new ArrayList<>(List.of(INT_COLUMNS));
+                interpretedColumns.removeAll(
+                    DownloadTerms.EXCLUSIONS_DWCA_DOWNLOAD.stream().map(Term::simpleName).toList());
 
-              String[] interpretedFieldWithExclusions = interpretedColumns.toArray(new String[0]);
+                String[] interpretedFieldWithExclusions = interpretedColumns.toArray(new String[0]);
 
-              intCsvWriter.write(interpretedMapper.apply(record), interpretedFieldWithExclusions);
-              verbCsvWriter.write(verbatimMapper.apply(record), VERB_COLUMNS);
-              writeMediaObjects(multimediaCsvWriter, record);
-              writeExtensions(work, record);
+                intCsvWriter.write(interpretedMapper.apply(record), interpretedFieldWithExclusions);
+                verbCsvWriter.write(verbatimMapper.apply(record), VERB_COLUMNS);
+                writeMediaObjects(multimediaCsvWriter, record);
+                writeExtensions(work, record);
+                writeInterpretedExtensions(work, record);
+
+                if (work.getDownloadFormat() == DownloadFormat.FASTA_ARCHIVE) {
+                  createFastaWriters(work, preference, fastaWriters);
+                  writeSequencesFile(fastaWriters.sequencesCsvWriter, record);
+                  writeFastaFile(fastaWriters.fastaFileWriter, record);
+                }
+              }
+            } catch (RuntimeException e) {
+              getSender().tell(e, getSelf()); // inform our master
+              throw e;
+            } catch (Exception e) {
+              getSender().tell(e, getSelf()); // inform our master
+              throw (e instanceof RuntimeException)
+                  ? (RuntimeException) e
+                  : new RuntimeException(e);
             }
-          } catch (RuntimeException e) {
-            getSender().tell(e, getSelf()); // inform our master
-            throw e;
-          } catch (Exception e) {
-            getSender().tell(e, getSelf()); // inform our master
-            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
-          }
-        });
+          });
       getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
     } finally {
-      closeExtensionWriters();
+      closeWriters();
       // Unlock the assigned lock.
       work.getLock().unlock();
       log.info("Lock released, job detail: {} ", work);
@@ -319,6 +485,29 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
       }
     }
   }
+
+/**
+ * Inner class used to export data into dnaDerivedData.txt files.
+ * The structure must match the headers defined in DNA_INTERPRETED_HEADERS.
+ */
+@Data
+public static class InnerNucleotideObject extends NucleotideSequence{
+
+  private String gbifID;
+
+  /**
+   * Default constructor.
+   * Copies the fields of the media object parameter and assigns the coreid.
+   */
+  public InnerNucleotideObject(NucleotideSequence nucleotideSequence, String gbifID) {
+    try {
+      BeanUtils.copyProperties(this, nucleotideSequence);
+      this.gbifID = gbifID;
+    } catch (IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+  }
+}
 
   /**
    * Produces a MediaType instance.
@@ -366,5 +555,32 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     public String execute(Object value, CsvContext context) {
       return value != null ? DownloadUtils.ISO_8601_ZONED.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
     }
+  }
+
+  private void createFastaWriters(
+      DownloadFileWork work, CsvPreference preference, FastaWriters fastaWriters)
+      throws IOException {
+    if (fastaWriters.getSequencesCsvWriter() == null) {
+      ICsvBeanWriter sequencesCsvWriter =
+          new CsvBeanWriter(
+              new FileWriterWithEncoding(
+                  work.getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX,
+                  StandardCharsets.UTF_8),
+              preference);
+      fastaWriters.setSequencesCsvWriter(sequencesCsvWriter);
+    }
+    if (fastaWriters.getFastaFileWriter() == null) {
+      BufferedWriter fastaFileWriter =
+          new BufferedWriter(
+              new FileWriterWithEncoding(
+                  work.getJobDataFileName() + TableSuffixes.FASTA_SUFFIX, StandardCharsets.UTF_8));
+      fastaWriters.setFastaFileWriter(fastaFileWriter);
+    }
+  }
+
+  @Data
+  private static class FastaWriters {
+    ICsvBeanWriter sequencesCsvWriter;
+    BufferedWriter fastaFileWriter;
   }
 }

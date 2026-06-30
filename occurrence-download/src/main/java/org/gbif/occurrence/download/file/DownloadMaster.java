@@ -271,19 +271,23 @@ public class DownloadMaster extends AbstractActor {
         }
         // Awaits for an available thread
         Lock lock = getLock();
-        DownloadFileWork work = new DownloadFileWork(from,
-                                                     to,
-                                                     jobConfiguration.getSourceDir()
-                                                     + Path.SEPARATOR
-                                                     + jobConfiguration.getDownloadKey()
-                                                     + Path.SEPARATOR
-                                                     + jobConfiguration.getDownloadTableName(),
-                                                     i,
-                                                     jobConfiguration.getSearchQuery(),
-                                                     lock,
-                                                     esClient,
-                                                     esIndex,
-                                                     jobConfiguration.getVerbatimExtensions());
+        DownloadFileWork work =
+            new DownloadFileWork(
+                from,
+                to,
+                jobConfiguration.getSourceDir()
+                    + Path.SEPARATOR
+                    + jobConfiguration.getDownloadKey()
+                    + Path.SEPARATOR
+                    + jobConfiguration.getDownloadTableName(),
+                i,
+                jobConfiguration.getSearchQuery(),
+                lock,
+                esClient,
+                esIndex,
+                jobConfiguration.getVerbatimExtensions(),
+                jobConfiguration.getInterpretedExtensions(),
+                jobConfiguration.getDownloadFormat());
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work);
         lock.lock();
@@ -317,7 +321,7 @@ public class DownloadMaster extends AbstractActor {
         props = Props.create(SimpleCsvDownloadActor.class, queryProcessor, interpretedMapper);
         break;
 
-      case DWCA:
+      case DWCA, FASTA_ARCHIVE:
         props =
             Props.create(
                 DownloadDwcaActor.class, queryProcessor, verbatimMapper, interpretedMapper);

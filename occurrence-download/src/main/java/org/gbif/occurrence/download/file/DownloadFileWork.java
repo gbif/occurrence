@@ -13,9 +13,13 @@
  */
 package org.gbif.occurrence.download.file;
 
+import lombok.Getter;
+
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.wrangler.lock.Lock;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.elasticsearch.client.RestHighLevelClient;
@@ -50,14 +54,20 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final String esIndex;
 
-  private final Set<Extension> extensions;
+  private final Set<Extension> verbatimExtensions;
+
+  private final Set<Extension> interpretedExtensions;
+
+  @Getter
+  private final DownloadFormat downloadFormat;
 
 
   /**
    * Default constructor.
    */
   public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock,
-                          RestHighLevelClient esClient, String esIndex, Set<Extension> extensions) {
+                          RestHighLevelClient esClient, String esIndex, Set<Extension> verbatimExtensions,
+                          Set<Extension> interpretedExtensions, DownloadFormat downloadFormat) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
@@ -67,7 +77,9 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     this.lock = lock;
     this.esClient = esClient;
     this.esIndex = esIndex;
-    this.extensions = extensions;
+    this.verbatimExtensions = verbatimExtensions != null ? verbatimExtensions : new HashSet<>();
+    this.interpretedExtensions = interpretedExtensions != null ? interpretedExtensions : new HashSet<>();
+    this.downloadFormat = downloadFormat;
   }
 
   /**
@@ -148,8 +160,12 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     return esIndex;
   }
 
-  public Set<Extension> getExtensions() {
-    return extensions;
+  public Set<Extension> getVerbatimExtensions() {
+    return verbatimExtensions;
+  }
+
+  public Set<Extension> getInterpretedExtensions() {
+    return interpretedExtensions;
   }
 
   @Override

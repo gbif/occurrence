@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.Result;
@@ -54,11 +55,17 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
     return new FileOutputStream(fileName, true);
   }
 
-  /**
-   * Appends the result files to the output file.
-   */
-  private static void appendResult(Result result, OutputStream interpretedFileWriter, OutputStream verbatimFileWriter,
-                                   OutputStream multimediaFileWriter, ExtensionFilesWriter extensionFilesWriter) throws IOException {
+  /** Appends the result files to the output file. */
+  private void appendResult(
+      Result result,
+      OutputStream interpretedFileWriter,
+      OutputStream verbatimFileWriter,
+      OutputStream multimediaFileWriter,
+      OutputStream sequencesFileWriter,
+      OutputStream fastaFileWriter,
+      ExtensionFilesWriter extensionFilesWriter,
+      InterpretedExtensionFilesWriter interpretedExtensionFilesWriter)
+      throws IOException {
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
                                       + TableSuffixes.INTERPRETED_SUFFIX, interpretedFileWriter);
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
@@ -66,7 +73,16 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
     DownloadFileUtils.appendAndDelete(result.getDownloadFileWork().getJobDataFileName()
                                       + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
     extensionFilesWriter.appendAndDelete(result);
+    interpretedExtensionFilesWriter.appendAndDelete(result);
 
+    if (configuration.getDownloadFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      DownloadFileUtils.appendAndDelete(
+          result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX,
+          sequencesFileWriter);
+      DownloadFileUtils.appendAndDelete(
+        result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.FASTA_SUFFIX,
+        fastaFileWriter);
+    }
   }
 
   /**
@@ -80,19 +96,39 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
       FileOutputStream interpretedFileWriter = createFileOutStream(configuration.getInterpretedDataFileName());
       FileOutputStream verbatimFileWriter = createFileOutStream(configuration.getVerbatimDataFileName());
       FileOutputStream multimediaFileWriter = createFileOutStream(configuration.getMultimediaDataFileName());
-      ExtensionFilesWriter extensionFilesWriter = new ExtensionFilesWriter(configuration)) {
+      ExtensionFilesWriter extensionFilesWriter = new ExtensionFilesWriter(configuration);
+      InterpretedExtensionFilesWriter interpretedExtensionFilesWriter = new InterpretedExtensionFilesWriter(configuration)) {
 
       HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
       HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
       HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
+
+
+      FileOutputStream sequencesFileWriter = null;
+      FileOutputStream fastaFileWriter = null;
+      if (configuration.getDownloadFormat() == DownloadFormat.FASTA_ARCHIVE) {
+        sequencesFileWriter = createFileOutStream(configuration.getSequencesDataFileName());
+        fastaFileWriter = createFileOutStream(configuration.getFastaDataFileName());
+        HeadersFileUtil.appendSequencesHeaders(sequencesFileWriter);
+      }
+
       extensionFilesWriter.writerHeaders();
+      interpretedExtensionFilesWriter.writerHeaders();
       if (!results.isEmpty()) {
         // Results are sorted to respect the original ordering
         Collections.sort(results);
         DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
         for (Result result : results) {
           datasetUsagesCollector.sumUsages(result.getDatasetUsages());
-          appendResult(result, interpretedFileWriter, verbatimFileWriter, multimediaFileWriter, extensionFilesWriter);
+          appendResult(
+              result,
+              interpretedFileWriter,
+              verbatimFileWriter,
+              multimediaFileWriter,
+              sequencesFileWriter,
+              fastaFileWriter,
+              extensionFilesWriter,
+              interpretedExtensionFilesWriter);
         }
         CitationsFileWriter.createCitationsFile(datasetUsagesCollector.getDatasetUsages(),
                                                 configuration.getCitationDataFileName());
@@ -100,6 +136,15 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
       }
       //Creates the DwcA zip file
       DwcaArchiveBuilder.of(configuration).buildArchive();
+
+      if (sequencesFileWriter != null) {
+        sequencesFileWriter.flush();
+        sequencesFileWriter.close();
+      }
+      if (fastaFileWriter != null) {
+        fastaFileWriter.flush();
+        fastaFileWriter.close();
+      }
     }
   }
 
