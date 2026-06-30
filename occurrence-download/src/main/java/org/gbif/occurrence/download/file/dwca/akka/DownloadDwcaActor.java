@@ -50,6 +50,7 @@ import org.gbif.api.vocabulary.MediaType;
 import org.gbif.dwc.terms.GbifDnaTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.MixsTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
@@ -140,9 +141,14 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   private static final String[] SEQUENCES_COLUMNS =
       Lists.transform(
               Lists.newArrayList(TermUtils.sequenceTerms()),
-              t ->
-                  CaseFormat.LOWER_UNDERSCORE.to(
-                      CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", "")))
+              t -> {
+                if (t == MixsTerm.target_gene) {
+                  return CaseFormat.LOWER_UNDERSCORE.to(
+                      CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", ""));
+                }
+
+                return t.simpleName().replace("nucleotide_", "").replace("_", "");
+              })
           .toArray(new String[0]);
   private static final CellProcessor[] SEQUENCES_CELL_PROCESSORS = {
     new NotNull(), // gbifId
