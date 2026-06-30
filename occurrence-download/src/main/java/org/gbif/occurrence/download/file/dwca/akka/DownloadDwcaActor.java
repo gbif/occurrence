@@ -60,6 +60,10 @@ import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.terms.utils.TermUtils;
+
+import org.supercsv.cellprocessor.ParseBool;
+import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.encoder.DefaultCsvEncoder;
@@ -142,8 +146,18 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
           .toArray(new String[0]);
   private static final CellProcessor[] SEQUENCES_CELL_PROCESSORS = {
     new NotNull(), // gbifId
+    new CleanStringProcessor(), // sequenceID
     new CleanStringProcessor(), // targetGene
-    new CleanStringProcessor() // dnaSequence
+    new ParseInt(), // sequenceLength
+    new CleanStringProcessor(), // gcContent
+    new ParseDouble(), // nonIupacFraction
+    new ParseDouble(), // nonACGTNFraction
+    new ParseDouble(), // nFraction
+    new ParseInt(), // nRunsCapped
+    new ParseBool(), // naturalLanguageDetected
+    new ParseBool(), // endsTrimmed
+    new ParseBool(), // gapsOrWhitespaceRemoved
+    new ParseBool() // invalid
   };
 
   @SneakyThrows
