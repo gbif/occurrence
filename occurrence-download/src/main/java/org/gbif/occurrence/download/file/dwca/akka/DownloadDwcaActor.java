@@ -36,7 +36,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
-import org.apache.parquet.Strings;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
@@ -61,8 +60,6 @@ import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.terms.utils.TermUtils;
-
-import org.supercsv.cellprocessor.ParseBool;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.constraint.NotNull;
@@ -278,22 +275,17 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
           && !occurrence.getNucleotideSequence().isEmpty()) {
         for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
           fastaWriter.write(">");
-          writeFastaField(fastaWriter, nucleotideSequence.getNucleotideSequenceID());
-          writeFastaField(fastaWriter, getRecordKey(record));
-          writeFastaField(fastaWriter, nucleotideSequence.getTargetGene());
+          fastaWriter.write(nucleotideSequence.getNucleotideSequenceID());
+          fastaWriter.write("|");
+          fastaWriter.write(getRecordKey(record));
+          fastaWriter.write("|");
+          fastaWriter.write(nucleotideSequence.getTargetGene());
           fastaWriter.newLine();
           fastaWriter.write(nucleotideSequence.getSequence());
           fastaWriter.newLine();
         }
       }
     }
-  }
-
-  private void writeFastaField(BufferedWriter fastaWriter, String field) throws IOException {
-    if (!Strings.isNullOrEmpty(field)) {
-      fastaWriter.write(field);
-    }
-    fastaWriter.write("|");
   }
 
   /** Extracts media objects from known types. */
