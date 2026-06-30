@@ -19,6 +19,7 @@ import akka.actor.AbstractActor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
@@ -35,9 +36,11 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.io.output.FileWriterWithEncoding;
+import org.apache.parquet.Strings;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.NucleotideSequence;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -84,6 +87,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
 
   private final Map<Extension,ICsvBeanWriter> interpretedExtensionICsvBeanWriterMap = new EnumMap<>(Extension.class);
 
+  private final FastaWriters fastaWriters = new FastaWriters();
+
   static {
     //https://issues.apache.org/jira/browse/BEANUTILS-387
     ConvertUtils.register(new DateConverter(null), Date.class);
@@ -128,7 +133,18 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     new CleanStringProcessor(), // targetGene
     new CleanStringProcessor() // dnaSequence
   };
-
+  private static final String[] SEQUENCES_COLUMNS =
+      Lists.transform(
+              Lists.newArrayList(TermUtils.sequenceTerms()),
+              t ->
+                  CaseFormat.LOWER_UNDERSCORE.to(
+                      CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", "")))
+          .toArray(new String[0]);
+  private static final CellProcessor[] SEQUENCES_CELL_PROCESSORS = {
+    new NotNull(), // gbifId
+    new CleanStringProcessor(), // targetGene
+    new CleanStringProcessor() // dnaSequence
+  };
 
   @SneakyThrows
   private ICsvMapWriter getVerbatimExtensionWriter(Extension extension, DownloadFileWork work) {
@@ -211,12 +227,53 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
           && !occurrence.getNucleotideSequence().isEmpty()) {
         for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
           dnaDerivedDataCsvWriter.write(
-              new InnerDnaObject(nucleotideSequence, getRecordKey(record)),
+              new InnerNucleotideObject(nucleotideSequence, getRecordKey(record)),
               DNA_INTERPRETED_COLUMNS,
               DNA_INTERPRETED_CELL_PROCESSORS);
         }
       }
     }
+  }
+
+  /** Writes the sequences into the csv file for a FASTA download. */
+  private void writeSequencesFile(ICsvBeanWriter sequencesCsvWriter, T record)
+    throws IOException {
+    if (record instanceof Occurrence occurrence) {
+      if (occurrence.getNucleotideSequence() != null
+        && !occurrence.getNucleotideSequence().isEmpty()) {
+        for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          sequencesCsvWriter.write(
+            new InnerNucleotideObject(nucleotideSequence, getRecordKey(record)),
+            SEQUENCES_COLUMNS,
+            SEQUENCES_CELL_PROCESSORS);
+        }
+      }
+    }
+  }
+
+  /** Writes a fasta file for a FASTA download. */
+  private void writeFastaFile(BufferedWriter fastaWriter, T record) throws IOException {
+    if (record instanceof Occurrence occurrence) {
+      if (occurrence.getNucleotideSequence() != null
+          && !occurrence.getNucleotideSequence().isEmpty()) {
+        for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          fastaWriter.write(">");
+          writeFastaField(fastaWriter, nucleotideSequence.getNucleotideSequenceID());
+          writeFastaField(fastaWriter, getRecordKey(record));
+          writeFastaField(fastaWriter, nucleotideSequence.getTargetGene());
+          fastaWriter.newLine();
+          fastaWriter.write(nucleotideSequence.getSequence());
+          fastaWriter.newLine();
+        }
+      }
+    }
+  }
+
+  private void writeFastaField(BufferedWriter fastaWriter, String field) throws IOException {
+    if (!Strings.isNullOrEmpty(field)) {
+      fastaWriter.write(field);
+    }
+    fastaWriter.write("|");
   }
 
   /** Extracts media objects from known types. */
@@ -283,7 +340,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   }
 
   @SneakyThrows
-  private void closeExtensionWriters() {
+  private void closeWriters() {
     for (ICsvMapWriter writer : verbatimExtensionICsvMapWriterMap.values()) {
       writer.flush();
       writer.close();
@@ -291,6 +348,15 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     for (ICsvBeanWriter writer : interpretedExtensionICsvBeanWriterMap.values()) {
       writer.flush();
       writer.close();
+    }
+
+    if (fastaWriters.getSequencesCsvWriter() != null) {
+      fastaWriters.getSequencesCsvWriter().flush();
+      fastaWriters.getSequencesCsvWriter().close();
+    }
+    if (fastaWriters.getFastaFileWriter() != null) {
+      fastaWriters.getFastaFileWriter().flush();
+      fastaWriters.getFastaFileWriter().close();
     }
   }
 
@@ -347,6 +413,22 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                 writeMediaObjects(multimediaCsvWriter, record);
                 writeExtensions(work, record);
                 writeInterpretedExtensions(work, record);
+
+                if (work.getDownloadFormat() == DownloadFormat.FASTA_ARCHIVE) {
+                  ICsvBeanWriter sequencesCsvWriter =
+                    new CsvBeanWriter(
+                      new FileWriterWithEncoding(
+                        work.getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX, StandardCharsets.UTF_8),
+                      preference);
+                  fastaWriters.setSequencesCsvWriter(sequencesCsvWriter);
+                  BufferedWriter fastaFileWriter = new BufferedWriter(
+                    new FileWriterWithEncoding(
+                      work.getJobDataFileName() + TableSuffixes.FASTA_SUFFIX, StandardCharsets.UTF_8));
+                  fastaWriters.setFastaFileWriter(fastaFileWriter);
+
+                  writeSequencesFile(sequencesCsvWriter, record);
+                  writeFastaFile(fastaFileWriter, record);
+                }
               }
             } catch (RuntimeException e) {
               getSender().tell(e, getSelf()); // inform our master
@@ -360,7 +442,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
           });
       getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
     } finally {
-      closeExtensionWriters();
+      closeWriters();
       // Unlock the assigned lock.
       work.getLock().unlock();
       log.info("Lock released, job detail: {} ", work);
@@ -402,7 +484,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
  * The structure must match the headers defined in DNA_INTERPRETED_HEADERS.
  */
 @Data
-public static class InnerDnaObject extends NucleotideSequence{
+public static class InnerNucleotideObject extends NucleotideSequence{
 
   private String gbifID;
 
@@ -410,7 +492,7 @@ public static class InnerDnaObject extends NucleotideSequence{
    * Default constructor.
    * Copies the fields of the media object parameter and assigns the coreid.
    */
-  public InnerDnaObject(NucleotideSequence nucleotideSequence, String gbifID) {
+  public InnerNucleotideObject(NucleotideSequence nucleotideSequence, String gbifID) {
     try {
       BeanUtils.copyProperties(this, nucleotideSequence);
       this.gbifID = gbifID;
@@ -466,5 +548,11 @@ public static class InnerDnaObject extends NucleotideSequence{
     public String execute(Object value, CsvContext context) {
       return value != null ? DownloadUtils.ISO_8601_ZONED.format(((Date) value).toInstant().atZone(ZoneOffset.UTC)) : "";
     }
+  }
+
+  @Data
+  private static class FastaWriters {
+    ICsvBeanWriter sequencesCsvWriter;
+    BufferedWriter fastaFileWriter;
   }
 }

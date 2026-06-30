@@ -110,6 +110,13 @@ public class HeadersFileUtil {
   }
 
   /**
+   * Appends the sequences headers line to the output file.
+   */
+  public static void appendSequencesHeaders(OutputStream fileWriter) throws IOException {
+    appendHeaders(fileWriter, getSequencesTableHeader());
+  }
+
+  /**
    * Appends the headers line to the output file.
    */
   public static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {

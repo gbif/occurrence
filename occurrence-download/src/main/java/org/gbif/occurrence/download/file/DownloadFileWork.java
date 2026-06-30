@@ -13,6 +13,9 @@
  */
 package org.gbif.occurrence.download.file;
 
+import lombok.Getter;
+
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.wrangler.lock.Lock;
 
@@ -54,13 +57,16 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
   private final Set<Extension> interpretedExtensions;
 
+  @Getter
+  private final DownloadFormat downloadFormat;
+
 
   /**
    * Default constructor.
    */
   public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock,
                           RestHighLevelClient esClient, String esIndex, Set<Extension> verbatimExtensions,
-                          Set<Extension> interpretedExtensions) {
+                          Set<Extension> interpretedExtensions, DownloadFormat downloadFormat) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
     this.from = from;
@@ -72,6 +78,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
     this.esIndex = esIndex;
     this.verbatimExtensions = verbatimExtensions;
     this.interpretedExtensions = interpretedExtensions;
+    this.downloadFormat = downloadFormat;
   }
 
   /**

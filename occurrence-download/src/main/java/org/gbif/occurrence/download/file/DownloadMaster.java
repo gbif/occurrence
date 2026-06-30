@@ -286,7 +286,8 @@ public class DownloadMaster extends AbstractActor {
                 esClient,
                 esIndex,
                 jobConfiguration.getVerbatimExtensions(),
-                jobConfiguration.getInterpretedExtensions());
+                jobConfiguration.getInterpretedExtensions(),
+                jobConfiguration.getDownloadFormat());
 
         LOG.info("Requesting a lock for job {}, detail: {}", i, work);
         lock.lock();

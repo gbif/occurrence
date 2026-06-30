@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.Result;
@@ -55,11 +56,13 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
   }
 
   /** Appends the result files to the output file. */
-  private static void appendResult(
+  private void appendResult(
       Result result,
       OutputStream interpretedFileWriter,
       OutputStream verbatimFileWriter,
       OutputStream multimediaFileWriter,
+      OutputStream sequencesFileWriter,
+      OutputStream fastaFileWriter,
       ExtensionFilesWriter extensionFilesWriter,
       InterpretedExtensionFilesWriter interpretedExtensionFilesWriter)
       throws IOException {
@@ -71,6 +74,15 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
                                       + TableSuffixes.MULTIMEDIA_SUFFIX, multimediaFileWriter);
     extensionFilesWriter.appendAndDelete(result);
     interpretedExtensionFilesWriter.appendAndDelete(result);
+
+    if (configuration.getDownloadFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      DownloadFileUtils.appendAndDelete(
+          result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX,
+          sequencesFileWriter);
+      DownloadFileUtils.appendAndDelete(
+        result.getDownloadFileWork().getJobDataFileName() + TableSuffixes.FASTA_SUFFIX,
+        fastaFileWriter);
+    }
   }
 
   /**
@@ -84,12 +96,18 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
       FileOutputStream interpretedFileWriter = createFileOutStream(configuration.getInterpretedDataFileName());
       FileOutputStream verbatimFileWriter = createFileOutStream(configuration.getVerbatimDataFileName());
       FileOutputStream multimediaFileWriter = createFileOutStream(configuration.getMultimediaDataFileName());
+      FileOutputStream sequencesFileWriter = createFileOutStream(configuration.getSequencesDataFileName());
+      FileOutputStream fastaFileWriter = createFileOutStream(configuration.getFastaDataFileName());
       ExtensionFilesWriter extensionFilesWriter = new ExtensionFilesWriter(configuration);
       InterpretedExtensionFilesWriter interpretedExtensionFilesWriter = new InterpretedExtensionFilesWriter(configuration)) {
 
       HeadersFileUtil.appendInterpretedHeaders(interpretedFileWriter);
       HeadersFileUtil.appendVerbatimHeaders(verbatimFileWriter);
       HeadersFileUtil.appendMultimediaHeaders(multimediaFileWriter);
+
+      if (configuration.getDownloadFormat() == DownloadFormat.FASTA_ARCHIVE) {
+        HeadersFileUtil.appendSequencesHeaders(sequencesFileWriter);
+      }
 
       extensionFilesWriter.writerHeaders();
       interpretedExtensionFilesWriter.writerHeaders();
@@ -104,6 +122,8 @@ public class DwcaDownloadAggregator implements DownloadAggregator {
               interpretedFileWriter,
               verbatimFileWriter,
               multimediaFileWriter,
+              sequencesFileWriter,
+              fastaFileWriter,
               extensionFilesWriter,
               interpretedExtensionFilesWriter);
         }
