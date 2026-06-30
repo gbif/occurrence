@@ -125,6 +125,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DcTerm.license.simpleName(), getSimpleValue(occurrence.getLicense()));
     interpretedOccurrence.put(GbifTerm.protocol.simpleName(), getSimpleValue(occurrence.getProtocol()));
     interpretedOccurrence.put(GbifInternalTerm.networkKey.simpleName(), joinUUIDs(occurrence.getNetworkKeys()));
+    interpretedOccurrence.put(GbifInternalTerm.datasetCategory.simpleName(), joinStrings(occurrence.getDatasetCategory()));
     interpretedOccurrence.put(GbifInternalTerm.publishingOrgKey.simpleName(), getSimpleValue(occurrence.getPublishingOrgKey()));
     interpretedOccurrence.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(occurrence.getLastCrawled()));
 
@@ -256,6 +257,7 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DcTerm.license.simpleName(), getSimpleValue(event.getLicense()));
     interpretedEvent.put(GbifTerm.protocol.simpleName(), getSimpleValue(event.getProtocol()));
     interpretedEvent.put(GbifInternalTerm.networkKey.simpleName(), joinUUIDs(event.getNetworkKeys()));
+    interpretedEvent.put(GbifInternalTerm.datasetCategory.simpleName(), joinStrings(event.getDatasetCategory()));
     interpretedEvent.put(GbifInternalTerm.publishingOrgKey.simpleName(), getSimpleValue(event.getPublishingOrgKey()));
     interpretedEvent.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(event.getLastCrawled()));
 
@@ -349,6 +351,13 @@ public class OccurrenceMapReader {
   private static String joinUUIDs(Collection<UUID> uuids) {
     if (uuids != null ) {
      return uuids.stream().map(UUID::toString).collect(Collectors.joining(";"));
+    }
+    return null;
+  }
+
+  private static String joinStrings(Collection<String> values) {
+    if (values != null) {
+      return values.stream().collect(Collectors.joining(";"));
     }
     return null;
   }
