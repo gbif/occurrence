@@ -149,7 +149,7 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
     new CleanStringProcessor(), // sequenceID
     new CleanStringProcessor(), // targetGene
     new ParseInt(), // sequenceLength
-    new CleanStringProcessor(), // gcContent
+    new ParseDouble(), // gcContent
     new ParseDouble(), // nonIupacFraction
     new ParseDouble(), // nonACGTNFraction
     new ParseDouble(), // nFraction
