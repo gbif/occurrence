@@ -13,12 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca.akka;
 
-import org.gbif.api.vocabulary.Extension;
-import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
-import org.gbif.occurrence.download.file.Result;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.hive.ExtensionTable;
-import org.gbif.utils.file.FileUtils;
+import static org.gbif.occurrence.download.util.HeadersFileUtil.appendHeaders;
 
 import java.io.Closeable;
 import java.io.File;
@@ -26,38 +21,49 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.occurrence.download.util.HeadersFileUtil.appendHeaders;
-import static org.gbif.occurrence.download.util.HeadersFileUtil.getExtensionInterpretedHeader;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.file.Result;
+import org.gbif.occurrence.download.file.TableSuffixes;
+import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
+import org.gbif.occurrence.download.util.HeadersFileUtil;
 
 @Slf4j
-public class ExtensionFilesWriter implements Closeable {
+public class InterpretedExtensionFilesWriter implements Closeable {
+
+  private static final Map<Extension, String> EXTENSION_HEADERS = new HashMap<>();
+  private static final Map<Extension, String> EXTENSION_SUFFIXES = new HashMap<>();
+  private static final Map<Extension, String> EXTENSION_FILE_NAMES = new HashMap<>();
+
+  static {
+    EXTENSION_HEADERS.put(Extension.DNA_DERIVED_DATA, HeadersFileUtil.getDnaTableHeader());
+    EXTENSION_FILE_NAMES.put(Extension.DNA_DERIVED_DATA, DwcDownloadsConstants.DNA_FILENAME);
+    EXTENSION_SUFFIXES.put(Extension.DNA_DERIVED_DATA, TableSuffixes.DNA_SUFFIX);
+  }
 
   private final Map<Extension, FileOutputStream> filesMap = new HashMap<>();
 
-  private final Map<Extension, ExtensionTable> tableMap = new HashMap<>();
-
-  public ExtensionFilesWriter(DownloadJobConfiguration configuration) {
-    if (configuration.getVerbatimExtensions() != null) {
-      configuration
-          .getVerbatimExtensions()
+  public InterpretedExtensionFilesWriter(DownloadJobConfiguration configuration) {
+    if (configuration.getInterpretedExtensions() != null) {
+      configuration.getInterpretedExtensions().stream()
+          .filter(EXTENSION_FILE_NAMES::containsKey)
           .forEach(
               extension -> {
                 filesMap.put(extension, extensionOutput(extension, configuration));
-                tableMap.put(extension, new ExtensionTable(extension));
               });
     }
   }
 
   @SneakyThrows
-  private static FileOutputStream extensionOutput(Extension extension, DownloadJobConfiguration configuration) {
-      File outFile = new File(configuration.getExtensionDataFileName(new ExtensionTable(extension)));
-      log.info("Aggregating extension file {}", outFile);
-      FileUtils.createParentDirs(outFile);
-      return new FileOutputStream(outFile, true);
+  private static FileOutputStream extensionOutput(
+      Extension extension, DownloadJobConfiguration configuration) {
+    File outFile =
+        new File(configuration.getDownloadTempDir() + EXTENSION_FILE_NAMES.get(extension));
+    log.info("Aggregating interpreted extension file {}", outFile);
+    return new FileOutputStream(outFile, true);
   }
 
   @Override
@@ -69,7 +75,7 @@ public class ExtensionFilesWriter implements Closeable {
 
   @SneakyThrows
   private void appendExtensionHeaders(Extension extension, FileOutputStream output) {
-    appendHeaders(output, getExtensionInterpretedHeader(tableMap.get(extension)));
+    appendHeaders(output, EXTENSION_HEADERS.get(extension));
   }
 
   @SneakyThrows
@@ -77,17 +83,16 @@ public class ExtensionFilesWriter implements Closeable {
     filesMap.forEach(this::appendExtensionHeaders);
   }
 
-  /**
-   * Creates the job file name for the extension.
-   */
+  /** Creates the job file name for the extension. */
   private String extensionJobFileName(Result result, Extension extension) {
-    return result.getDownloadFileWork().getJobDataFileName() + '_' + tableMap.get(extension).getHiveTableName();
+    return result.getDownloadFileWork().getJobDataFileName() + EXTENSION_SUFFIXES.get(extension);
   }
 
   @SneakyThrows
   private void appendResult(Result result, Extension extension, FileOutputStream fileOutputStream) {
     DownloadFileUtils.appendAndDelete(extensionJobFileName(result, extension), fileOutputStream);
   }
+
   @SneakyThrows
   public void appendAndDelete(Result result) {
     filesMap.forEach((extension, fileOutput) -> appendResult(result, extension, fileOutput));
