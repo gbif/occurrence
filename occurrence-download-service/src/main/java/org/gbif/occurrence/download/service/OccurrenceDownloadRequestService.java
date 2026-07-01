@@ -32,7 +32,7 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
 
   private final OccurrenceSearchService occurrenceSearchService;
 
-  @Value("${downloads.smallDownloadCutOff}")
+  @Value("${occurrence.download.small_download_cut_off}")
   private int smallDownloadCutOff;
 
   @Autowired
