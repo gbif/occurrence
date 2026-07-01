@@ -409,18 +409,18 @@ public abstract class DownloadRequestServiceImpl
   }
 
   /**
-   * Returns the record-count threshold below which an occurrence DWCA/CSV download is considered
-   * small and routed to the dedicated small-download queue. EVENT downloads are never small;
-   * subclasses that handle event downloads should return 0.
+   * Returns the record-count threshold below which an occurrence DWCA/CSV/FASTA download is
+   * considered small and routed to the dedicated small-download queue. EVENT downloads are never
+   * small; subclasses that handle event downloads should return 0.
    */
   protected abstract int getSmallDownloadCutOff();
 
   // NOTE: this logic must stay in sync with AirflowDownloadLauncherService#isSmallDownload
   private boolean isSmallDownload(Download download) {
     return download.getRequest().getType() != DownloadType.EVENT
-        && download.getRequest().getFormat() != DownloadFormat.FASTA_ARCHIVE
         && (download.getRequest().getFormat() == DownloadFormat.DWCA
-            || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV)
+            || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV
+            || download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE)
         && download.getTotalRecords() != -1
         && getSmallDownloadCutOff() >= download.getTotalRecords();
   }
