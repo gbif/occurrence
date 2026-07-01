@@ -32,8 +32,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
@@ -70,19 +68,14 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     this.lockerService = lockerService;
   }
 
-  // NOTE: this has to match with the ElasticDownloadWorkflow#isSmallDownload method
-  protected boolean isSmallDownload(Download download) {
-    // event and fasta downloads never go thru ES
-    return download.getRequest().getType() != DownloadType.EVENT
-        && download.getRequest().getFormat() != DownloadFormat.FASTA_ARCHIVE
-        && (download.getRequest().getFormat() == DownloadFormat.DWCA
-            || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV)
-        && download.getTotalRecords() != -1
-        && sparkStaticConfiguration.getSmallDownloadCutOff() >= download.getTotalRecords();
-  }
+  /**
+   * Returns true when this launcher handles small downloads. Used to determine executor resource
+   * allocation; the queue itself is the authoritative signal for small vs. large routing.
+   */
+  protected abstract boolean isSmallLauncher();
 
   private long calculateExecutorInstances(Download download) {
-    return isSmallDownload(download)
+    return isSmallLauncher()
         ? sparkStaticConfiguration.getMinInstances()
         : Math.min(
             sparkStaticConfiguration.getMaxInstances(),
@@ -190,7 +183,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     if (status.isEmpty()) {
       JsonNode response =
           Retry.<AirflowBody, JsonNode>decorateFunction(
-                  AIRFLOW_RETRY, body -> getAirflowClient(download).createRun(body))
+                  AIRFLOW_RETRY, body -> getAirflowClient().createRun(body))
               .apply(getAirflowBody(download));
       log.info("Create a run for: {}", response);
     } else if (status.get() == SUCCEEDED) {
@@ -216,13 +209,13 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
 
       JsonNode cancelledJsonNode =
           Retry.<String, JsonNode>decorateFunction(
-                  AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).setCancelledNote(dagRunId))
+                  AIRFLOW_RETRY, dagRunId -> getAirflowClient().setCancelledNote(dagRunId))
               .apply(dagId);
       log.info("Airflow DAG {} has been noted as cancelled: {}", dagId, cancelledJsonNode);
 
       JsonNode failedJsonNode =
           Retry.<String, JsonNode>decorateFunction(
-                  AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).failRun(dagRunId))
+                  AIRFLOW_RETRY, dagRunId -> getAirflowClient().failRun(dagRunId))
               .apply(dagId);
       log.info("Airflow DAG {} has been marked as failed: {}", dagId, failedJsonNode);
 
@@ -240,7 +233,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
     String dagId = downloadDagId(download.getKey());
     JsonNode jsonStatus =
         Retry.<String, JsonNode>decorateFunction(
-                AIRFLOW_RETRY, dagRunId -> getAirflowClient(download).getRun(dagRunId))
+                AIRFLOW_RETRY, dagRunId -> getAirflowClient().getRun(dagRunId))
             .apply(dagId);
     JsonNode state = jsonStatus.get("state");
 
@@ -317,7 +310,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
         });
   }
 
-  protected abstract AirflowClient getAirflowClient(Download download);
+  protected abstract AirflowClient getAirflowClient();
 
   protected AirflowClient buildAirflowClient(String dagName) {
     return AirflowClient.builder()

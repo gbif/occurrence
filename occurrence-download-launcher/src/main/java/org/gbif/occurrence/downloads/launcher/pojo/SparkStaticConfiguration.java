@@ -64,8 +64,6 @@ public class SparkStaticConfiguration {
   private int maxInstances;
   private int memoryPerCoreGb;
 
-  private int smallDownloadCutOff;
-
   // Making it possible to configure the value via configurations
   private int vectorMemory;
   private int vectorCpu;

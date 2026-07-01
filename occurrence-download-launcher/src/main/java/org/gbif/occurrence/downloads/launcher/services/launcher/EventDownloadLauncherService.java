@@ -1,6 +1,5 @@
 package org.gbif.occurrence.downloads.launcher.services.launcher;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
@@ -28,7 +27,12 @@ public class EventDownloadLauncherService extends AirflowDownloadLauncherService
   }
 
   @Override
-  protected AirflowClient getAirflowClient(Download download) {
+  protected AirflowClient getAirflowClient() {
     return eventsDownloadsAirflowClient;
+  }
+
+  @Override
+  protected boolean isSmallLauncher() {
+    return false;
   }
 }

@@ -24,6 +24,10 @@ public class DownloadServiceConfiguration {
 
   @NotNull private String deadLauncherQueueName;
 
+  @NotNull private String smallLauncherQueueName;
+
+  @NotNull private String deadSmallLauncherQueueName;
+
   @NotNull private String cancellationQueueName;
 
   @NotNull private String deadCancellationQueueName;
