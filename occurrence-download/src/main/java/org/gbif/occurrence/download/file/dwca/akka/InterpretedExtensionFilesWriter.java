@@ -96,7 +96,7 @@ public class InterpretedExtensionFilesWriter implements Closeable {
   }
 
   public static String getExtensionSuffix(Extension extension) {
-    if (EXTENSION_SUFFIXES.containsKey(extension)) {
+    if (!EXTENSION_SUFFIXES.containsKey(extension)) {
       throw new IllegalArgumentException("Extension not supported: " + extension);
     }
 
