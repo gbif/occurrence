@@ -3,6 +3,7 @@
   "format": "SIMPLE_CSV",
   "sendNotification": true,
   "notification_address": ["mblissett@gbif.org"],
+  "checklistKey": "7ddf754f-d193-4cc9-b351-99906754a03b",
   "predicate": {
     "type":"equals",
     "key":"OCCURRENCE_STATUS",

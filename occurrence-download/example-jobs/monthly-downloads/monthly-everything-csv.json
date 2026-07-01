@@ -1,6 +1,7 @@
 {
   "creator": "download.gbif.org",
   "format": "SIMPLE_CSV",
+  "checklistKey": "7ddf754f-d193-4cc9-b351-99906754a03b",
   "sendNotification": true,
   "notification_address": ["mblissett@gbif.org"]
 }
