@@ -71,9 +71,11 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
 
     // Calculates the amount of output records
     int nrOfOutputRecords = downloadFileWork.getTo() - downloadFileWork.getFrom();
+    if (nrOfOutputRecords <= 0) {
+      return;
+    }
 
     try {
-
       int recordCount = 0;
       // Creates a search request instance using the search request that comes in the fileJob
       SearchSourceBuilder searchSourceBuilder = createSearchQuery(downloadFileWork.getQuery());
@@ -90,8 +92,11 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
         consume(searchResponse, resultHandler);
 
         SearchHit[] searchHits = searchResponse.getHits().getHits();
+        // https://github.com/gbif/occurrence/issues/514
+        if (searchHits.length == 0) {
+          break;
+        }
         recordCount += searchHits.length;
-
       }
     } catch (IOException ex) {
       throw new RuntimeException(ex);
