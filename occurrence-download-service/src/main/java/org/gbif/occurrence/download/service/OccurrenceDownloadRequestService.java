@@ -32,6 +32,9 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
 
   private final OccurrenceSearchService occurrenceSearchService;
 
+  @Value("${occurrence.download.small_download_cut_off}")
+  private int smallDownloadCutOff;
+
   @Autowired
   public OccurrenceDownloadRequestService(
       @Value("${occurrence.download.portal.url}") String portalUrl,
@@ -56,6 +59,11 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
         DownloadType.OCCURRENCE,
         doiInteractionClient);
     this.occurrenceSearchService = occurrenceSearchService;
+  }
+
+  @Override
+  protected int getSmallDownloadCutOff() {
+    return smallDownloadCutOff;
   }
 
   @Override

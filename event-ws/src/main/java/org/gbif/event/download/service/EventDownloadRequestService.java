@@ -62,6 +62,11 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
   }
 
   @Override
+  protected int getSmallDownloadCutOff() {
+    return 0; // Event downloads always go through the large-download workflow
+  }
+
+  @Override
   protected long countRecords(Predicate predicate) {
     // it always goes thru the big downloads wf
     return -1;

@@ -66,6 +66,10 @@ public abstract class DownloadRequestServiceImpl
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
 
+  // Must match DOWNLOADS_EXCHANGE and SMALL_DOWNLOAD_ROUTING_KEY in RabbitConfiguration (launcher)
+  private static final String DOWNLOADS_EXCHANGE = "occurrence";
+  private static final String SMALL_DOWNLOAD_ROUTING_KEY = "occurrence.download.launch.small";
+
   protected static final Set<Download.Status> RUNNING_STATUSES =
       EnumSet.of(Download.Status.PREPARING, Download.Status.RUNNING, Download.Status.SUSPENDED);
 
@@ -197,10 +201,16 @@ public abstract class DownloadRequestServiceImpl
     try {
       String downloadId = downloadIdService.generateId();
       log.debug("Download id is: [{}]", downloadId);
-      persistDownload(request, downloadId, source);
+      Download download = persistDownload(request, downloadId, source);
 
-      log.debug("Send message to the download launcher queue");
-      messagePublisher.send(new DownloadLauncherMessage(downloadId, request));
+      DownloadLauncherMessage message = new DownloadLauncherMessage(downloadId, request);
+      if (isSmallDownload(download)) {
+        log.debug("Send message to the small download launcher queue");
+        messagePublisher.send(message, DOWNLOADS_EXCHANGE, SMALL_DOWNLOAD_ROUTING_KEY);
+      } else {
+        log.debug("Send message to the download launcher queue");
+        messagePublisher.send(message);
+      }
 
       return downloadId;
     } catch (Exception e) {
@@ -398,8 +408,25 @@ public abstract class DownloadRequestServiceImpl
     return 0L;
   }
 
+  /**
+   * Returns the record-count threshold below which an occurrence DWCA/CSV/FASTA download is
+   * considered small and routed to the dedicated small-download queue. EVENT downloads are never
+   * small; subclasses that handle event downloads should return 0.
+   */
+  protected abstract int getSmallDownloadCutOff();
+
+  // NOTE: this logic must stay in sync with AirflowDownloadLauncherService#isSmallDownload
+  private boolean isSmallDownload(Download download) {
+    return download.getRequest().getType() != DownloadType.EVENT
+        && (download.getRequest().getFormat() == DownloadFormat.DWCA
+            || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV
+            || download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE)
+        && download.getTotalRecords() != -1
+        && getSmallDownloadCutOff() >= download.getTotalRecords();
+  }
+
   /** Persists the download information. */
-  private void persistDownload(DownloadRequest request, String downloadId, String source) {
+  private Download persistDownload(DownloadRequest request, String downloadId, String source) {
     Download download = new Download();
     download.setKey(downloadId);
     download.setStatus(Download.Status.PREPARING);
@@ -424,6 +451,7 @@ public abstract class DownloadRequestServiceImpl
     }
 
     occurrenceDownloadService.create(download);
+    return download;
   }
 
   /** Updates the download status and file size. */
