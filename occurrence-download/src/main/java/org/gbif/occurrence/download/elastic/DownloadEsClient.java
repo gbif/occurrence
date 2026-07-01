@@ -64,6 +64,11 @@ public class DownloadEsClient implements Closeable {
   /**
    * Executes the ElasticSearch query and returns the number of records found. If an error occurs
    * 'ERROR_COUNT' is returned.
+   * 
+   * POTENTIAL HANG POINT: This count request does not set an explicit query-level timeout.
+   * It relies solely on the HTTP client's socketTimeout (default 100 seconds from EsConfig).
+   * If Elasticsearch is slow or overloaded, this call could hang for up to socketTimeout duration.
+   * Consider adding: new CountRequest().timeout(TimeValue) to set an explicit query timeout.
    */
   @SneakyThrows
   public long getRecordCount(Predicate predicate) {
