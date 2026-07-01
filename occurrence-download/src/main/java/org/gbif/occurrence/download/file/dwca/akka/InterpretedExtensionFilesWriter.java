@@ -50,10 +50,7 @@ public class InterpretedExtensionFilesWriter implements Closeable {
     if (configuration.getInterpretedExtensions() != null) {
       configuration.getInterpretedExtensions().stream()
           .filter(EXTENSION_FILE_NAMES::containsKey)
-          .forEach(
-              extension -> {
-                filesMap.put(extension, extensionOutput(extension, configuration));
-              });
+          .forEach(extension -> filesMap.put(extension, extensionOutput(extension, configuration)));
     }
   }
 
@@ -96,5 +93,13 @@ public class InterpretedExtensionFilesWriter implements Closeable {
   @SneakyThrows
   public void appendAndDelete(Result result) {
     filesMap.forEach((extension, fileOutput) -> appendResult(result, extension, fileOutput));
+  }
+
+  public static String getExtensionSuffix(Extension extension) {
+    if (EXTENSION_SUFFIXES.containsKey(extension)) {
+      throw new IllegalArgumentException("Extension not supported: " + extension);
+    }
+
+    return EXTENSION_SUFFIXES.get(extension);
   }
 }
