@@ -110,6 +110,7 @@ pipeline {
           allOf {
               expression { params.RELEASE };
               branch 'master';
+              branch 'hotfix/facets_performance';
           }
       }
       environment {
@@ -166,6 +167,7 @@ pipeline {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
           branch 'master';
+          branch 'hotfix/facets_performance';
         }
       }
       environment {
