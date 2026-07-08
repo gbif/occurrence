@@ -44,10 +44,15 @@ public class EventEsSearchRequestBuilderTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
   public static final String DEFAULT_CHECKLIST_KEY = "defaultChecklistKey";
+  public static final int DEFAULT_SHARD_SIZE = 100;
 
   private final EventEsSearchRequestBuilder esSearchRequestBuilder =
       new EventEsSearchRequestBuilder(
-          EventEsField.buildFieldMapper(), new ConceptClientMock(), null, DEFAULT_CHECKLIST_KEY);
+          EventEsField.buildFieldMapper(),
+          new ConceptClientMock(),
+          null,
+          DEFAULT_CHECKLIST_KEY,
+          DEFAULT_SHARD_SIZE);
 
   @Test
   public void humboldtTaxonomyTest() throws Exception {

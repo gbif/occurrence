@@ -50,7 +50,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
           OccurrenceEsField.buildFieldMapper(),
           new ConceptClientMock(),
           null,
-          "defaultChecklistKey");
+          "defaultChecklistKey",
+          100);
 
   @Test
   public void termQueryTest() throws IOException {
