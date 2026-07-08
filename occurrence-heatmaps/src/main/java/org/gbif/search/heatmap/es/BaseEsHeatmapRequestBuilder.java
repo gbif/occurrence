@@ -52,8 +52,15 @@ public abstract class BaseEsHeatmapRequestBuilder<
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
       EsQueryVisitor<P> esQueryVisitor,
-      String defaultChecklistKey) {
-    super(esFieldMapper, conceptClient, nameUsageMatchingService, esQueryVisitor, defaultChecklistKey);
+      String defaultChecklistKey,
+      int defaultShardSize) {
+    super(
+        esFieldMapper,
+        conceptClient,
+        nameUsageMatchingService,
+        esQueryVisitor,
+        defaultChecklistKey,
+        defaultShardSize);
   }
 
   @VisibleForTesting
