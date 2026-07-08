@@ -88,7 +88,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     @Value("${occurrence.search.es.index}") String esIndex,
     OccurrenceEsFieldMapper esFieldMapper,
     ConceptClient conceptClient,
-    @Value("${defaultChecklistKey}") String defaultChecklistKey) {
+    @Value("${defaultChecklistKey}") String defaultChecklistKey,
+    @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -101,7 +102,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.esFulltextSuggestBuilder = EsFulltextSuggestBuilder.builder().occurrenceEsFieldMapper(esFieldMapper).build();
     this.esSearchRequestBuilder =
         new OccurrenceEsSearchRequestBuilder(
-            esFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
+            esFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey, defaultShardSize);
     this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new OccurrenceEsResponseParser(esFieldMapper, searchHitOccurrenceConverter);
     this.defaultChecklistKey = defaultChecklistKey;

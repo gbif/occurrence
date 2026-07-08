@@ -76,7 +76,6 @@ public abstract class BaseEsSearchRequestBuilder<
     P extends SearchParameter, S extends FacetedSearchRequest<P>> {
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
-  private static final IntUnaryOperator DEFAULT_SHARD_SIZE = size -> (size * 2) + 50000;
 
   public static String[] SOURCE_EXCLUDE =
       new String[] {"all", "notIssues", "*.verbatim", "*.suggest"};
@@ -86,18 +85,21 @@ public abstract class BaseEsSearchRequestBuilder<
   protected final ConceptClient conceptClient;
   protected final EsQueryVisitor<P> esQueryVisitor;
   protected final String defaultChecklistKey;
+  protected final int defaultShardSize;
 
   public BaseEsSearchRequestBuilder(
       EsFieldMapper<P> esFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
       EsQueryVisitor<P> esQueryVisitor,
-      String defaultChecklistKey) {
+      String defaultChecklistKey,
+      int defaultShardSize) {
     this.esFieldMapper = esFieldMapper;
     this.conceptClient = conceptClient;
     this.nameUsageMatchingService = nameUsageMatchingService;
     this.esQueryVisitor = esQueryVisitor;
     this.defaultChecklistKey = defaultChecklistKey;
+    this.defaultShardSize = defaultShardSize;
   }
 
   public SearchRequest buildSearchRequest(S searchRequest, String index) {
@@ -671,8 +673,7 @@ public abstract class BaseEsSearchRequestBuilder<
     termsAggsBuilder.size(size);
 
     // aggs shard size
-    termsAggsBuilder.shardSize(
-        CARDINALITIES.getOrDefault(facetParam, DEFAULT_SHARD_SIZE.applyAsInt(size)));
+    termsAggsBuilder.shardSize(CARDINALITIES.getOrDefault(facetParam, getDefaultShardSize(size)));
 
     if (esField != null && esField.isNestedField()) {
       return AggregationBuilders.nested(facetParam.name(), esField.getNestedPath())
@@ -908,6 +909,10 @@ public abstract class BaseEsSearchRequestBuilder<
       bool.filter().add(checklistQuery);
       params.remove(OccurrenceSearchParameter.ISSUE);
     }
+  }
+
+  private int getDefaultShardSize(int size) {
+    return (size * 2) + defaultShardSize;
   }
 
 
