@@ -69,6 +69,7 @@ public class GbifOccurrenceDownloads {
             .config(sparkConf)
             .enableHiveSupport()
             .config("spark.sql.catalog.iceberg.type", "hive")
+            .config("spark.sql.defaultCatalog", "iceberg") // #547
             .config("spark.sql.catalog.iceberg", "org.apache.iceberg.spark.SparkCatalog")
             .config("spark.hadoop.io.compression.codecs", "org.gbif.hadoop.compress.d2.D2Codec");
     additionalSparkConfigs.forEach(sparkBuilder::config);
