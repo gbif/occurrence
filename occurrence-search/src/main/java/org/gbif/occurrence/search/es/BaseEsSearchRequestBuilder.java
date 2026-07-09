@@ -76,6 +76,7 @@ public abstract class BaseEsSearchRequestBuilder<
     P extends SearchParameter, S extends FacetedSearchRequest<P>> {
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
+  private static final int MAX_SHARD_SIZE = 10000;
 
   public static String[] SOURCE_EXCLUDE =
       new String[] {"all", "notIssues", "*.verbatim", "*.suggest"};
@@ -912,7 +913,7 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   private int getDefaultShardSize(int size) {
-    return (size * 2) + defaultShardSize;
+    return Math.min((size * 2) + defaultShardSize, MAX_SHARD_SIZE);
   }
 
 
