@@ -498,8 +498,7 @@ public class DownloadResource {
         LOG.info("SQL is valid. Parsed as «{}».", sqlQuery.getUserSql());
         LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
         LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
-        // use original SQL https://github.com/gbif/occurrence/issues/531
-        ((SqlDownloadRequest) downloadRequest).setSql(userSql);
+        ((SqlDownloadRequest) downloadRequest).setSql(sqlQuery.getUserSql());
         return ResponseEntity.ok(downloadRequest);
       } catch (QueryBuildingException qbe) {
         LOG.info("SQL is invalid: {}", qbe.getMessage());
@@ -741,7 +740,7 @@ public class DownloadResource {
       LOG.info("SQL is valid. Where clause is «{}».", sqlQuery.getSqlWhere());
       LOG.info("SQL is valid. SQL headers are «{}».", sqlQuery.getSqlSelectColumnNames());
       SqlDownloadRequest request = new SqlDownloadRequest(
-        generatedSql.toString(),
+        sqlQuery.getUserSql(),
         downloadRequest.getCreator(),
         downloadRequest.getNotificationAddresses(),
         downloadRequest.getSendNotification(),

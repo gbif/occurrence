@@ -86,7 +86,7 @@ public class DownloadQueryParameters {
           sv.validateAndParse(
               userSql, true); // Declares QueryBuildingException but it's already been validated.
       builder
-          .userSql(userSql) //use the original SQL #547
+          .userSql(sqlQuery.getSql())
           .userSqlHeader(String.join("\t", sqlQuery.getSqlSelectColumnNames()))
           .whereClause(sqlQuery.getSqlWhere());
     }
