@@ -213,7 +213,6 @@ public class RequestFieldsTranslator {
       return geoTimeParam;
     }
 
-    GeotimeAges geotimeAges = null;
     if (geoTimeParam.contains(EsQueryUtils.RANGE_SEPARATOR)) {
       String[] range = geoTimeParam.split(",");
       String lowerBound = range[0];
