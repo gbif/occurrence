@@ -444,9 +444,9 @@ public abstract class DownloadRequestServiceImpl
             countRecords(((PredicateDownloadRequest) download.getRequest()).getPredicate()));
       } catch (Exception ex) {
         download.setTotalRecords(-1);
-        log.info(
+        log.error(
             "Couldn't get number of records for download {}. They are being set to -1 at download creation time.",
-            downloadId);
+            downloadId, ex);
       }
     }
 
