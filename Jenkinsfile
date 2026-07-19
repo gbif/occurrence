@@ -109,7 +109,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE };
-              branch 'master';
+              branch 'fix/24-nulls-for-keys';
           }
       }
       environment {
@@ -127,7 +127,10 @@ pipeline {
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
               git 'https://github.com/gbif/occurrence.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -Darguments="-Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE" $RELEASE_ARGS'
+              sh '''
+                git checkout fix/24-nulls-for-keys
+                mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -Darguments="-Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE" $RELEASE_ARGS
+                '''
             }
           }
 
@@ -141,7 +144,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE_TRINO };
-              branch 'master';
+              branch 'fix/24-nulls-for-keys';
           }
       }
       environment {
@@ -154,6 +157,7 @@ pipeline {
               git 'https://github.com/gbif/occurrence.git'
               sh '''
                 cd occurrence-trino-udf
+                git checkout fix/24-nulls-for-keys
                 mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS_TRINO
               '''
           }
@@ -165,7 +169,7 @@ pipeline {
         allOf {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
+          branch 'fix/24-nulls-for-keys';
         }
       }
       environment {
