@@ -79,9 +79,17 @@ public class RequestFieldsTranslator {
             parent -> {
               JsonNode keyNode = parent.findValue("key");
               if (containsParam(keyNode, OccurrenceSearchParameter.GEOLOGICAL_TIME.name())) {
-                String translatedParam =
-                    processGeoTimeParam(parent.findValue("value").asText(), conceptClient);
-                ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
+                if (parent.has("value")) {
+                  String translatedParam =
+                      processGeoTimeParam(parent.findValue("value").asText(), conceptClient);
+                  ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
+                } else if (parent.has("values")) {
+                  ArrayNode translatedValues = occurrenceObjectMapper.createArrayNode();
+                  for (JsonNode value : parent.findValue("values")) {
+                    translatedValues.add(processGeoTimeParam(value.asText(), conceptClient));
+                  }
+                  ((ObjectNode) parent).replace("values", translatedValues);
+                }
               }
             });
 
