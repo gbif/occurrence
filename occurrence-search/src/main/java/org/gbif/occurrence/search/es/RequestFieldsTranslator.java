@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +42,8 @@ public class RequestFieldsTranslator {
 
   // TODO: add to this class the dnaSequence conversion too?
 
+  private static final List<String> GT_LT_PREDICATES =
+      List.of("greaterThanOrEquals", "greaterThan", "lessThanOrEquals", "lessThan");
   private static final String GEO_TIME_VOCAB = "GeoTime";
   private static final ObjectMapper occurrenceObjectMapper =
       new ObjectMapper()
@@ -81,12 +84,17 @@ public class RequestFieldsTranslator {
               if (containsParam(keyNode, OccurrenceSearchParameter.GEOLOGICAL_TIME.name())) {
                 if (parent.has("value")) {
                   String translatedParam =
-                      processGeoTimeParam(parent.findValue("value").asText(), conceptClient);
+                      processGeoTimeParam(
+                          parent.findValue("value").asText(),
+                          conceptClient,
+                          parent.findValue("type").asText());
                   ((ObjectNode) parent).replace("value", new TextNode(translatedParam));
                 } else if (parent.has("values")) {
                   ArrayNode translatedValues = occurrenceObjectMapper.createArrayNode();
                   for (JsonNode value : parent.findValue("values")) {
-                    translatedValues.add(processGeoTimeParam(value.asText(), conceptClient));
+                    translatedValues.add(
+                        processGeoTimeParam(
+                            value.asText(), conceptClient, parent.findValue("type").asText()));
                   }
                   ((ObjectNode) parent).replace("values", translatedValues);
                 }
@@ -154,7 +162,7 @@ public class RequestFieldsTranslator {
 
     if (params.containsKey(OccurrenceSearchParameter.GEOLOGICAL_TIME)) {
       String geoTimeParam = params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next();
-      String translatedParam = processGeoTimeParam(geoTimeParam, conceptClient);
+      String translatedParam = processGeoTimeParam(geoTimeParam, conceptClient, null);
       params.replace(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of(translatedParam));
     }
   }
@@ -216,7 +224,8 @@ public class RequestFieldsTranslator {
     }
   }
 
-  private static String processGeoTimeParam(String geoTimeParam, ConceptClient conceptClient) {
+  private static String processGeoTimeParam(
+      String geoTimeParam, ConceptClient conceptClient, String predicateType) {
     if (Strings.isNullOrEmpty(geoTimeParam)) {
       return geoTimeParam;
     }
@@ -240,11 +249,11 @@ public class RequestFieldsTranslator {
       String end = null;
 
       if (lowerBound.equals(EsQueryUtils.RANGE_WILDCARD)) {
-        start = EsQueryUtils.RANGE_WILDCARD;
-        end = geotimeAgesHigher.endAge;
-      } else if (higherBound.equals(EsQueryUtils.RANGE_WILDCARD)) {
         end = EsQueryUtils.RANGE_WILDCARD;
-        start = geotimeAgesLower.startAge;
+        start = geotimeAgesHigher.startAge;
+      } else if (higherBound.equals(EsQueryUtils.RANGE_WILDCARD)) {
+        start = EsQueryUtils.RANGE_WILDCARD;
+        end = geotimeAgesLower.endAge;
       } else {
         start =
             String.valueOf(
@@ -266,7 +275,13 @@ public class RequestFieldsTranslator {
     } else {
       GeotimeAges geotimeAgesSingleParam = getGeotimeAges(conceptClient, geoTimeParam);
       if (geotimeAgesSingleParam.startAge != null) {
-        return geotimeAgesSingleParam.startAge;
+        if (predicateType != null && GT_LT_PREDICATES.contains(predicateType)) {
+          return geotimeAgesSingleParam.startAge;
+        } else {
+          return geotimeAgesSingleParam.endAge
+              + EsQueryUtils.RANGE_SEPARATOR
+              + geotimeAgesSingleParam.startAge;
+        }
       }
     }
 
