@@ -276,7 +276,15 @@ public class RequestFieldsTranslator {
       GeotimeAges geotimeAgesSingleParam = getGeotimeAges(conceptClient, geoTimeParam);
       if (geotimeAgesSingleParam.startAge != null) {
         if (predicateType != null && GT_LT_PREDICATES.contains(predicateType)) {
-          return geotimeAgesSingleParam.startAge;
+          if (predicateType.equals("greaterThanOrEquals")) {
+            return geotimeAgesSingleParam.endAge;
+          } else if (predicateType.equals("lessThanOrEquals")) {
+            return geotimeAgesSingleParam.startAge;
+          } else if (predicateType.equals("greaterThan")) {
+            return geotimeAgesSingleParam.startAge;
+          } else if (predicateType.equals("lessThan")) {
+          return geotimeAgesSingleParam.endAge;
+        }
         } else {
           return geotimeAgesSingleParam.endAge
               + EsQueryUtils.RANGE_SEPARATOR
