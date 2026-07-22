@@ -779,12 +779,20 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertTrue(jsonQuery.path(BOOL).path(FILTER).isArray());
     assertEquals(1, jsonQuery.path(BOOL).path(FILTER).size());
     assertEquals(
+        0,
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValue(GEOLOGICAL_TIME.getSearchFieldName())
+            .get(FROM)
+            .asDouble());
+    assertEquals(
         66.0,
         jsonQuery
             .path(BOOL)
             .path(FILTER)
             .findValue(GEOLOGICAL_TIME.getSearchFieldName())
-            .get(VALUE)
+            .get(TO)
             .asDouble());
   }
 
@@ -830,8 +838,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
             .path(FILTER)
             .findValue(RANGE)
             .path(GEOLOGICAL_TIME.getSearchFieldName());
-    assertEquals(2.58, rangeNode.get(FROM).asDouble());
-    assertFalse(rangeNode.hasNonNull(TO));
+    assertEquals(0, rangeNode.get(FROM).asDouble());
+    assertEquals(5.333, rangeNode.get(TO).asDouble());
     assertEquals(WITHIN, rangeNode.get(EsQueryUtils.RELATION).asText());
   }
 
@@ -854,23 +862,29 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
-  public void checklistKeyTest() throws Exception{
+  public void checklistKeyTest() throws Exception {
 
     Map<OccurrenceSearchParameter, Set<String>> params = new java.util.HashMap<>();
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
-    QueryBuilder query =  esSearchRequestBuilder.buildQuery(params, null, false, "1")
-      .orElseThrow(IllegalArgumentException::new);
+    QueryBuilder query =
+        esSearchRequestBuilder
+            .buildQuery(params, null, false, "1")
+            .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
   }
 
   @Test
-  public void checklistKeyTaxonKeyTest()  throws Exception{
+  public void checklistKeyTaxonKeyTest() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
-    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
-    searchRequest.addParameter(OccurrenceSearchParameter.TAXON_KEY, "urn:lsid:marinespecies.org:taxname:1633955");
-    QueryBuilder query =  esSearchRequestBuilder.buildQueryNode(searchRequest)
-      .orElseThrow(IllegalArgumentException::new);
+    searchRequest.addParameter(
+        OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.addParameter(
+        OccurrenceSearchParameter.TAXON_KEY, "urn:lsid:marinespecies.org:taxname:1633955");
+    QueryBuilder query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(query.toString());
     LOG.debug("Query: {}", jsonQuery);
   }
