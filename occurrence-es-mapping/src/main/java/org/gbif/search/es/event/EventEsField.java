@@ -49,6 +49,7 @@ public enum EventEsField implements EsField {
   HOSTING_ORGANIZATION_KEY(new BaseEsField("metadata.hostingOrganizationKey", GbifInternalTerm.hostingOrganizationKey)),
   INSTALLATION_KEY(new BaseEsField("metadata.installationKey", GbifInternalTerm.installationKey)),
   NETWORK_KEY(new BaseEsField("metadata.networkKeys", GbifInternalTerm.networkKey)),
+  DATASET_CATEGORY(new BaseEsField("metadata.datasetCategory", GbifInternalTerm.datasetCategory)),
   PROTOCOL(new BaseEsField("metadata.protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("metadata.license", DcTerm.license)),
   PROGRAMME(new BaseEsField("metadata.programmeAcronym", GbifInternalTerm.programmeAcronym)),
@@ -299,6 +300,7 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.CRAWL_ID, CRAWL_ID)
       .put(EventSearchParameter.INSTALLATION_KEY, INSTALLATION_KEY)
       .put(EventSearchParameter.NETWORK_KEY, NETWORK_KEY)
+      .put(EventSearchParameter.DATASET_CATEGORY, DATASET_CATEGORY)
       .put(EventSearchParameter.EVENT_ID, EVENT_ID)
       .put(EventSearchParameter.PARENT_EVENT_ID, PARENT_EVENT_ID)
       .put(EventSearchParameter.EVENT_ID_HIERARCHY, EVENT_ID_HIERARCHY)

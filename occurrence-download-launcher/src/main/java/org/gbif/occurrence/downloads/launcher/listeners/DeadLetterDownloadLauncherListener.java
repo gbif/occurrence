@@ -40,7 +40,8 @@ public class DeadLetterDownloadLauncherListener
   }
 
   @Override
-  @RabbitListener(queues = "${downloads.deadLauncherQueueName}")
+  @RabbitListener(
+      queues = {"${downloads.deadLauncherQueueName}", "${downloads.deadSmallLauncherQueueName}"})
   public void handleMessage(DownloadLauncherMessage downloadsMessage) {
     log.info("Received message {}", downloadsMessage);
     String downloadKey = downloadsMessage.getDownloadKey();

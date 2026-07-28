@@ -487,6 +487,13 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-testkit_2.12</artifactId>
+      <version>${akka-actor.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>net.sf.supercsv</groupId>
       <artifactId>super-csv</artifactId>
     </dependency>

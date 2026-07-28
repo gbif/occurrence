@@ -18,16 +18,19 @@ import org.gbif.occurrence.downloads.launcher.services.EventDownloadUpdaterServi
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
-import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.SmallOccurrenceDownloadLauncherService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-/** Listen MQ to receive and run a download */
+/**
+ * Listens on the small-downloads queue and processes each download independently of the large
+ * queue, preventing slow large downloads from blocking fast small ones.
+ */
 @Component
-public class DownloadLauncherListener extends AbstractDownloadLauncherListener {
+public class SmallDownloadLauncherListener extends AbstractDownloadLauncherListener {
 
-  public DownloadLauncherListener(
-      OccurrenceDownloadLauncherService occurrenceDownloadLauncherService,
+  public SmallDownloadLauncherListener(
+      SmallOccurrenceDownloadLauncherService occurrenceDownloadLauncherService,
       EventDownloadLauncherService eventDownloadLauncherService,
       OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService,
       EventDownloadUpdaterService eventDownloadUpdaterService,
@@ -41,8 +44,15 @@ public class DownloadLauncherListener extends AbstractDownloadLauncherListener {
   }
 
   @Override
-  @RabbitListener(queues = "${downloads.launcherQueueName}")
+  @RabbitListener(
+      queues = "${downloads.smallLauncherQueueName}",
+      concurrency = "${downloads.smallLauncherConcurrency:5}")
   public void handleMessage(DownloadLauncherMessage downloadsMessage) {
     super.handleMessage(downloadsMessage);
+  }
+
+  @Override
+  protected String getMessagePrefix() {
+    return "small download ";
   }
 }

@@ -21,13 +21,15 @@ public class EventEsHeatmapRequestBuilder
       EsFieldMapper<EventSearchParameter> esFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      String defaultChecklistKey) {
+      String defaultChecklistKey,
+      int defaultShardSize) {
     super(
         esFieldMapper,
         conceptClient,
         nameUsageMatchingService,
         new EventEsQueryVisitor(esFieldMapper, defaultChecklistKey),
-        defaultChecklistKey);
+        defaultChecklistKey,
+        defaultShardSize);
   }
 
   @Override

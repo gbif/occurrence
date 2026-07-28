@@ -1,3 +1,4 @@
+-- TODO: delete file?
 USE  ${r"${hiveDB}"};
 DROP TABLE IF EXISTS ${r"${downloadTableName}"}_interpreted PURGE;
 DROP TABLE IF EXISTS ${r"${downloadTableName}"}_verbatim PURGE;

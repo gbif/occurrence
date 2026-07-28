@@ -122,13 +122,18 @@ public class OccurrenceSearchResource {
     OccurrenceSearchService searchService,
     SearchTermService searchTermService,
     ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService,
-    @Value("${defaultChecklistKey}") String defaultChecklistKey) {
+    @Value("${defaultChecklistKey}") String defaultChecklistKey,
+    @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;
     OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     this.esSearchRequestBuilder =
         new OccurrenceEsSearchRequestBuilder(
-            esFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
+            esFieldMapper,
+            conceptClient,
+            nameUsageMatchingService,
+            defaultChecklistKey,
+            defaultShardSize);
   }
 
   /**
@@ -365,6 +370,17 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "13b70480-bd69-11dd-b15f-b8a03c50a862"),
+        @Parameter(
+            name = "datasetCategory",
+            description =
+                "Category of the dataset, as defined in the "
+                    + "[GBIF DatasetCategory vocabulary](https://registry.gbif.org/vocabulary/DatasetCategory/concepts).\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "eDNA"),
         @Parameter(
             name = "datasetName",
             description = "The exact name of the dataset.\n\n" + API_PARAMETER_MAY_BE_REPEATED,

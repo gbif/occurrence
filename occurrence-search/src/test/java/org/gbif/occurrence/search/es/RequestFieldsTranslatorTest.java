@@ -44,11 +44,11 @@ public class RequestFieldsTranslatorTest {
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("neogene,*"));
     RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals(
-        "*,23.03", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
+        "2.58,*", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("*,neogene"));
     RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
-    assertEquals("2.58,*", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
+    assertEquals("*,23.03", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("burdigalian,pliocene"));
     RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
@@ -67,7 +67,7 @@ public class RequestFieldsTranslatorTest {
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("miocene"));
     RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
-    assertEquals("23.03", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
+    assertEquals("5.333,23.03", params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next());
 
     params.put(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of("neogene,foo"));
     assertThrows(
@@ -86,7 +86,7 @@ public class RequestFieldsTranslatorTest {
     EqualsPredicate<OccurrenceSearchParameter> tep =
         (EqualsPredicate<OccurrenceSearchParameter>) translatedPredicate;
     assertEquals(OccurrenceSearchParameter.GEOLOGICAL_TIME, tep.getKey());
-    assertEquals("23.03", tep.getValue());
+    assertEquals("2.58,23.03", tep.getValue());
 
     EqualsPredicate<OccurrenceSearchParameter> rangeEqualsPredicate =
         new EqualsPredicate<>(

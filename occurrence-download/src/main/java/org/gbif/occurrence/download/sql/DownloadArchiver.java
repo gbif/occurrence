@@ -40,7 +40,8 @@ public class DownloadArchiver {
   private final DownloadQueryParameters queryParameters;
 
   public void archive() {
-    if (DownloadFormat.DWCA == download.getRequest().getFormat()) {
+    if (DownloadFormat.DWCA == download.getRequest().getFormat()
+        || DownloadFormat.FASTA_ARCHIVE == download.getRequest().getFormat()) {
       dwcaArchive();
     } else {
       simpleArchive();

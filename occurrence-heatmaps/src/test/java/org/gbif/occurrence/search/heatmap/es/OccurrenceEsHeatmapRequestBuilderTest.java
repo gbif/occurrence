@@ -41,7 +41,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
   private static final String INDEX = "index";
   private final OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder =
       new OccurrenceEsHeatmapRequestBuilder(
-          OccurrenceEsField.buildFieldMapper(), null, null, "defaultChecklistKey");
+          OccurrenceEsField.buildFieldMapper(), null, null, "defaultChecklistKey", 100);
 
   @Test
   public void heatmapRequestTest() throws IOException {

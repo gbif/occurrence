@@ -1,6 +1,5 @@
 package org.gbif.occurrence.downloads.launcher.services.launcher;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.occurrence.downloads.launcher.pojo.AirflowConfiguration;
 import org.gbif.occurrence.downloads.launcher.pojo.SparkStaticConfiguration;
 import org.gbif.occurrence.downloads.launcher.services.LockerService;
@@ -10,12 +9,12 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+/** Launcher for large occurrence downloads; always uses the big-downloads Airflow DAG. */
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class OccurrenceDownloadLauncherService extends AirflowDownloadLauncherService {
 
-  private final AirflowClient bigDownloadsAirflowClient;
-  private final AirflowClient smallDownloadsAirflowClient;
+  private final AirflowClient airflowClient;
 
   public OccurrenceDownloadLauncherService(
       SparkStaticConfiguration sparkStaticConfiguration,
@@ -23,14 +22,16 @@ public class OccurrenceDownloadLauncherService extends AirflowDownloadLauncherSe
       OccurrenceDownloadClient occurrenceDownloadClient,
       LockerService lockerService) {
     super(sparkStaticConfiguration, airflowConfiguration, occurrenceDownloadClient, lockerService);
-    this.bigDownloadsAirflowClient =
-        buildAirflowClient(airflowConfiguration.bigDownloadsAirflowDagName);
-    this.smallDownloadsAirflowClient =
-        buildAirflowClient(airflowConfiguration.smallDownloadsAirflowDagName);
+    this.airflowClient = buildAirflowClient(airflowConfiguration.bigDownloadsAirflowDagName);
   }
 
   @Override
-  protected AirflowClient getAirflowClient(Download download) {
-    return isSmallDownload(download) ? smallDownloadsAirflowClient : bigDownloadsAirflowClient;
+  protected AirflowClient getAirflowClient() {
+    return airflowClient;
+  }
+
+  @Override
+  protected boolean isSmallLauncher() {
+    return false;
   }
 }

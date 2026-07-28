@@ -40,6 +40,9 @@ public class RabbitConfiguration {
 
   private static final String DOWNLOADS_EXCHANGE = "occurrence";
 
+  /** Routing key for small downloads (DWCA/CSV below the record-count threshold). */
+  public static final String SMALL_DOWNLOAD_ROUTING_KEY = "occurrence.download.launch.small";
+
   @Bean
   Queue launcherDeadQueue(DownloadServiceConfiguration configuration) {
     return QueueBuilder.durable(configuration.getDeadLauncherQueueName()).build();
@@ -50,6 +53,19 @@ public class RabbitConfiguration {
     return QueueBuilder.durable(configuration.getLauncherQueueName())
         .deadLetterExchange("")
         .deadLetterRoutingKey(configuration.getDeadLauncherQueueName())
+        .build();
+  }
+
+  @Bean
+  Queue smallLauncherDeadQueue(DownloadServiceConfiguration configuration) {
+    return QueueBuilder.durable(configuration.getDeadSmallLauncherQueueName()).build();
+  }
+
+  @Bean
+  Queue smallLauncherQueue(DownloadServiceConfiguration configuration) {
+    return QueueBuilder.durable(configuration.getSmallLauncherQueueName())
+        .deadLetterExchange("")
+        .deadLetterRoutingKey(configuration.getDeadSmallLauncherQueueName())
         .build();
   }
 
@@ -71,6 +87,14 @@ public class RabbitConfiguration {
     return BindingBuilder.bind(launcherQueue)
         .to(new DirectExchange(DOWNLOADS_EXCHANGE))
         .with(DownloadLauncherMessage.ROUTING_KEY);
+  }
+
+  @Bean
+  public Binding smallLauncherQueueBinding(
+      @Qualifier("smallLauncherQueue") Queue smallLauncherQueue) {
+    return BindingBuilder.bind(smallLauncherQueue)
+        .to(new DirectExchange(DOWNLOADS_EXCHANGE))
+        .with(SMALL_DOWNLOAD_ROUTING_KEY);
   }
 
   @Bean

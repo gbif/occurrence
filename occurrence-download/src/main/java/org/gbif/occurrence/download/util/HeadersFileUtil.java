@@ -110,6 +110,13 @@ public class HeadersFileUtil {
   }
 
   /**
+   * Appends the sequences headers line to the output file.
+   */
+  public static void appendSequencesHeaders(OutputStream fileWriter) throws IOException {
+    appendHeaders(fileWriter, getSequencesTableHeader());
+  }
+
+  /**
    * Appends the headers line to the output file.
    */
   public static void appendHeaders(OutputStream fileWriter, String headers) throws IOException {
@@ -145,6 +152,14 @@ public class HeadersFileUtil {
 
   public static String getHumboldtTableHeader() {
     return getTableHeader(TermUtils.humboldtTerms());
+  }
+
+  public static String getSequencesTableHeader() {
+    return getTableHeader(TermUtils.sequenceTerms()).replace("nucleotide_", "");
+  }
+
+  public static String getDnaTableHeader() {
+    return getTableHeader(TermUtils.dnaTerms());
   }
 
   public static String getExtensionInterpretedHeader(ExtensionTable extensionTable) {

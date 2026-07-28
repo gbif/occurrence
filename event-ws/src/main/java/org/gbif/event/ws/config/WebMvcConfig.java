@@ -53,6 +53,7 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.util.UrlPathHelper;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -61,6 +62,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
   @Override
   public void configurePathMatch(PathMatchConfigurer configurer) {
+    UrlPathHelper urlPathHelper = new UrlPathHelper();
+    urlPathHelper.setUrlDecode(false);
+    urlPathHelper.setRemoveSemicolonContent(false);
+    configurer.setUrlPathHelper(urlPathHelper);
     configurer.setUseTrailingSlashMatch(true);
   }
 
@@ -160,7 +165,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
   public XmlMapper xmlMapper() {
     XmlMapper xmlMapper = new XmlMapper();
     xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-    xmlMapper.registerModules(Arrays.asList(new SimpleModule(), new JakartaXmlBindAnnotationModule()));
+    xmlMapper.registerModules(
+        Arrays.asList(new SimpleModule(), new JakartaXmlBindAnnotationModule()));
     return xmlMapper;
   }
 
@@ -189,6 +195,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     StrictHttpFirewall firewall = new StrictHttpFirewall();
     firewall.setAllowUrlEncodedSlash(true);
     firewall.setAllowUrlEncodedDoubleSlash(true);
+    firewall.setAllowSemicolon(true);
     return firewall;
   }
 

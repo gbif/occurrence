@@ -37,6 +37,7 @@ import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
+import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -52,6 +53,8 @@ import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
+import org.gbif.registry.ws.client.DoiInteractionClient;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -62,6 +65,10 @@ public abstract class DownloadRequestServiceImpl
 
   // magic prefix for download keys to indicate these aren't real download files
   private static final String NON_DOWNLOAD_PREFIX = "dwca-";
+
+  // Must match DOWNLOADS_EXCHANGE and SMALL_DOWNLOAD_ROUTING_KEY in RabbitConfiguration (launcher)
+  private static final String DOWNLOADS_EXCHANGE = "occurrence";
+  private static final String SMALL_DOWNLOAD_ROUTING_KEY = "occurrence.download.launch.small";
 
   protected static final Set<Download.Status> RUNNING_STATUSES =
       EnumSet.of(Download.Status.PREPARING, Download.Status.RUNNING, Download.Status.SUSPENDED);
@@ -94,6 +101,7 @@ public abstract class DownloadRequestServiceImpl
   private final DownloadLimitsService downloadLimitsService;
   private final MessagePublisher messagePublisher;
   private final DownloadType downloadType;
+  private final DoiInteractionClient doiInteractionClient;
 
   public DownloadRequestServiceImpl(
       @Value("${occurrence.download.portal.url}") String portalUrl,
@@ -104,7 +112,8 @@ public abstract class DownloadRequestServiceImpl
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
       MessagePublisher messagePublisher,
-      DownloadType downloadType) {
+      DownloadType downloadType,
+      DoiInteractionClient doiInteractionClient) {
     this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
@@ -115,6 +124,7 @@ public abstract class DownloadRequestServiceImpl
     this.emailSender = emailSender;
     this.messagePublisher = messagePublisher;
     this.downloadType = downloadType;
+    this.doiInteractionClient = doiInteractionClient;
   }
 
   @Override
@@ -191,10 +201,16 @@ public abstract class DownloadRequestServiceImpl
     try {
       String downloadId = downloadIdService.generateId();
       log.debug("Download id is: [{}]", downloadId);
-      persistDownload(request, downloadId, source);
+      Download download = persistDownload(request, downloadId, source);
 
-      log.debug("Send message to the download launcher queue");
-      messagePublisher.send(new DownloadLauncherMessage(downloadId, request));
+      DownloadLauncherMessage message = new DownloadLauncherMessage(downloadId, request);
+      if (isSmallDownload(download)) {
+        log.debug("Send message to the small download launcher queue");
+        messagePublisher.send(message, DOWNLOADS_EXCHANGE, SMALL_DOWNLOAD_ROUTING_KEY);
+      } else {
+        log.debug("Send message to the download launcher queue");
+        messagePublisher.send(message);
+      }
 
       return downloadId;
     } catch (Exception e) {
@@ -333,8 +349,26 @@ public abstract class DownloadRequestServiceImpl
             "Got callback for failed query. downloadId [{}], Status [{}]",
             downloadId,
             status);
+
+        if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE
+            && download.getDoi() != null) {
+          // we need to rollback the DOI because it's created when archiving the download to include
+          // it in the citations.txt file
+          try {
+            doiInteractionClient.delete(
+                download.getDoi().getPrefix(), download.getDoi().getSuffix());
+          } catch (Exception e) {
+            log.warn(
+                "Failed to rollback DOI {} for failed FASTA download {}",
+                download.getDoi(),
+                downloadId,
+                e);
+      }
+        }
+
         download = updateDownloadStatus(download, newStatus);
         emailModel = emailManager.generateFailedDownloadEmailModel(download, portalUrl);
+
         emailSender.send(emailModel);
         FAILED_DOWNLOADS.increment();
         break;
@@ -374,8 +408,25 @@ public abstract class DownloadRequestServiceImpl
     return 0L;
   }
 
+  /**
+   * Returns the record-count threshold below which an occurrence DWCA/CSV/FASTA download is
+   * considered small and routed to the dedicated small-download queue. EVENT downloads are never
+   * small; subclasses that handle event downloads should return 0.
+   */
+  protected abstract int getSmallDownloadCutOff();
+
+  // NOTE: this logic must stay in sync with AirflowDownloadLauncherService#isSmallDownload
+  private boolean isSmallDownload(Download download) {
+    return download.getRequest().getType() != DownloadType.EVENT
+        && (download.getRequest().getFormat() == DownloadFormat.DWCA
+            || download.getRequest().getFormat() == DownloadFormat.SIMPLE_CSV
+            || download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE)
+        && download.getTotalRecords() != -1
+        && getSmallDownloadCutOff() >= download.getTotalRecords();
+  }
+
   /** Persists the download information. */
-  private void persistDownload(DownloadRequest request, String downloadId, String source) {
+  private Download persistDownload(DownloadRequest request, String downloadId, String source) {
     Download download = new Download();
     download.setKey(downloadId);
     download.setStatus(Download.Status.PREPARING);
@@ -393,13 +444,14 @@ public abstract class DownloadRequestServiceImpl
             countRecords(((PredicateDownloadRequest) download.getRequest()).getPredicate()));
       } catch (Exception ex) {
         download.setTotalRecords(-1);
-        log.info(
+        log.error(
             "Couldn't get number of records for download {}. They are being set to -1 at download creation time.",
-            downloadId);
+            downloadId, ex);
       }
     }
 
     occurrenceDownloadService.create(download);
+    return download;
   }
 
   /** Updates the download status and file size. */

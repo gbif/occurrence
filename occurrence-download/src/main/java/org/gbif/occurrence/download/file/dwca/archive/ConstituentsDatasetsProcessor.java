@@ -36,9 +36,9 @@ public class ConstituentsDatasetsProcessor implements Closeable, Consumer<Consti
   private final ConstituentsEmlWriter emlWriter;
 
   @Builder
-  public ConstituentsDatasetsProcessor(DatasetService datasetService, File archiveDir) {
+  public ConstituentsDatasetsProcessor(DatasetService datasetService, File archiveDir, String downloadCitation) {
     rightsWriter = new ConstituentsRightsWriter(archiveDir);
-    citationWriter = new ConstituentsCitationWriter(archiveDir);
+    citationWriter = new ConstituentsCitationWriter(archiveDir, downloadCitation);
     emlWriter = new ConstituentsEmlWriter(datasetService, archiveDir);
   }
 

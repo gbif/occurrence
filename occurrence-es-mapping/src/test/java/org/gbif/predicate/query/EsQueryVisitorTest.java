@@ -46,7 +46,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Test cases for the Elasticsearch query visitor.
  *
- * TODO: It's not clear to me why we have this and https://github.com/gbif/gbif-predicates/blob/dev/es-predicates/src/test/java/org/gbif/predicate/query/EsQueryVisitorTest.java,
+ * <p>TODO: It's not clear to me why we have this and
+ * https://github.com/gbif/gbif-predicates/blob/dev/es-predicates/src/test/java/org/gbif/predicate/query/EsQueryVisitorTest.java,
  * which is similar but has different casing of the ES parameters.
  */
 public class EsQueryVisitorTest {
@@ -215,155 +216,154 @@ public class EsQueryVisitorTest {
   public void testEqualsDateRangePredicate() throws QueryBuildingException {
     // Occurrences will be returned if the occurrence date/date range is
     // *completely within* the query date or date range.
-    Predicate p =
-      new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-11", false);
+    Predicate p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-11", false);
     String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
-      "{\n"
-        + "  \"bool\" : {\n"
-        + "    \"filter\" : [\n"
-        + "      {\n"
-        + "        \"range\" : {\n"
-        + "          \"eventDate\" : {\n"
-        + "            \"from\" : \"2023-01-11\",\n"
-        + "            \"to\" : \"2023-01-12\",\n"
-        + "            \"include_lower\" : true,\n"
-        + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
-        + "          }\n"
-        + "        }\n"
-        + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
-        + "  }\n"
-        + "}";
+        "{\n"
+            + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"range\" : {\n"
+            + "          \"eventDate\" : {\n"
+            + "            \"from\" : \"2023-01-11\",\n"
+            + "            \"to\" : \"2023-01-12\",\n"
+            + "            \"include_lower\" : true,\n"
+            + "            \"include_upper\" : false,\n"
+            + "            \"relation\" : \"within\",\n"
+            + "            \"boost\" : 1.0\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
+            + "    \"adjust_pure_negative\" : true,\n"
+            + "    \"boost\" : 1.0\n"
+            + "  }\n"
+            + "}";
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
     query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
-      "{\n"
-        + "  \"bool\" : {\n"
-        + "    \"filter\" : [\n"
-        + "      {\n"
-        + "        \"range\" : {\n"
-        + "          \"eventDate\" : {\n"
-        + "            \"from\" : \"1980-02-01\",\n"
-        + "            \"to\" : \"2021-09-17\",\n"
-        + "            \"include_lower\" : true,\n"
-        + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
-        + "          }\n"
-        + "        }\n"
-        + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
-        + "  }\n"
-        + "}";
+        "{\n"
+            + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"range\" : {\n"
+            + "          \"eventDate\" : {\n"
+            + "            \"from\" : \"1980-02-01\",\n"
+            + "            \"to\" : \"2021-09-17\",\n"
+            + "            \"include_lower\" : true,\n"
+            + "            \"include_upper\" : false,\n"
+            + "            \"relation\" : \"within\",\n"
+            + "            \"boost\" : 1.0\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
+            + "    \"adjust_pure_negative\" : true,\n"
+            + "    \"boost\" : 1.0\n"
+            + "  }\n"
+            + "}";
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980", false);
     query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
-      "{\n"
-        + "  \"bool\" : {\n"
-        + "    \"filter\" : [\n"
-        + "      {\n"
-        + "        \"range\" : {\n"
-        + "          \"eventDate\" : {\n"
-        + "            \"from\" : \"1980-01-01\",\n"
-        + "            \"to\" : \"1981-01-01\",\n"
-        + "            \"include_lower\" : true,\n"
-        + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
-        + "          }\n"
-        + "        }\n"
-        + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
-        + "  }\n"
-        + "}";
+        "{\n"
+            + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"range\" : {\n"
+            + "          \"eventDate\" : {\n"
+            + "            \"from\" : \"1980-01-01\",\n"
+            + "            \"to\" : \"1981-01-01\",\n"
+            + "            \"include_lower\" : true,\n"
+            + "            \"include_upper\" : false,\n"
+            + "            \"relation\" : \"within\",\n"
+            + "            \"boost\" : 1.0\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
+            + "    \"adjust_pure_negative\" : true,\n"
+            + "    \"boost\" : 1.0\n"
+            + "  }\n"
+            + "}";
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01", false);
     query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
-      "{\n"
-        + "  \"bool\" : {\n"
-        + "    \"filter\" : [\n"
-        + "      {\n"
-        + "        \"range\" : {\n"
-        + "          \"eventDate\" : {\n"
-        + "            \"from\" : \"2023-01-01\",\n"
-        + "            \"to\" : \"2023-02-01\",\n"
-        + "            \"include_lower\" : true,\n"
-        + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
-        + "          }\n"
-        + "        }\n"
-        + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
-        + "  }\n"
-        + "}";
+        "{\n"
+            + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"range\" : {\n"
+            + "          \"eventDate\" : {\n"
+            + "            \"from\" : \"2023-01-01\",\n"
+            + "            \"to\" : \"2023-02-01\",\n"
+            + "            \"include_lower\" : true,\n"
+            + "            \"include_upper\" : false,\n"
+            + "            \"relation\" : \"within\",\n"
+            + "            \"boost\" : 1.0\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
+            + "    \"adjust_pure_negative\" : true,\n"
+            + "    \"boost\" : 1.0\n"
+            + "  }\n"
+            + "}";
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-1", false);
     query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
-      "{\n"
-        + "  \"bool\" : {\n"
-        + "    \"filter\" : [\n"
-        + "      {\n"
-        + "        \"range\" : {\n"
-        + "          \"eventDate\" : {\n"
-        + "            \"from\" : \"2023-01-01\",\n"
-        + "            \"to\" : \"2023-01-02\",\n"
-        + "            \"include_lower\" : true,\n"
-        + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
-        + "          }\n"
-        + "        }\n"
-        + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
-        + "  }\n"
-        + "}";
+        "{\n"
+            + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"range\" : {\n"
+            + "          \"eventDate\" : {\n"
+            + "            \"from\" : \"2023-01-01\",\n"
+            + "            \"to\" : \"2023-01-02\",\n"
+            + "            \"include_lower\" : true,\n"
+            + "            \"include_upper\" : false,\n"
+            + "            \"relation\" : \"within\",\n"
+            + "            \"boost\" : 1.0\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
+            + "    \"adjust_pure_negative\" : true,\n"
+            + "    \"boost\" : 1.0\n"
+            + "  }\n"
+            + "}";
     assertEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980,1990-05-06", false);
     query = occurrenceVisitor.buildQuery(p);
     expectedQuery =
-      "{\n"
-        + "  \"bool\" : {\n"
-        + "    \"filter\" : [\n"
-        + "      {\n"
-        + "        \"range\" : {\n"
-        + "          \"eventDate\" : {\n"
-        + "            \"from\" : \"1980-01-01\",\n"
-        + "            \"to\" : \"1990-05-07\",\n"
-        + "            \"include_lower\" : true,\n"
-        + "            \"include_upper\" : false,\n"
-        + "            \"relation\" : \"within\",\n"
-        + "            \"boost\" : 1.0\n"
-        + "          }\n"
-        + "        }\n"
-        + "      }\n"
-        + "    ],\n"
-        + "    \"adjust_pure_negative\" : true,\n"
-        + "    \"boost\" : 1.0\n"
-        + "  }\n"
-        + "}";
+        "{\n"
+            + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"range\" : {\n"
+            + "          \"eventDate\" : {\n"
+            + "            \"from\" : \"1980-01-01\",\n"
+            + "            \"to\" : \"1990-05-07\",\n"
+            + "            \"include_lower\" : true,\n"
+            + "            \"include_upper\" : false,\n"
+            + "            \"relation\" : \"within\",\n"
+            + "            \"boost\" : 1.0\n"
+            + "          }\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
+            + "    \"adjust_pure_negative\" : true,\n"
+            + "    \"boost\" : 1.0\n"
+            + "  }\n"
+            + "}";
     assertEquals(expectedQuery, query);
   }
 
@@ -826,8 +826,7 @@ public class EsQueryVisitorTest {
 
   @Test
   public void testInPredicate() throws QueryBuildingException {
-    Predicate p =
-        new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
+    Predicate p = new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
     String query = occurrenceVisitor.buildQuery(p);
     String expectedQuery =
         "{\n"
@@ -854,8 +853,7 @@ public class EsQueryVisitorTest {
   @Test
   public void testComplexInPredicate() throws QueryBuildingException {
     Predicate p1 = new EqualsPredicate<>(PARAM, "value_1", false);
-    Predicate p2 =
-        new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
+    Predicate p2 = new InPredicate<>(PARAM, Arrays.asList("value_1", "value_2", "value_3"), false);
     Predicate p3 = new EqualsPredicate<>(PARAM2, "value_2", false);
     Predicate p = new ConjunctionPredicate(Arrays.asList(p1, p2, p3));
     String query = occurrenceVisitor.buildQuery(p);
@@ -928,6 +926,14 @@ public class EsQueryVisitorTest {
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"exists\" : {\n"
+            + "          \"field\" : \"catalogNumber\",\n"
+            + "          \"boost\" : 1.0\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
             + "    \"must_not\" : [\n"
             + "      {\n"
             + "        \"bool\" : {\n"
@@ -965,6 +971,20 @@ public class EsQueryVisitorTest {
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"exists\" : {\n"
+            + "          \"field\" : \"catalogNumber\",\n"
+            + "          \"boost\" : 1.0\n"
+            + "        }\n"
+            + "      },\n"
+            + "      {\n"
+            + "        \"exists\" : {\n"
+            + "          \"field\" : \"institutionCode\",\n"
+            + "          \"boost\" : 1.0\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
             + "    \"must_not\" : [\n"
             + "      {\n"
             + "        \"bool\" : {\n"
@@ -1233,6 +1253,20 @@ public class EsQueryVisitorTest {
     String expectedQuery =
         "{\n"
             + "  \"bool\" : {\n"
+            + "    \"filter\" : [\n"
+            + "      {\n"
+            + "        \"exists\" : {\n"
+            + "          \"field\" : \"catalogNumber\",\n"
+            + "          \"boost\" : 1.0\n"
+            + "        }\n"
+            + "      },\n"
+            + "      {\n"
+            + "        \"exists\" : {\n"
+            + "          \"field\" : \"institutionCode\",\n"
+            + "          \"boost\" : 1.0\n"
+            + "        }\n"
+            + "      }\n"
+            + "    ],\n"
             + "    \"must_not\" : [\n"
             + "      {\n"
             + "        \"bool\" : {\n"
@@ -1379,6 +1413,14 @@ public class EsQueryVisitorTest {
             + "      },\n"
             + "      {\n"
             + "        \"bool\" : {\n"
+            + "          \"filter\" : [\n"
+            + "            {\n"
+            + "              \"exists\" : {\n"
+            + "                \"field\" : \"catalogNumber\",\n"
+            + "                \"boost\" : 1.0\n"
+            + "              }\n"
+            + "            }\n"
+            + "          ],\n"
             + "          \"must_not\" : [\n"
             + "            {\n"
             + "              \"bool\" : {\n"

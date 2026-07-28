@@ -100,6 +100,7 @@ public class EventSearchEs
       @Value("${occurrence.search.es.index}") String esIndex,
       ConceptClient conceptClient,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
+      @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize,
       @Qualifier("occurrenceWsSearchClient") OccurrenceSearchService occurrenceSearchService) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
@@ -112,7 +113,7 @@ public class EventSearchEs
     eventEsFieldMapper = EventEsField.buildFieldMapper();
     this.esSearchRequestBuilder =
         new EventEsSearchRequestBuilder(
-            eventEsFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey);
+            eventEsFieldMapper, conceptClient, nameUsageMatchingService, defaultChecklistKey, defaultShardSize);
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
     this.occurrenceSearchService = occurrenceSearchService;

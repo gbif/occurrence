@@ -23,13 +23,15 @@ public class EventEsSearchRequestBuilder
       EventEsFieldMapper eventEsFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      String defaultChecklistKey) {
+      String defaultChecklistKey,
+      int defaultShardSize) {
     super(
         eventEsFieldMapper,
         conceptClient,
         nameUsageMatchingService,
         new EventEsQueryVisitor(eventEsFieldMapper, defaultChecklistKey),
-        defaultChecklistKey);
+        defaultChecklistKey,
+        defaultShardSize);
   }
 
   @Override

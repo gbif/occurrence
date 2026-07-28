@@ -14,17 +14,13 @@
 package org.gbif.occurrence.download.sql;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.DownloadType;
-import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -53,6 +49,10 @@ public class DownloadQueryParameters {
   private String userSqlHeader;
 
   private boolean isHumboldtSearch;
+
+  private boolean isDnaSearch;
+
+  private boolean isFastaDownload;
 
   private String checklistKey;
 
@@ -96,11 +96,20 @@ public class DownloadQueryParameters {
       builder.isHumboldtSearch(true);
     }
 
-    builder
-        .checklistKey(
-            download.getRequest().getChecklistKey() != null
-                ? download.getRequest().getChecklistKey()
-                : workflowConfiguration.getDefaultChecklistKey());
+    if (DwcTerm.Occurrence == jobConfiguration.getCoreTerm()
+        && download.getRequest().toString().contains("NUCLEOTIDE_")) {
+      builder.isDnaSearch(true);
+    }
+
+    if (DwcTerm.Occurrence == jobConfiguration.getCoreTerm()
+        && download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      builder.isFastaDownload(true);
+    }
+
+    builder.checklistKey(
+        download.getRequest().getChecklistKey() != null
+            ? download.getRequest().getChecklistKey()
+            : workflowConfiguration.getDefaultChecklistKey());
 
     return builder.build();
   }
@@ -129,6 +138,9 @@ public class DownloadQueryParameters {
     parameters.put("interpretedTable", downloadTableName + "_interpreted");
     parameters.put("citationTable", downloadTableName + "_citation");
     parameters.put("multimediaTable", downloadTableName + "_multimedia");
+    parameters.put("fastaTable", downloadTableName + "_fasta");
+    parameters.put("sequencesTable", downloadTableName + "_sequences");
+    parameters.put("dnaTable", downloadTableName + "_dna");
     parameters.put("humboldtTable", downloadTableName + "_humboldt");
     parameters.put("eventIdsTable", downloadTableName + "_event_ids");
     parameters.put("occurrenceExtensionTable", downloadTableName + "_occurrence");

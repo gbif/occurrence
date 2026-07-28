@@ -24,7 +24,9 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.service.registry.DatasetService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.registry.doi.DoiInteractionService;
 import org.gbif.registry.ws.client.DatasetClient;
+import org.gbif.registry.ws.client.DoiInteractionClient;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
@@ -59,8 +61,7 @@ public class RegistryClientUtil {
   }
 
   /**
-   * Sets up a OccurrenceDownloadService client avoiding the use of guice as our gbif jackson libraries
-   * clash with the hadoop versions.
+   * Sets up a OccurrenceDownloadService client.
    * Sets up a http client with a one-minute timeout and http support only.
    */
   public OccurrenceDownloadService occurrenceDownloadService(DwcTerm dwcTerm) {
@@ -69,6 +70,14 @@ public class RegistryClientUtil {
         : clientBuilder
             .withObjectMapper(getOccurrenceObjectMapper())
             .build(OccurrenceDownloadClient.class);
+  }
+
+  /**
+   * Sets up an DoiInteractionService client.
+   * Sets up a http client with a one-minute timeout and http support only.
+   */
+  public DoiInteractionService doiInteractionService() {
+    return clientBuilder.withObjectMapper(getEventObjectMapper()).build(DoiInteractionClient.class);
   }
 
   private ObjectMapper getOccurrenceObjectMapper() {

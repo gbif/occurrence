@@ -14,6 +14,8 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifDnaTerm;
+import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
@@ -53,6 +55,9 @@ public class HiveQueries extends TsvQueries {
       return millisecondsToISO8601Initializer(term);
     } else if (SQLColumnsUtils.isSQLArray(term)) {
       return String.format(toArrayInitializer(term), HiveColumns.columnFor(term));
+    } else if (term == GbifDnaTerm.dna_sequence) {
+      // this term is taken from the nucleotide fields
+      return HiveColumns.columnFor(GbifInternalTerm.nucleotide_sequence);
     } else {
       return HiveColumns.columnFor(term);
     }

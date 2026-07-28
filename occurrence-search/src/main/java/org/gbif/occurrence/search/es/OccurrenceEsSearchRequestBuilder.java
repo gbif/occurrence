@@ -19,13 +19,15 @@ public class OccurrenceEsSearchRequestBuilder
       OccurrenceEsFieldMapper occurrenceEsFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      String defaultChecklistKey) {
+      String defaultChecklistKey,
+      int defaultShardSize) {
     super(
         occurrenceEsFieldMapper,
         conceptClient,
         nameUsageMatchingService,
         new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, defaultChecklistKey),
-        defaultChecklistKey);
+        defaultChecklistKey,
+        defaultShardSize);
   }
 
   @Override

@@ -277,7 +277,7 @@ public class DownloadWorkflowModule {
 
     if (downloadFormat != null) {
       switch (downloadFormat) {
-        case DWCA:
+        case DWCA, FASTA_ARCHIVE:
           return new DwcaDownloadAggregator(downloadJobConfiguration);
 
         case SIMPLE_CSV:

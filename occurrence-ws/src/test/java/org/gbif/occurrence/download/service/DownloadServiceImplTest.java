@@ -40,6 +40,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.gbif.registry.ws.client.DoiInteractionClient;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,6 +67,7 @@ class DownloadServiceImplTest {
   @Mock private DownloadLimitsService downloadLimitsService;
   @Mock private OccurrenceEmailManager emailManager;
   @Mock private EmailSender emailSender;
+  @Mock private DoiInteractionClient doiInteractionClient;
 
   private DownloadRequestService requestService;
 
@@ -83,7 +86,8 @@ class DownloadServiceImplTest {
             downloadLimitsService,
             emailManager,
             emailSender,
-            messagePublisher);
+            messagePublisher,
+            doiInteractionClient);
   }
 
   @Test
