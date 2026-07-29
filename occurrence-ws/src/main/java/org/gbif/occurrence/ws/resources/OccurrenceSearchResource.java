@@ -380,7 +380,9 @@ public class OccurrenceSearchResource {
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
-            example = "eDNA"),
+            example = "eDNA",
+            // hidden until data is reinterpreted
+            hidden = true),
         @Parameter(
             name = "datasetName",
             description = "The exact name of the dataset.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
