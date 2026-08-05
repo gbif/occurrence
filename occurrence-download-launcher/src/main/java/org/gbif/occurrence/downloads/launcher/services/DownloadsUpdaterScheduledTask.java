@@ -13,12 +13,14 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.SmallOccurrenceDownloadLauncherService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +34,7 @@ public class DownloadsUpdaterScheduledTask {
 
   private final OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
   private final EventDownloadLauncherService eventDownloadLauncherService;
+  private final SmallOccurrenceDownloadLauncherService smallOccurrenceDownloadLauncherService;
   private final OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
   private final EventDownloadUpdaterService eventDownloadUpdaterService;
   private final LockerService lockerService;
@@ -39,11 +42,13 @@ public class DownloadsUpdaterScheduledTask {
   public DownloadsUpdaterScheduledTask(
       OccurrenceDownloadLauncherService occurrenceDownloadLauncherService,
       EventDownloadLauncherService eventDownloadLauncherService,
+      SmallOccurrenceDownloadLauncherService smallOccurrenceDownloadLauncherService,
       OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService,
       EventDownloadUpdaterService eventDownloadUpdaterService,
       LockerService lockerService) {
     this.occurrenceDownloadLauncherService = occurrenceDownloadLauncherService;
     this.eventDownloadLauncherService = eventDownloadLauncherService;
+    this.smallOccurrenceDownloadLauncherService = smallOccurrenceDownloadLauncherService;
     this.occurrenceDownloadUpdaterService = occurrenceDownloadUpdaterService;
     this.eventDownloadUpdaterService = eventDownloadUpdaterService;
     this.lockerService = lockerService;
@@ -56,10 +61,30 @@ public class DownloadsUpdaterScheduledTask {
     List<Download> occurrenceDownloads = occurrenceDownloadUpdaterService.getExecutingDownloads();
 
     log.info("Found {} running occurrence downloads", occurrenceDownloads.size());
+
+    List<Download> smallDownloads = new ArrayList<>();
     if (!occurrenceDownloads.isEmpty()) {
+      // this service can't find the small downloads because it looks in the big downloads dag
       List<Download> renewedDownloads =
           occurrenceDownloadLauncherService.renewRunningDownloadsStatuses(occurrenceDownloads);
       renewedDownloads.forEach(
+          download -> {
+            occurrenceDownloadUpdaterService.updateDownload(download);
+            if (Status.FINISH_STATUSES.contains(download.getStatus())) {
+              lockerService.unlock(download.getKey());
+            }
+          });
+
+      // create new list with only small downloads (excluding big downloads already renewed)
+      smallDownloads =
+          occurrenceDownloads.stream().filter(d -> !renewedDownloads.contains(d)).toList();
+    }
+
+    // small downloads
+    if (!smallDownloads.isEmpty()) {
+      List<Download> renewedSmallDownloads =
+          smallOccurrenceDownloadLauncherService.renewRunningDownloadsStatuses(occurrenceDownloads);
+      renewedSmallDownloads.forEach(
           download -> {
             occurrenceDownloadUpdaterService.updateDownload(download);
             if (Status.FINISH_STATUSES.contains(download.getStatus())) {
