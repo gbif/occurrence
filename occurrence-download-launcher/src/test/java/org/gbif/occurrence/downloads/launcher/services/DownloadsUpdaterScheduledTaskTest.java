@@ -20,12 +20,14 @@ import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
+import org.gbif.occurrence.downloads.launcher.services.launcher.SmallOccurrenceDownloadLauncherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class DownloadsUpdaterScheduledTaskTest {
 
   private OccurrenceDownloadLauncherService occurrenceDownloadLauncherService;
+  private SmallOccurrenceDownloadLauncherService smallOccurrenceDownloadLauncherService;
   private EventDownloadLauncherService eventDownloadLauncherService;
   private OccurrenceDownloadUpdaterService occurrenceDownloadUpdaterService;
   private EventDownloadUpdaterService eventDownloadUpdaterService;
@@ -35,6 +37,7 @@ class DownloadsUpdaterScheduledTaskTest {
   @BeforeEach
   public void setup() {
     occurrenceDownloadLauncherService = mock(OccurrenceDownloadLauncherService.class);
+    smallOccurrenceDownloadLauncherService = mock(SmallOccurrenceDownloadLauncherService.class);
     eventDownloadLauncherService = mock(EventDownloadLauncherService.class);
     occurrenceDownloadUpdaterService = mock(OccurrenceDownloadUpdaterService.class);
     eventDownloadUpdaterService = mock(EventDownloadUpdaterService.class);
@@ -44,6 +47,7 @@ class DownloadsUpdaterScheduledTaskTest {
         new DownloadsUpdaterScheduledTask(
             occurrenceDownloadLauncherService,
             eventDownloadLauncherService,
+            smallOccurrenceDownloadLauncherService,
             occurrenceDownloadUpdaterService,
             eventDownloadUpdaterService,
             lockerService);
