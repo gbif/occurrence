@@ -75,7 +75,7 @@ public class DownloadsUpdaterScheduledTask {
             }
           });
 
-      // create new list with only small downloads (excluding big downloads already renewed)
+      // create list with downloads not renewed by the big-downloads check (includes small downloads and large downloads with unchanged status)
       smallDownloads =
           occurrenceDownloads.stream().filter(d -> !renewedDownloads.contains(d)).toList();
     }
