@@ -44,9 +44,7 @@ public class SmallDownloadLauncherListener extends AbstractDownloadLauncherListe
   }
 
   @Override
-  @RabbitListener(
-      queues = "${downloads.smallLauncherQueueName}",
-      concurrency = "${downloads.smallLauncherConcurrency:5}")
+  @RabbitListener(queues = "${downloads.smallLauncherQueueName}")
   public void handleMessage(DownloadLauncherMessage downloadsMessage) {
     super.handleMessage(downloadsMessage);
   }
