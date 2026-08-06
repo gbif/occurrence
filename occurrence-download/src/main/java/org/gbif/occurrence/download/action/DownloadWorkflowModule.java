@@ -159,6 +159,19 @@ public class DownloadWorkflowModule {
 
   /**
    * Factory method for Elasticsearch client.
+   * 
+   * TIMEOUT CONFIGURATION: This method configures the ES REST client with HTTP-level timeouts:
+   * - connectTimeout: Time to establish connection (default 6 seconds from EsConfig)
+   * - socketTimeout: Time to wait for data after connection (default 100 seconds from EsConfig)
+   * 
+   * IMPORTANT: These are HTTP client timeouts, not Elasticsearch query timeouts. The socketTimeout
+   * determines how long the client will wait for a response from ES, but it does NOT limit how long
+   * ES will execute a query. If ES is slow or overloaded, queries can take longer than expected.
+   * 
+   * POTENTIAL HANG POINT: Individual search/count requests made with this client do not set explicit
+   * query-level timeouts (SearchSourceBuilder.timeout()). This means slow ES queries will only be
+   * constrained by the socketTimeout, which may not be sufficient for detecting and handling slow
+   * queries gracefully. Consider adding explicit query timeouts in the calling code.
    */
   public static RestHighLevelClient esClient(WorkflowConfiguration workflowConfiguration) {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
