@@ -43,9 +43,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Covers the orchestration behavior that used to be implicit in the Akka actor plumbing:
- * with no records there's nothing to run and the (empty) result set is still aggregated,
- * and a worker failure aborts the job (no aggregation) instead of silently completing.
+ * Covers the orchestration behavior: with no records there's nothing to run and the (empty)
+ * result set is still aggregated, and a worker failure aborts the job (no aggregation) instead
+ * of silently completing.
  */
 class DownloadMasterTest {
 
