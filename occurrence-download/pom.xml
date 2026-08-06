@@ -23,7 +23,6 @@
     <metrics-core.version>4.2.37</metrics-core.version>
     <log4j.version>2.20.0</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <akka-actor.version>2.6.19</akka-actor.version>
     <es.httpclient.version>4.5.10</es.httpclient.version>
 
     <scala-java8-compat.version>1.0.2</scala-java8-compat.version>
@@ -471,26 +470,6 @@
         </exclusion>
       </exclusions>
       <scope>provided</scope>
-    </dependency>
-
-    <!-- Small downloads process -->
-    <dependency>
-      <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-actor_2.12</artifactId>
-      <version>${akka-actor.version}</version>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.scala-lang.modules</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-testkit_2.12</artifactId>
-      <version>${akka-actor.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>

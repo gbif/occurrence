@@ -16,8 +16,6 @@ package org.gbif.occurrence.download.file.simplecsv;
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
-import akka.actor.AbstractActor;
-import com.google.common.base.Throwables;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -31,6 +29,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.file.DownloadFileWork;
+import org.gbif.occurrence.download.file.DownloadFileWorker;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
@@ -43,17 +42,17 @@ import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
 /**
- * Actor that creates a part of the simple csv download file.
+ * Worker that creates a part of the simple csv download file.
  */
-public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor {
+public class SimpleCsvDownloadWorker<T extends Occurrence> implements DownloadFileWorker {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvDownloadActor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvDownloadWorker.class);
 
   private final SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor;
 
   private final Function<T, Map<String,String>> interpretedRecordMapper;
 
-  public SimpleCsvDownloadActor(SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor,
+  public SimpleCsvDownloadWorker(SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor,
                                 Function<T, Map<String,String>> interpretedRecordMapper) {
     this.searchQueryProcessor = searchQueryProcessor;
     this.interpretedRecordMapper = interpretedRecordMapper;
@@ -68,17 +67,11 @@ public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor 
     .map(DownloadTerms::simpleName)
     .toArray(String[]::new);
 
-  @Override
-  public Receive createReceive() {
-    return receiveBuilder()
-      .match(DownloadFileWork.class, this::doWork)
-      .build();
-  }
-
   /**
    * Executes the job.query and creates a data file that will contain the records from job.from to job.to positions.
    */
-  private void doWork(DownloadFileWork work) throws IOException {
+  @Override
+  public Result work(DownloadFileWork work) throws IOException {
 
     final DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
@@ -93,26 +86,24 @@ public class SimpleCsvDownloadActor<T extends Occurrence> extends AbstractActor 
             preference)) {
 
       searchQueryProcessor.processQuery(work, record -> {
-          try {
-            Map<String, String> recordMap = selectTerms(interpretedRecordMapper.apply(record), DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
-            populateVerbatimCsvFields(recordMap, record);
+          Map<String, String> recordMap = selectTerms(interpretedRecordMapper.apply(record), DownloadTerms.SIMPLE_DOWNLOAD_TERMS);
+          populateVerbatimCsvFields(recordMap, record);
 
-            //collect usages
-            datasetUsagesCollector.collectDatasetUsage(recordMap.get(GbifTerm.datasetKey.simpleName()),
-                                                       recordMap.get(DcTerm.license.simpleName()));
-            //write results
+          //collect usages
+          datasetUsagesCollector.collectDatasetUsage(recordMap.get(GbifTerm.datasetKey.simpleName()),
+                                                     recordMap.get(DcTerm.license.simpleName()));
+          //write results
+          try {
             csvMapWriter.write(recordMap, COLUMNS);
             csvMapWriter.flush();
-
-          } catch (Exception e) {
-            getSender().tell(e, getSelf()); // inform our master
-            throw Throwables.propagate(e);
+          } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
           }
         }
       );
 
-      getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages(),
-        datasetUsagesCollector.getDatasetLicenses()), getSelf());
+      return new Result(work, datasetUsagesCollector.getDatasetUsages(),
+        datasetUsagesCollector.getDatasetLicenses());
     } finally {
       // Release the lock
       work.getLock().unlock();

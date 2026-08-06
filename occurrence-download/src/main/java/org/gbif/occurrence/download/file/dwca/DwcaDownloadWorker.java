@@ -11,11 +11,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca.akka;
+package org.gbif.occurrence.download.file.dwca;
 
 import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
-import akka.actor.AbstractActor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
@@ -53,6 +52,7 @@ import org.gbif.dwc.terms.MixsTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.DownloadFileWork;
+import org.gbif.occurrence.download.file.DownloadFileWorker;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
@@ -73,11 +73,11 @@ import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
 
 /**
- * Actor that creates part files of for the DwcA download format.
+ * Worker that creates part files for the DwcA download format.
  */
 @Slf4j
 @AllArgsConstructor
-public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchParameter> extends AbstractActor {
+public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchParameter> implements DownloadFileWorker {
 
   private final SearchQueryProcessor<T, P> searchQueryProcessor;
 
@@ -382,7 +382,8 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
   /**
    * Executes the job.query and creates a data file that will contain the records from job.from to job.to positions.
    */
-  public void doWork(DownloadFileWork work) throws IOException {
+  @Override
+  public Result work(DownloadFileWork work) throws IOException {
 
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
 
@@ -440,29 +441,18 @@ public class DownloadDwcaActor<T extends VerbatimOccurrence, P extends SearchPar
                 }
               }
             } catch (RuntimeException e) {
-              getSender().tell(e, getSelf()); // inform our master
               throw e;
             } catch (Exception e) {
-              getSender().tell(e, getSelf()); // inform our master
-              throw (e instanceof RuntimeException)
-                  ? (RuntimeException) e
-                  : new RuntimeException(e);
+              throw new RuntimeException(e);
             }
           });
-      getSender().tell(new Result(work, datasetUsagesCollector.getDatasetUsages()), getSelf());
+      return new Result(work, datasetUsagesCollector.getDatasetUsages());
     } finally {
       closeWriters();
       // Unlock the assigned lock.
       work.getLock().unlock();
       log.info("Lock released, job detail: {} ", work);
     }
-  }
-
-  @Override
-  public Receive createReceive() {
-    return receiveBuilder()
-      .match(DownloadFileWork.class, this::doWork)
-      .build();
   }
 
   /**

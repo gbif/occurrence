@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca.akka;
+package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
@@ -20,7 +20,6 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.occurrence.download.file.dwca.DwcaArchiveBuilder;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
 
 import java.io.File;

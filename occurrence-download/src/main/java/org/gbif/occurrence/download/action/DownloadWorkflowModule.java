@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.action;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -48,7 +45,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
-import org.gbif.occurrence.download.file.dwca.akka.DwcaDownloadAggregator;
+import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.search.es.*;
@@ -218,7 +215,7 @@ public class DownloadWorkflowModule {
   }
 
   /**
-   *  Configuration for the DownloadMater actor.
+   *  Configuration for the DownloadMaster.
    */
   private DownloadMaster.MasterConfiguration masterConfiguration() {
     return  DownloadMaster.MasterConfiguration.builder()
@@ -247,25 +244,20 @@ public class DownloadWorkflowModule {
     );
   }
 
-  /** Creates an ActorRef that holds an instance of {@link DownloadMaster}. */
-  public ActorRef downloadMaster(ActorSystem system) {
-    return system.actorOf(
-        Props.create(
-            DownloadMaster.class,
-            () ->
-                DownloadMaster.builder()
-                    .workflowConfiguration(workflowConfiguration)
-                    .masterConfiguration(masterConfiguration())
-                    .esClient(esClient(workflowConfiguration))
-                    .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
-                    .jobConfiguration(downloadJobConfiguration)
-                    .aggregator(getAggregator())
-                    .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
-                    .interpretedMapper(interpreterMapper())
-                    .verbatimMapper(verbatimMapper())
-                    .searchHitConverter(searchHitConverter())
-                    .build()),
-        "DownloadMaster" + downloadJobConfiguration.getDownloadKey());
+  /** Creates a {@link DownloadMaster} instance ready to run the download job. */
+  public DownloadMaster downloadMaster() {
+    return DownloadMaster.builder()
+        .workflowConfiguration(workflowConfiguration)
+        .masterConfiguration(masterConfiguration())
+        .esClient(esClient(workflowConfiguration))
+        .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
+        .jobConfiguration(downloadJobConfiguration)
+        .aggregator(getAggregator())
+        .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
+        .interpretedMapper(interpreterMapper())
+        .verbatimMapper(verbatimMapper())
+        .searchHitConverter(searchHitConverter())
+        .build();
   }
 
   /**
