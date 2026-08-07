@@ -125,7 +125,11 @@ public class SpeciesMatchUDF {
     try {
 
       String apiMatchingService = apiMatchingServiceArg.toStringUtf8();
-      String checklistKey = checklistKeyArg.toStringUtf8();
+
+      String checklistKey = null;
+      if (checklistKeyArg != null) {
+        checklistKey= checklistKeyArg.toStringUtf8();
+      }
 
       String k = clean(kingdomArg);
       String p = clean(phylumArg);
