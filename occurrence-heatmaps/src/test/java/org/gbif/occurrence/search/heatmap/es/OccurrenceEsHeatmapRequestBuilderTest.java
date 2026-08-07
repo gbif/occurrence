@@ -13,26 +13,29 @@
  */
 package org.gbif.occurrence.search.heatmap.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import org.gbif.search.es.ChecklistEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.heatmap.es.occurrence.OccurrenceEsHeatmapRequestBuilder;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
+
 import org.elasticsearch.action.search.SearchRequest;
-import org.gbif.search.es.ChecklistEsField;
-import org.gbif.search.es.occurrence.OccurrenceEsField;
-import org.gbif.search.heatmap.es.occurrence.OccurrenceEsHeatmapRequestBuilder;
-import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /** Tests for ElasticSearch heatmap request builders. */
 public class OccurrenceEsHeatmapRequestBuilderTest {

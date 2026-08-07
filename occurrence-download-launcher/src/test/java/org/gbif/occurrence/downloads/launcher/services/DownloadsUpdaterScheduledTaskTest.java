@@ -13,16 +13,18 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
-import static org.mockito.Mockito.*;
-
-import java.util.Collections;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.SmallOccurrenceDownloadLauncherService;
+
+import java.util.Collections;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.mockito.Mockito.*;
 
 class DownloadsUpdaterScheduledTaskTest {
 

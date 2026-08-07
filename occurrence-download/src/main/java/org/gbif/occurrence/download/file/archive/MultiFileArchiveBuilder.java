@@ -13,21 +13,22 @@
  */
 package org.gbif.occurrence.download.file.archive;
 
-import org.apache.commons.compress.utils.IOUtils;
-
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.util.IOUtils;
+import org.gbif.occurrence.download.util.Strings;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -38,11 +39,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteStreams;
 
 import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
@@ -111,7 +107,7 @@ public class MultiFileArchiveBuilder {
 
     } catch (Exception ex) {
       LOG.error(ERROR_ZIP_MSG, ex);
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -211,7 +207,7 @@ public class MultiFileArchiveBuilder {
    * Private constructor.
    */
   private MultiFileArchiveBuilder(String... sources) {
-    ImmutableList.Builder<ZipEntrySource> sourcesBuilder = ImmutableList.builder();
+    ArrayList<ZipEntrySource> sourcesBuilder = new ArrayList<>();
 
     for (int i = 0; i < sources.length; i+=3) {
       ZipEntrySource source = new ZipEntrySource();
@@ -221,6 +217,6 @@ public class MultiFileArchiveBuilder {
       sourcesBuilder.add(source);
     }
 
-    this.sources = sourcesBuilder.build();
+    this.sources = Collections.unmodifiableList(sourcesBuilder);
   }
 }

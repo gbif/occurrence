@@ -13,11 +13,12 @@
  */
 package org.gbif.occurrence.spark.udf;
 
+import org.gbif.api.model.occurrence.SqlDownloadFunction;
+
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.types.DataTypes;
 
 import lombok.experimental.UtilityClass;
-import org.gbif.api.model.occurrence.SqlDownloadFunction;
 
 @UtilityClass
 public class UDFS {

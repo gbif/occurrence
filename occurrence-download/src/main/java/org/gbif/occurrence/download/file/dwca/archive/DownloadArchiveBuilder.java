@@ -13,20 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.*;
-import static org.gbif.occurrence.download.util.ArchiveFileUtils.cleanupFS;
-
-import com.google.common.collect.Lists;
-import java.io.*;
-import java.util.Collection;
-import java.util.List;
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.fs.FileSystem;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
@@ -40,6 +26,25 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
+import org.gbif.occurrence.download.util.IOUtils;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.*;
+import static org.gbif.occurrence.download.util.ArchiveFileUtils.cleanupFS;
 
 /**
  * Creates a DWC archive for occurrence downloads based on the hive query result files generated
@@ -122,14 +127,17 @@ public class DownloadArchiveBuilder {
   /** Merges the file using the standard java libraries java.util.zip. */
   private void zipLocalFiles(ModalZipOutputStream zos) {
     try {
-      Collection<File> files = org.apache.commons.io.FileUtils.listFiles(archiveDir, null, true);
+      Collection<File> files;
+      try (Stream<java.nio.file.Path> paths = Files.walk(archiveDir.toPath())) {
+        files = paths.filter(Files::isRegularFile).map(java.nio.file.Path::toFile).collect(Collectors.toList());
+      }
 
       for (File f : files) {
         log.debug("Adding local file {} to archive", f);
         try (FileInputStream fileInZipInputStream = new FileInputStream(f)) {
-          String zipPath =
-              StringUtils.removeStart(
-                  f.getAbsolutePath(), archiveDir.getAbsolutePath() + File.separator);
+          String prefix = archiveDir.getAbsolutePath() + File.separator;
+          String absolutePath = f.getAbsolutePath();
+          String zipPath = absolutePath.startsWith(prefix) ? absolutePath.substring(prefix.length()) : absolutePath;
           zos.putNextEntry(new ZipEntry(zipPath), ModalZipOutputStream.MODE.DEFAULT);
           IOUtils.copy(fileInZipInputStream, zos, getFileCopyBufferSize());
         }
@@ -232,7 +240,7 @@ public class DownloadArchiveBuilder {
   private void appendPreCompressedFile(
       ModalZipOutputStream out, Path dir, String filename, String headerRow) throws IOException {
     RemoteIterator<LocatedFileStatus> files = sourceFs.listFiles(dir, false);
-    List<InputStream> parts = Lists.newArrayList();
+    List<InputStream> parts = new ArrayList<>();
 
     // Add the header first, which must also be compressed
     if (headerRow != null) {

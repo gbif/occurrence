@@ -13,28 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
-import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.CaseFormat;
-import com.google.common.collect.Lists;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.time.ZoneOffset;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
@@ -60,6 +38,23 @@ import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.terms.utils.TermUtils;
+
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.constraint.NotNull;
@@ -71,6 +66,13 @@ import org.supercsv.io.ICsvBeanWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 import org.supercsv.util.CsvContext;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
  * Worker that creates part files for the DwcA download format.
@@ -97,11 +99,11 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
   }
 
   private static final String[] INT_COLUMNS =
-    Lists.transform(Lists.newArrayList(TermUtils.interpretedTerms()), Term::simpleName).toArray(new String[0]);
+    TermUtils.interpretedTerms().stream().map(Term::simpleName).toArray(String[]::new);
   private static final String[] VERB_COLUMNS =
-    Lists.transform(Lists.newArrayList(TermUtils.verbatimTerms()), Term::simpleName).toArray(new String[0]);
+    TermUtils.verbatimTerms().stream().map(Term::simpleName).toArray(String[]::new);
   private static final String[] MULTIMEDIA_COLUMNS =
-    Lists.transform(Lists.newArrayList(TermUtils.multimediaTerms()), Term::simpleName).toArray(new String[0]);
+    StreamSupport.stream(TermUtils.multimediaTerms().spliterator(), false).map(Term::simpleName).toArray(String[]::new);
   private static final CellProcessor[] MEDIA_CELL_PROCESSORS = {
     new NotNull(), // coreid
     new MediaTypeProcessor(), // type
@@ -120,33 +122,44 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
     new CleanStringProcessor() // rightsHolder
   };
   private static final String[] DNA_INTERPRETED_COLUMNS =
-      Lists.transform(
-              Lists.newArrayList(TermUtils.dnaTerms()),
-              t -> {
-                if (t == GbifDnaTerm.dna_sequence) {
-                  t = GbifInternalTerm.nucleotide_sequence;
-                }
-                return CaseFormat.LOWER_UNDERSCORE.to(
-                    CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", ""));
-              })
-          .toArray(new String[0]);
+    StreamSupport.stream(TermUtils.dnaTerms().spliterator(), false)
+      .map(t -> {
+        if (t == GbifDnaTerm.dna_sequence) {
+          t = GbifInternalTerm.nucleotide_sequence;
+        }
+        return lowerUnderscoreToLowerCamel(t.simpleName().replace("nucleotide_", ""));
+      })
+      .toArray(String[]::new);
   private static final CellProcessor[] DNA_INTERPRETED_CELL_PROCESSORS = {
     new NotNull(), // gbifId
     new CleanStringProcessor(), // targetGene
     new CleanStringProcessor() // dnaSequence
   };
   private static final String[] SEQUENCES_COLUMNS =
-      Lists.transform(
-              Lists.newArrayList(TermUtils.sequenceTerms()),
-              t -> {
-                if (t == MixsTerm.target_gene) {
-                  return CaseFormat.LOWER_UNDERSCORE.to(
-                      CaseFormat.LOWER_CAMEL, t.simpleName().replace("nucleotide_", ""));
-                }
+    StreamSupport.stream(TermUtils.sequenceTerms().spliterator(),false)
+      .map(t -> {
+        if (t == MixsTerm.target_gene) {
+          return lowerUnderscoreToLowerCamel(t.simpleName().replace("nucleotide_", ""));
+        }
 
-                return t.simpleName().replace("nucleotide_", "").replace("_", "");
-              })
-          .toArray(new String[0]);
+        return t.simpleName().replace("nucleotide_", "").replace("_", "");
+      })
+      .toArray(String[]::new);
+
+  /** Converts a lower_underscore string to lowerCamel, e.g. "target_gene" to "targetGene". */
+  private static String lowerUnderscoreToLowerCamel(String lowerUnderscore) {
+    StringBuilder result = new StringBuilder();
+    boolean upperNext = false;
+    for (char c : lowerUnderscore.toCharArray()) {
+      if (c == '_') {
+        upperNext = true;
+      } else {
+        result.append(upperNext ? Character.toUpperCase(c) : c);
+        upperNext = false;
+      }
+    }
+    return result.toString();
+  }
   private static final CellProcessor[] SEQUENCES_CELL_PROCESSORS = {
     new NotNull(), // gbifId
     new CleanStringProcessor(), // sequenceID
@@ -173,7 +186,7 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
           new CsvPreference.Builder(CsvPreference.TAB_PREFERENCE)
             .useEncoder(new DefaultCsvEncoder())
             .build();
-      return new CsvMapWriter(new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), preference);
+      return new CsvMapWriter(new OutputStreamWriter(new FileOutputStream(outPath), StandardCharsets.UTF_8), preference);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
     }
@@ -196,7 +209,7 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
                     .build();
 
             return new CsvBeanWriter(
-                new FileWriterWithEncoding(outPath, StandardCharsets.UTF_8), preference);
+                new OutputStreamWriter(new FileOutputStream(outPath), StandardCharsets.UTF_8), preference);
           } catch (IOException ex) {
             throw new RuntimeException(ex);
           }
@@ -320,7 +333,6 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
     }
   }
 
-  @VisibleForTesting
   protected Map<String,String> toExtensionRecord(Map<Term, String> row, T record) {
     Map<String,String> extensionData = new LinkedHashMap<>();
     extensionData.put(GbifTerm.gbifID.simpleName().toLowerCase(), getRecordKey(record));
@@ -394,20 +406,23 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
 
     try (ICsvMapWriter intCsvWriter =
             new CsvMapWriter(
-                new FileWriterWithEncoding(
-                    work.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX,
+                new OutputStreamWriter(
+                    new FileOutputStream(
+                        work.getJobDataFileName() + TableSuffixes.INTERPRETED_SUFFIX),
                     StandardCharsets.UTF_8),
                 preference);
         ICsvMapWriter verbCsvWriter =
             new CsvMapWriter(
-                new FileWriterWithEncoding(
-                    work.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX,
+                new OutputStreamWriter(
+                    new FileOutputStream(
+                        work.getJobDataFileName() + TableSuffixes.VERBATIM_SUFFIX),
                     StandardCharsets.UTF_8),
                 preference);
         ICsvBeanWriter multimediaCsvWriter =
             new CsvBeanWriter(
-                new FileWriterWithEncoding(
-                    work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX,
+                new OutputStreamWriter(
+                    new FileOutputStream(
+                        work.getJobDataFileName() + TableSuffixes.MULTIMEDIA_SUFFIX),
                     StandardCharsets.UTF_8),
                 preference)) {
       searchQueryProcessor.processQuery(
@@ -555,8 +570,9 @@ public static class InnerNucleotideObject extends NucleotideSequence{
     if (fastaWriters.getSequencesCsvWriter() == null) {
       ICsvBeanWriter sequencesCsvWriter =
           new CsvBeanWriter(
-              new FileWriterWithEncoding(
-                  work.getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX,
+              new OutputStreamWriter(
+                  new FileOutputStream(
+                      work.getJobDataFileName() + TableSuffixes.SEQUENCES_SUFFIX),
                   StandardCharsets.UTF_8),
               preference);
       fastaWriters.setSequencesCsvWriter(sequencesCsvWriter);
@@ -564,8 +580,10 @@ public static class InnerNucleotideObject extends NucleotideSequence{
     if (fastaWriters.getFastaFileWriter() == null) {
       BufferedWriter fastaFileWriter =
           new BufferedWriter(
-              new FileWriterWithEncoding(
-                  work.getJobDataFileName() + TableSuffixes.FASTA_SUFFIX, StandardCharsets.UTF_8));
+              new OutputStreamWriter(
+                  new FileOutputStream(
+                      work.getJobDataFileName() + TableSuffixes.FASTA_SUFFIX),
+                  StandardCharsets.UTF_8));
       fastaWriters.setFastaFileWriter(fastaFileWriter);
     }
   }

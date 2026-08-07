@@ -13,10 +13,11 @@
  */
 package org.gbif.search.heatmap.es.occurrence;
 
-import org.elasticsearch.client.RestHighLevelClient;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.search.heatmap.es.BaseHeatmapsEsService;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+
+import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;

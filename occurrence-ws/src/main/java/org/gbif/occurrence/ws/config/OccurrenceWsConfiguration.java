@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.ws.config;
 
-import java.time.Duration;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.occurrence.persistence.configuration.OccurrencePersistenceConfiguration;
 import org.gbif.occurrence.query.TitleLookupService;
@@ -24,6 +23,9 @@ import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+
+import java.time.Duration;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

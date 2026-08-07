@@ -26,8 +26,7 @@ import java.util.Properties;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+import lombok.Getter;
 
 /**
  * Occurrence download workflow configuration.
@@ -42,6 +41,12 @@ public class WorkflowConfiguration {
   }
 
   private final Properties settings;
+  /**
+   * -- GETTER --
+   *
+   * @return HDFS Hadoop configuration
+   */
+  @Getter
   private final Configuration hadoopConf;
   private static final int DEFAULT_ES_REQUEST_BUFFER_LIMIT = 209715200; // 200MB
 
@@ -65,7 +70,7 @@ public class WorkflowConfiguration {
       hadoopConf = new Configuration();
       hadoopConf.set(CommonConfigurationKeys.FS_DEFAULT_NAME_KEY, getHdfsNameNode());
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      throw  new RuntimeException(ex);
     }
   }
 
@@ -74,7 +79,6 @@ public class WorkflowConfiguration {
    * @return hdfs name node
    */
   public String getHdfsNameNode() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);
   }
 
@@ -83,7 +87,6 @@ public class WorkflowConfiguration {
    * @return hive database name
    */
   public String getHiveDb() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_KEY);
   }
 
@@ -92,17 +95,14 @@ public class WorkflowConfiguration {
    * @return  registry API url
    */
   public String getRegistryWsUrl() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY);
   }
 
   public String getRegistryUser() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY);
   }
 
   public String getRegistryPassword() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY);
   }
 
@@ -111,7 +111,6 @@ public class WorkflowConfiguration {
    * @return local temp dir where downloads files are created
    */
   public String getTempDir() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.TMP_DIR_KEY);
   }
 
@@ -120,7 +119,6 @@ public class WorkflowConfiguration {
    * @return the default checklist key used for the download if no checklistKey is provided
    */
   public String getDefaultChecklistKey() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DEFAULT_CHECKLIST_KEY,
       Constants.NUB_DATASET_KEY.toString());
   }
@@ -130,7 +128,6 @@ public class WorkflowConfiguration {
    * @return HDFS temp dir where downloads files are created
    */
   public String getHdfsTempDir() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HDFS_TMP_DIR_KEY);
   }
 
@@ -139,7 +136,6 @@ public class WorkflowConfiguration {
    * @return Index object type to use as main object
    */
   public SearchType getEsIndexType() {
-    Preconditions.checkNotNull(settings);
     return SearchType.valueOf(settings.getProperty(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE).toUpperCase());
   }
 
@@ -147,7 +143,6 @@ public class WorkflowConfiguration {
    * Elasticsearch request buffer limit in bytes for each request.
    */
   public int getEsRequestBufferLimit() {
-    Preconditions.checkNotNull(settings);
     return getIntSetting(DefaultSettings.ES_REQUEST_BUFFER_LIMIT, DEFAULT_ES_REQUEST_BUFFER_LIMIT);
   }
 
@@ -157,9 +152,6 @@ public class WorkflowConfiguration {
    * @return a link to the download file
    */
   public String getDownloadLink(String downloadKey) {
-    Preconditions.checkNotNull(settings);
-    Preconditions.checkNotNull(downloadKey);
-    // download link needs to be constructed
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_LINK_KEY)
       .replace(DownloadUtils.DOWNLOAD_ID_PLACEHOLDER, downloadKey);
   }
@@ -169,7 +161,6 @@ public class WorkflowConfiguration {
    * @return hdfs directory where hive stores tables
    */
   public String getHdfsOutputPath() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HDFS_OUTPUT_PATH_KEY);
   }
 
@@ -178,7 +169,6 @@ public class WorkflowConfiguration {
    * @return hdfs directory of the Hive database
    */
   public String getHiveDBPath() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_DB_PATH_KEY);
   }
 
@@ -188,7 +178,6 @@ public class WorkflowConfiguration {
    * @return hdfs directory of the Hive warehouse.
    */
   public String getHiveWarehouseDir() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.HIVE_WAREHOUSE_DIR);
   }
 
@@ -197,7 +186,6 @@ public class WorkflowConfiguration {
    * @return requested download format this value change for each execution
    */
   public DownloadFormat getDownloadFormat() {
-    Preconditions.checkNotNull(settings);
     String downloadFormat = settings.getProperty(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY);
     if (downloadFormat != null) {
       return DownloadFormat.valueOf(downloadFormat);
@@ -210,7 +198,6 @@ public class WorkflowConfiguration {
    * @return GBIF API url
    */
   public String getApiUrl() {
-    Preconditions.checkNotNull(settings);
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.API_URL_KEY);
   }
 
@@ -228,14 +215,6 @@ public class WorkflowConfiguration {
 
   public Boolean getBoolSetting(String key) {
     return Boolean.parseBoolean(settings.getProperty(key));
-  }
-
-  /**
-   *
-   * @return HDFS Hadoop configuration
-   */
-  public Configuration getHadoopConf() {
-    return hadoopConf;
   }
 
   /**

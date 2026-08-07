@@ -13,7 +13,11 @@
  */
 package org.gbif.search.es;
 
-import com.google.common.base.Strings;
+import org.gbif.dwc.terms.Term;
+import org.gbif.dwc.terms.TermFactory;
+import org.gbif.dwc.terms.UnknownTerm;
+import org.gbif.predicate.query.EsField;
+
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -22,13 +26,13 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.elasticsearch.search.SearchHit;
+
+import com.google.common.base.Strings;
+
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.search.SearchHit;
-import org.gbif.dwc.terms.Term;
-import org.gbif.dwc.terms.TermFactory;
-import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.predicate.query.EsField;
 
 @Slf4j
 @Data

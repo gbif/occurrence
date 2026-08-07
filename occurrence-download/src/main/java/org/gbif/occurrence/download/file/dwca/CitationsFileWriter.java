@@ -15,12 +15,13 @@ package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.model.common.search.Facet;
 
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.supercsv.cellprocessor.ParseLong;
 import org.supercsv.cellprocessor.constraint.NotNull;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -55,7 +56,7 @@ public class CitationsFileWriter {
   @SneakyThrows
   public static void createCitationsFile(Map<UUID, Long> datasetUsages, String citationFileName) {
     if (datasetUsages != null && !datasetUsages.isEmpty()) {
-      try (ICsvBeanWriter beanWriter = new CsvBeanWriter(new FileWriterWithEncoding(citationFileName, StandardCharsets.UTF_8),
+      try (ICsvBeanWriter beanWriter = new CsvBeanWriter(new OutputStreamWriter(new FileOutputStream(citationFileName), StandardCharsets.UTF_8),
                                                          CsvPreference.TAB_PREFERENCE)) {
         for (Entry<UUID, Long> entry : datasetUsages.entrySet()) {
           if (entry.getKey() != null) {

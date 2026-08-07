@@ -19,6 +19,7 @@ import org.gbif.occurrence.downloads.launcher.services.LockerService;
 import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 

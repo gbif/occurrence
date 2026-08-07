@@ -13,18 +13,6 @@
  */
 package org.gbif.occurrence.search.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.search.es.occurrence.OccurrenceEsField.*;
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.vocabulary.BasisOfRecord;
@@ -33,9 +21,24 @@ import org.gbif.api.vocabulary.MediaType;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.search.es.occurrence.OccurrenceEsField.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OccurrenceEsSearchRequestBuilderTest {
 

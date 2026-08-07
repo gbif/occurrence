@@ -13,18 +13,21 @@
  */
 package org.gbif.search.es.occurrence;
 
-import java.util.*;
-import jakarta.annotation.Nullable;
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.GreaterThanOrEqualsPredicate;
 import org.gbif.api.model.predicate.SimplePredicate;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.BaseEsFieldMapper;
+
+import java.util.*;
+
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+
+import jakarta.annotation.Nullable;
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchParameter> {

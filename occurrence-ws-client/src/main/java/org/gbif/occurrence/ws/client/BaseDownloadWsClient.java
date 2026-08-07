@@ -21,13 +21,12 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.function.Consumer;
 
-import jakarta.annotation.Nullable;
-
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import feign.Response;
+import jakarta.annotation.Nullable;
 
 /** Client-side implementation to the ChecklistService. */
 public interface BaseDownloadWsClient extends DownloadRequestService {

@@ -15,10 +15,10 @@ package org.gbif.occurrence.common.config;
 
 import java.util.StringJoiner;
 
+import com.beust.jcommander.Parameter;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-
-import com.beust.jcommander.Parameter;
 
 /**
  * Configs needed to connect to the occurrence HBase db.

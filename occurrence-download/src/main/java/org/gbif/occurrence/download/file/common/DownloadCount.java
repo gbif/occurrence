@@ -15,12 +15,9 @@ package org.gbif.occurrence.download.file.common;
 
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 
-import org.gbif.api.vocabulary.License;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
 
 /** Action for Species list download, helps with counts of the number of distinct species. */
 public class DownloadCount {

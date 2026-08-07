@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.DownloadType;
@@ -30,6 +27,11 @@ import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher.JobStatus;
 import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
+
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

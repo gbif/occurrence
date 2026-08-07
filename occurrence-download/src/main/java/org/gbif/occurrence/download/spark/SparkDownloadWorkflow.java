@@ -13,11 +13,6 @@
  */
 package org.gbif.occurrence.download.spark;
 
-import static org.gbif.occurrence.download.util.VocabularyUtils.*;
-
-import java.util.function.Supplier;
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
@@ -26,6 +21,13 @@ import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.sql.*;
 import org.gbif.vocabulary.client.ConceptClient;
+
+import java.util.function.Supplier;
+
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.download.util.VocabularyUtils.*;
 
 @Slf4j
 public class SparkDownloadWorkflow {

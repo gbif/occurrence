@@ -13,16 +13,16 @@
  */
 package org.gbif.occurrence.download.file;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.search.es.SearchHitConverter;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Properties;
+
 import org.apache.curator.test.TestingCluster;
 import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.action.search.SearchRequest;
@@ -33,14 +33,16 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.search.es.SearchHitConverter;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Covers the orchestration behavior: with no records there's nothing to run and the (empty)

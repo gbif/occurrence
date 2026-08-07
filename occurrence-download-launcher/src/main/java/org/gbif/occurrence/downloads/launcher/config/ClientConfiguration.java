@@ -13,12 +13,14 @@
  */
 package org.gbif.occurrence.downloads.launcher.config;
 
-import java.time.Duration;
 import org.gbif.occurrence.downloads.launcher.pojo.RegistryConfiguration;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+
+import java.time.Duration;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

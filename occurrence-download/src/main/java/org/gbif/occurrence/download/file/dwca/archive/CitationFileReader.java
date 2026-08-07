@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.service.registry.DatasetService;
+import org.gbif.occurrence.download.util.Strings;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,8 +28,6 @@ import java.util.function.Consumer;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-
-import com.google.common.base.Strings;
 
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;

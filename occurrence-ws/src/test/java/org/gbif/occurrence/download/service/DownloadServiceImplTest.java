@@ -32,6 +32,7 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.registry.ws.client.DoiInteractionClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,8 +40,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import org.gbif.registry.ws.client.DoiInteractionClient;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -13,7 +13,26 @@
  */
 package org.gbif.occurrence.download.file;
 
-import com.google.common.base.Strings;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.download.file.dwca.DwcaDownloadWorker;
+import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadWorker;
+import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadWorker;
+import org.gbif.occurrence.download.util.Strings;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
+import org.gbif.utils.file.FileUtils;
+import org.gbif.wrangler.lock.Lock;
+import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,9 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import lombok.Builder;
-import lombok.Data;
-import org.apache.commons.lang3.time.StopWatch;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
 import org.elasticsearch.action.search.SearchRequest;
@@ -38,26 +55,11 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
-import org.gbif.occurrence.download.file.dwca.DwcaDownloadWorker;
-import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadWorker;
-import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadWorker;
-import org.gbif.search.es.SearchHitConverter;
-import org.gbif.search.es.occurrence.OccurrenceEsField;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
-import org.gbif.utils.file.FileUtils;
-import org.gbif.wrangler.lock.Lock;
-import org.gbif.wrangler.lock.LockFactory;
-import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * Controls the multithreaded creation of occurrence downloads.
@@ -135,8 +137,7 @@ public class DownloadMaster {
    */
   public void run() {
     try {
-      StopWatch stopwatch = new StopWatch();
-      stopwatch.start();
+      long startNanos = System.nanoTime();
       LOG.info("Acquiring Search Index Read Lock");
       File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
       if (downloadTempDir.exists()) {
@@ -148,9 +149,8 @@ public class DownloadMaster {
       List<Result> results = recordCount > 0 ? runWorkers(recordCount) : new ArrayList<>();
       aggregator.aggregate(results);
 
-      stopwatch.stop();
-      long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
-      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
+      long elapsedMs = (System.nanoTime() - startNanos) / 1_000_000;
+      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.MILLISECONDS.toMinutes(elapsedMs), (elapsedMs / 1000) % 60));
     } finally {
       shutdown();
     }
@@ -293,22 +293,16 @@ public class DownloadMaster {
         new SearchQueryProcessor<>(
             new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter), defaultOptions);
 
-    switch (downloadFormat) {
-      case SIMPLE_CSV:
-        return new SimpleCsvDownloadWorker<>(queryProcessor, interpretedMapper);
-
-      case DWCA, FASTA_ARCHIVE:
-        return new DwcaDownloadWorker<>(queryProcessor, verbatimMapper, interpretedMapper);
-
-      case SPECIES_LIST:
-        return new SpeciesListDownloadWorker<>(queryProcessor, interpretedMapper);
-
-      default:
-        throw new IllegalStateException(
-            "Download format '"
-                + downloadFormat
-                + "' unknown or not supported for small downloads.");
-    }
+    return switch (downloadFormat) {
+      case SIMPLE_CSV -> new SimpleCsvDownloadWorker<>(queryProcessor, interpretedMapper);
+      case DWCA, FASTA_ARCHIVE ->
+        new DwcaDownloadWorker<>(queryProcessor, verbatimMapper, interpretedMapper);
+      case SPECIES_LIST -> new SpeciesListDownloadWorker<>(queryProcessor, interpretedMapper);
+      default -> throw new IllegalStateException(
+        "Download format '"
+          + downloadFormat
+          + "' unknown or not supported for small downloads.");
+    };
   }
 
   /**

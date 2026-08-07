@@ -29,12 +29,11 @@ import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.registry.ws.client.DoiInteractionClient;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import org.gbif.registry.ws.client.DoiInteractionClient;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

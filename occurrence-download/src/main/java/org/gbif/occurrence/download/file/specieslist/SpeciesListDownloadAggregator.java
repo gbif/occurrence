@@ -21,7 +21,6 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.DownloadCount;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
@@ -29,7 +28,9 @@ import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.utils.file.FileUtils;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -39,7 +40,6 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -49,8 +49,6 @@ import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
-
-import com.google.common.base.Throwables;
 
 /**
  * Aggregates multiple files from different jobs and merge there result to final file.
@@ -96,7 +94,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     } catch (IOException ex) {
       LOG.error("Error aggregating download files", ex);
-      throw Throwables.propagate(ex);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -130,19 +128,19 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
         .useEncoder(new DefaultCsvEncoder())
         .build();
     try (ICsvMapWriter csvMapWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), preference)) {
+        new CsvMapWriter(new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8), preference)) {
       Set<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
       distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
         try {
           csvMapWriter.write(speciesInfo, COLUMNS);
         } catch (IOException e) {
           LOG.error("Error merging results", e);
-          throw Throwables.propagate(e);
+          throw new RuntimeException(e);
         }
       });
     } catch (Exception e) {
       LOG.error("Error merging results", e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

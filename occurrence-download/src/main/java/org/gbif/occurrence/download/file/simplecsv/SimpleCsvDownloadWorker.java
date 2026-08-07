@@ -13,17 +13,6 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.Map;
-import java.util.function.Function;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
@@ -34,12 +23,26 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.Map;
+import java.util.function.Function;
+
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
+
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
 /**
  * Worker that creates a part of the simple csv download file.
@@ -82,7 +85,7 @@ public class SimpleCsvDownloadWorker<T extends Occurrence> implements DownloadFi
 
     try (ICsvMapWriter csvMapWriter =
         new CsvMapWriter(
-            new FileWriterWithEncoding(work.getJobDataFileName(), StandardCharsets.UTF_8),
+            new OutputStreamWriter(new FileOutputStream(work.getJobDataFileName()), StandardCharsets.UTF_8),
             preference)) {
 
       searchQueryProcessor.processQuery(work, record -> {

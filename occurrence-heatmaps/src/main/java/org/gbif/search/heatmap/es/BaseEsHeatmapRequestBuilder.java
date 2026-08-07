@@ -13,16 +13,6 @@
  */
 package org.gbif.search.heatmap.es;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
@@ -34,6 +24,18 @@ import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.heatmap.HeatmapRequest;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 import org.gbif.vocabulary.client.ConceptClient;
+
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.geogrid.GeoGridAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+
+import com.google.common.annotations.VisibleForTesting;
 
 public abstract class BaseEsHeatmapRequestBuilder<
         P extends SearchParameter,

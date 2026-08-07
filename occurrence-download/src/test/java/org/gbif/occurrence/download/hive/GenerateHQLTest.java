@@ -13,11 +13,12 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.gbif.api.model.Constants;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
+
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GenerateHQLTest {
 

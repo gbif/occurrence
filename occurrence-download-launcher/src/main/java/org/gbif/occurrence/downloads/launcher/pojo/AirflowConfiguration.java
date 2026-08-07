@@ -13,14 +13,17 @@
  */
 package org.gbif.occurrence.downloads.launcher.pojo;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import lombok.Data;
+
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Data;
 
 @Data
 public class AirflowConfiguration {

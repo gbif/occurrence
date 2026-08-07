@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.model.registry.Dataset;
+import org.gbif.occurrence.download.util.Strings;
 import org.gbif.utils.file.FileUtils;
 
 import java.io.Closeable;
@@ -22,8 +23,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Optional;
 import java.util.function.Consumer;
-
-import com.google.common.base.Strings;
 
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -42,7 +41,6 @@ public class ConstituentsCitationWriter implements Closeable, Consumer<Dataset> 
 
   private int count;
 
-  @SneakyThrows
   public ConstituentsCitationWriter(File archiveDir) {
     this(archiveDir, null);
   }

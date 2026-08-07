@@ -13,16 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
-import static org.gbif.occurrence.download.util.HeadersFileUtil.appendHeaders;
-
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.file.Result;
@@ -30,6 +20,18 @@ import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.util.HeadersFileUtil;
+
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.download.util.HeadersFileUtil.appendHeaders;
 
 @Slf4j
 public class InterpretedExtensionFilesWriter implements Closeable {

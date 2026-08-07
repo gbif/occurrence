@@ -13,7 +13,6 @@
  */
 package org.gbif.event.ws;
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.gbif.occurrence.download.service.OccurrenceDownloadRequestService;
 import org.gbif.registry.ws.client.DoiInteractionClient;
 import org.gbif.vocabulary.client.ConceptClient;
@@ -29,6 +28,7 @@ import org.gbif.ws.security.GbifAuthServiceImpl;
 import org.gbif.ws.security.GbifAuthenticationManagerImpl;
 import org.gbif.ws.server.filter.AppIdentityFilter;
 import org.gbif.ws.server.filter.IdentityFilter;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -44,6 +44,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootApplication(
     exclude = {RabbitAutoConfiguration.class, ElasticsearchRestClientAutoConfiguration.class})

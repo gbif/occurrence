@@ -13,13 +13,6 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
-
-import java.util.Date;
-import java.util.Map;
-import java.util.function.Function;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
@@ -30,8 +23,17 @@ import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+
+import java.util.Date;
+import java.util.Map;
+import java.util.function.Function;
+
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
 public class SpeciesListDownloadWorker<T extends Occurrence> implements DownloadFileWorker {
   private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadWorker.class);

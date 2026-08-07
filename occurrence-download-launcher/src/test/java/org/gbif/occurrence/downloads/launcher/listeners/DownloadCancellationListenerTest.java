@@ -21,6 +21,7 @@ import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdater
 import org.gbif.occurrence.downloads.launcher.services.launcher.DownloadLauncher;
 import org.gbif.occurrence.downloads.launcher.services.launcher.EventDownloadLauncherService;
 import org.gbif.occurrence.downloads.launcher.services.launcher.OccurrenceDownloadLauncherService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

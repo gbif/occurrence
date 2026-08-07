@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
-import org.apache.commons.compress.utils.IOUtils;
-
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.dwc.terms.Term;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
@@ -22,8 +20,8 @@ import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.util.IOUtils;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
@@ -33,20 +31,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.curator.shaded.com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.io.ByteStreams;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -59,8 +53,6 @@ import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStrea
  */
 @Slf4j
 public class SimpleCsvArchiveBuilder {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvArchiveBuilder.class);
 
   // Occurrences file name
   private static final String CSV_EXTENSION = ".csv";
@@ -79,7 +71,7 @@ public class SimpleCsvArchiveBuilder {
    */
   public static SimpleCsvArchiveBuilder withHeader(Set<Pair<DownloadTerms.Group, Term>> downloadTermsHeader) {
     String header = downloadTermsHeader.stream()
-      .map(termPair -> DownloadTerms.simpleName(termPair).replaceAll("_", ""))
+      .map(termPair -> DownloadTerms.simpleName(termPair).replace("_", ""))
       .collect(Collectors.joining("\t")) + '\n';
     return new SimpleCsvArchiveBuilder(header);
   }
@@ -134,7 +126,7 @@ public class SimpleCsvArchiveBuilder {
       }
       zos.closeEntry();
     } catch (Exception ex) {
-      LOG.error(ERROR_ZIP_MSG, ex);
+      log.error(ERROR_ZIP_MSG, ex);
       throw new RuntimeException(ex);
     }
   }
@@ -162,7 +154,7 @@ public class SimpleCsvArchiveBuilder {
         setDataFromInputStream(ze, in);
         zos.closeEntry();
       } catch (Exception ex) {
-        LOG.error(ERROR_ZIP_MSG, ex);
+        log.error(ERROR_ZIP_MSG, ex);
         throw new RuntimeException(ex);
       }
     }
@@ -194,7 +186,7 @@ public class SimpleCsvArchiveBuilder {
    */
   public static void main(String[] args) throws IOException {
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-    String downloadFormat = Preconditions.checkNotNull(args[4]).trim();
+    String downloadFormat = Objects.requireNonNull(args[4]).trim();
 
     FileSystem sourceFileSystem =
       getHdfs(properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY));
@@ -210,7 +202,7 @@ public class SimpleCsvArchiveBuilder {
         break;
 
       case SQL_TSV_ZIP:
-        String downloadHeaderString = Preconditions.checkNotNull(args[5]).trim();
+        String downloadHeaderString = Objects.requireNonNull(args[5]).trim();
         builder = SimpleCsvArchiveBuilder.withHeader(downloadHeaderString);
         break;
 

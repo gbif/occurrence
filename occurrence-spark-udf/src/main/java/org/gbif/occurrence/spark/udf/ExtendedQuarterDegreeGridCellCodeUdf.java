@@ -16,6 +16,7 @@ package org.gbif.occurrence.spark.udf;
 import org.gbif.occurrence.cube.functions.ExtendedQuarterDegreeGridCellCode;
 
 import org.apache.spark.sql.api.java.UDF4;
+
 import static org.gbif.occurrence.spark.udf.ConvertionUtils.toDouble;
 
 /**

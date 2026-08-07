@@ -14,12 +14,11 @@
 package org.gbif.search.es;
 
 import org.gbif.dwc.terms.Term;
+import org.gbif.predicate.query.EsField;
+import org.gbif.terms.utils.TermUtils;
 
 import lombok.Data;
 import lombok.Getter;
-
-import org.gbif.terms.utils.TermUtils;
-import org.gbif.predicate.query.EsField;
 
 @Data
 public class BaseEsField implements EsField {

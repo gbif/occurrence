@@ -14,9 +14,8 @@
 package org.gbif.occurrence.download.citations;
 
 import org.gbif.api.vocabulary.License;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
-import org.gbif.utils.file.properties.PropertiesUtil;
+import org.gbif.occurrence.download.util.Strings;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,7 +26,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
@@ -35,11 +33,9 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-
 import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.download.util.HeadersFileUtil.splitTabTrim;
 
 /**
  * Reads a dataset's citations file for consumption.
@@ -47,13 +43,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class CitationsFileReader {
 
-  private static final Splitter TAB_SPLITTER = Splitter.on('\t').trimResults();
 
   /**
    * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
    */
   private static Map.Entry<UUID,Long> toDatasetOccurrenceDownloadUsage(String tsvLine) {
-    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
+    Iterator<String> tsvLineIterator = splitTabTrim(tsvLine).iterator();
     return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(tsvLineIterator.next()), Long.parseLong(tsvLineIterator.next()));
   }
 
@@ -61,7 +56,7 @@ public abstract class CitationsFileReader {
    * Transforms tab-separated-line into a DatasetOccurrenceDownloadUsage instance.
    */
   private static Map.Entry<UUID,License> toDatasetOccurrenceDownloadLicense(String tsvLine) {
-    Iterator<String> tsvLineIterator = TAB_SPLITTER.split(tsvLine).iterator();
+    Iterator<String> tsvLineIterator = splitTabTrim(tsvLine).iterator();
     String datasetKey = tsvLineIterator.next();
     tsvLineIterator.next();
 
@@ -72,7 +67,7 @@ public abstract class CitationsFileReader {
       log.warn("No license found for dataset {}", datasetKey);
     }
 
-    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(datasetKey), license.isPresent() ? license.get(): null);
+    return new AbstractMap.SimpleImmutableEntry<>(UUID.fromString(datasetKey), license.orElse(null));
   }
 
   /**
@@ -108,7 +103,7 @@ public abstract class CitationsFileReader {
                 datasetLicenseCollector.merge(licenseEntry.getKey(), licenseEntry.getValue(),
                   (a, b) -> License.getMostRestrictive(a, b, b));
               } else {
-                log.warn("No license found for dataset {}", citationEntry.getKey());
+                log.warn("No license found for cited dataset {}", citationEntry.getKey());
               }
             }
           }
@@ -116,14 +111,5 @@ public abstract class CitationsFileReader {
       }
     }
     consumer.accept(datasetsCitation, datasetLicenseCollector);
-  }
-
-  public static void main(String[] args) throws IOException {
-    Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-
-    readCitationsAndUpdateLicense(
-      properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
-      Preconditions.checkNotNull(args[0]),
-      (t,u) -> {});
   }
 }

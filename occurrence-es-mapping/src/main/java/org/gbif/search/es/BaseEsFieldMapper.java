@@ -13,21 +13,23 @@
  */
 package org.gbif.search.es;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.dwc.terms.Term;
 import org.gbif.predicate.query.EsField;
 import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j

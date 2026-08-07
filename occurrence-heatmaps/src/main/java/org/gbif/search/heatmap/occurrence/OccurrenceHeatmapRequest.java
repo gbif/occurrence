@@ -13,10 +13,11 @@
  */
 package org.gbif.search.heatmap.occurrence;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import org.gbif.api.model.occurrence.search.OccurrencePredicateSearchRequest;
 import org.gbif.search.heatmap.HeatmapRequest;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 /** Request class for issuing heat map search request to the occurrence search service. */
 public class OccurrenceHeatmapRequest extends OccurrencePredicateSearchRequest
