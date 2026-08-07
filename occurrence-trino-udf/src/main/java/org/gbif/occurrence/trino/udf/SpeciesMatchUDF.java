@@ -37,7 +37,7 @@ import org.gbif.occurrence.trino.processor.interpreters.TaxonomyInterpreter;
 import org.gbif.occurrence.trino.processor.result.NameUsageMatchResult;
 
 /**
- * A UDF to run a backbone species match against the GBIF API. The UDF is lazily initialized with
+ * A UDF to run a catalogue of life species match against the GBIF API. The UDF is lazily initialized with
  * the base URL of the API to be used. Within the same JVM the UDF will only ever use the first URL
  * used and ignores subsequently changed URLs.
  */
@@ -74,7 +74,7 @@ public class SpeciesMatchUDF {
 
   @ScalarFunction(value = "nubLookup", deterministic = true)
   @Description(
-      "A UDF to run a backbone species match against the GBIF API. The UDF is lazily initialized with"
+      "A UDF to run a catalogue of life match against the GBIF API. The UDF is lazily initialized with"
           + " the base URL of the API to be used. Within the same JVM the UDF will only ever use the first URL used and ignores subsequently changed URLs."
           + "The order of the parameters is the following: nubLookup(apiNub, checklistKey, kingdom, phylum, class_rank, order_rank, family, genus, scientific_name, specific_epithet, infra_specific_epithet, rank)")
   @SqlType(
