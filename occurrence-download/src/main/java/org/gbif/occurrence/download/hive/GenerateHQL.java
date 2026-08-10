@@ -13,29 +13,32 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
-import static org.gbif.terms.utils.TermUtils.DOWNLOAD_DNA_TERMS;
-import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
-import freemarker.cache.ClassTemplateLoader;
-import freemarker.template.Configuration;
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-import lombok.SneakyThrows;
-import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
 import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import org.apache.avro.Schema;
+import org.apache.avro.SchemaBuilder;
+
+import freemarker.cache.ClassTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateException;
+import lombok.SneakyThrows;
+
+import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
+import static org.gbif.occurrence.download.util.Preconditions.checkState;
+import static org.gbif.terms.utils.TermUtils.DOWNLOAD_DNA_TERMS;
+import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
 
 /**
  * Generates HQL scripts dynamically which are used to create the download HDFS tables, and querying
@@ -84,9 +87,9 @@ public class GenerateHQL {
 
   public static void main(String[] args) {
     try {
-      Preconditions.checkState(1 == args.length, "Output path for HQL files is required");
+      checkState(1 == args.length, "Output path for HQL files is required");
       File outDir = new File(args[0]);
-      Preconditions.checkState(
+      checkState(
           outDir.exists() && outDir.isDirectory(), "Output directory must exist");
 
       // create the subdirectories into which we will write
@@ -150,6 +153,12 @@ public class GenerateHQL {
     }
   }
 
+  private static void checkState(boolean expression, String message) {
+    if (!expression) {
+      throw new IllegalStateException(message);
+    }
+  }
+
   private static Configuration templateConfig() {
     Configuration cfg = new Configuration();
     cfg.setTemplateLoader(new ClassTemplateLoader(GenerateHQL.class, "/templates"));
@@ -168,7 +177,7 @@ public class GenerateHQL {
       Template createTableTemplate =
           cfg.getTemplate("create-tables/create-occurrence-hive-tables.ftl");
       Map<String, Object> data =
-          ImmutableMap.of(
+          Map.of(
               FIELDS,
               OccurrenceHDFSTableDefinition.definition(),
               "extensions",
@@ -213,38 +222,37 @@ public class GenerateHQL {
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("download/execute-query.ftl");
 
-    ImmutableMap.Builder<String, Object> dataBuilder =
-        ImmutableMap.<String, Object>builder()
-            .put(
+    Map<String, Object> dataBuilder = new HashMap<>();
+    dataBuilder.put(
                 "verbatimFields",
-                HIVE_QUERIES.selectVerbatimFields(queryParameters.getCoreTerm()).values())
-            .put(
+                HIVE_QUERIES.selectVerbatimFields(queryParameters.getCoreTerm()).values());
+    dataBuilder.put(
                 "interpretedFields",
                 getQueries(queryParameters.getCoreTerm())
                     .selectInterpretedFields(
                         false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
-                    .values())
-            .put(
+                    .values());
+    dataBuilder.put(
                 "initializedInterpretedFields",
                 getQueries(queryParameters.getCoreTerm())
                     .selectInterpretedFields(
                         true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
-                    .values())
-            .put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values())
-            .put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values())
-            .put("extensions", ExtensionTable.tableExtensions())
-            .put(IS_HUMBOLDT_SEARCH, queryParameters.isHumboldtSearch())
-            .put(
+                    .values());
+    dataBuilder.put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values());
+    dataBuilder.put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values());
+    dataBuilder.put("extensions", ExtensionTable.tableExtensions());
+    dataBuilder.put(IS_HUMBOLDT_SEARCH, queryParameters.isHumboldtSearch());
+    dataBuilder.put(
                 INCLUDE_HUMBOLDT_INTERPRETED,
-                includeInterpretedExtension(queryParameters, Extension.HUMBOLDT))
-            .put(
+                includeInterpretedExtension(queryParameters, Extension.HUMBOLDT));
+    dataBuilder.put(
                 INCLUDE_OCCURRENCE_EXT_INTERPRETED,
-                includeInterpretedExtension(queryParameters, Extension.OCCURRENCE))
-            .put(
+                includeInterpretedExtension(queryParameters, Extension.OCCURRENCE));
+    dataBuilder.put(
                 INCLUDE_DNA_INTERPRETED,
-                includeInterpretedExtension(queryParameters, Extension.DNA_DERIVED_DATA))
-            .put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload())
-            .put(IS_DNA_SEARCH, queryParameters.isDnaSearch());
+                includeInterpretedExtension(queryParameters, Extension.DNA_DERIVED_DATA));
+    dataBuilder.put(IS_FASTA_DOWNLOAD, queryParameters.isFastaDownload());
+    dataBuilder.put(IS_DNA_SEARCH, queryParameters.isDnaSearch());
 
     if (queryParameters.isFastaDownload()) {
       dataBuilder.put(
@@ -277,8 +285,8 @@ public class GenerateHQL {
               getQueries(DwcTerm.Occurrence)
                   .selectInterpretedFields(
                       false, queryParameters.getChecklistKey(), DwcTerm.Occurrence)
-                  .values())
-          .put(
+                  .values());
+      dataBuilder.put(
               "occurrenceExtInitializedInterpretedFields",
               getQueries(DwcTerm.Occurrence)
                   .selectInterpretedFields(
@@ -286,7 +294,7 @@ public class GenerateHQL {
                   .values());
     }
 
-    template.process(dataBuilder.build(), writer);
+    template.process(dataBuilder, writer);
   }
 
   private static boolean includeInterpretedExtension(
@@ -332,7 +340,7 @@ public class GenerateHQL {
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("simple-csv-download/execute-simple-csv-query.ftl");
     Map<String, Object> data =
-        ImmutableMap.of(
+        Map.of(
             FIELDS,
             getQueries(queryParameters.getCoreTerm())
                 .selectSimpleDownloadFields(
@@ -404,7 +412,7 @@ public class GenerateHQL {
     try (FileWriter out = new FileWriter(new File(outDir, "execute-simple-avro-query.q"))) {
       Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
       Map<String, Object> data =
-          ImmutableMap.of(
+          Map.of(
               FIELDS,
               AVRO_QUERIES
                   .selectSimpleDownloadFields(
@@ -421,7 +429,7 @@ public class GenerateHQL {
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("simple-avro-download/execute-simple-avro-query.ftl");
     Map<String, Object> data =
-        ImmutableMap.of(
+        Map.of(
             FIELDS,
             AVRO_QUERIES
                 .selectSimpleDownloadFields(
@@ -464,7 +472,7 @@ public class GenerateHQL {
             false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm());
 
     Map<String, Object> data =
-        ImmutableMap.of(
+        Map.of(
             "hiveFields", interpretedNames,
             "parquetFields", columnNames);
     template.process(data, out);
@@ -498,7 +506,7 @@ public class GenerateHQL {
     Template template = cfg.getTemplate("bionomia/execute-bionomia-query.ftl");
 
     Map<String, Object> data =
-        ImmutableMap.of(
+        Map.of(
             "bionomiaAvroSchema", resourceAsString("/download-workflow/bionomia/bionomia.avsc"),
             "bionomiaAgentsAvroSchema",
                 resourceAsString("/download-workflow/bionomia/bionomia-agents.avsc"),
@@ -535,7 +543,7 @@ public class GenerateHQL {
     }
 
     Map<String, Object> data =
-        ImmutableMap.of(
+        Map.of(
             "simpleFields", simpleFields,
             "verbatimFields", verbatimFields,
             "avroSchema", simpleWithVerbatimAvroSchema().toString(true));
@@ -554,17 +562,16 @@ public class GenerateHQL {
     Map<String, InitializableField> simpleFields =
         AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
     Map<String, InitializableField> verbatimFields =
-        new TreeMap(AVRO_QUERIES.selectVerbatimFields());
+        new TreeMap<>(AVRO_QUERIES.selectVerbatimFields());
 
     // Omit any verbatim fields present in the simple download.
     for (String field : simpleFields.keySet()) {
       verbatimFields.remove(field);
     }
 
-    return ImmutableMap.<String, InitializableField>builder()
-        .putAll(simpleFields)
-        .putAll(verbatimFields)
-        .build();
+    Map<String, InitializableField> queryFields = new HashMap<>(simpleFields);
+    queryFields.putAll(verbatimFields);
+    return queryFields;
   }
 
   /** Generates the schema used for simple with verbatim AVRO downloads. */
@@ -582,7 +589,7 @@ public class GenerateHQL {
     Map<String, InitializableField> simpleFields =
         AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
     Map<String, InitializableField> verbatimFields =
-        new TreeMap(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
+        new TreeMap<>(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
 
     // Omit any verbatim fields present in the simple download.
     for (String field : simpleFields.keySet()) {
@@ -637,7 +644,7 @@ public class GenerateHQL {
       throws IOException, TemplateException {
     Template template = cfg.getTemplate("map-of-life-download/execute-map-of-life-query.ftl");
     Map<String, Object> data =
-        ImmutableMap.of(
+        Map.of(
             "fields",
                 AVRO_QUERIES.selectGroupedDownloadFields(
                     MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS,

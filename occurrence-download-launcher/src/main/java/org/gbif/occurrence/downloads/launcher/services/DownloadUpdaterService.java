@@ -13,18 +13,20 @@
  */
 package org.gbif.occurrence.downloads.launcher.services;
 
-import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
-import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
-import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
-import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
-
-import java.util.List;
-import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.Download.Status;
 import org.gbif.registry.ws.client.BaseDownloadClient;
+
+import java.util.List;
+import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.api.model.occurrence.Download.Status.EXECUTING_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.FINISH_STATUSES;
+import static org.gbif.api.model.occurrence.Download.Status.RUNNING;
+import static org.gbif.api.model.occurrence.Download.Status.SUSPENDED;
 
 /**
  * Service is to be called to update the status of a download or to work with the

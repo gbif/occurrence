@@ -13,56 +13,27 @@
  */
 package org.gbif.occurrence.download.citations;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.occurrence.download.util.RegistryClientUtil;
-import org.gbif.utils.file.properties.PropertiesUtil;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Preconditions;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Persists a download's citations to the Registry.
  */
+@Slf4j
+@UtilityClass
 public final class CitationsPersister extends CitationsFileReader {
-
-  private static final Logger LOG = LoggerFactory.getLogger(CitationsPersister.class);
-
-  public static void main(String[] args) throws IOException {
-    Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
-
-    readCitationsAndUpdateLicense(
-      properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY),
-      Preconditions.checkNotNull(args[0]),
-      new PersistUsage(
-        Preconditions.checkNotNull(args[1]),
-        DwcTerm.valueOf(args[2]),
-        properties.getProperty(DownloadWorkflowModule.DefaultSettings.REGISTRY_URL_KEY),
-        properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_USER_KEY),
-        properties.getProperty(DownloadWorkflowModule.DefaultSettings.DOWNLOAD_PASSWORD_KEY)
-      ));
-  }
-
-  /**
-   * Private constructor.
-   */
-  private CitationsPersister() {
-    //empty constructor
-  }
 
   /**
    * Persists the dataset usage and license info into the Registry data base.
@@ -86,7 +57,7 @@ public final class CitationsPersister extends CitationsFileReader {
     @Override
     public void accept(Map<UUID, Long> datasetsCitation, Map<UUID, License> datasetLicenses) {
       if (datasetsCitation == null || datasetsCitation.isEmpty()) {
-        LOG.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
+        log.info("No citation information to update as list of datasets is empty or null, hence ignoring the request");
       }
 
       try {
@@ -95,15 +66,15 @@ public final class CitationsPersister extends CitationsFileReader {
         downloadService.updateLicenseAndTotalRecords(
             downloadKey, licenseSelector.getSelectedLicense(), totalRecords);
       } catch (Exception ex) {
-        LOG.error("Error persisting download license information, downloadKey: {}, licenses: {} ",
+        log.error("Error persisting download license information, downloadKey: {}, licenses: {} ",
           downloadKey, datasetLicenses.values(), ex);
       }
 
       try {
-        LOG.debug("Create usage for download key: {}", downloadKey);
+        log.debug("Create usage for download key: {}", downloadKey);
         downloadService.createUsages(downloadKey, datasetsCitation);
       } catch (Exception e) {
-        LOG.error("Error persisting dataset usage information: {}", datasetsCitation, e);
+        log.error("Error persisting dataset usage information: {}", datasetsCitation, e);
       }
     }
   }

@@ -21,11 +21,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import lombok.Getter;
+
 /**
- * 
+ *
  * Customizing {@link org.gbif.occurrence.download.file.Result} to add distinct species list.
  *
  */
+@Getter
 public class SpeciesListResult extends Result {
 
   private final Set<Map<String, String>> distinctSpecies;
@@ -36,7 +39,4 @@ public class SpeciesListResult extends Result {
     this.distinctSpecies = distinctSpecies;
   }
 
-  public Set<Map<String, String>> getDistinctSpecies() {
-    return distinctSpecies;
-  }
 }

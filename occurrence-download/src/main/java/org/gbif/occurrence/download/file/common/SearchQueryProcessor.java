@@ -13,26 +13,24 @@
  */
 package org.gbif.occurrence.download.file.common;
 
-import org.elasticsearch.client.HttpAsyncResponseConsumerFactory;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.occurrence.download.file.DownloadFileWork;
+import org.gbif.occurrence.download.util.Strings;
+import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
+import org.gbif.search.es.EsResponseParser;
 
 import java.io.IOException;
 import java.util.function.Consumer;
 
 import org.elasticsearch.action.search.*;
+import org.elasticsearch.client.HttpAsyncResponseConsumerFactory;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-
-import com.google.common.base.Strings;
-
-import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
-import org.gbif.search.es.EsResponseParser;
 
 /**
  * Executes a Search query and applies a predicate to each result.

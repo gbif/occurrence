@@ -19,13 +19,13 @@ import org.gbif.api.vocabulary.Kingdom;
 
 import java.util.Map;
 
-import jakarta.validation.constraints.Min;
-
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import jakarta.validation.constraints.Min;
 
 /**
  * Ws client for {@link OccurrenceDistributionIndexService}.

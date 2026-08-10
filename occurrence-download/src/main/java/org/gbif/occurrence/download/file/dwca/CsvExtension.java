@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca.akka;
+package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.hive.ExtensionTable;
@@ -43,6 +43,6 @@ public class CsvExtension {
     ExtensionTable table = new ExtensionTable(extension);
     Set<String> interpretedFields = table.getInterpretedFields();
     columns = interpretedFields.toArray(new String[0]);
-    processors = interpretedFields.stream().map( i-> new DownloadDwcaActor.CleanStringProcessor()).toArray(CellProcessor[]::new);
+    processors = interpretedFields.stream().map( i-> new DwcaDownloadWorker.CleanStringProcessor()).toArray(CellProcessor[]::new);
   }
 }

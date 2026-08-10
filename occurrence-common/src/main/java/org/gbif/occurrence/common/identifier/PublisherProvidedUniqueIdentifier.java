@@ -17,8 +17,6 @@ import java.util.UUID;
 
 import com.google.common.base.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 public class PublisherProvidedUniqueIdentifier implements UniqueIdentifier {
 
   private final UUID datasetKey;
@@ -26,9 +24,9 @@ public class PublisherProvidedUniqueIdentifier implements UniqueIdentifier {
 
 
   public PublisherProvidedUniqueIdentifier(UUID datasetKey, String publisherProvidedIdentifier) {
-    this.datasetKey = checkNotNull(datasetKey, "datasetKey can't be null");
+    this.datasetKey = java.util.Objects.requireNonNull(datasetKey, "datasetKey can't be null");
     this.publisherProvidedIdentifier =
-      checkNotNull(publisherProvidedIdentifier, "publisherProvidedIdentifier can't be null");
+      java.util.Objects.requireNonNull(publisherProvidedIdentifier, "publisherProvidedIdentifier can't be null");
   }
 
   public String getPublisherProvidedIdentifier() {

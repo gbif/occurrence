@@ -16,17 +16,17 @@ package org.gbif.occurrence.search.heatmap;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.search.cache.DefaultInMemoryPredicateCacheService;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequestProvider;
 
 import java.util.Map;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.cache2k.config.Cache2kConfig;
-import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
-import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequestProvider;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Maps;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;

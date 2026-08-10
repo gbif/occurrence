@@ -13,20 +13,6 @@
  */
 package org.gbif.search.heatmap.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
-import static org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder.*;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import jakarta.annotation.Nullable;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.search.aggregations.bucket.geogrid.ParsedGeoHashGrid;
-import org.elasticsearch.search.aggregations.metrics.ParsedGeoBounds;
-import org.elasticsearch.search.aggregations.metrics.ParsedGeoCentroid;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
@@ -34,9 +20,26 @@ import org.gbif.occurrence.search.SearchException;
 import org.gbif.search.heatmap.HeatmapRequest;
 import org.gbif.search.heatmap.HeatmapService;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.search.aggregations.bucket.geogrid.ParsedGeoHashGrid;
+import org.elasticsearch.search.aggregations.metrics.ParsedGeoBounds;
+import org.elasticsearch.search.aggregations.metrics.ParsedGeoCentroid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import jakarta.annotation.Nullable;
+
+import static org.gbif.occurrence.search.es.EsQueryUtils.HEADERS;
+import static org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder.*;
 
 /** Elasticsearch heatmap service. */
 public abstract class BaseHeatmapsEsService<

@@ -13,16 +13,6 @@
  */
 package org.gbif.event.search.es;
 
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-import static org.gbif.search.es.event.EventEsField.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY;
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Arrays;
-import java.util.List;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.gbif.api.model.event.search.EventPredicateSearchRequest;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
@@ -33,9 +23,22 @@ import org.gbif.api.model.predicate.InPredicate;
 import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.search.es.event.EventEsField;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+import static org.gbif.search.es.event.EventEsField.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EventEsSearchRequestBuilderTest {
 

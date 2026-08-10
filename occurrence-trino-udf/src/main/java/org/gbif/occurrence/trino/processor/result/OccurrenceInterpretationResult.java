@@ -15,9 +15,9 @@ package org.gbif.occurrence.trino.processor.result;
 
 import org.gbif.api.model.occurrence.Occurrence;
 
-import jakarta.annotation.Nullable;
+import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import jakarta.annotation.Nullable;
 
 public class OccurrenceInterpretationResult {
 
@@ -26,7 +26,7 @@ public class OccurrenceInterpretationResult {
 
   public OccurrenceInterpretationResult(@Nullable Occurrence original, Occurrence updated) {
     this.original = original;
-    this.updated = checkNotNull(updated, "updated can't be null");
+    this.updated = Objects.requireNonNull(updated, "updated can't be null");
   }
 
   public Occurrence getOriginal() {

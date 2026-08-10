@@ -13,12 +13,6 @@
  */
 package org.gbif.search.heatmap;
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.common.search.SearchRequest;
@@ -27,8 +21,18 @@ import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.occurrence.search.cache.PredicateCacheService;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 public abstract class BaseHeatmapRequestProvider<
         P extends SearchParameter,

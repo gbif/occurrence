@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.file.common;
 
+import org.gbif.occurrence.download.util.IOUtils;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,7 +25,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FileStatus;
@@ -31,9 +32,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Throwables;
-import com.google.common.io.ByteStreams;
 
 import lombok.experimental.UtilityClass;
 
@@ -81,7 +79,7 @@ public final class DownloadFileUtils {
         IOUtils.copy(fileReader, outputFileStreamWriter, DownloadFileUtils.DEFAULT_FILE_COPY_BUFFER_SIZE);
       } catch (FileNotFoundException e) {
         LOG.info("Error appending file {}", inputFileName, e);
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
       if (!inputFile.delete()) {
         LOG.info("Input file can't be removed {}", inputFileName);
@@ -106,7 +104,7 @@ public final class DownloadFileUtils {
             return Long.parseLong(countReader.readLine());
           } catch (IOException e) {
             LOG.error("Could not read count from table", e);
-            throw Throwables.propagate(e);
+            throw new RuntimeException(e);
           }
         }).orElse(0L);
   }

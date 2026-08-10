@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.util;
 
-import com.google.common.annotations.VisibleForTesting;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
@@ -24,7 +22,6 @@ import org.gbif.occurrence.query.sql.HiveSqlValidator;
 
 import java.util.*;
 
-import calcite_gbif_shaded.com.google.common.collect.ImmutableMap;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataType;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeFactory;
 import calcite_gbif_shaded.org.apache.calcite.rel.type.RelDataTypeSystem;
@@ -39,6 +36,7 @@ import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
 import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
+import lombok.extern.slf4j.Slf4j;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;
 
@@ -50,14 +48,13 @@ public class SqlValidation {
 
   private final String database;
 
-  private static final Map<String, SqlTypeName> HIVE_TYPE_MAPPING = ImmutableMap.<String, SqlTypeName>builder()
-    .put(HiveDataTypes.TYPE_STRING, SqlTypeName.VARCHAR)
-    .put(HiveDataTypes.TYPE_BOOLEAN, SqlTypeName.BOOLEAN)
-    .put(HiveDataTypes.TYPE_INT, SqlTypeName.INTEGER)
-    .put(HiveDataTypes.TYPE_DOUBLE, SqlTypeName.DOUBLE)
-    .put(HiveDataTypes.TYPE_BIGINT, SqlTypeName.BIGINT)
-    .put(HiveDataTypes.TYPE_TIMESTAMP, SqlTypeName.TIMESTAMP)
-    .build();
+  private static final Map<String, SqlTypeName> HIVE_TYPE_MAPPING = Map.of(
+    HiveDataTypes.TYPE_STRING, SqlTypeName.VARCHAR,
+    HiveDataTypes.TYPE_BOOLEAN, SqlTypeName.BOOLEAN,
+    HiveDataTypes.TYPE_INT, SqlTypeName.INTEGER,
+    HiveDataTypes.TYPE_DOUBLE, SqlTypeName.DOUBLE,
+    HiveDataTypes.TYPE_BIGINT, SqlTypeName.BIGINT,
+    HiveDataTypes.TYPE_TIMESTAMP, SqlTypeName.TIMESTAMP);
 
   private final HiveSqlValidator hiveSqlValidator;
 
@@ -82,7 +79,6 @@ public class SqlValidation {
     hiveSqlValidator = new HiveSqlValidator(rootSchema, additionalSqlOperators());
   }
 
-  @VisibleForTesting
   protected static List<SqlOperator> additionalSqlOperators() {
     List<SqlOperator> additionalOperators = new ArrayList<>();
 

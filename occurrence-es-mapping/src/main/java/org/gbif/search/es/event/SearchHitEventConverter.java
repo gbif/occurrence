@@ -13,26 +13,6 @@
  */
 package org.gbif.search.es.event;
 
-import static org.gbif.search.es.event.EventEsField.*;
-import static org.gbif.search.es.event.EventEsField.CRAWL_ID;
-import static org.gbif.search.es.event.EventEsField.HOSTING_ORGANIZATION_KEY;
-import static org.gbif.search.es.event.EventEsField.LAST_CRAWLED;
-import static org.gbif.search.es.event.EventEsField.LAST_INTERPRETED;
-import static org.gbif.search.es.event.EventEsField.LAST_PARSED;
-import static org.gbif.search.es.event.EventEsField.MEDIA_ITEMS;
-import static org.gbif.search.es.event.EventEsField.NETWORK_KEY;
-import static org.gbif.search.es.event.EventEsField.PROTOCOL;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import java.net.URI;
-import java.text.ParseException;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
@@ -54,9 +34,32 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.EventTermUtils;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.SearchHitConverter;
+import org.gbif.terms.utils.EventTermUtils;
+
+import java.net.URI;
+import java.text.ParseException;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.search.SearchHit;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+
+import static org.gbif.search.es.event.EventEsField.*;
+import static org.gbif.search.es.event.EventEsField.CRAWL_ID;
+import static org.gbif.search.es.event.EventEsField.HOSTING_ORGANIZATION_KEY;
+import static org.gbif.search.es.event.EventEsField.LAST_CRAWLED;
+import static org.gbif.search.es.event.EventEsField.LAST_INTERPRETED;
+import static org.gbif.search.es.event.EventEsField.LAST_PARSED;
+import static org.gbif.search.es.event.EventEsField.MEDIA_ITEMS;
+import static org.gbif.search.es.event.EventEsField.NETWORK_KEY;
+import static org.gbif.search.es.event.EventEsField.PROTOCOL;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 

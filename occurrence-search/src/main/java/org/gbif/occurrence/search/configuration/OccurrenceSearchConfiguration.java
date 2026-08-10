@@ -14,6 +14,9 @@
 package org.gbif.occurrence.search.configuration;
 
 import org.gbif.occurrence.search.es.EsConfig;
+import org.gbif.rest.client.species.NameUsageMatchingService;
+import org.gbif.ws.client.ClientBuilder;
+import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -27,10 +30,7 @@ import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
-import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.springframework.beans.factory.annotation.Value;
-import org.gbif.ws.client.ClientBuilder;
-import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 

@@ -13,11 +13,10 @@
  */
 package org.gbif.occurrence.download.file.d2;
 
-import org.apache.commons.compress.utils.IOUtils;
-
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
+import org.gbif.occurrence.download.util.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,12 +26,7 @@ import java.util.stream.Collectors;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.google.common.base.Throwables;
-import com.google.common.io.ByteStreams;
-
 import lombok.experimental.UtilityClass;
-
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 
 import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 
@@ -62,7 +56,7 @@ public class D2Utils {
       try {
         return sourceFS.open(fileStatus.getPath());
       } catch (IOException ex) {
-        throw Throwables.propagate(ex);
+        throw new RuntimeException(ex);
       }
     }).collect(Collectors.toList());
   }

@@ -34,9 +34,12 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lombok.experimental.UtilityClass;
+
 /**
  * Utility class that creates a single Avro file from a directory that stores Avro data (of a Hive table or search queries).
  */
+@UtilityClass
 public class SimpleAvroArchiveBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(SimpleAvroArchiveBuilder.class);
@@ -106,11 +109,5 @@ public class SimpleAvroArchiveBuilder {
                       args[1],
                       args[2]);
   }
-
-  /**
-   * Private constructor.
-   */
-  private SimpleAvroArchiveBuilder() {
-    //do nothing
-  }
+  
 }

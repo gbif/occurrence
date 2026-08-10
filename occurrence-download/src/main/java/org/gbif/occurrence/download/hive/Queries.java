@@ -13,21 +13,22 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import static org.gbif.terms.utils.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
-import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
-
-import com.google.common.collect.ImmutableMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.EcoTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import static org.gbif.terms.utils.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
 
 /**
  * Utilities related to the actual queries executed at runtime.
@@ -327,7 +328,9 @@ public abstract class Queries {
       verbatimFields.remove(field);
     }
 
-    return ImmutableMap.<String, InitializableField>builder().putAll(simpleFields).putAll(verbatimFields).build();
+    Map<String, InitializableField> simpleWithVerbatimDownloadFields = new HashMap<>(simpleFields);
+    simpleWithVerbatimDownloadFields.putAll(verbatimFields);
+    return simpleWithVerbatimDownloadFields;
   }
 
   /**

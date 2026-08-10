@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.Download;
@@ -39,13 +37,15 @@ import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -80,7 +80,6 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
   private static final ObjectMapper OBJECT_MAPPER = JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport();
 
   private final Download download;
-  private final TitleLookupService titleLookup;
   private final File archiveDir;
   private final Function<Download,URI> downloadLinkProvider;
   private final StringBuilder description = new StringBuilder();
@@ -95,7 +94,6 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
     Function<Download,URI> downloadLinkProvider
   ) {
     this.download = download;
-    this.titleLookup = titleLookup;
     this.archiveDir = archiveDir;
     this.downloadLinkProvider = downloadLinkProvider;
     this.downloadType = download.getRequest().getType();
@@ -161,7 +159,7 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
     DataDescription dataDescription = new DataDescription();
     dataDescription.setName(DATA_DESC_FORMAT);
     dataDescription.setFormat(DATA_DESC_FORMAT);
-    dataDescription.setCharset(Charsets.UTF_8.displayName());
+    dataDescription.setCharset(StandardCharsets.UTF_8.displayName());
     dataDescription.setUrl(downloadLinkProvider.apply(download));
     return dataDescription;
   }
@@ -177,7 +175,7 @@ public class DownloadMetadataBuilder implements Consumer<ConstituentDataset> {
       identifier.setCreated(download.getCreated());
       identifier.setIdentifier(download.getKey());
       identifier.setType(IdentifierType.GBIF_PORTAL);
-      dataset.setIdentifiers(Lists.newArrayList(identifier));
+      dataset.setIdentifiers(new ArrayList<>(List.of(identifier)));
     }
     dataset.setKey(UUID.randomUUID());
     dataset.setTitle(

@@ -13,14 +13,17 @@
  */
 package org.gbif.search.heatmap.occurrence;
 
-import jakarta.servlet.http.HttpServletRequest;
-import java.util.Optional;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.occurrence.search.cache.PredicateCacheService;
 import org.gbif.search.heatmap.BaseHeatmapRequestProvider;
 import org.gbif.ws.util.ParamUtils;
+
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 public class OccurrenceHeatmapRequestProvider
     extends BaseHeatmapRequestProvider<OccurrenceSearchParameter, OccurrenceHeatmapRequest> {

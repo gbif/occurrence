@@ -21,22 +21,21 @@ import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Properties;
-
-import com.google.common.base.Preconditions;
 
 /**
  *
- * Oozie action persists occurrence downloads count information and license to registry.
+ * Persists occurrence downloads count information and license to registry.
  *
  */
 public class DownloadCountAndLicensePersistence {
 
   public static void main(String[] args) throws IOException{
-    String countPath = Preconditions.checkNotNull(args[0]);
-    String downloadKey = Preconditions.checkNotNull(args[1]);
-    String license = Preconditions.checkNotNull(args[2]);
-    DwcTerm coreTerm = DwcTerm.valueOf(Preconditions.checkNotNull(args[3]));
+    String countPath = Objects.requireNonNull(args[0]);
+    String downloadKey = Objects.requireNonNull(args[1]);
+    String license = Objects.requireNonNull(args[2]);
+    DwcTerm coreTerm = DwcTerm.valueOf(Objects.requireNonNull(args[3]));
 
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);

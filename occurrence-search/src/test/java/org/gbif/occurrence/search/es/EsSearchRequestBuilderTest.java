@@ -13,10 +13,10 @@
  */
 package org.gbif.occurrence.search.es;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 /** Tests the {@link BaseEsSearchRequestBuilder}. */
 public class EsSearchRequestBuilderTest {

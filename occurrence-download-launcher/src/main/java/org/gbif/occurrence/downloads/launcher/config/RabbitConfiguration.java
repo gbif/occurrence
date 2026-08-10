@@ -13,10 +13,12 @@
  */
 package org.gbif.occurrence.downloads.launcher.config;
 
-import java.util.Map;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.pojo.DownloadServiceConfiguration;
+
+import java.util.Map;
+
 import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

@@ -18,6 +18,7 @@ import org.gbif.api.model.metrics.cube.Rollup;
 import org.gbif.api.service.metrics.CubeService;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.MediaType;
@@ -26,8 +27,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.google.common.base.Preconditions;
 
 /**
  * Client-side implementation to the generic cube service.
@@ -40,7 +39,7 @@ public interface CubeWsClient extends CubeService {
 
   @Override
   default long get(@SpringQueryMap ReadBuilder addressBuilder) throws IllegalArgumentException {
-    Preconditions.checkNotNull(addressBuilder, "The cube address is mandatory");
+    Objects.requireNonNull(addressBuilder, "The cube address is mandatory");
     LinkedMultiValueMap<String,String> requestMap = new LinkedMultiValueMap<>();
     addressBuilder.build().forEach((key, value) -> requestMap.add(key.getKey(), value));
     return get(requestMap);

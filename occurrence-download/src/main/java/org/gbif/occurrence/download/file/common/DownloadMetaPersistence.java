@@ -22,22 +22,21 @@ import org.gbif.occurrence.download.util.RegistryClientUtil;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Properties;
-
-import com.google.common.base.Preconditions;
 
 /**
  *
- * Oozie action persists meta information of download to registry. It currently supports species list and sql download.
+ * Persists meta information of download to registry. It currently supports species list and sql download.
  *
  */
 public class DownloadMetaPersistence {
 
   public static void main(String[] args) throws IOException {
-    String countPath = Preconditions.checkNotNull(args[0]);
-    String downloadKey = Preconditions.checkNotNull(args[1]);
-    String citationPath = Preconditions.checkNotNull(args[2]);
-    DwcTerm coreTerm = DwcTerm.valueOf(Preconditions.checkNotNull(args[3]));
+    String countPath = Objects.requireNonNull(args[0]);
+    String downloadKey = Objects.requireNonNull(args[1]);
+    String citationPath = Objects.requireNonNull(args[2]);
+    DwcTerm coreTerm = DwcTerm.valueOf(Objects.requireNonNull(args[3]));
 
     Properties properties = PropertiesUtil.loadProperties(DownloadWorkflowModule.CONF_FILE);
     String nameNode = properties.getProperty(DownloadWorkflowModule.DefaultSettings.NAME_NODE_KEY);

@@ -23,14 +23,12 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
  * Definition of the fields used in the MAP_OF_LIFE download format.
  */
 public class MapOfLifeDownloadDefinition extends DownloadTerms {
 
-  public static final Set<Pair<DownloadTerms.Group, Term>> MAP_OF_LIFE_DOWNLOAD_TERMS = ImmutableSet.of(
+  public static final Set<Pair<DownloadTerms.Group, Term>> MAP_OF_LIFE_DOWNLOAD_TERMS = Set.<Pair<Group, Term>>of(
     // Identifiers
     Pair.of(Group.INTERPRETED, GbifTerm.gbifID),
     Pair.of(Group.INTERPRETED, GbifInternalTerm.publishingOrgKey),

@@ -13,11 +13,19 @@
  */
 package org.gbif.search.es;
 
+import org.gbif.api.model.common.paging.Pageable;
+import org.gbif.api.model.common.search.Facet;
+import org.gbif.api.model.common.search.FacetedSearchRequest;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.common.search.SearchResponse;
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.join.aggregations.ParsedChildren;
 import org.elasticsearch.join.aggregations.ParsedParent;
@@ -29,12 +37,6 @@ import org.elasticsearch.search.aggregations.bucket.filter.ParsedFilter;
 import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.suggest.completion.CompletionSuggestion;
-import org.gbif.api.model.common.paging.Pageable;
-import org.gbif.api.model.common.search.Facet;
-import org.gbif.api.model.common.search.FacetedSearchRequest;
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.common.search.SearchResponse;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
 
 public abstract class EsResponseParser<
     T extends VerbatimOccurrence, P extends SearchParameter> {

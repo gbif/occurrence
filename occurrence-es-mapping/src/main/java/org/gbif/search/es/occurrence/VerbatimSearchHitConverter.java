@@ -13,6 +13,32 @@
  */
 package org.gbif.search.es.occurrence;
 
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.terms.utils.TermUtils;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.search.SearchHit;
+
+import com.google.common.collect.Maps;
+
 import static org.gbif.search.es.occurrence.OccurrenceEsField.CRAWL_ID;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.DATASET_CATEGORY;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.DATASET_KEY;
@@ -27,29 +53,6 @@ import static org.gbif.search.es.occurrence.OccurrenceEsField.PROTOCOL;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.PUBLISHING_COUNTRY;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.VERBATIM;
-
-import com.google.common.collect.Maps;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.TermUtils;
-import org.gbif.search.es.SearchHitConverter;
 
 // FIXME: is this class used?
 public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccurrence> {

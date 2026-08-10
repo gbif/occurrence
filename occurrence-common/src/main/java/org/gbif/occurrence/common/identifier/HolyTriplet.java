@@ -15,12 +15,11 @@ package org.gbif.occurrence.common.identifier;
 
 import java.util.UUID;
 
-import jakarta.annotation.Nullable;
-
 import com.google.common.base.Objects;
 
+import jakarta.annotation.Nullable;
+
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * The original and still heavily used unique identifier for occurrence records, consisting of InstitutionCode,
@@ -43,7 +42,7 @@ public class HolyTriplet implements UniqueIdentifier {
    */
   public HolyTriplet(UUID datasetKey, String institutionCode, String collectionCode, String catalogNumber,
     @Nullable String unitQualifier) {
-    this.datasetKey = checkNotNull(datasetKey, "datasetKey can't be null");
+    this.datasetKey = java.util.Objects.requireNonNull(datasetKey, "datasetKey can't be null");
     checkArgument(institutionCode != null && !institutionCode.isEmpty(), "institutionCode can't be null or empty");
     checkArgument(collectionCode != null && !collectionCode.isEmpty(), "collectionCode can't be null or empty");
     checkArgument(catalogNumber != null && !catalogNumber.isEmpty(), "catalogNumber can't be null or empty");

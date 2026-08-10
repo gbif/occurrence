@@ -13,24 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DNA_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.HUMBOLDT_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.METADATA_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.SEQUENCES_FILENAME;
-import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.VERBATIM_FILENAME;
-
-import com.google.common.base.Charsets;
-import java.io.File;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import lombok.SneakyThrows;
-import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.Archive;
 import org.gbif.dwc.ArchiveField;
@@ -46,6 +28,25 @@ import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.predicate.query.SQLColumnsUtils;
 import org.gbif.terms.utils.EventTermUtils;
 import org.gbif.terms.utils.TermUtils;
+
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DESCRIPTOR_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.DNA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.EVENT_INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.HUMBOLDT_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.METADATA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.MULTIMEDIA_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.OCCURRENCE_INTERPRETED_FILENAME;
+import static org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants.VERBATIM_FILENAME;
 
 /** Utility class for Darwin Core Archive handling during the download file creation. */
 @Slf4j
@@ -117,7 +118,7 @@ public class DwcArchiveUtils {
     ArchiveFile af = new ArchiveFile();
     af.addLocation(filename);
     af.setRowType(rowType);
-    af.setEncoding(Charsets.UTF_8.displayName());
+    af.setEncoding(StandardCharsets.UTF_8.displayName());
     af.setIgnoreHeaderLines(1);
     af.setFieldsEnclosedBy(null);
     af.setFieldsTerminatedBy("\t");

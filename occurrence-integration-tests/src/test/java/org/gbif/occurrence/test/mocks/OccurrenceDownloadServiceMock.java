@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.test.mocks;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-
 import org.gbif.api.model.common.DOI;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.paging.PagingResponse;
@@ -38,9 +35,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jakarta.annotation.Nullable;
-
 import org.apache.commons.lang3.RandomStringUtils;
+
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 public class OccurrenceDownloadServiceMock implements OccurrenceDownloadService {
 

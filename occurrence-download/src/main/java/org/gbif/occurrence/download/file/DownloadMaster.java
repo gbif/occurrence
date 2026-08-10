@@ -13,22 +13,39 @@
  */
 package org.gbif.occurrence.download.file;
 
-import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.routing.RoundRobinPool;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.model.occurrence.Occurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.occurrence.download.action.DownloadWorkflowModule;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
+import org.gbif.occurrence.download.file.dwca.DwcaDownloadWorker;
+import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadWorker;
+import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadWorker;
+import org.gbif.occurrence.download.util.Strings;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
+import org.gbif.utils.file.FileUtils;
+import org.gbif.wrangler.lock.Lock;
+import org.gbif.wrangler.lock.LockFactory;
+import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import lombok.Builder;
-import lombok.Data;
-import org.apache.commons.lang3.time.StopWatch;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
 import org.elasticsearch.action.search.SearchRequest;
@@ -38,32 +55,17 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.model.occurrence.Occurrence;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
-import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
-import org.gbif.occurrence.download.file.dwca.akka.DownloadDwcaActor;
-import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadActor;
-import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadActor;
-import org.gbif.search.es.SearchHitConverter;
-import org.gbif.search.es.occurrence.OccurrenceEsField;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
-import org.gbif.utils.file.FileUtils;
-import org.gbif.wrangler.lock.Lock;
-import org.gbif.wrangler.lock.LockFactory;
-import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import lombok.Builder;
+import lombok.Data;
+
 /**
- * Actor that controls the multithreaded creation of occurrence downloads.
+ * Controls the multithreaded creation of occurrence downloads.
  */
 @Data
-public class DownloadMaster extends AbstractActor {
+public class DownloadMaster {
 
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
@@ -76,9 +78,6 @@ public class DownloadMaster extends AbstractActor {
   private final LockFactory lockFactory;
   private final DownloadAggregator aggregator;
   private final DownloadJobConfiguration jobConfiguration;
-  private List<Result> results = Lists.newArrayList();
-  private int calcNrOfWorkers;
-  private int nrOfResults;
 
   private final OccurrenceEsFieldMapper occurrenceEsFieldMapper;
   private final Function<Occurrence,Map<String,String>> verbatimMapper;
@@ -131,30 +130,38 @@ public class DownloadMaster extends AbstractActor {
     return defaultBuilder.build();
   }
 
-  @Override
-  public Receive createReceive() {
-    return receiveBuilder()
-      .match(Start.class, this::runActors)
-      .match(Result.class, this::handleResult)
-      .match(Exception.class, this::handleException)
-      .build();
-  }
-
   /**
-   * Aggregates the result and shutdown the system of actors
+   * Runs the download job to completion: dispatches the work across a bounded worker pool,
+   * aggregates the results into the final archive, and cleans up afterwards.
+   * Throws if any worker fails; the caller is responsible for treating that as a failed download.
    */
-  private void aggregateAndShutdown() {
-    aggregator.aggregate(results);
-    shutdown();
+  public void run() {
+    try {
+      long startNanos = System.nanoTime();
+      LOG.info("Acquiring Search Index Read Lock");
+      File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
+      if (downloadTempDir.exists()) {
+        FileUtils.deleteDirectoryRecursively(downloadTempDir);
+      }
+      downloadTempDir.mkdirs();
+
+      int recordCount = getSearchCount(jobConfiguration.getSearchQuery()).intValue();
+      List<Result> results = recordCount > 0 ? runWorkers(recordCount) : new ArrayList<>();
+      aggregator.aggregate(results);
+
+      long elapsedMs = (System.nanoTime() - startNanos) / 1_000_000;
+      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.MILLISECONDS.toMinutes(elapsedMs), (elapsedMs / 1000) % 60));
+    } finally {
+      shutdown();
+    }
   }
 
   /**
-   * Shutdown the system of actors
+   * Cleans up external resources held for the duration of the job.
    */
   private void shutdown() {
     shutDownEsClientSilently();
     curatorFramework.close();
-    getContext().stop(getSelf());
   }
 
   /**
@@ -168,30 +175,6 @@ public class DownloadMaster extends AbstractActor {
     } catch (IOException ex) {
       LOG.error("Error shutting down Elasticsearch client", ex);
     }
-  }
-
-  /**
-   * Handles the Result message by aggregating the result and checking if all results have been
-   * received.
-   *
-   * @param result Result message
-   */
-  private void handleResult(Result result) {
-    results.add(result);
-    nrOfResults += 1;
-    if (nrOfResults == calcNrOfWorkers) {
-      aggregateAndShutdown();
-    }
-  }
-
-  /**
-   * Handles the Exception message by logging the exception and shutting down the system.
-   *
-   * @param exception Exception message
-   */
-  private void handleException(Exception exception) {
-    LOG.error("Received an exception from a worker. Aborting.", exception);
-    shutdown();
   }
 
   /**
@@ -222,31 +205,20 @@ public class DownloadMaster extends AbstractActor {
   }
 
   /**
-   * Run the list of jobs. The amount of records is assigned evenly among the worker threads.
-   * If the amount of records is not divisible by the calcNrOfWorkers the remaining records are assigned "evenly" among
+   * Runs the list of jobs across a bounded worker pool and returns their collected results.
+   * The amount of records is assigned evenly among the worker threads.
+   * If the amount of records is not divisible by the number of workers the remaining records are assigned "evenly" among
    * the first jobs.
    */
-  private void runActors(Start start) {
-    StopWatch stopwatch = new StopWatch();
-    stopwatch.start();
-    LOG.info("Acquiring Search Index Read Lock");
-    File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
-    if (downloadTempDir.exists()) {
-      FileUtils.deleteDirectoryRecursively(downloadTempDir);
-    }
-    downloadTempDir.mkdirs();
+  private List<Result> runWorkers(int recordCount) {
+    int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
+    // Calculates the required workers.
+    int calcNrOfWorkers =
+      conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
 
-    int recordCount = getSearchCount(jobConfiguration.getSearchQuery()).intValue();
-    if (recordCount <= 0) { // no work to do: shutdown the system
-      aggregateAndShutdown();
-    } else  {
-      int nrOfRecords = Math.min(recordCount, conf.maximumNrOfRecords);
-      // Calculates the required workers.
-      calcNrOfWorkers =
-        conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
-
-      ActorRef workerRouter =
-          getContext().actorOf(createDownloadActor(), "downloadWorkerRouter");
+    ExecutorService executor = Executors.newFixedThreadPool(calcNrOfWorkers);
+    try {
+      List<Future<Result>> futures = new ArrayList<>(calcNrOfWorkers);
 
       // Number of records that will be assigned to each job
       int sizeOfChunks = Math.max(nrOfRecords / calcNrOfWorkers, 1);
@@ -292,52 +264,46 @@ public class DownloadMaster extends AbstractActor {
         LOG.info("Requesting a lock for job {}, detail: {}", i, work);
         lock.lock();
         LOG.info("Lock granted for job {}, detail: {}", i, work);
-        // Adds the Job to the list. The file name is the output file name + the sequence i
-        workerRouter.tell(work, getSelf());
+        // Submits the job to the pool. The file name is the output file name + the sequence i
+        // A new worker is created per job to avoid sharing mutable writer state across concurrent jobs.
+        DownloadFileWorker worker = createWorker();
+        futures.add(executor.submit(() -> worker.work(work)));
       }
 
-      stopwatch.stop();
-      long timeInSeconds = TimeUnit.MILLISECONDS.toSeconds(stopwatch.getTime());
-      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.SECONDS.toMinutes(timeInSeconds), timeInSeconds % 60));
+      List<Result> results = new ArrayList<>(futures.size());
+      try {
+        for (Future<Result> future : futures) {
+          results.add(future.get());
+        }
+      } catch (ExecutionException | InterruptedException e) {
+        LOG.error("Received an exception from a worker. Aborting.", e);
+        executor.shutdownNow();
+        throw new RuntimeException(e);
+      }
+      return results;
+    } finally {
+      executor.shutdown();
     }
   }
 
-  /**
-   * Used as a command to start this master actor.
-   */
-  public static class Start { }
-
-  /** Creates an instance of the download actor/job to be used. */
-  private Props createDownloadActor() {
+  /** Creates the worker to be used for the job's download format. */
+  private DownloadFileWorker createWorker() {
 
     DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();
     SearchQueryProcessor<Occurrence, OccurrenceSearchParameter> queryProcessor =
         new SearchQueryProcessor<>(
             new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter), defaultOptions);
 
-    Props props;
-    switch (downloadFormat) {
-      case SIMPLE_CSV:
-        props = Props.create(SimpleCsvDownloadActor.class, queryProcessor, interpretedMapper);
-        break;
-
-      case DWCA, FASTA_ARCHIVE:
-        props =
-            Props.create(
-                DownloadDwcaActor.class, queryProcessor, verbatimMapper, interpretedMapper);
-        break;
-
-      case SPECIES_LIST:
-        props = Props.create(SpeciesListDownloadActor.class, queryProcessor, interpretedMapper);
-        break;
-
-      default:
-        throw new IllegalStateException(
-            "Download format '"
-                + downloadFormat
-                + "' unknown or not supported for small downloads.");
-    }
-    return props.withRouter(new RoundRobinPool(calcNrOfWorkers));
+    return switch (downloadFormat) {
+      case SIMPLE_CSV -> new SimpleCsvDownloadWorker<>(queryProcessor, interpretedMapper);
+      case DWCA, FASTA_ARCHIVE ->
+        new DwcaDownloadWorker<>(queryProcessor, verbatimMapper, interpretedMapper);
+      case SPECIES_LIST -> new SpeciesListDownloadWorker<>(queryProcessor, interpretedMapper);
+      default -> throw new IllegalStateException(
+        "Download format '"
+          + downloadFormat
+          + "' unknown or not supported for small downloads.");
+    };
   }
 
   /**
