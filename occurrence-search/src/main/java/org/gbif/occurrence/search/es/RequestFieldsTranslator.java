@@ -138,9 +138,9 @@ public class RequestFieldsTranslator {
       ArrayNode arrayNode = (ArrayNode) node;
       // cases where the searchParameter is serialized with the type, e.g.: ["event",
       // "HUMBOLDT_EVENT_DURATION"]
-      return arrayNode.size() == 2 && arrayNode.get(1).asText().equals(paramName);
+      return arrayNode.size() == 2 && arrayNode.get(1).asText().equalsIgnoreCase(paramName);
     } else {
-      return node.asText().contains(paramName);
+      return node.asText().equalsIgnoreCase(paramName);
     }
   }
 
