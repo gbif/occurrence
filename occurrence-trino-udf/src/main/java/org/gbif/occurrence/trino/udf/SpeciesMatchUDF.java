@@ -29,16 +29,15 @@ import io.trino.spi.type.StandardTypes;
 import java.util.Optional;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
-import org.gbif.api.model.checklistbank.NameUsageMatch;
 import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.RankParser;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
-import org.gbif.occurrence.trino.processor.conf.ApiClientConfiguration;
 import org.gbif.occurrence.trino.processor.interpreters.TaxonomyInterpreter;
+import org.gbif.occurrence.trino.processor.result.NameUsageMatchResult;
 
 /**
- * A UDF to run a backbone species match against the GBIF API. The UDF is lazily initialized with
+ * A UDF to run a catalogue of life species match against the GBIF API. The UDF is lazily initialized with
  * the base URL of the API to be used. Within the same JVM the UDF will only ever use the first URL
  * used and ignores subsequently changed URLs.
  */
@@ -49,7 +48,7 @@ public class SpeciesMatchUDF {
   private TaxonomyInterpreter taxonomyInterpreter;
   private Object lock = new Object();
 
-  public TaxonomyInterpreter getInterpreter(String apiNubWs, String apiClbWs) {
+  public TaxonomyInterpreter getInterpreter(String apiMatchingService) {
     TaxonomyInterpreter ti = taxonomyInterpreter;
     if (ti == null) {
       synchronized (
@@ -57,12 +56,8 @@ public class SpeciesMatchUDF {
         // object
         ti = taxonomyInterpreter;
         if (ti == null) {
-          log.info("Create new species match client using API at {}", apiNubWs);
-          ApiClientConfiguration nubCfg = new ApiClientConfiguration();
-          nubCfg.url = apiNubWs;
-          ApiClientConfiguration clbCfg = new ApiClientConfiguration();
-          clbCfg.url = apiClbWs;
-          ti = new TaxonomyInterpreter(nubCfg, clbCfg);
+          log.info("Create new matching ws client using API at {}", apiMatchingService);
+          ti = new TaxonomyInterpreter(apiMatchingService);
           taxonomyInterpreter = ti;
         }
       }
@@ -79,16 +74,16 @@ public class SpeciesMatchUDF {
 
   @ScalarFunction(value = "nubLookup", deterministic = true)
   @Description(
-      "A UDF to run a backbone species match against the GBIF API. The UDF is lazily initialized with"
+      "A UDF to run a catalogue of life match against the GBIF API. The UDF is lazily initialized with"
           + " the base URL of the API to be used. Within the same JVM the UDF will only ever use the first URL used and ignores subsequently changed URLs."
-          + "The order of the parameters is the following: nubLookup(apiNub, apiClb, kingdom, phylum, class_rank, order_rank, family, genus, scientific_name, specific_epithet, infra_specific_epithet, rank)")
+          + "The order of the parameters is the following: nubLookup(apiNub, checklistKey, kingdom, phylum, class_rank, order_rank, family, genus, scientific_name, specific_epithet, infra_specific_epithet, rank)")
   @SqlType(
       "row(responsestatus varchar, usagekey integer, scientificname varchar, rank varchar, status varchar, matchtype varchar, confidence integer,"
           + "kingdomkey integer, phylumkey integer, classkey integer, orderkey integer, familykey integer, genuskey integer, specieskey integer,"
           + "kingdom varchar, phylum varchar, class_ varchar, order_ varchar, family varchar, genus varchar, species varchar)")
   public Block nubLookup(
-      @SqlType(StandardTypes.VARCHAR) Slice apiNubArg,
-      @SqlType(StandardTypes.VARCHAR) Slice apiClbArg,
+      @SqlType(StandardTypes.VARCHAR) Slice apiMatchingServiceArg,
+      @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice checklistKeyArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice kingdomArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice phylumArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice classRankArg,
@@ -99,11 +94,8 @@ public class SpeciesMatchUDF {
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice specificEpithetArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice infraSpecificEpithetArg,
       @SqlNullable @SqlType(StandardTypes.VARCHAR) Slice rankArg) {
-    if (apiNubArg == null) {
-      throw new IllegalArgumentException("Api Nub argument is required");
-    }
-    if (apiClbArg == null) {
-      throw new IllegalArgumentException("Api CLB argument is required");
+    if (apiMatchingServiceArg == null) {
+      throw new IllegalArgumentException("Api matching service argument is required");
     }
 
     RowType rowType =
@@ -132,8 +124,12 @@ public class SpeciesMatchUDF {
 
     try {
 
-      String apiNub = apiNubArg.toStringUtf8();
-      String apiClb = apiClbArg.toStringUtf8();
+      String apiMatchingService = apiMatchingServiceArg.toStringUtf8();
+
+      String checklistKey = null;
+      if (checklistKeyArg != null) {
+        checklistKey= checklistKeyArg.toStringUtf8();
+      }
 
       String k = clean(kingdomArg);
       String p = clean(phylumArg);
@@ -147,8 +143,9 @@ public class SpeciesMatchUDF {
       Rank rank = rankArg != null ? RANK_PARSER.parse(rankArg.toStringUtf8()).getPayload() : null;
 
       // TODO: add authorship as a standalone parameter
-      ParseResult<NameUsageMatch> response =
-          getInterpreter(apiNub, apiClb).match(k, p, c, o, f, g, name, null, null, sp, ssp, rank);
+      ParseResult<NameUsageMatchResult> response =
+          getInterpreter(apiMatchingService)
+              .match(checklistKey, k, p, c, o, f, g, name, null, null, sp, ssp, rank);
 
       RowBlockBuilder blockBuilder = (RowBlockBuilder) rowType.createBlockBuilder(null, 5);
       SingleRowBlockWriter builder = blockBuilder.beginBlockEntry();
@@ -171,42 +168,33 @@ public class SpeciesMatchUDF {
             }
           };
 
-      Consumer<Enum> enumWriter =
-          v -> {
-            if (v != null) {
-              VARCHAR.writeString(builder, v.name());
-            } else {
-              builder.appendNull();
-            }
-          };
-
       if (response != null) {
         stringWriter.accept(response.getStatus().name());
 
         if (response.getPayload() != null) {
-          NameUsageMatch lookup = response.getPayload();
-          intWriter.accept(lookup.getUsageKey());
+          NameUsageMatchResult lookup = response.getPayload();
+          stringWriter.accept(lookup.getUsageKey());
           stringWriter.accept(lookup.getScientificName());
-          enumWriter.accept(lookup.getRank());
-          enumWriter.accept(lookup.getStatus());
-          enumWriter.accept(lookup.getMatchType());
+          stringWriter.accept(lookup.getRank());
+          stringWriter.accept(lookup.getStatus());
+          stringWriter.accept(lookup.getMatchType());
           intWriter.accept(lookup.getConfidence());
 
-          intWriter.accept(lookup.getKingdomKey());
-          intWriter.accept(lookup.getPhylumKey());
-          intWriter.accept(lookup.getClassKey());
-          intWriter.accept(lookup.getOrderKey());
-          intWriter.accept(lookup.getFamilyKey());
-          intWriter.accept(lookup.getGenusKey());
-          intWriter.accept(lookup.getSpeciesKey());
+          stringWriter.accept(lookup.getRankedNameKey("KINGDOM"));
+          stringWriter.accept(lookup.getRankedNameKey("PHYLUM"));
+          stringWriter.accept(lookup.getRankedNameKey("CLASS"));
+          stringWriter.accept(lookup.getRankedNameKey("ORDER"));
+          stringWriter.accept(lookup.getRankedNameKey("FAMILY"));
+          stringWriter.accept(lookup.getRankedNameKey("GENUS"));
+          stringWriter.accept(lookup.getRankedNameKey("SPECIES"));
 
-          stringWriter.accept(lookup.getKingdom());
-          stringWriter.accept(lookup.getPhylum());
-          stringWriter.accept(lookup.getClazz());
-          stringWriter.accept(lookup.getOrder());
-          stringWriter.accept(lookup.getFamily());
-          stringWriter.accept(lookup.getGenus());
-          stringWriter.accept(lookup.getSpecies());
+          stringWriter.accept(lookup.getRankedName("KINGDOM"));
+          stringWriter.accept(lookup.getRankedName("PHYLUM"));
+          stringWriter.accept(lookup.getRankedName("CLASS"));
+          stringWriter.accept(lookup.getRankedName("ORDER"));
+          stringWriter.accept(lookup.getRankedName("FAMILY"));
+          stringWriter.accept(lookup.getRankedName("GENUS"));
+          stringWriter.accept(lookup.getRankedName("SPECIES"));
         } else {
           if (response.getError() != null) {
             log.error("Error finding species match", response.getError().getMessage());
