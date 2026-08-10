@@ -216,7 +216,6 @@ public class DownloadMaster {
     int calcNrOfWorkers =
       conf.minNrOfRecords >= nrOfRecords ? 1 : Math.min(conf.nrOfWorkers, nrOfRecords / conf.minNrOfRecords);
 
-    DownloadFileWorker worker = createWorker();
     ExecutorService executor = Executors.newFixedThreadPool(calcNrOfWorkers);
     try {
       List<Future<Result>> futures = new ArrayList<>(calcNrOfWorkers);
@@ -266,6 +265,8 @@ public class DownloadMaster {
         lock.lock();
         LOG.info("Lock granted for job {}, detail: {}", i, work);
         // Submits the job to the pool. The file name is the output file name + the sequence i
+        // A new worker is created per job to avoid sharing mutable writer state across concurrent jobs.
+        DownloadFileWorker worker = createWorker();
         futures.add(executor.submit(() -> worker.work(work)));
       }
 
