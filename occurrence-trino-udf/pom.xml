@@ -26,7 +26,7 @@
     <geocode.version>1.1</geocode.version>
     <gbif-common-ws.version>2.1.1</gbif-common-ws.version>
     <!-- Upgrade to latest version -->
-    <gbif.kvs.version>2.0.0</gbif.kvs.version>
+    <gbif.kvs.version>3.1.3</gbif.kvs.version>
 
     <!-- Testing -->
     <junit-jupiter.version>5.14.1</junit-jupiter.version>
@@ -78,6 +78,18 @@
       <id>osgeo</id>
       <name>Open Source Geospatial Foundation Repository</name>
       <url>https://repo.osgeo.org/repository/release/</url>
+    </repository>
+    <repository>
+      <id>gbif-all</id>
+      <url>https://repository.gbif.org/content/groups/gbif</url>
+    </repository>
+    <repository>
+      <id>gbif-thirdparty-legacy</id>
+      <url>https://repository.gbif.org/content/repositories/thirdparty/</url>
+    </repository>
+    <repository>
+      <id>cloudera-release</id>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
     </repository>
   </repositories>
   <build>
