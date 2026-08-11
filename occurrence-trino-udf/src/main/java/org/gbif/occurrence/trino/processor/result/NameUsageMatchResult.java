@@ -34,7 +34,10 @@ public class NameUsageMatchResult {
       }
 
       if (nameUsageMatchResponse.getDiagnostics() != null) {
-        matchType = nameUsageMatchResponse.getDiagnostics().getMatchType().name();
+        matchType =
+            nameUsageMatchResponse.getDiagnostics().getMatchType() != null
+                ? nameUsageMatchResponse.getDiagnostics().getMatchType().name()
+                : null;
         confidence = nameUsageMatchResponse.getDiagnostics().getConfidence();
       }
 

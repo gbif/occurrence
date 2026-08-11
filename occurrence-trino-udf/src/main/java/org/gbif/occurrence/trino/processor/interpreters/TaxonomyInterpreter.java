@@ -18,7 +18,6 @@ import java.io.Serializable;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.checklistbank.ParsedName;
-import org.gbif.api.vocabulary.Rank;
 import org.gbif.common.parsers.core.OccurrenceParseResult;
 import org.gbif.common.parsers.core.ParseResult;
 import org.gbif.common.parsers.utils.ClassificationUtils;
@@ -67,7 +66,7 @@ public class TaxonomyInterpreter implements Serializable {
       String genericName,
       String specificEpithet,
       String infraspecificEpithet,
-      Rank rank) {
+      String rank) {
 
     String cleanGenus = ClassificationUtils.clean(genus);
     String cleanGenericName = ClassificationUtils.clean(genericName);
@@ -97,11 +96,8 @@ public class TaxonomyInterpreter implements Serializable {
             .withOrder(ClassificationUtils.clean(order))
             .withFamily(ClassificationUtils.clean(family))
             .withGenus(cleanGenus)
+            .withTaxonRank(rank)
             .withScientificName(sciname);
-
-    if (rank != null) {
-      nameUsageMatchRequestBuilder.withTaxonRank(rank.name());
-    }
 
     LOG.debug("Attempt to match name [{}]", sciname);
 
@@ -109,6 +105,13 @@ public class TaxonomyInterpreter implements Serializable {
       NameUsageMatchResponse nameUsageMatchResponse =
           matchingWs.get(nameUsageMatchRequestBuilder.build());
       NameUsageMatchResult nameUsageMatchResult = new NameUsageMatchResult(nameUsageMatchResponse);
+
+      if (nameUsageMatchResponse == null
+          || nameUsageMatchResponse.getDiagnostics() == null
+          || nameUsageMatchResponse.getDiagnostics().getMatchType() == null) {
+        LOG.info("Null response for [{}]", scientificName);
+        return OccurrenceParseResult.fail(nameUsageMatchResult);
+      }
 
       result = OccurrenceParseResult.success(ParseResult.CONFIDENCE.DEFINITE, nameUsageMatchResult);
       if (nameUsageMatchResponse.getDiagnostics() != null) {

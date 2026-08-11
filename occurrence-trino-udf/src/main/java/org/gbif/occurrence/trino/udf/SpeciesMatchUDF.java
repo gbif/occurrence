@@ -140,7 +140,7 @@ public class SpeciesMatchUDF {
       String name = clean(sciNameArg);
       String sp = clean(specificEpithetArg);
       String ssp = clean(infraSpecificEpithetArg);
-      Rank rank = rankArg != null ? RANK_PARSER.parse(rankArg.toStringUtf8()).getPayload() : null;
+      String rank = clean(rankArg);
 
       // TODO: add authorship as a standalone parameter
       ParseResult<NameUsageMatchResult> response =
