@@ -17,8 +17,6 @@ import org.gbif.api.vocabulary.License;
 
 import java.util.Objects;
 
-import jakarta.validation.constraints.NotNull;
-
 /**
  * Builder type that returns concrete implementation(s) of LicenseSelector.
  */
@@ -31,7 +29,7 @@ public class LicenseSelectors {
    *
    * @param defaultLicense the default (or base) license.
    */
-  public static LicenseSelector getMostRestrictiveLicenseSelector(@NotNull License defaultLicense) {
+  public static LicenseSelector getMostRestrictiveLicenseSelector(License defaultLicense) {
     validateDefaultLicense(defaultLicense);
 
     return new LicenseSelector() {

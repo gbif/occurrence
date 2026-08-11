@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.conf;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
@@ -31,8 +32,6 @@ import org.gbif.search.es.occurrence.OccurrenceEsField;
 import java.util.Set;
 
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import lombok.Builder;
 import lombok.Data;
@@ -40,9 +39,8 @@ import lombok.SneakyThrows;
 
 /** Configuration of a small download execution. */
 @Data
+@Slf4j
 public class DownloadJobConfiguration {
-
-  private static final Logger log = LoggerFactory.getLogger(DownloadJobConfiguration.class);
 
   /** Occurrence download key/identifier. */
   private final String downloadKey;

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
@@ -30,13 +31,11 @@ import java.util.function.Function;
 
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 
+@Slf4j
 public class SpeciesListDownloadWorker<T extends Occurrence> implements DownloadFileWorker {
-  private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadWorker.class);
 
   private final SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor;
 
@@ -79,7 +78,7 @@ public class SpeciesListDownloadWorker<T extends Occurrence> implements Download
     } finally {
       // Release the lock
       work.getLock().unlock();
-      LOG.info("Lock released, job detail: {} ", work);
+      log.info("Lock released, job detail: {} ", work);
     }
   }
 }

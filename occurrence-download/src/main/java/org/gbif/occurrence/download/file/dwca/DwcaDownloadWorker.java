@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
+import lombok.EqualsAndHashCode;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
@@ -474,6 +475,7 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
    * Inner class used to export data into multimedia.txt files.
    * The structure must match the headers defined in MULTIMEDIA_COLUMNS.
    */
+  @EqualsAndHashCode(callSuper = true)
   @Data
   public static class InnerMediaObject extends MediaObject {
 
@@ -497,6 +499,7 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
  * Inner class used to export data into dnaDerivedData.txt files.
  * The structure must match the headers defined in DNA_INTERPRETED_HEADERS.
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public static class InnerNucleotideObject extends NucleotideSequence{
 
