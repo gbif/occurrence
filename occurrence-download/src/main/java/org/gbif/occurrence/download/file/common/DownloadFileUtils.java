@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.common;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.util.IOUtils;
 
 import java.io.BufferedReader;
@@ -30,8 +31,6 @@ import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import lombok.experimental.UtilityClass;
 
@@ -39,6 +38,7 @@ import lombok.experimental.UtilityClass;
  * Utility class for file operation in occurrence downloads.
  */
 @UtilityClass
+@Slf4j
 public final class DownloadFileUtils {
 
   /**
@@ -55,8 +55,6 @@ public final class DownloadFileUtils {
    * smaller size can conserve memory at the cost of potentially higher I/O overhead.
    */
   private static final int DEFAULT_FILE_COPY_BUFFER_SIZE = 32768;
-
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadFileUtils.class);
 
   /**
    * Utility method that creates an instance of the HDFS FileSystem class.
@@ -75,17 +73,17 @@ public final class DownloadFileUtils {
     File inputFile = new File(inputFileName);
     if (inputFile.exists()) {
       try (FileInputStream fileReader = new FileInputStream(inputFile)) {
-        LOG.info("Appending file {}", inputFileName);
+        log.info("Appending file {}", inputFileName);
         IOUtils.copy(fileReader, outputFileStreamWriter, DownloadFileUtils.DEFAULT_FILE_COPY_BUFFER_SIZE);
       } catch (FileNotFoundException e) {
-        LOG.info("Error appending file {}", inputFileName, e);
+        log.info("Error appending file {}", inputFileName, e);
         throw new RuntimeException(e);
       }
       if (!inputFile.delete()) {
-        LOG.info("Input file can't be removed {}", inputFileName);
+        log.info("Input file can't be removed {}", inputFileName);
       }
     } else {
-      LOG.warn("File not found {}", inputFileName);
+      log.warn("File not found {}", inputFileName);
     }
   }
 
@@ -103,7 +101,7 @@ public final class DownloadFileUtils {
           try (BufferedReader countReader = new BufferedReader(new InputStreamReader(fs.open(file.getPath()), StandardCharsets.UTF_8))) {
             return Long.parseLong(countReader.readLine());
           } catch (IOException e) {
-            LOG.error("Could not read count from table", e);
+            log.error("Could not read count from table", e);
             throw new RuntimeException(e);
           }
         }).orElse(0L);

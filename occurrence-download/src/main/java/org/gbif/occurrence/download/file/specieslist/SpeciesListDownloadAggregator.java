@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -38,13 +39,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
@@ -54,9 +51,8 @@ import org.supercsv.prefs.CsvPreference;
  * Aggregates multiple files from different jobs and merge there result to final file.
  *
  */
+@Slf4j
 public class SpeciesListDownloadAggregator implements DownloadAggregator {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadAggregator.class);
 
   private static final String CSV_EXTENSION = ".csv";
 
@@ -71,7 +67,6 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
 
-  @Inject
   public SpeciesListDownloadAggregator(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration,
       OccurrenceDownloadService occurrenceDownloadService) {
     this.configuration = configuration;
@@ -93,7 +88,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       // Delete the temp directory
       FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     } catch (IOException ex) {
-      LOG.error("Error aggregating download files", ex);
+      log.error("Error aggregating download files", ex);
       throw new RuntimeException(ex);
     }
   }
@@ -114,7 +109,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       speciesResult.getDistinctSpecies().iterator().forEachRemaining(speciesListCollector::collect);
     }
     exportToFile(outputFileName, speciesListCollector);
-    LOG.debug("Create usage for download key: {}", configuration.getDownloadKey());
+    log.debug("Create usage for download key: {}", configuration.getDownloadKey());
     occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
     persistDownloadLicenseAndTotalRecords(
         configuration.getDownloadKey(),
@@ -134,12 +129,12 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
         try {
           csvMapWriter.write(speciesInfo, COLUMNS);
         } catch (IOException e) {
-          LOG.error("Error merging results", e);
+          log.error("Error merging results", e);
           throw new RuntimeException(e);
         }
       });
     } catch (Exception e) {
-      LOG.error("Error merging results", e);
+      log.error("Error merging results", e);
       throw new RuntimeException(e);
     }
   }
@@ -151,10 +146,10 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
     try {
       licenses.forEach(licenseSelector::collectLicense);
       License license = licenseSelector.getSelectedLicense();
-      LOG.info("Update license of download {} to {}", downloadKey, license);
+      log.info("Update license of download {} to {}", downloadKey, license);
       occurrenceDownloadService.updateLicenseAndTotalRecords(downloadKey, license, totalRecords);
     } catch (Exception ex) {
-      LOG.error("Error persisting download license and total records, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
+      log.error("Error persisting download license and total records, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
     }
   }
 

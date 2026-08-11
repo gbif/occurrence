@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
@@ -34,8 +35,6 @@ import java.util.function.Function;
 
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
@@ -47,9 +46,8 @@ import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
 /**
  * Worker that creates a part of the simple csv download file.
  */
+@Slf4j
 public class SimpleCsvDownloadWorker<T extends Occurrence> implements DownloadFileWorker {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleCsvDownloadWorker.class);
 
   private final SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor;
 
@@ -110,7 +108,7 @@ public class SimpleCsvDownloadWorker<T extends Occurrence> implements DownloadFi
     } finally {
       // Release the lock
       work.getLock().unlock();
-      LOG.info("Lock released, job detail: {} ", work);
+      log.info("Lock released, job detail: {} ", work);
     }
   }
 

@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.archive;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -37,8 +38,6 @@ import java.util.zip.ZipOutputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;
@@ -52,9 +51,8 @@ import static org.gbif.occurrence.download.file.d2.D2Utils.setDataFromInputStrea
  *
  * TODO: citation file.
  */
+@Slf4j
 public class MultiFileArchiveBuilder {
-
-  private static final Logger LOG = LoggerFactory.getLogger(MultiFileArchiveBuilder.class);
 
   private static final String ZIP_EXTENSION = ".zip";
 
@@ -106,7 +104,7 @@ public class MultiFileArchiveBuilder {
       }
 
     } catch (Exception ex) {
-      LOG.error(ERROR_ZIP_MSG, ex);
+      log.error(ERROR_ZIP_MSG, ex);
       throw new RuntimeException(ex);
     }
   }
@@ -115,7 +113,7 @@ public class MultiFileArchiveBuilder {
    * Merge file using the standard Java library java.util.zip.
    */
   private void zipDefault(ZipOutputStream zos, final FileSystem sourceFS, final ZipEntrySource source) throws IOException {
-    LOG.info("Zipping uncompressed source {}/{} as entry {}", sourceFS, source.path, source.name);
+    log.info("Zipping uncompressed source {}/{} as entry {}", sourceFS, source.path, source.name);
 
     Path inputPath = new Path(source.path);
     // append the header file
@@ -147,7 +145,7 @@ public class MultiFileArchiveBuilder {
    * Merges the pre-deflated content using the Hadoop-compress library.
    */
   private void zipPreDeflated(ModalZipOutputStream zos, final FileSystem sourceFS, final ZipEntrySource source) throws IOException {
-    LOG.info("Zipping pre-compressed source {}/{} as entry {}", sourceFS, source.path, source.name);
+    log.info("Zipping pre-compressed source {}/{} as entry {}", sourceFS, source.path, source.name);
 
     Path inputPath = new Path(source.path);
     // append the header file

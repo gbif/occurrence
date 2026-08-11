@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -55,8 +56,6 @@ import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import lombok.Builder;
 import lombok.Data;
@@ -65,11 +64,11 @@ import lombok.Data;
  * Controls the multithreaded creation of occurrence downloads.
  */
 @Data
+@Slf4j
 public class DownloadMaster {
 
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
-  private static final Logger LOG = LoggerFactory.getLogger(DownloadMaster.class);
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
   private final RestHighLevelClient esClient;
   private final String esIndex;
@@ -138,7 +137,7 @@ public class DownloadMaster {
   public void run() {
     try {
       long startNanos = System.nanoTime();
-      LOG.info("Acquiring Search Index Read Lock");
+      log.info("Acquiring Search Index Read Lock");
       File downloadTempDir = new File(jobConfiguration.getDownloadTempDir());
       if (downloadTempDir.exists()) {
         FileUtils.deleteDirectoryRecursively(downloadTempDir);
@@ -150,7 +149,7 @@ public class DownloadMaster {
       aggregator.aggregate(results);
 
       long elapsedMs = (System.nanoTime() - startNanos) / 1_000_000;
-      LOG.info(String.format(FINISH_MSG_FMT, TimeUnit.MILLISECONDS.toMinutes(elapsedMs), (elapsedMs / 1000) % 60));
+      log.info(String.format(FINISH_MSG_FMT, TimeUnit.MILLISECONDS.toMinutes(elapsedMs), (elapsedMs / 1000) % 60));
     } finally {
       shutdown();
     }
@@ -173,7 +172,7 @@ public class DownloadMaster {
         esClient.close();
       }
     } catch (IOException ex) {
-      LOG.error("Error shutting down Elasticsearch client", ex);
+      log.error("Error shutting down Elasticsearch client", ex);
     }
   }
 
@@ -199,7 +198,7 @@ public class DownloadMaster {
       SearchResponse searchResponse = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
       return searchResponse.getHits().getTotalHits().value;
     } catch (Exception e) {
-      LOG.error("Error executing query", e);
+      log.error("Error executing query", e);
       return 0L;
     }
   }
@@ -261,9 +260,9 @@ public class DownloadMaster {
                 jobConfiguration.getInterpretedExtensions(),
                 jobConfiguration.getDownloadFormat());
 
-        LOG.info("Requesting a lock for job {}, detail: {}", i, work);
+        log.info("Requesting a lock for job {}, detail: {}", i, work);
         lock.lock();
-        LOG.info("Lock granted for job {}, detail: {}", i, work);
+        log.info("Lock granted for job {}, detail: {}", i, work);
         // Submits the job to the pool. The file name is the output file name + the sequence i
         // A new worker is created per job to avoid sharing mutable writer state across concurrent jobs.
         DownloadFileWorker worker = createWorker();
@@ -276,7 +275,7 @@ public class DownloadMaster {
           results.add(future.get());
         }
       } catch (ExecutionException | InterruptedException e) {
-        LOG.error("Received an exception from a worker. Aborting.", e);
+        log.error("Received an exception from a worker. Aborting.", e);
         executor.shutdownNow();
         throw new RuntimeException(e);
       }

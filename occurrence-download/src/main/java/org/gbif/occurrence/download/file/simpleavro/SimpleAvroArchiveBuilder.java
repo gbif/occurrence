@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.simpleavro;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -31,8 +32,6 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import lombok.experimental.UtilityClass;
 
@@ -40,9 +39,8 @@ import lombok.experimental.UtilityClass;
  * Utility class that creates a single Avro file from a directory that stores Avro data (of a Hive table or search queries).
  */
 @UtilityClass
+@Slf4j
 public class SimpleAvroArchiveBuilder {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleAvroArchiveBuilder.class);
 
   // Occurrences file name
   private static final String AVRO_EXTENSION = ".avro";
@@ -88,7 +86,7 @@ public class SimpleAvroArchiveBuilder {
       zipped.flush();
 
     } catch (Exception ex) {
-      LOG.error("Error combining Avro files", ex);
+      log.error("Error combining Avro files", ex);
       throw new RuntimeException(ex);
     }
   }
@@ -109,5 +107,5 @@ public class SimpleAvroArchiveBuilder {
                       args[1],
                       args[2]);
   }
-  
+
 }

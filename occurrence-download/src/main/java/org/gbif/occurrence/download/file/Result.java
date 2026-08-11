@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import jakarta.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -59,7 +58,7 @@ public class Result implements Comparable<Result> {
   }
 
   public Result(DownloadFileWork downloadFileWork, Map<UUID, Long> datasetUsages,
-                @Nullable Set<License> datasetLicenses) {
+                Set<License> datasetLicenses) {
     this.downloadFileWork = downloadFileWork;
     this.datasetUsages = datasetUsages;
     this.datasetLicenses = datasetLicenses;

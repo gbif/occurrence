@@ -190,7 +190,7 @@
     <gbif-metadata-profile.version>2.6</gbif-metadata-profile.version>
     <gbif-parsers.version>0.67</gbif-parsers.version>
     <gbif-postal-service.version>2.1.4</gbif-postal-service.version>
-    <gbif-registry.version>4.2.10</gbif-registry.version>
+    <gbif-registry.version>4.2.26</gbif-registry.version>
     <gbif-wrangler.version>1.0.0</gbif-wrangler.version>
     <gbif-common-mybatis.version>2.0.0</gbif-common-mybatis.version>
     <name-parser.version>3.7.2</name-parser.version>
@@ -383,11 +383,6 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
-        <artifactId>occurrence-persistence</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gbif.occurrence</groupId>
         <artifactId>occurrence-mail</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -459,6 +454,11 @@
       </dependency>
       <dependency>
         <groupId>org.gbif.occurrence</groupId>
+        <artifactId>occurrence-persistence</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.occurrence</groupId>
         <artifactId>maven-extension-avsc-schema-generator</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -472,6 +472,27 @@
             <artifactId>registry-persistence</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.registry</groupId>
+        <artifactId>registry-doi</artifactId>
+        <version>${gbif-registry.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.registry</groupId>
+        <artifactId>registry-domain</artifactId>
+        <version>${gbif-registry.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.gbif.registry</groupId>
+        <artifactId>registry-persistence</artifactId>
+        <version>${gbif-registry.version}</version>
       </dependency>
       <dependency>
         <groupId>org.gbif</groupId>
