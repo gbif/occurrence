@@ -78,8 +78,8 @@ public class SpeciesMatchUDF {
           + " the base URL of the API to be used. Within the same JVM the UDF will only ever use the first URL used and ignores subsequently changed URLs."
           + "The order of the parameters is the following: nubLookup(apiNub, checklistKey, kingdom, phylum, class_rank, order_rank, family, genus, scientific_name, specific_epithet, infra_specific_epithet, rank)")
   @SqlType(
-      "row(responsestatus varchar, usagekey integer, scientificname varchar, rank varchar, status varchar, matchtype varchar, confidence integer,"
-          + "kingdomkey integer, phylumkey integer, classkey integer, orderkey integer, familykey integer, genuskey integer, specieskey integer,"
+      "row(responsestatus varchar, usagekey varchar, scientificname varchar, rank varchar, status varchar, matchtype varchar, confidence integer,"
+          + "kingdomkey varchar, phylumkey varchar, classkey varchar, orderkey varchar, familykey varchar, genuskey varchar, specieskey varchar,"
           + "kingdom varchar, phylum varchar, class_ varchar, order_ varchar, family varchar, genus varchar, species varchar)")
   public Block nubLookup(
       @SqlType(StandardTypes.VARCHAR) Slice apiMatchingServiceArg,
