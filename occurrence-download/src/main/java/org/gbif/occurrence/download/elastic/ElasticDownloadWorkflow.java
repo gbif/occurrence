@@ -25,6 +25,7 @@ import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.search.es.EsPredicateUtil;
+import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
 
@@ -88,11 +89,11 @@ public class ElasticDownloadWorkflow {
         configuration,
         DownloadJobConfiguration.builder()
             .searchQuery(
-                EsPredicateUtil.searchQuery(
+                EsQueryUtils.toJson(
+                    EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
                         OccurrenceEsField.buildFieldMapper(),
-                        workflowConfiguration.getDefaultChecklistKey())
-                    .toString())
+                        workflowConfiguration.getDefaultChecklistKey())))
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
                     ? download.getRequest().getChecklistKey()

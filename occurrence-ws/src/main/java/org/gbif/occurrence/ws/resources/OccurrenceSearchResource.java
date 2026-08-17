@@ -22,6 +22,7 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.util.Range;
 import org.gbif.api.vocabulary.*;
 import org.gbif.occurrence.search.SearchTermService;
+import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.occurrence.search.es.OccurrenceEsSearchRequestBuilder;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
@@ -36,10 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.core.annotations.ParameterObject;
@@ -69,6 +66,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -1723,15 +1722,14 @@ public class OccurrenceSearchResource {
   public String predicateToEsQuery(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
     return esSearchRequestBuilder
       .buildQuery(request)
-      .map(AbstractQueryBuilder::toString)
+      .map(EsQueryUtils::toJson)
       .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   @Hidden
   @GetMapping("rest/toesquery")
   public String restToEsQuery(@NotNull @Valid @ParameterObject OccurrenceSearchRequest request) {
-    return esSearchRequestBuilder.buildSearchRequest(request, "test")
-      .source().toString();
+    return EsQueryUtils.toJson(esSearchRequestBuilder.buildSearchRequest(request, "test"));
   }
 
   /**

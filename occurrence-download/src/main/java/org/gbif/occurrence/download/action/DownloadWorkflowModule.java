@@ -57,12 +57,15 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
@@ -161,7 +164,7 @@ public class DownloadWorkflowModule {
   /**
    * Factory method for Elasticsearch client.
    */
-  public static RestHighLevelClient esClient(WorkflowConfiguration workflowConfiguration) {
+  public static ElasticsearchClient esClient(WorkflowConfiguration workflowConfiguration) {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
@@ -189,10 +192,13 @@ public class DownloadWorkflowModule {
       builder.setFailureListener(sniffOnFailureListener);
     }
 
-    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+    RestClient restClient = builder.build();
+    ElasticsearchTransport transport =
+        new RestClientTransport(restClient, new JacksonJsonpMapper());
+    ElasticsearchClient esClient = new ElasticsearchClient(transport);
 
     if (esConfig.getSniffInterval() > 0) {
-      Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
+      Sniffer sniffer = Sniffer.builder(restClient)
         .setSniffIntervalMillis(esConfig.getSniffInterval())
         .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
         .build();
@@ -201,14 +207,14 @@ public class DownloadWorkflowModule {
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
         sniffer.close();
         try {
-          highLevelClient.close();
+          transport.close();
         } catch (IOException e) {
           throw new IllegalStateException("Couldn't close ES client", e);
         }
       }));
     }
 
-    return highLevelClient;
+    return esClient;
   }
 
 

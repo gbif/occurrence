@@ -41,6 +41,11 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -63,6 +68,108 @@ public class EsQueryVisitorTest {
   private final EsQueryVisitor<OccurrenceSearchParameter> occurrenceVisitor =
       new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, "defaultChecklistKey");
 
+  private static final ObjectMapper JSON = new ObjectMapper();
+
+  /**
+   * HLRC QueryBuilder.toString() used a different JSON dialect than elasticsearch-java
+   * (defaults, range from/to, wildcard field name, geo_distance units). Compare meaning.
+   */
+  private static void assertQueryEquals(String expected, String actual) {
+    try {
+      JsonNode expectedNode = canonicalizeEsQuery(JSON.readTree(expected));
+      JsonNode actualNode = canonicalizeEsQuery(JSON.readTree(actual));
+      assertEquals(
+          expectedNode,
+          actualNode,
+          () -> "expected:\n" + expectedNode.toPrettyString() + "\nactual:\n" + actualNode.toPrettyString());
+    } catch (Exception e) {
+      throw new AssertionError("Invalid query JSON\nexpected:\n" + expected + "\nactual:\n" + actual, e);
+    }
+  }
+
+  private static JsonNode canonicalizeEsQuery(JsonNode node) {
+    if (node == null || node.isNull() || !node.isContainerNode()) {
+      return node;
+    }
+    if (node.isArray()) {
+      ArrayNode copy = JSON.createArrayNode();
+      node.forEach(child -> copy.add(canonicalizeEsQuery(child)));
+      return copy;
+    }
+    ObjectNode obj = (ObjectNode) node;
+    if (obj.has("include_lower") || obj.has("include_upper")) {
+      return canonicalizeRange(obj);
+    }
+    ObjectNode copy = JSON.createObjectNode();
+    obj.fields()
+        .forEachRemaining(
+            field -> {
+              String name = field.getKey();
+              JsonNode value = field.getValue();
+              if (isEsDefault(name, value)) {
+                return;
+              }
+              if ("wildcard".equals(name) && value.isTextual()) {
+                copy.set("value", value);
+                return;
+              }
+              if ("coordinates".equals(name)
+                  && value.isArray()
+                  && value.size() == 2
+                  && value.get(0).isNumber()) {
+                ObjectNode latLon = JSON.createObjectNode();
+                latLon.put("lat", value.get(1).doubleValue());
+                latLon.put("lon", value.get(0).doubleValue());
+                copy.set("coordinates", latLon);
+                return;
+              }
+              if ("distance".equals(name) && value.isNumber()) {
+                copy.put("distance", (value.doubleValue() / 1000.0) + "km");
+                return;
+              }
+              copy.set(name, canonicalizeEsQuery(value));
+            });
+    return copy;
+  }
+
+  private static JsonNode canonicalizeRange(ObjectNode range) {
+    ObjectNode copy = JSON.createObjectNode();
+    range
+        .fields()
+        .forEachRemaining(
+            field -> {
+              String name = field.getKey();
+              if ("from".equals(name)
+                  || "to".equals(name)
+                  || "include_lower".equals(name)
+                  || "include_upper".equals(name)) {
+                return;
+              }
+              if (!isEsDefault(name, field.getValue())) {
+                copy.set(name, canonicalizeEsQuery(field.getValue()));
+              }
+            });
+    JsonNode from = range.get("from");
+    JsonNode to = range.get("to");
+    boolean includeLower = range.path("include_lower").asBoolean(true);
+    boolean includeUpper = range.path("include_upper").asBoolean(true);
+    if (from != null && !from.isNull()) {
+      copy.set(includeLower ? "gte" : "gt", from);
+    }
+    if (to != null && !to.isNull()) {
+      copy.set(includeUpper ? "lte" : "lt", to);
+    }
+    return copy;
+  }
+
+  private static boolean isEsDefault(String name, JsonNode value) {
+    return ("boost".equals(name) && value.isNumber() && value.doubleValue() == 1.0)
+        || ("adjust_pure_negative".equals(name) && value.asBoolean())
+        || ("ignore_unmapped".equals(name) && !value.asBoolean())
+        || ("distance_type".equals(name) && "arc".equals(value.asText()))
+        || ("validation_method".equals(name) && "STRICT".equals(value.asText()));
+  }
+
   @Test
   public void testEqualsPredicate() throws QueryBuildingException {
     Predicate p = new EqualsPredicate<>(PARAM, "value", false);
@@ -84,7 +191,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -108,7 +215,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -136,7 +243,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -163,7 +270,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "*,600", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -187,7 +294,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.ELEVATION, "-20.0,*", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -211,7 +318,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -241,7 +348,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980-02,2021-09-16", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -266,7 +373,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -291,7 +398,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -316,7 +423,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "2023-01-1", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -341,7 +448,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new EqualsPredicate<>(OccurrenceSearchParameter.EVENT_DATE, "1980,1990-05-06", false);
     query = occurrenceVisitor.buildQuery(p);
@@ -366,7 +473,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -393,7 +500,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p =
         new GreaterThanOrEqualsPredicate<>(
@@ -419,7 +526,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new GreaterThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -443,7 +550,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -470,7 +577,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new GreaterThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-09-16");
     query = occurrenceVisitor.buildQuery(p);
@@ -494,7 +601,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new GreaterThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -518,7 +625,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -545,7 +652,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new LessThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
     query = occurrenceVisitor.buildQuery(p);
@@ -569,7 +676,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new LessThanOrEqualsPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -593,7 +700,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -620,7 +727,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new LessThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021-10-25");
     query = occurrenceVisitor.buildQuery(p);
@@ -644,7 +751,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
 
     p = new LessThanPredicate<>(OccurrenceSearchParameter.LAST_INTERPRETED, "2021");
     query = occurrenceVisitor.buildQuery(p);
@@ -668,7 +775,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -738,7 +845,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -783,7 +890,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -823,7 +930,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -849,7 +956,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -918,7 +1025,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -958,7 +1065,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1033,7 +1140,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1059,7 +1166,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1084,7 +1191,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1151,7 +1258,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1173,7 +1280,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1203,7 +1310,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1240,7 +1347,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1355,7 +1462,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1474,7 +1581,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1624,7 +1731,7 @@ public class EsQueryVisitorTest {
             + "    \"boost\" : 1.0\n"
             + "  }\n"
             + "}";
-    assertEquals(expectedQuery, query);
+    assertQueryEquals(expectedQuery, query);
   }
 
   @Test
@@ -1657,7 +1764,7 @@ public class EsQueryVisitorTest {
                         + "    \"boost\" : 1.0\n"
                         + "  }\n"
                         + "}";
-                assertEquals(expectedQuery, query);
+                assertQueryEquals(expectedQuery, query);
               } catch (QueryBuildingException ex) {
                 throw new RuntimeException(ex);
               }

@@ -19,10 +19,10 @@ import org.gbif.search.es.BaseEsFieldMapper;
 
 import java.util.*;
 
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-
 import jakarta.annotation.Nullable;
+
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,8 +37,8 @@ public class EventEsFieldMapper extends BaseEsFieldMapper<EventSearchParameter> 
       EsField geoDistanceField,
       EsField geoShapeField,
       EsField uniqueIdField,
-      List<FieldSortBuilder> defaultSort,
-      QueryBuilder defaultFilter,
+      List<SortOptions> defaultSort,
+      Query defaultFilter,
       Class<? extends Enum<? extends EsField>> fieldEnumClass,
       @Nullable Map<EventSearchParameter, EsField> facetToEsMapping) {
     super(

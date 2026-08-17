@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -35,7 +34,7 @@ import org.gbif.wrangler.lock.LockFactory;
 import org.gbif.wrangler.lock.zookeeper.ZooKeeperLockFactory;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,16 +48,13 @@ import java.util.function.Function;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.hadoop.fs.Path;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.HttpAsyncResponseConsumerFactory;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 import lombok.Builder;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Controls the multithreaded creation of occurrence downloads.
@@ -70,7 +66,7 @@ public class DownloadMaster {
   private static final String RUNNING_JOBS_LOCKING_PATH = "/runningJobs/";
 
   private static final String FINISH_MSG_FMT = "Time elapsed %d minutes and %d seconds";
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
   private final String esIndex;
   private final MasterConfiguration conf;
   private final CuratorFramework curatorFramework;
@@ -82,7 +78,6 @@ public class DownloadMaster {
   private final Function<Occurrence,Map<String,String>> verbatimMapper;
   private final Function<Occurrence,Map<String,String>> interpretedMapper;
   private final SearchHitConverter<Occurrence> searchHitConverter;
-  private final RequestOptions defaultOptions;
 
 
   /**
@@ -92,7 +87,7 @@ public class DownloadMaster {
   public DownloadMaster(
     WorkflowConfiguration workflowConfiguration,
     MasterConfiguration masterConfiguration,
-    RestHighLevelClient esClient,
+    ElasticsearchClient esClient,
     String esIndex,
     DownloadJobConfiguration jobConfiguration,
     DownloadAggregator aggregator,
@@ -117,16 +112,6 @@ public class DownloadMaster {
     this.interpretedMapper = interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;
-    this.defaultOptions = getDefaultRequestOptions(workflowConfiguration.getEsRequestBufferLimit());
-  }
-
-  private RequestOptions getDefaultRequestOptions(int bufferLimitBytes) {
-    RequestOptions.Builder defaultBuilder = RequestOptions.DEFAULT.toBuilder();
-    defaultBuilder.setHttpAsyncResponseConsumerFactory(
-      new HttpAsyncResponseConsumerFactory
-        .HeapBufferedResponseConsumerFactory(bufferLimitBytes) // 200MB
-    );
-    return defaultBuilder.build();
   }
 
   /**
@@ -169,9 +154,9 @@ public class DownloadMaster {
   private void shutDownEsClientSilently() {
     try {
       if(Objects.nonNull(esClient)) {
-        esClient.close();
+        esClient.shutdown();
       }
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       log.error("Error shutting down Elasticsearch client", ex);
     }
   }
@@ -188,15 +173,15 @@ public class DownloadMaster {
    */
   private Long getSearchCount(String query) {
     try {
-      SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder().size(0);
-      searchSourceBuilder.trackTotalHits(true);
-      if (!Strings.isNullOrEmpty(query)) {
-        searchSourceBuilder.query(QueryBuilders.wrapperQuery(query));
-      } else {
-        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
-      }
-      SearchResponse searchResponse = esClient.search(new SearchRequest().indices(esIndex).source(searchSourceBuilder), RequestOptions.DEFAULT);
-      return searchResponse.getHits().getTotalHits().value;
+      Query esQuery =
+          !Strings.isNullOrEmpty(query)
+              ? Query.of(q -> q.withJson(new StringReader(query)))
+              : Query.of(q -> q.matchAll(m -> m));
+      SearchResponse<Void> searchResponse =
+          esClient.search(
+              s -> s.index(esIndex).size(0).trackTotalHits(t -> t.enabled(true)).query(esQuery),
+              Void.class);
+      return searchResponse.hits().total() != null ? searchResponse.hits().total().value() : 0L;
     } catch (Exception e) {
       log.error("Error executing query", e);
       return 0L;
@@ -291,7 +276,7 @@ public class DownloadMaster {
     DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();
     SearchQueryProcessor<Occurrence, OccurrenceSearchParameter> queryProcessor =
         new SearchQueryProcessor<>(
-            new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter), defaultOptions);
+            new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter));
 
     return switch (downloadFormat) {
       case SIMPLE_CSV -> new SimpleCsvDownloadWorker<>(queryProcessor, interpretedMapper);

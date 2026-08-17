@@ -17,10 +17,11 @@ import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.search.heatmap.es.BaseHeatmapsEsService;
 import org.gbif.search.heatmap.event.EventHeatmapRequest;
 
-import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 
 /** Elasticsearch heatmap service. */
 @Component
@@ -30,7 +31,7 @@ public class EventHeatmapsEsService
   private static final Logger LOG = LoggerFactory.getLogger(EventHeatmapsEsService.class);
 
   public EventHeatmapsEsService(
-      RestHighLevelClient esClient,
+      ElasticsearchClient esClient,
       String esIndex,
       EventEsHeatmapRequestBuilder esHeatmapRequestBuilder) {
     super(esClient, esIndex, esHeatmapRequestBuilder);

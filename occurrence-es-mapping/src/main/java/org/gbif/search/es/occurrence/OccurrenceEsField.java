@@ -29,12 +29,13 @@ import org.gbif.terms.utils.TermUtils;
 
 import java.util.Set;
 
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum OccurrenceEsField implements EsField {
@@ -476,17 +477,22 @@ public enum OccurrenceEsField implements EsField {
   private static final Set<EsField> DATE_FIELDS = ImmutableSet.of(EVENT_DATE, EVENT_DATE_GTE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
   public static OccurrenceEsFieldMapper buildFieldMapper() {
-      return OccurrenceEsFieldMapper.builder()
-        .fullTextField(FULL_TEXT)
-        .geoShapeField(COORDINATE_SHAPE)
-        .geoDistanceField(COORDINATE_POINT)
-        .uniqueIdField(ID)
-        .defaultSort(ImmutableList.of(SortBuilders.fieldSort("yearMonthGbifIdSort").order(SortOrder.ASC)))
-        .searchToEsMapping(SEARCH_TO_ES_MAPPING)
-        .dateFields(DATE_FIELDS)
-        .facetToEsMapping(FACET_TO_ES_MAPPING)
-        .fieldEnumClass(OccurrenceEsField.class)
-        .build();
+      return new OccurrenceEsFieldMapper(
+          SEARCH_TO_ES_MAPPING,
+          DATE_FIELDS,
+          FULL_TEXT,
+          COORDINATE_POINT,
+          COORDINATE_SHAPE,
+          ID,
+          ImmutableList.of(
+              SortOptions.of(
+                  s ->
+                      s.field(
+                          FieldSort.of(
+                              f -> f.field("yearMonthGbifIdSort").order(SortOrder.Asc))))),
+          null,
+          OccurrenceEsField.class,
+          FACET_TO_ES_MAPPING);
   }
 
   @Override

@@ -20,20 +20,15 @@ import org.gbif.occurrence.search.es.EsPredicateUtil;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.Objects;
-
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.core.CountRequest;
-import org.elasticsearch.client.core.CountResponse;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.CountResponse;
 import lombok.Builder;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Builder
@@ -55,7 +50,7 @@ public class DownloadEsClient implements Closeable {
           new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
   }
 
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
 
   private final String esIndex;
 
@@ -67,14 +62,19 @@ public class DownloadEsClient implements Closeable {
    * Executes the ElasticSearch query and returns the number of records found. If an error occurs
    * 'ERROR_COUNT' is returned.
    */
-  @SneakyThrows
   public long getRecordCount(Predicate predicate) {
-    CountResponse response = esClient.count(new CountRequest()
-        .indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)
-      ),
-            RequestOptions.DEFAULT);
-    log.info("Download record count {}", response.getCount());
-    return response.getCount();
+    try {
+      CountResponse response =
+          esClient.count(
+              c ->
+                  c.index(esIndex)
+                      .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)));
+      log.info("Download record count {}", response.count());
+      return response.count();
+    } catch (Exception ex) {
+      log.error("Error counting download records", ex);
+      return 0L;
+    }
   }
 
   /**
@@ -83,9 +83,9 @@ public class DownloadEsClient implements Closeable {
   private void shutDownEsClientSilently() {
     try {
       if (Objects.nonNull(esClient)) {
-        esClient.close();
+        esClient.shutdown();
       }
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       log.error("Error shutting down Elasticsearch client", ex);
     }
   }

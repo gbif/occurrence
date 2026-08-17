@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import org.apache.hadoop.hbase.client.Connection;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.junit.jupiter.api.Disabled;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,6 +61,8 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ActiveProfiles;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 
 /** SpringBoot app used for IT tests only. */
 @TestConfiguration
@@ -147,10 +148,10 @@ public class OccurrenceWsItConfiguration {
   }
 
   /**
-   * Creates an instance of an Elasticsearch RestHighLevelClient from the embedded EsManagerServer.
+   * Creates an instance of an ElasticsearchClient from the embedded EsManagerServer.
    */
   @Bean
-  public RestHighLevelClient restHighLevelClient(EsManageServer esManageServer) {
+  public ElasticsearchClient elasticsearchClient(EsManageServer esManageServer) {
     return esManageServer.getRestClient();
   }
 
@@ -180,8 +181,10 @@ public class OccurrenceWsItConfiguration {
   }
 
   @Bean
-  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver checklistAwareSearchRequestHandlerMethodArgumentResolver() {
-    return new ChecklistAwareSearchRequestHandlerMethodArgumentResolver(null);
+  public ChecklistAwareSearchRequestHandlerMethodArgumentResolver
+      checklistAwareSearchRequestHandlerMethodArgumentResolver(
+          NameUsageMatchingService nameUsageMatchingService) {
+    return new ChecklistAwareSearchRequestHandlerMethodArgumentResolver(nameUsageMatchingService);
   }
 
   /** Creates a DownloadRequestService using the available mock instances. */

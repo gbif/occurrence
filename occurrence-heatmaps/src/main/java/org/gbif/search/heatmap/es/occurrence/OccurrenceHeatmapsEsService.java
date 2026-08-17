@@ -17,10 +17,11 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.search.heatmap.es.BaseHeatmapsEsService;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 
-import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 
 /** Elasticsearch heatmap service. */
 @Component
@@ -30,7 +31,7 @@ public class OccurrenceHeatmapsEsService
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceHeatmapsEsService.class);
 
   public OccurrenceHeatmapsEsService(
-      RestHighLevelClient esClient,
+      ElasticsearchClient esClient,
       String esIndex,
       OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder) {
     super(esClient, esIndex, esHeatmapRequestBuilder);

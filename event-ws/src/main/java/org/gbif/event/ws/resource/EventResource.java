@@ -25,13 +25,10 @@ import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.event.search.es.EventSearchEs;
+import org.gbif.occurrence.search.es.EsQueryUtils;
 
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -53,6 +50,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import static org.gbif.event.ws.docs.OpenAPIUtils.*;
 
@@ -342,17 +341,14 @@ public class EventResource {
     return eventSearchEs
         .getEsSearchRequestBuilder()
         .buildQuery(request)
-        .map(AbstractQueryBuilder::toString)
+        .map(EsQueryUtils::toJson)
         .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   @Hidden
   @GetMapping("search/rest/toesquery")
   public String restToEsQuery(@NotNull @Valid @ParameterObject EventSearchRequest request) {
-    return eventSearchEs
-        .getEsSearchRequestBuilder()
-        .buildSearchRequest(request, "test")
-        .source()
-        .toString();
+    return EsQueryUtils.toJson(
+        eventSearchEs.getEsSearchRequestBuilder().buildSearchRequest(request, "test"));
   }
 }

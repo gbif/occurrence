@@ -23,11 +23,11 @@ import org.gbif.search.es.occurrence.OccurrenceEsField;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,9 +56,9 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
 
   private final EsField uniqueIdField;
 
-  private final List<FieldSortBuilder> defaultSort;
+  private final List<SortOptions> defaultSort;
 
-  private final QueryBuilder defaultFilter;
+  private final Query defaultFilter;
 
   public BaseEsFieldMapper(Map<P,EsField> searchToEsMapping,
                            Set<EsField> dateFields,
@@ -66,8 +66,8 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
                            EsField geoDistanceField,
                            EsField geoShapeField,
                            EsField uniqueIdField,
-                           List<FieldSortBuilder> defaultSort,
-                           QueryBuilder defaultFilter,
+                           List<SortOptions> defaultSort,
+                           Query defaultFilter,
                            Class<? extends Enum<? extends EsField>> fieldEnumClass,
                            @Nullable Map<P,EsField> facetToEsMapping) {
     this.searchToEsMapping = searchToEsMapping;
@@ -180,12 +180,12 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
   }
 
   @Override
-  public List<FieldSortBuilder> getDefaultSort(){
+  public List<SortOptions> getDefaultSort(){
     return defaultSort;
   }
 
   @Override
-  public Optional<QueryBuilder> getDefaultFilter()  {
+  public Optional<Query> getDefaultFilter()  {
     return Optional.ofNullable(defaultFilter);
   }
 
