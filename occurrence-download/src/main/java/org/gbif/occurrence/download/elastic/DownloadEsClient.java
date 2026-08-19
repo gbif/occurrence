@@ -20,7 +20,6 @@ import org.gbif.occurrence.search.es.EsPredicateUtil;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.io.Closeable;
-import java.util.Objects;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,8 +58,8 @@ public class DownloadEsClient implements Closeable {
   private final String defaultChecklistKey;
 
   /**
-   * Executes the ElasticSearch query and returns the number of records found. If an error occurs
-   * 'ERROR_COUNT' is returned.
+   * Executes the ElasticSearch query and returns the number of records found.
+   * Throws SearchException on failure so callers can distinguish a real zero count.
    */
   public long getRecordCount(Predicate predicate) {
     try {
@@ -73,25 +72,16 @@ public class DownloadEsClient implements Closeable {
       return response.count();
     } catch (Exception ex) {
       log.error("Error counting download records", ex);
-      return 0L;
-    }
-  }
-
-  /**
-   * Shuts down the ElasticSearch client.
-   */
-  private void shutDownEsClientSilently() {
-    try {
-      if (Objects.nonNull(esClient)) {
-        esClient.shutdown();
-      }
-    } catch (Exception ex) {
-      log.error("Error shutting down Elasticsearch client", ex);
+      throw new org.gbif.occurrence.search.SearchException(ex);
     }
   }
 
   @Override
   public void close() {
-    shutDownEsClientSilently();
+    try {
+      esClient._transport().close();
+    } catch (Exception ex) {
+      log.error("Error closing Elasticsearch transport", ex);
+    }
   }
 }
