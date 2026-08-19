@@ -160,7 +160,7 @@ public abstract class EsResponseParser<
           List<Facet.Count> counts =
               buckets.stream()
                   .skip(facetOffset)
-                  .limit(facetOffset + facetLimit)
+                  .limit(facetLimit)
                   .map(b -> new Facet.Count(b.key(), b.docCount()))
                   .collect(Collectors.toList());
 

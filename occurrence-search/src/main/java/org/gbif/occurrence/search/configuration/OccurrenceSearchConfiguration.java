@@ -83,22 +83,26 @@ public class OccurrenceSearchConfiguration  {
         new RestClientTransport(restClient, new JacksonJsonpMapper());
     ElasticsearchClient esClient = new ElasticsearchClient(transport);
 
+    Sniffer sniffer = null;
     if (esConfig.getSniffInterval() > 0) {
-      Sniffer sniffer = Sniffer.builder(restClient)
+      sniffer = Sniffer.builder(restClient)
         .setSniffIntervalMillis(esConfig.getSniffInterval())
         .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
         .build();
       sniffOnFailureListener.setSniffer(sniffer);
-
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        sniffer.close();
-        try {
-          transport.close();
-        } catch (IOException e) {
-          throw new IllegalStateException("Couldn't close ES client", e);
-        }
-      }));
     }
+
+    Sniffer finalSniffer = sniffer;
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      if (finalSniffer != null) {
+        finalSniffer.close();
+      }
+      try {
+        transport.close();
+      } catch (IOException e) {
+        throw new IllegalStateException("Couldn't close ES client", e);
+      }
+    }));
 
     return esClient;
   }

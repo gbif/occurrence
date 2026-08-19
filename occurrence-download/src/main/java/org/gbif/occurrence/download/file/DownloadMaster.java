@@ -154,7 +154,7 @@ public class DownloadMaster {
   private void shutDownEsClientSilently() {
     try {
       if(Objects.nonNull(esClient)) {
-        esClient.shutdown();
+        esClient._transport().close();
       }
     } catch (Exception ex) {
       log.error("Error shutting down Elasticsearch client", ex);

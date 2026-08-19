@@ -17,9 +17,11 @@ import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.occurrence.download.file.DownloadFileWork;
+import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
 import org.gbif.search.es.EsResponseParser;
 
 import java.io.StringReader;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -75,7 +77,10 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
                         .size(pageSize)
                         .sort(so -> so.field(f -> f.field(KEY_FIELD).order(SortOrder.Desc)))
                         // Response fields are not needed for download processing.
-                        .source(src -> src.filter(f -> f.excludes("all", "notIssues"))));
+                        .source(
+                            src ->
+                                src.filter(
+                                    f -> f.excludes(Arrays.asList(BaseEsSearchRequestBuilder.SOURCE_EXCLUDE)))));
 
         SearchResponse<Map<String, Object>> searchResponse =
             downloadFileWork

@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
@@ -136,6 +137,8 @@ class DownloadMasterTest {
   @Test
   void noRecordsAggregatesEmptyResults() throws Exception {
     ElasticsearchClient esClient = mock(ElasticsearchClient.class);
+    ElasticsearchTransport transport = mock(ElasticsearchTransport.class);
+    doReturn(transport).when(esClient)._transport();
     SearchResponse<Void> empty = searchResponseWithTotalHits(0);
     doReturn(empty).when(esClient).search(any(SearchRequest.class), ArgumentMatchers.<Class<?>>any());
     doReturn(empty)
@@ -151,12 +154,14 @@ class DownloadMasterTest {
     master.run();
 
     verify(aggregator).aggregate(Collections.emptyList());
-    verify(esClient).shutdown();
+    verify(transport).close();
   }
 
   @Test
   void workerFailureAbortsWithoutAggregating() throws Exception {
     ElasticsearchClient esClient = mock(ElasticsearchClient.class);
+    ElasticsearchTransport transport = mock(ElasticsearchTransport.class);
+    doReturn(transport).when(esClient)._transport();
     SearchResponse<Void> hits = searchResponseWithTotalHits(5);
     IOException failure = new IOException("Simulated ES failure");
     doReturn(hits)
@@ -177,6 +182,6 @@ class DownloadMasterTest {
     assertThrows(RuntimeException.class, master::run);
 
     verify(aggregator, never()).aggregate(any());
-    verify(esClient).shutdown();
+    verify(transport).close();
   }
 }
