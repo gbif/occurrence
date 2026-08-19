@@ -13,6 +13,7 @@
  */
 package org.gbif.search.es;
 
+import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
@@ -31,7 +32,6 @@ import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.ChildrenAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.FilterAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.NestedAggregate;
-import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch.core.search.CompletionSuggest;
 import co.elastic.clients.elasticsearch.core.search.CompletionSuggestOption;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -65,7 +65,7 @@ public abstract class EsResponseParser<
     SearchResponse<T, P> response = new SearchResponse<>(request);
     response.setCount(
         Optional.ofNullable(esResponse.hits().total())
-            .map(total -> total.value())
+            .map(TotalHits::value)
             .orElse((long) esResponse.hits().hits().size()));
     parseHits(esResponse).ifPresent(response::setResults);
     parseFacets(esResponse, request).ifPresent(response::setFacets);
@@ -90,10 +90,26 @@ public abstract class EsResponseParser<
         .collect(Collectors.toList());
   }
 
-  /** Extract the buckets of an {@link Aggregate}. */
-  private List<StringTermsBucket> getBuckets(Aggregate aggregation) {
+  /**
+   * A bucket as a (key-string, docCount) pair, covering all term types
+   * (sterms / lterms / dterms) and boolean aggs.
+   */
+  private record BucketEntry(String key, long docCount) {}
+
+  /** Extract buckets from any Aggregate variant, normalising keys to String. */
+  private List<BucketEntry> getBuckets(Aggregate aggregation) {
     if (aggregation.isSterms()) {
-      return aggregation.sterms().buckets().array();
+      return aggregation.sterms().buckets().array().stream()
+          .map(b -> new BucketEntry(b.key().stringValue(), b.docCount()))
+          .collect(Collectors.toList());
+    } else if (aggregation.isLterms()) {
+      return aggregation.lterms().buckets().array().stream()
+          .map(b -> new BucketEntry(String.valueOf(b.key()), b.docCount()))
+          .collect(Collectors.toList());
+    } else if (aggregation.isDterms()) {
+      return aggregation.dterms().buckets().array().stream()
+          .map(b -> new BucketEntry(String.valueOf(b.key()), b.docCount()))
+          .collect(Collectors.toList());
     } else if (aggregation.isFilter()) {
       return toBucketList(aggregation.filter());
     } else if (aggregation.isChildren()) {
@@ -105,27 +121,22 @@ public abstract class EsResponseParser<
     }
   }
 
-  /** Extract the bucket list of a simple aggregation. */
-  private static List<StringTermsBucket> toBucketList(FilterAggregate aggregation) {
+  private List<BucketEntry> toBucketList(FilterAggregate aggregation) {
     return toBucketList(aggregation.aggregations());
   }
 
-  private static List<StringTermsBucket> toBucketList(ChildrenAggregate aggregation) {
+  private List<BucketEntry> toBucketList(ChildrenAggregate aggregation) {
     return toBucketList(aggregation.aggregations());
   }
 
-  private static List<StringTermsBucket> toBucketList(NestedAggregate aggregation) {
+  private List<BucketEntry> toBucketList(NestedAggregate aggregation) {
     return toBucketList(aggregation.aggregations());
   }
 
-  private static List<StringTermsBucket> toBucketList(Map<String, Aggregate> aggregations) {
-    List<StringTermsBucket> buckets = new ArrayList<>();
+  private List<BucketEntry> toBucketList(Map<String, Aggregate> aggregations) {
+    List<BucketEntry> buckets = new ArrayList<>();
     for (Aggregate agg : aggregations.values()) {
-      if (agg.isFilter()) {
-        buckets.addAll(toBucketList(agg.filter()));
-      } else if (agg.isSterms()) {
-        buckets.addAll(agg.sterms().buckets().array());
-      }
+      buckets.addAll(getBuckets(agg));
     }
     return buckets;
   }
@@ -136,16 +147,13 @@ public abstract class EsResponseParser<
 
     Function<Map.Entry<String, Aggregate>, Facet<P>> mapFn =
         aggs -> {
-          // get buckets
-          List<StringTermsBucket> buckets = getBuckets(aggs.getValue());
+          List<BucketEntry> buckets = getBuckets(aggs.getValue());
 
-          // get facet of the agg
           P facet = baseEsFieldMapper.getSearchParameter(aggs.getKey());
           if (facet == null) {
             facet = createSearchParameter(aggs.getKey(), String.class);
           }
 
-          // check for paging in facets
           long facetOffset = extractFacetOffset(request, facet);
           long facetLimit = extractFacetLimit(request, facet);
 
@@ -153,7 +161,7 @@ public abstract class EsResponseParser<
               buckets.stream()
                   .skip(facetOffset)
                   .limit(facetOffset + facetLimit)
-                  .map(b -> new Facet.Count(String.valueOf(b.key()), b.docCount()))
+                  .map(b -> new Facet.Count(b.key(), b.docCount()))
                   .collect(Collectors.toList());
 
           return new Facet<>(facet, counts);

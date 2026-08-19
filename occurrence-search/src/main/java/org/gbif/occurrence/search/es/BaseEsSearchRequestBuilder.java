@@ -137,8 +137,10 @@ public abstract class BaseEsSearchRequestBuilder<
                                   sc.lang(ScriptLanguage.Painless)
                                       .source(
                                           src ->
+                                              // doc['_id'] is unavailable in ES 8+; _seq_no is a
+                                              // numeric doc-value usable in scripts for deterministic shuffle
                                               src.scriptString(
-                                                  "(doc['_id'].value + params['seed']).hashCode()"))
+                                                  "(doc['_seq_no'].value + params['seed'].hashCode()) % 1000000"))
                                       .params("seed", JsonData.of(searchRequest.getShuffle())))));
     } else if (Strings.isNullOrEmpty(searchRequest.getQ())) {
       esFieldMapper.getDefaultSort().forEach(searchRequestBuilder::sort);
@@ -190,7 +192,7 @@ public abstract class BaseEsSearchRequestBuilder<
    * Add a taxon key query to the builder
    *
    * @param rank
-   * @param bool
+   * @param filters
    * @param params
    */
   private void addTaxonKeyQuery(String rank, List<Query> filters, Map<P, Set<String>> params) {
@@ -336,7 +338,7 @@ public abstract class BaseEsSearchRequestBuilder<
    * SUBPHYLUM_KEY=XXXXX
    *
    * @param params
-   * @param bool
+   * @param filters
    */
   private void addChecklistDynamicRanks(Map<P, Set<String>> params, List<Query> filters) {
     if (nameUsageMatchingService != null) {
