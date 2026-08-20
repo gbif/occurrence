@@ -27,13 +27,16 @@ import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.sniff.SniffOnFailureListener;
 import org.elasticsearch.client.sniff.Sniffer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
 
 /** Occurrence search configuration. */
 public class OccurrenceSearchConfiguration  {
@@ -45,7 +48,7 @@ public class OccurrenceSearchConfiguration  {
   }
 
   @Bean
-  public RestHighLevelClient provideEsClient(EsConfig esConfig) {
+  public ElasticsearchClient provideEsClient(EsConfig esConfig) {
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
     for (String host : esConfig.getHosts()) {
@@ -75,26 +78,33 @@ public class OccurrenceSearchConfiguration  {
       builder.setFailureListener(sniffOnFailureListener);
     }
 
-    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+    RestClient restClient = builder.build();
+    ElasticsearchTransport transport =
+        new RestClientTransport(restClient, new JacksonJsonpMapper());
+    ElasticsearchClient esClient = new ElasticsearchClient(transport);
 
+    Sniffer sniffer = null;
     if (esConfig.getSniffInterval() > 0) {
-      Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
+      sniffer = Sniffer.builder(restClient)
         .setSniffIntervalMillis(esConfig.getSniffInterval())
         .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
         .build();
       sniffOnFailureListener.setSniffer(sniffer);
-
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        sniffer.close();
-        try {
-          highLevelClient.close();
-        } catch (IOException e) {
-          throw new IllegalStateException("Couldn't close ES client", e);
-        }
-      }));
     }
 
-    return highLevelClient;
+    Sniffer finalSniffer = sniffer;
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      if (finalSniffer != null) {
+        finalSniffer.close();
+      }
+      try {
+        transport.close();
+      } catch (IOException e) {
+        throw new IllegalStateException("Couldn't close ES client", e);
+      }
+    }));
+
+    return esClient;
   }
 
   @Bean

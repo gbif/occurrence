@@ -31,13 +31,15 @@ import org.gbif.terms.utils.TermUtils;
 
 import java.util.Set;
 
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+
+import co.elastic.clients.elasticsearch._types.FieldSort;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
 
 /** Enum that contains the mapping of symbolic names and field names of valid Elasticsearch fields. */
 public enum EventEsField implements EsField {
@@ -375,17 +377,26 @@ public enum EventEsField implements EsField {
     ImmutableSet.of(EVENT_DATE, DATE_IDENTIFIED, MODIFIED, LAST_INTERPRETED, LAST_CRAWLED, LAST_PARSED);
 
   public static EventEsFieldMapper buildFieldMapper() {
-    return EventEsFieldMapper.builder()
-        .fullTextField(FULL_TEXT)
-        .geoShapeField(COORDINATE_SHAPE)
-        .geoDistanceField(COORDINATE_POINT)
-        .uniqueIdField(ID)
-        .defaultFilter(QueryBuilders.termQuery("type", "event"))
-        .defaultSort(ImmutableList.of(SortBuilders.fieldSort("event.yearMonthEventIDSort").order(SortOrder.ASC)))
-        .searchToEsMapping(SEARCH_TO_ES_MAPPING)
-        .dateFields(DATE_FIELDS)
-        .fieldEnumClass(EventEsField.class)
-        .build();
+    return new EventEsFieldMapper(
+        SEARCH_TO_ES_MAPPING,
+        DATE_FIELDS,
+        FULL_TEXT,
+        COORDINATE_POINT,
+        COORDINATE_SHAPE,
+        ID,
+        ImmutableList.of(
+            SortOptions.of(
+                s ->
+                    s.field(
+                        FieldSort.of(
+                            f -> f.field("event.yearMonthEventIDSort").order(SortOrder.Asc))))),
+        Query.of(
+            q ->
+                q.term(
+                    TermQuery.of(
+                        t -> t.field("type").value(v -> v.stringValue("event"))))),
+        EventEsField.class,
+        null);
   }
 
   @Override

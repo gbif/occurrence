@@ -23,8 +23,6 @@
     <metrics-core.version>4.2.37</metrics-core.version>
     <log4j.version>2.20.0</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <es.httpclient.version>4.5.10</es.httpclient.version>
-
     <scala-java8-compat.version>1.0.2</scala-java8-compat.version>
     <slf4j.version>2.0.7</slf4j.version>
 
@@ -71,6 +69,8 @@
                 <exclude>META-INF/*.RSA</exclude>
                 <exclude>org/codehaus/jackson/**</exclude>
                 <exclude>javax/ws/**</exclude>
+                <exclude>META-INF/versions/22/**</exclude>
+                <exclude>META-INF/versions/23/**</exclude>
               </excludes>
             </filter>
           </filters>
@@ -476,12 +476,20 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.elasticsearch.client</groupId>
-      <artifactId>elasticsearch-rest-high-level-client</artifactId>
+      <groupId>co.elastic.clients</groupId>
+      <artifactId>elasticsearch-java</artifactId>
       <exclusions>
         <exclusion>
           <groupId>commmons-logging</groupId>
           <artifactId>commmons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tools.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tools.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -498,21 +506,6 @@
     <dependency>
       <groupId>org.elasticsearch.client</groupId>
       <artifactId>elasticsearch-rest-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.elasticsearch</groupId>
-      <artifactId>elasticsearch</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.lucene</groupId>
-      <artifactId>lucene-core</artifactId>
-    </dependency>
-
-    <!-- Match elasticsearch-rest-high-level-client httpclient version -->
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${es.httpclient.version}</version>
     </dependency>
 
     <dependency>

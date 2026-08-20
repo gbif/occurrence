@@ -20,8 +20,7 @@ import org.gbif.wrangler.lock.Lock;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.elasticsearch.client.RestHighLevelClient;
-
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -88,7 +87,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
    *
    * @return Elasticsearch client to run queries
    */
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
 
   /**
    * -- GETTER --
@@ -108,7 +107,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
    * Default constructor.
    */
   public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock,
-                          RestHighLevelClient esClient, String esIndex, Set<Extension> verbatimExtensions,
+                          ElasticsearchClient esClient, String esIndex, Set<Extension> verbatimExtensions,
                           Set<Extension> interpretedExtensions, DownloadFormat downloadFormat) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;

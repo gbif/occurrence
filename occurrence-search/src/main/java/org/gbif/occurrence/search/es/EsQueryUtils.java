@@ -24,18 +24,23 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
-
-import org.apache.http.entity.ContentType;
-import org.apache.http.protocol.HTTP;
-import org.elasticsearch.client.RequestOptions;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
+import co.elastic.clients.json.JsonpUtils;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+
 public class EsQueryUtils {
 
   private EsQueryUtils() {}
+
+  private static final JacksonJsonpMapper JSONP_MAPPER = new JacksonJsonpMapper();
+
+  /** elasticsearch-java {@code toString()} is {@code Query: {...}}, not JSON. */
+  public static String toJson(Object value) {
+    return JsonpUtils.toJsonString(value, JSONP_MAPPER);
+  }
 
   // defaults
   private static final int DEFAULT_FACET_OFFSET = 0;
@@ -181,14 +186,6 @@ public class EsQueryUtils {
         }
 
         return null;
-      };
-
-  // functions
-  public static final Supplier<RequestOptions> HEADERS =
-      () -> {
-        RequestOptions.Builder builder = RequestOptions.DEFAULT.toBuilder();
-        builder.addHeader(HTTP.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
-        return builder.build();
       };
 
   static final Map<OccurrenceSearchParameter, Integer> CARDINALITIES =

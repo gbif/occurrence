@@ -21,11 +21,11 @@ import org.gbif.search.es.BaseEsFieldMapper;
 
 import java.util.*;
 
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-
 import jakarta.annotation.Nullable;
+
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,8 +40,8 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
       EsField geoDistanceField,
       EsField geoShapeField,
       EsField uniqueIdField,
-      List<FieldSortBuilder> defaultSort,
-      QueryBuilder defaultFilter,
+      List<SortOptions> defaultSort,
+      Query defaultFilter,
       Class<? extends Enum<? extends EsField>> fieldEnumClass,
       @Nullable Map<OccurrenceSearchParameter, EsField> facetToEsMapping) {
     super(
@@ -64,9 +64,11 @@ public class OccurrenceEsFieldMapper extends BaseEsFieldMapper<OccurrenceSearchP
   }
 
   @Override
-  public boolean includeNullInRange(
-      OccurrenceSearchParameter param, RangeQueryBuilder rangeQueryBuilder) {
+  public boolean includeNullInRange(OccurrenceSearchParameter param, RangeQuery rangeQuery) {
     return OccurrenceSearchParameter.DISTANCE_FROM_CENTROID_IN_METERS == param
-        && Objects.isNull(rangeQueryBuilder.to());
+        && rangeQuery != null
+        && rangeQuery.untyped() != null
+        && rangeQuery.untyped().lt() == null
+        && rangeQuery.untyped().lte() == null;
   }
 }

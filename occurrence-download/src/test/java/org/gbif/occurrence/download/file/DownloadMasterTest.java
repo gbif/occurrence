@@ -21,28 +21,29 @@ import org.gbif.search.es.SearchHitConverter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
+import java.util.function.Function;
 
 import org.apache.curator.test.TestingCluster;
-import org.apache.lucene.search.TotalHits;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchResponseSections;
-import org.elasticsearch.action.search.ShardSearchFailure;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
+import co.elastic.clients.util.ObjectBuilder;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Covers the orchestration behavior: with no records there's nothing to run and the (empty)
@@ -91,7 +92,7 @@ class DownloadMasterTest {
         .filter("*")
         .sourceDir(System.getProperty("java.io.tmpdir") + "/download-master-test")
         .user("testUser")
-        .searchQuery("*")
+        .searchQuery("{\"match_all\":{}}")
         .verbatimExtensions(Collections.emptySet())
         .interpretedExtensions(Collections.emptySet())
         .build();
@@ -106,14 +107,20 @@ class DownloadMasterTest {
         .build();
   }
 
-  private static SearchResponse searchResponseWithTotalHits(long total) {
-    SearchHits hits = new SearchHits(new SearchHit[0], new TotalHits(total, TotalHits.Relation.EQUAL_TO), 0f);
-    SearchResponseSections sections = new SearchResponseSections(hits, null, null, false, false, null, 0);
-    return new SearchResponse(sections, null, 1, 1, 0, 0L, new ShardSearchFailure[0], SearchResponse.Clusters.EMPTY);
+  private static SearchResponse<Void> searchResponseWithTotalHits(long total) {
+    return SearchResponse.of(
+        r ->
+            r.took(1)
+                .timedOut(false)
+                .shards(s -> s.total(1).successful(1).skipped(0).failed(0))
+                .hits(
+                    h ->
+                        h.total(t -> t.value(total).relation(TotalHitsRelation.Eq))
+                            .hits(List.of())));
   }
 
   private static DownloadMaster.DownloadMasterBuilder masterBuilder(
-      RestHighLevelClient esClient, DownloadAggregator aggregator, String downloadKey) {
+      ElasticsearchClient esClient, DownloadAggregator aggregator, String downloadKey) {
     return DownloadMaster.builder()
         .workflowConfiguration(workflowConfiguration())
         .masterConfiguration(masterConfiguration())
@@ -129,9 +136,16 @@ class DownloadMasterTest {
 
   @Test
   void noRecordsAggregatesEmptyResults() throws Exception {
-    RestHighLevelClient esClient = mock(RestHighLevelClient.class);
-    when(esClient.search(any(SearchRequest.class), any(RequestOptions.class)))
-        .thenReturn(searchResponseWithTotalHits(0));
+    ElasticsearchClient esClient = mock(ElasticsearchClient.class);
+    ElasticsearchTransport transport = mock(ElasticsearchTransport.class);
+    doReturn(transport).when(esClient)._transport();
+    SearchResponse<Void> empty = searchResponseWithTotalHits(0);
+    doReturn(empty).when(esClient).search(any(SearchRequest.class), ArgumentMatchers.<Class<?>>any());
+    doReturn(empty)
+        .when(esClient)
+        .search(
+            ArgumentMatchers.<Function<SearchRequest.Builder, ObjectBuilder<SearchRequest>>>any(),
+            ArgumentMatchers.<Class<?>>any());
 
     DownloadAggregator aggregator = mock(DownloadAggregator.class);
 
@@ -140,15 +154,26 @@ class DownloadMasterTest {
     master.run();
 
     verify(aggregator).aggregate(Collections.emptyList());
-    verify(esClient).close();
+    verify(transport).close();
   }
 
   @Test
   void workerFailureAbortsWithoutAggregating() throws Exception {
-    RestHighLevelClient esClient = mock(RestHighLevelClient.class);
-    when(esClient.search(any(SearchRequest.class), any(RequestOptions.class)))
-        .thenReturn(searchResponseWithTotalHits(5))
-        .thenThrow(new IOException("Simulated ES failure"));
+    ElasticsearchClient esClient = mock(ElasticsearchClient.class);
+    ElasticsearchTransport transport = mock(ElasticsearchTransport.class);
+    doReturn(transport).when(esClient)._transport();
+    SearchResponse<Void> hits = searchResponseWithTotalHits(5);
+    IOException failure = new IOException("Simulated ES failure");
+    doReturn(hits)
+        .doThrow(failure)
+        .when(esClient)
+        .search(any(SearchRequest.class), ArgumentMatchers.<Class<?>>any());
+    doReturn(hits)
+        .doThrow(failure)
+        .when(esClient)
+        .search(
+            ArgumentMatchers.<Function<SearchRequest.Builder, ObjectBuilder<SearchRequest>>>any(),
+            ArgumentMatchers.<Class<?>>any());
 
     DownloadAggregator aggregator = mock(DownloadAggregator.class);
 
@@ -157,6 +182,6 @@ class DownloadMasterTest {
     assertThrows(RuntimeException.class, master::run);
 
     verify(aggregator, never()).aggregate(any());
-    verify(esClient).close();
+    verify(transport).close();
   }
 }
