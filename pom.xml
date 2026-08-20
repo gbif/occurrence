@@ -135,7 +135,7 @@
     <hamcrest.version>3.0</hamcrest.version>
 
     <!-- Version for ES client -->
-    <httpclient.version>4.5.2</httpclient.version>
+    <httpclient.version>4.5.13</httpclient.version>
     <httpcore.version>4.4.13</httpcore.version>
 
     <jackson.version>2.19.4</jackson.version>
