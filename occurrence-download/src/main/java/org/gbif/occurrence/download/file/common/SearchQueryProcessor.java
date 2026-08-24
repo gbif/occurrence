@@ -23,6 +23,7 @@ import org.gbif.search.es.EsResponseParser;
 import java.io.StringReader;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.google.common.base.Strings;
@@ -41,12 +42,14 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
   // Default page size for queries.
   private static final int LIMIT = 300;
 
-  private static final String KEY_FIELD = "_id";
-
   private final EsResponseParser<T, P> esResponseParser;
 
-  public SearchQueryProcessor(EsResponseParser<T, P> esResponseParser) {
+  /** Mapped ES field used for stable pagination sort. */
+  private final String sortField;
+
+  public SearchQueryProcessor(EsResponseParser<T, P> esResponseParser, String sortField) {
     this.esResponseParser = esResponseParser;
+    this.sortField = Objects.requireNonNull(sortField, "sortField");
   }
 
   /**
@@ -75,7 +78,7 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
                         .query(queryNode)
                         .from(offset)
                         .size(pageSize)
-                        .sort(so -> so.field(f -> f.field(KEY_FIELD).order(SortOrder.Desc)))
+                        .sort(so -> so.field(f -> f.field(sortField).order(SortOrder.Desc)))
                         // Response fields are not needed for download processing.
                         .source(
                             src ->

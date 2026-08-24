@@ -38,6 +38,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
 import co.elastic.clients.util.ObjectBuilder;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -79,6 +80,7 @@ class DownloadMasterTest {
     properties.put(DownloadWorkflowModule.DefaultSettings.ZK_QUORUM_KEY, zkTestingCluster.getConnectString());
     properties.put(DownloadWorkflowModule.DefaultSettings.ZK_SLEEP_TIME_KEY, "1000");
     properties.put(DownloadWorkflowModule.DefaultSettings.ZK_MAX_RETRIES_KEY, "1");
+    properties.put(DownloadWorkflowModule.DefaultSettings.ES_INDEX_TYPE, "OCCURRENCE");
     properties.put(DownloadWorkflowModule.DynamicSettings.DOWNLOAD_FORMAT_KEY, DownloadFormat.SIMPLE_CSV.name());
     return new WorkflowConfiguration(properties);
   }
@@ -132,6 +134,12 @@ class DownloadMasterTest {
         .interpretedMapper(o -> Collections.emptyMap())
         .verbatimMapper(o -> Collections.emptyMap())
         .searchHitConverter(mock(SearchHitConverter.class));
+  }
+
+  @Test
+  void sortFieldMatchesIndexType() {
+    assertEquals("gbifId", DownloadMaster.sortFieldFor(WorkflowConfiguration.SearchType.OCCURRENCE));
+    assertEquals("event.gbifId", DownloadMaster.sortFieldFor(WorkflowConfiguration.SearchType.EVENT));
   }
 
   @Test

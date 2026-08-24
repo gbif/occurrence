@@ -25,6 +25,7 @@ import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadWorker;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadWorker;
 import org.gbif.occurrence.download.util.Strings;
 import org.gbif.search.es.SearchHitConverter;
+import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
@@ -78,6 +79,8 @@ public class DownloadMaster {
   private final Function<Occurrence,Map<String,String>> verbatimMapper;
   private final Function<Occurrence,Map<String,String>> interpretedMapper;
   private final SearchHitConverter<Occurrence> searchHitConverter;
+  /** ES field for stable from/size pagination. */
+  private final String sortField;
 
 
   /**
@@ -112,6 +115,13 @@ public class DownloadMaster {
     this.interpretedMapper = interpretedMapper;
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;
+    this.sortField = sortFieldFor(workflowConfiguration.getEsIndexType());
+  }
+
+  static String sortFieldFor(WorkflowConfiguration.SearchType searchType) {
+    return searchType == WorkflowConfiguration.SearchType.EVENT
+        ? EventEsField.GBIF_ID.getSearchFieldName()
+        : OccurrenceEsField.GBIF_ID.getSearchFieldName();
   }
 
   /**
@@ -276,7 +286,8 @@ public class DownloadMaster {
     DownloadFormat downloadFormat = jobConfiguration.getDownloadFormat();
     SearchQueryProcessor<Occurrence, OccurrenceSearchParameter> queryProcessor =
         new SearchQueryProcessor<>(
-            new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter));
+            new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter),
+            sortField);
 
     return switch (downloadFormat) {
       case SIMPLE_CSV -> new SimpleCsvDownloadWorker<>(queryProcessor, interpretedMapper);
