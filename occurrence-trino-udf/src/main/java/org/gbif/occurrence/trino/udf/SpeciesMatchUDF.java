@@ -78,8 +78,8 @@ public class SpeciesMatchUDF {
           + " the base URL of the API to be used. Within the same JVM the UDF will only ever use the first URL used and ignores subsequently changed URLs."
           + "The order of the parameters is the following: nubLookup(apiNub, checklistKey, kingdom, phylum, class_rank, order_rank, family, genus, scientific_name, specific_epithet, infra_specific_epithet, rank)")
   @SqlType(
-      "row(responsestatus varchar, usagekey integer, scientificname varchar, rank varchar, status varchar, matchtype varchar, confidence integer,"
-          + "kingdomkey integer, phylumkey integer, classkey integer, orderkey integer, familykey integer, genuskey integer, specieskey integer,"
+      "row(responsestatus varchar, usagekey varchar, scientificname varchar, rank varchar, status varchar, matchtype varchar, confidence integer,"
+          + "kingdomkey varchar, phylumkey varchar, classkey varchar, orderkey varchar, familykey varchar, genuskey varchar, specieskey varchar,"
           + "kingdom varchar, phylum varchar, class_ varchar, order_ varchar, family varchar, genus varchar, species varchar)")
   public Block nubLookup(
       @SqlType(StandardTypes.VARCHAR) Slice apiMatchingServiceArg,
@@ -101,19 +101,19 @@ public class SpeciesMatchUDF {
     RowType rowType =
         RowType.rowType(
             new RowType.Field(Optional.of("responsestatus"), VARCHAR),
-            new RowType.Field(Optional.of("usagekey"), INTEGER),
+            new RowType.Field(Optional.of("usagekey"), VARCHAR),
             new RowType.Field(Optional.of("scientificname"), VARCHAR),
             new RowType.Field(Optional.of("rank"), VARCHAR),
             new RowType.Field(Optional.of("status"), VARCHAR),
             new RowType.Field(Optional.of("matchtype"), VARCHAR),
             new RowType.Field(Optional.of("confidence"), INTEGER),
-            new RowType.Field(Optional.of("kingdomkey"), INTEGER),
-            new RowType.Field(Optional.of("phylumkey"), INTEGER),
-            new RowType.Field(Optional.of("classkey"), INTEGER),
-            new RowType.Field(Optional.of("orderkey"), INTEGER),
-            new RowType.Field(Optional.of("familykey"), INTEGER),
-            new RowType.Field(Optional.of("genuskey"), INTEGER),
-            new RowType.Field(Optional.of("specieskey"), INTEGER),
+            new RowType.Field(Optional.of("kingdomkey"), VARCHAR),
+            new RowType.Field(Optional.of("phylumkey"), VARCHAR),
+            new RowType.Field(Optional.of("classkey"), VARCHAR),
+            new RowType.Field(Optional.of("orderkey"), VARCHAR),
+            new RowType.Field(Optional.of("familykey"), VARCHAR),
+            new RowType.Field(Optional.of("genuskey"), VARCHAR),
+            new RowType.Field(Optional.of("specieskey"), VARCHAR),
             new RowType.Field(Optional.of("kingdom"), VARCHAR),
             new RowType.Field(Optional.of("phylum"), VARCHAR),
             new RowType.Field(Optional.of("class_"), VARCHAR),
