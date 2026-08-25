@@ -23,13 +23,13 @@ import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.vocabulary.Extension;
 
 import java.io.BufferedWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.output.StringBuilderWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +61,7 @@ public class ExtensionsQueryTest {
       download.setKey("extension-test");
       download.setRequest(pdr);
 
-      StringBuilderWriter writer = new StringBuilderWriter();
+      StringWriter writer = new StringWriter();
       new ExtensionsQuery(new BufferedWriter(writer)).generateExtensionsQueryHQL(download);
       // System.out.println(writer);
       String query = writer.toString();

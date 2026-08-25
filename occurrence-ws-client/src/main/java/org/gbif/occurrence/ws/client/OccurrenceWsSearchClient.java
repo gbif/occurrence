@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.ws.client;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -25,14 +23,15 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import java.util.List;
 import java.util.Set;
 
-import jakarta.annotation.Nullable;
-
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.cloud.openfeign.SpringQueryMap;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import jakarta.annotation.Nullable;
 
 import static org.gbif.api.model.common.paging.PagingConstants.PARAM_LIMIT;
 import static org.gbif.api.model.common.search.SearchConstants.QUERY_PARAM;

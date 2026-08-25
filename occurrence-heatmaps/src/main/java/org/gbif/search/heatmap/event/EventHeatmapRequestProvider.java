@@ -13,10 +13,12 @@
  */
 package org.gbif.search.heatmap.event;
 
-import java.util.Optional;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.occurrence.search.cache.PredicateCacheService;
 import org.gbif.search.heatmap.BaseHeatmapRequestProvider;
+
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -13,16 +13,20 @@
  */
 package org.gbif.event.ws.docs;
 
-import static org.springframework.test.util.AssertionErrors.assertTrue;
+import org.gbif.api.model.event.search.EventSearchParameter;
 
-import com.google.common.base.CaseFormat;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.gbif.api.model.event.search.EventSearchParameter;
+
 import org.junit.jupiter.api.Test;
+
+import com.google.common.base.CaseFormat;
+
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+
+import static org.springframework.test.util.AssertionErrors.assertTrue;
 
 public class OpenAPIUtilsTest {
 

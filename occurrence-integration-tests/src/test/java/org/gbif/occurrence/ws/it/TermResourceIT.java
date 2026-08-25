@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.ws.it;
 
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.ws.resources.TermResource;
+import org.gbif.terms.utils.TermUtils;
 
 import java.util.List;
 import java.util.stream.StreamSupport;

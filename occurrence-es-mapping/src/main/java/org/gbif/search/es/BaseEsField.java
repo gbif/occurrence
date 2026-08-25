@@ -14,32 +14,21 @@
 package org.gbif.search.es;
 
 import org.gbif.dwc.terms.Term;
-
-import lombok.Data;
-import lombok.Getter;
-
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.predicate.query.EsField;
+import org.gbif.terms.utils.TermUtils;
 
-@Data
 public class BaseEsField implements EsField {
 
-  @Getter(onMethod = @__({@Override}))
   private final String searchFieldName;
 
-  @Getter(onMethod = @__({@Override}))
   private final String valueFieldName;
 
-  @Getter(onMethod = @__({@Override}))
   private final Term term;
 
-  @Getter(onMethod = @__({@Override}))
   private boolean autoSuggest;
 
-  @Getter(onMethod = @__({@Override}))
   private boolean usingText;
 
-  @Getter(onMethod = @__({@Override}))
   private String nestedPath;
 
   public BaseEsField(String searchFieldName, String valueFieldName, Term term) {
@@ -81,6 +70,36 @@ public class BaseEsField implements EsField {
     this.autoSuggest = autoSuggest;
     this.valueFieldName = searchFieldName;
     this.usingText = usingText;
+  }
+
+  @Override
+  public String getSearchFieldName() {
+    return searchFieldName;
+  }
+
+  @Override
+  public String getValueFieldName() {
+    return valueFieldName;
+  }
+
+  @Override
+  public Term getTerm() {
+    return term;
+  }
+
+  @Override
+  public boolean isAutoSuggest() {
+    return autoSuggest;
+  }
+
+  @Override
+  public boolean isUsingText() {
+    return usingText;
+  }
+
+  @Override
+  public String getNestedPath() {
+    return nestedPath;
   }
 
   @Override

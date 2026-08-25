@@ -13,26 +13,22 @@
  */
 package org.gbif.occurrence.download.elastic;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Objects;
-
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.core.CountRequest;
-import org.elasticsearch.client.core.CountResponse;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.search.es.EsPredicateUtil;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+
+import java.io.Closeable;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.CountResponse;
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 
 @Builder
 @Slf4j
@@ -53,7 +49,7 @@ public class DownloadEsClient implements Closeable {
           new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
   }
 
-  private final RestHighLevelClient esClient;
+  private final ElasticsearchClient esClient;
 
   private final String esIndex;
 
@@ -62,34 +58,30 @@ public class DownloadEsClient implements Closeable {
   private final String defaultChecklistKey;
 
   /**
-   * Executes the ElasticSearch query and returns the number of records found. If an error occurs
-   * 'ERROR_COUNT' is returned.
+   * Executes the ElasticSearch query and returns the number of records found.
+   * Throws SearchException on failure so callers can distinguish a real zero count.
    */
-  @SneakyThrows
   public long getRecordCount(Predicate predicate) {
-    CountResponse response = esClient.count(new CountRequest()
-        .indices(esIndex).query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)
-      ),
-            RequestOptions.DEFAULT);
-    log.info("Download record count {}", response.getCount());
-    return response.getCount();
-  }
-
-  /**
-   * Shuts down the ElasticSearch client.
-   */
-  private void shutDownEsClientSilently() {
     try {
-      if (Objects.nonNull(esClient)) {
-        esClient.close();
-      }
-    } catch (IOException ex) {
-      log.error("Error shutting down Elasticsearch client", ex);
+      CountResponse response =
+          esClient.count(
+              c ->
+                  c.index(esIndex)
+                      .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)));
+      log.info("Download record count {}", response.count());
+      return response.count();
+    } catch (Exception ex) {
+      log.error("Error counting download records", ex);
+      throw new org.gbif.occurrence.search.SearchException(ex);
     }
   }
 
   @Override
   public void close() {
-    shutDownEsClientSilently();
+    try {
+      esClient._transport().close();
+    } catch (Exception ex) {
+      log.error("Error closing Elasticsearch transport", ex);
+    }
   }
 }

@@ -14,24 +14,23 @@
 package org.gbif.occurrence.download.util;
 
 
-import org.apache.commons.compress.utils.IOUtils;
-
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.download.hive.EventDownloadTerms;
 import org.gbif.occurrence.download.hive.ExtensionTable;
+import org.gbif.terms.utils.TermUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import lombok.experimental.UtilityClass;
 
 import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.hive.DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_WITH_GBIFID;
@@ -40,6 +39,7 @@ import static org.gbif.occurrence.download.hive.DownloadTerms.DOWNLOAD_INTERPRET
  * Utility class that generates a headers file for occurrence downloads.
  * Header columns in general use the simple name of a term.
  */
+@UtilityClass
 public class HeadersFileUtil {
 
   public static final String DEFAULT_VERBATIM_FILE_NAME = "verbatim_headers.txt";
@@ -47,7 +47,6 @@ public class HeadersFileUtil {
   public static final String DEFAULT_MULTIMEDIA_FILE_NAME = "multimedia_headers.txt";
   public static final String HEADERS_FILE_PATH = "inc/";
 
-  private static final Joiner TAB_JOINER = Joiner.on('\t').skipNulls();
 
   /**
    * Creates the headers file.
@@ -79,11 +78,11 @@ public class HeadersFileUtil {
    * Utility method that generates a String that contains the column names of terms.
    */
   private static String getTableHeader(Iterable<? extends Term> terms) {
-    List<String> headers = Lists.newArrayList();
+    List<String> headers = new ArrayList<>();
     for (Term term : terms) {
       headers.add(term.simpleName());
     }
-    return TAB_JOINER.join(headers) + System.lineSeparator();
+    return joinTabSkipNulls(headers) + System.lineSeparator();
   }
 
   /**
@@ -163,7 +162,7 @@ public class HeadersFileUtil {
   }
 
   public static String getExtensionInterpretedHeader(ExtensionTable extensionTable) {
-    return TAB_JOINER.join(extensionTable.getInterpretedFields()) + '\n';
+    return joinTabSkipNulls(extensionTable.getInterpretedFields()) + '\n';
   }
 
   public static void main(String[] args) throws IOException {
@@ -174,11 +173,20 @@ public class HeadersFileUtil {
     generateHeadersFiles(args[0], args[1], args[2]);
   }
 
-  /**
-   * Empty private constructor.
-   */
-  private HeadersFileUtil() {
-    // empty constructor
+  public static String joinTabSkipNulls(Iterable<?> values) {
+    StringJoiner sj = new StringJoiner("\t");
+    for (Object v : values) {
+      if (v != null) sj.add(String.valueOf(v));
+    }
+    return sj.toString();
+  }
+
+  public static List<String> splitTabTrim(String line) {
+    String[] parts = line.split("\t", -1);
+    for (int i = 0; i < parts.length; i++) {
+      parts[i] = parts[i].trim();
+    }
+    return Arrays.asList(parts);
   }
 
 }

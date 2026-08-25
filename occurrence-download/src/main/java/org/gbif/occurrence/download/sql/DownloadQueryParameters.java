@@ -13,12 +13,6 @@
  */
 package org.gbif.occurrence.download.sql;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Data;
-import lombok.SneakyThrows;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.SqlDownloadRequest;
@@ -29,6 +23,14 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.SneakyThrows;
 
 @Builder
 @Data

@@ -13,12 +13,15 @@
  */
 package org.gbif.search.es.occurrence;
 
-import java.util.function.Function;
-import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.search.es.BaseEsFieldMapper;
 import org.gbif.search.es.EsResponseParser;
+
+import java.util.Map;
+import java.util.function.Function;
+
+import co.elastic.clients.elasticsearch.core.search.Hit;
 
 public class OccurrenceEsResponseParser
     extends EsResponseParser<Occurrence, OccurrenceSearchParameter> {
@@ -31,7 +34,7 @@ public class OccurrenceEsResponseParser
    */
   public OccurrenceEsResponseParser(
       BaseEsFieldMapper<OccurrenceSearchParameter> baseEsFieldMapper,
-      Function<SearchHit, Occurrence> hitMapper) {
+      Function<Hit<Map<String, Object>>, Occurrence> hitMapper) {
     super(baseEsFieldMapper, hitMapper);
   }
 

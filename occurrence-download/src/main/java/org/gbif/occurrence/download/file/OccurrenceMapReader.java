@@ -13,25 +13,6 @@
  */
 package org.gbif.occurrence.download.file;
 
-import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
-
-import com.google.common.collect.ImmutableSet;
-import java.net.URI;
-import java.time.ZoneOffset;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.tuple.Pair;
 import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
@@ -50,9 +31,29 @@ import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.terms.utils.TermUtils;
+
+import java.net.URI;
+import java.time.ZoneOffset;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import org.apache.commons.lang3.tuple.Pair;
+
+import static org.gbif.occurrence.common.download.DownloadUtils.DELIMETERS_MATCH_PATTERN;
 
 /**
  * Reads an occurrence record from Elasticsearch and return it in a Map<String,Object>.
@@ -61,7 +62,7 @@ public class OccurrenceMapReader {
 
   private OccurrenceMapReader() {}
 
-  private static final ImmutableSet<Term> INTERPRETED_SOURCE_TERMS = ImmutableSet.copyOf(TermUtils.interpretedSourceTerms());
+  private static final Set<Term> INTERPRETED_SOURCE_TERMS = StreamSupport.stream(TermUtils.interpretedSourceTerms().spliterator(), false).collect(Collectors.toUnmodifiableSet());
 
 
   public static Map<String, String> buildInterpretedOccurrenceMap(Occurrence occurrence, String checklistKey) {

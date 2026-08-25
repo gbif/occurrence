@@ -13,8 +13,12 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
+import org.gbif.api.model.occurrence.Download;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.occurrence.common.download.DownloadUtils;
+import org.gbif.occurrence.download.util.DownloadRequestUtils;
+import org.gbif.occurrence.download.util.IOUtils;
+
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -26,15 +30,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.gbif.api.model.occurrence.Download;
-import org.gbif.api.vocabulary.Extension;
-import org.gbif.occurrence.common.download.DownloadUtils;
-import org.gbif.occurrence.download.util.DownloadRequestUtils;
 
 /** Generates a query file to be used to query the requested extensions of a download. */
 @Slf4j
@@ -92,5 +94,3 @@ public class ExtensionsQuery {
     template().process(templateVariables(download), writer);
   }
 }
-
-

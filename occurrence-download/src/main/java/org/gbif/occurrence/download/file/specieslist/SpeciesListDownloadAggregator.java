@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -21,7 +22,6 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
-import org.gbif.occurrence.download.file.common.DownloadCount;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvArchiveBuilder;
 import org.gbif.occurrence.download.hive.DownloadTerms;
@@ -29,7 +29,9 @@ import org.gbif.occurrence.download.license.LicenseSelector;
 import org.gbif.occurrence.download.license.LicenseSelectors;
 import org.gbif.utils.file.FileUtils;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -37,28 +39,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-
-import org.apache.commons.io.output.FileWriterWithEncoding;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
 
-import com.google.common.base.Throwables;
-
 /**
  * Aggregates multiple files from different jobs and merge there result to final file.
  *
  */
+@Slf4j
 public class SpeciesListDownloadAggregator implements DownloadAggregator {
-
-  private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadAggregator.class);
 
   private static final String CSV_EXTENSION = ".csv";
 
@@ -73,7 +67,6 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
   private final OccurrenceDownloadService occurrenceDownloadService;
   private final LicenseSelector licenseSelector = LicenseSelectors.getMostRestrictiveLicenseSelector(License.CC0_1_0);
 
-  @Inject
   public SpeciesListDownloadAggregator(DownloadJobConfiguration configuration, WorkflowConfiguration workflowConfiguration,
       OccurrenceDownloadService occurrenceDownloadService) {
     this.configuration = configuration;
@@ -95,8 +88,8 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       // Delete the temp directory
       FileUtils.deleteDirectoryRecursively(Paths.get(configuration.getDownloadTempDir()).toFile());
     } catch (IOException ex) {
-      LOG.error("Error aggregating download files", ex);
-      throw Throwables.propagate(ex);
+      log.error("Error aggregating download files", ex);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -116,7 +109,7 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
       speciesResult.getDistinctSpecies().iterator().forEachRemaining(speciesListCollector::collect);
     }
     exportToFile(outputFileName, speciesListCollector);
-    LOG.debug("Create usage for download key: {}", configuration.getDownloadKey());
+    log.debug("Create usage for download key: {}", configuration.getDownloadKey());
     occurrenceDownloadService.createUsages(configuration.getDownloadKey(), datasetUsagesCollector.getDatasetUsages());
     persistDownloadLicenseAndTotalRecords(
         configuration.getDownloadKey(),
@@ -130,19 +123,19 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
         .useEncoder(new DefaultCsvEncoder())
         .build();
     try (ICsvMapWriter csvMapWriter =
-        new CsvMapWriter(new FileWriterWithEncoding(outputFileName, StandardCharsets.UTF_8), preference)) {
+        new CsvMapWriter(new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8), preference)) {
       Set<Map<String, String>> distinctSpecies = speciesListCollector.getDistinctSpecies();
       distinctSpecies.iterator().forEachRemaining(speciesInfo -> {
         try {
           csvMapWriter.write(speciesInfo, COLUMNS);
         } catch (IOException e) {
-          LOG.error("Error merging results", e);
-          throw Throwables.propagate(e);
+          log.error("Error merging results", e);
+          throw new RuntimeException(e);
         }
       });
     } catch (Exception e) {
-      LOG.error("Error merging results", e);
-      throw Throwables.propagate(e);
+      log.error("Error merging results", e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -153,10 +146,10 @@ public class SpeciesListDownloadAggregator implements DownloadAggregator {
     try {
       licenses.forEach(licenseSelector::collectLicense);
       License license = licenseSelector.getSelectedLicense();
-      LOG.info("Update license of download {} to {}", downloadKey, license);
+      log.info("Update license of download {} to {}", downloadKey, license);
       occurrenceDownloadService.updateLicenseAndTotalRecords(downloadKey, license, totalRecords);
     } catch (Exception ex) {
-      LOG.error("Error persisting download license and total records, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
+      log.error("Error persisting download license and total records, downloadKey: {}, licenses:{} ", downloadKey, licenses, ex);
     }
   }
 

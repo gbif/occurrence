@@ -13,20 +13,18 @@
  */
 package org.gbif.occurrence.download.action;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.gbif.api.model.occurrence.DownloadFormat;
+import org.gbif.api.vocabulary.Extension;
+import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
+import org.gbif.occurrence.download.conf.WorkflowConfiguration;
+import org.gbif.occurrence.download.file.DownloadMaster;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
+
 import org.apache.curator.test.TestingCluster;
-import org.gbif.api.model.occurrence.DownloadFormat;
-import org.gbif.api.vocabulary.Extension;
-import org.gbif.occurrence.download.action.DownloadWorkflowModule.DefaultSettings;
-import org.gbif.occurrence.download.conf.DownloadJobConfiguration;
-import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,6 +32,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.utility.DockerImageName;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SparkDownloadWorkflowModuleTestIT {
 
@@ -132,11 +132,7 @@ public class SparkDownloadWorkflowModuleTestIT {
 
     assertNotNull(module);
 
-
-
-    ActorSystem system = ActorSystem.create("DownloadSystem" + downloadJobConfiguration.getDownloadKey());
-
-    ActorRef downloadMaster = module.downloadMaster(system);
+    DownloadMaster downloadMaster = module.downloadMaster();
     assertNotNull(downloadMaster);
   }
 }

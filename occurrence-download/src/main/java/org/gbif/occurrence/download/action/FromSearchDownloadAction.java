@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 
 import org.apache.curator.framework.CuratorFramework;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -40,8 +38,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class FromSearchDownloadAction {
-
-  private static final long SLEEP_TIME_BEFORE_TERMINATION = 5000L;
 
   /**
    * Private constructor.
@@ -103,25 +99,15 @@ public class FromSearchDownloadAction {
 
     try (CuratorFramework curatorIndices = module.curatorFramework()) {
 
-      // Create an Akka system
-      ActorSystem system = ActorSystem.create("DownloadSystem" + configuration.getDownloadKey());
-
-      // create the master
-      ActorRef master = module.downloadMaster(system);
+      DownloadMaster master = module.downloadMaster();
 
       Mutex readMutex = module.provideReadLock(curatorIndices);
       readMutex.acquire();
-      // start the calculation
-      master.tell(new DownloadMaster.Start(), ActorRef.noSender());
-      while (!master.isTerminated()) {
-        try {
-          Thread.sleep(SLEEP_TIME_BEFORE_TERMINATION);
-        } catch (InterruptedException ie) {
-          log.error("Thread interrupted", ie);
-        }
+      try {
+        master.run();
+      } finally {
+        readMutex.release();
       }
-      system.terminate();
-      readMutex.release();
     }
   }
 

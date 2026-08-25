@@ -436,14 +436,14 @@
         "acceptedUsage": {
           "properties": {
             "key": {"type": "long" },
-            "name": {"type": "text", "index":  false, "boost": 100.0, "copy_to": "all"},
+            "name": {"type": "text", "index":  false, "copy_to": "all"},
             "rank": {"type": "keyword", "index":  false}
           }
         },
         "classification": {
           "properties": {
             "key": {"type": "long"},
-            "name": {"type": "text", "boost": 90.0, "copy_to": "all"},
+            "name": {"type": "text", "copy_to": "all"},
             "rank": {"type": "keyword"}
           }
         },
@@ -476,7 +476,7 @@
         "usage": {
           "properties": {
             "key": {"type": "long"},
-            "name": {"type": "keyword", "boost": 100.0, "copy_to": "all", "normalizer": "lowercase_normalizer"},
+            "name": {"type": "keyword", "copy_to": "all", "normalizer": "lowercase_normalizer"},
             "rank": {"type": "keyword"}
           }
         },
@@ -521,7 +521,7 @@
             "uninomial": {"type": "text", "index":  false}
           }
         },
-        "verbatimScientificName": {"type": "keyword", "boost": 100.0, "copy_to": "all", "normalizer": "lowercase_normalizer"},
+        "verbatimScientificName": {"type": "keyword", "copy_to": "all", "normalizer": "lowercase_normalizer"},
         "iucnRedListCategoryCode": {"type": "keyword"}
       }
     },

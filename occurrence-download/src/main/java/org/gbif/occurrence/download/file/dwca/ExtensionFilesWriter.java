@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gbif.occurrence.download.file.dwca.akka;
+package org.gbif.occurrence.download.file.dwca;
 
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.occurrence.download.conf.DownloadJobConfiguration;

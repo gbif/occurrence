@@ -18,8 +18,8 @@ import org.gbif.dwc.terms.GbifDnaTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.predicate.query.SQLColumnsUtils;
+import org.gbif.terms.utils.TermUtils;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating TSV

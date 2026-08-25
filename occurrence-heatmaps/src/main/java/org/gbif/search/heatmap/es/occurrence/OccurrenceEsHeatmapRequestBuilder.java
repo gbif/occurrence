@@ -1,13 +1,8 @@
 package org.gbif.search.heatmap.es.occurrence;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import org.elasticsearch.index.query.BoolQueryBuilder;
-
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.occurrence.search.es.OccurrenceEsSearchRequestBuilder;
 import org.gbif.occurrence.search.es.RequestFieldsTranslator;
 import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
@@ -15,6 +10,13 @@ import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.heatmap.es.BaseEsHeatmapRequestBuilder;
 import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequest;
 import org.gbif.vocabulary.client.ConceptClient;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
 public class OccurrenceEsHeatmapRequestBuilder
     extends BaseEsHeatmapRequestBuilder<OccurrenceSearchParameter, OccurrenceHeatmapRequest> {
@@ -35,8 +37,9 @@ public class OccurrenceEsHeatmapRequestBuilder
   }
 
   @Override
-  protected void handleIssueQueries(Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
-    super.handleOccurrenceIssueQueries(params, bool);
+  protected void handleIssueQueries(
+      Map<OccurrenceSearchParameter, Set<String>> params, List<Query> filters) {
+    super.handleOccurrenceIssueQueries(params, filters);
   }
 
   @Override
@@ -57,5 +60,10 @@ public class OccurrenceEsHeatmapRequestBuilder
   @Override
   protected Predicate translatePredicateFields(Predicate predicate) {
     return RequestFieldsTranslator.translateOccurrencePredicateFields(predicate, conceptClient);
+  }
+
+  @Override
+  protected Query buildFullTextQuery(String qParam) {
+    return OccurrenceEsSearchRequestBuilder.fullTextQuery(qParam, esFieldMapper.getFullTextField());
   }
 }

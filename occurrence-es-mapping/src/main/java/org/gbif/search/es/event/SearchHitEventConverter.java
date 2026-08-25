@@ -13,26 +13,6 @@
  */
 package org.gbif.search.es.event;
 
-import static org.gbif.search.es.event.EventEsField.*;
-import static org.gbif.search.es.event.EventEsField.CRAWL_ID;
-import static org.gbif.search.es.event.EventEsField.HOSTING_ORGANIZATION_KEY;
-import static org.gbif.search.es.event.EventEsField.LAST_CRAWLED;
-import static org.gbif.search.es.event.EventEsField.LAST_INTERPRETED;
-import static org.gbif.search.es.event.EventEsField.LAST_PARSED;
-import static org.gbif.search.es.event.EventEsField.MEDIA_ITEMS;
-import static org.gbif.search.es.event.EventEsField.NETWORK_KEY;
-import static org.gbif.search.es.event.EventEsField.PROTOCOL;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
-import java.net.URI;
-import java.text.ParseException;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.event.Event;
@@ -54,9 +34,32 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.EventTermUtils;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.SearchHitConverter;
+import org.gbif.terms.utils.EventTermUtils;
+
+import java.net.URI;
+import java.text.ParseException;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+
+import co.elastic.clients.elasticsearch.core.search.Hit;
+
+import static org.gbif.search.es.event.EventEsField.*;
+import static org.gbif.search.es.event.EventEsField.CRAWL_ID;
+import static org.gbif.search.es.event.EventEsField.HOSTING_ORGANIZATION_KEY;
+import static org.gbif.search.es.event.EventEsField.LAST_CRAWLED;
+import static org.gbif.search.es.event.EventEsField.LAST_INTERPRETED;
+import static org.gbif.search.es.event.EventEsField.LAST_PARSED;
+import static org.gbif.search.es.event.EventEsField.MEDIA_ITEMS;
+import static org.gbif.search.es.event.EventEsField.NETWORK_KEY;
+import static org.gbif.search.es.event.EventEsField.PROTOCOL;
 
 public class SearchHitEventConverter extends SearchHitConverter<Event> {
 
@@ -73,7 +76,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
   }
 
   @Override
-  public Event apply(SearchHit hit) {
+  public Event apply(Hit<Map<String, Object>> hit) {
     // create occurrence
     Event event = new Event();
 
@@ -119,8 +122,8 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     return event;
   }
 
-  private Map<Term, String> extractVerbatimFields(SearchHit hit) {
-    Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+  private Map<Term, String> extractVerbatimFields(Hit<Map<String, Object>> hit) {
+    Map<String, Object> verbatimFields = (Map<String, Object>) hit.source().get("verbatim");
     if (verbatimFields == null) {
       return Collections.emptyMap();
     }
@@ -139,7 +142,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
   }
 
   /** Transforms a SearchHit into a suitable Verbatim map of terms. */
-  public VerbatimOccurrence toVerbatim(SearchHit hit) {
+  public VerbatimOccurrence toVerbatim(Hit<Map<String, Object>> hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
         .ifPresent(vOcc::setPublishingCountry);
@@ -220,7 +223,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
    * only have been used for "un-starring" a DWCA star record. However, we've exposed it as
    * DcTerm.identifier for a long time in our public API v1, so we continue to do this.
    */
-  private void setIdentifier(SearchHit hit, VerbatimOccurrence event) {
+  private void setIdentifier(Hit<Map<String, Object>> hit, VerbatimOccurrence event) {
 
     String institutionCode = event.getVerbatimField(DwcTerm.institutionCode);
     String collectionCode = event.getVerbatimField(DwcTerm.collectionCode);
@@ -238,7 +241,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
         .ifPresent(result -> event.getVerbatimFields().put(DcTerm.identifier, result));
   }
 
-  private void setEventFields(SearchHit hit, Event event) {
+  private void setEventFields(Hit<Map<String, Object>> hit, Event event) {
     getValue(hit, GBIF_ID, Long::valueOf)
         .ifPresent(
             id -> {
@@ -278,7 +281,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     setEventLineageData(hit, event);
   }
 
-  private void setTemporalFields(SearchHit hit, Event event) {
+  private void setTemporalFields(Hit<Map<String, Object>> hit, Event event) {
     getDateValue(hit, DATE_IDENTIFIED).ifPresent(event::setDateIdentified);
     getValue(hit, DAY, Integer::valueOf).ifPresent(event::setDay);
     getValue(hit, MONTH, Integer::valueOf).ifPresent(event::setMonth);
@@ -295,7 +298,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getValue(hit, END_DAY_OF_YEAR, Integer::valueOf).ifPresent(event::setEndDayOfYear);
   }
 
-  private void setLocationFields(SearchHit hit, Event event) {
+  private void setLocationFields(Hit<Map<String, Object>> hit, Event event) {
     getValue(hit, CONTINENT, Continent::valueOf).ifPresent(event::setContinent);
     getStringValue(hit, STATE_PROVINCE).ifPresent(event::setStateProvince);
     getValue(hit, COUNTRY_CODE, Country::fromIsoCode).ifPresent(event::setCountry);
@@ -343,7 +346,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     event.setGadm(g);
   }
 
-  private void setDatasetFields(SearchHit hit, Event event) {
+  private void setDatasetFields(Hit<Map<String, Object>> hit, Event event) {
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
         .ifPresent(event::setPublishingCountry);
     getValue(hit, DATASET_KEY, UUID::fromString).ifPresent(event::setDatasetKey);
@@ -363,14 +366,14 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
     getListValue(hit, DATASET_CATEGORY).ifPresent(event::setDatasetCategory);
   }
 
-  private void setCrawlingFields(SearchHit hit, Event event) {
+  private void setCrawlingFields(Hit<Map<String, Object>> hit, Event event) {
     getValue(hit, CRAWL_ID, Integer::valueOf).ifPresent(event::setCrawlId);
     getDateValue(hit, LAST_INTERPRETED).ifPresent(event::setLastInterpreted);
     getDateValue(hit, LAST_PARSED).ifPresent(event::setLastParsed);
     getDateValue(hit, LAST_CRAWLED).ifPresent(event::setLastCrawled);
   }
 
-  private void parseMultimediaItems(SearchHit hit, Event event) {
+  private void parseMultimediaItems(Hit<Map<String, Object>> hit, Event event) {
 
     Function<Map<String, Object>, MediaObject> mapFn =
         m -> {
@@ -405,7 +408,7 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
         .ifPresent(event::setMedia);
   }
 
-  private void parseHumboldtItems(SearchHit hit, Event event) {
+  private void parseHumboldtItems(Hit<Map<String, Object>> hit, Event event) {
     // get the humboldt field name
     Function<EsField, String> fn = e -> e.getValueFieldName().replace("event.humboldt.", "");
 
@@ -582,8 +585,8 @@ public class SearchHitEventConverter extends SearchHitConverter<Event> {
                             })));
   }
 
-  private void setEventLineageData(SearchHit hit, Event event) {
-    event.setId(hit.getId());
+  private void setEventLineageData(Hit<Map<String, Object>> hit, Event event) {
+    event.setId(hit.id());
     getStringValue(hit, EventEsField.EVENT_ID).ifPresent(event::setEventID);
     getStringValue(hit, EventEsField.PARENT_EVENT_ID).ifPresent(event::setParentEventID);
     getStringValue(hit, EVENT_TYPE).ifPresent(event::setEventType);

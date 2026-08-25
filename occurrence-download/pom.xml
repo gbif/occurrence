@@ -23,9 +23,6 @@
     <metrics-core.version>4.2.37</metrics-core.version>
     <log4j.version>2.20.0</log4j.version>
     <brickhouse.version>0.6.0</brickhouse.version>
-    <akka-actor.version>2.6.19</akka-actor.version>
-    <es.httpclient.version>4.5.10</es.httpclient.version>
-
     <scala-java8-compat.version>1.0.2</scala-java8-compat.version>
     <slf4j.version>2.0.7</slf4j.version>
 
@@ -72,6 +69,8 @@
                 <exclude>META-INF/*.RSA</exclude>
                 <exclude>org/codehaus/jackson/**</exclude>
                 <exclude>javax/ws/**</exclude>
+                <exclude>META-INF/versions/22/**</exclude>
+                <exclude>META-INF/versions/23/**</exclude>
               </excludes>
             </filter>
           </filters>
@@ -322,10 +321,6 @@
       <artifactId>dwca-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>jakarta.ws.rs</groupId>
-      <artifactId>jakarta.ws.rs-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.gbif.predicates</groupId>
       <artifactId>es-predicates</artifactId>
     </dependency>
@@ -333,11 +328,23 @@
       <groupId>org.gbif.predicates</groupId>
       <artifactId>sql-predicates</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
+      <groupId>org.gbif.vocabulary</groupId>
+      <artifactId>vocabulary-rest-ws-client</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-doi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.registry</groupId>
+      <artifactId>registry-domain</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.gbif.occurrence</groupId>
+      <artifactId>download-query-tools</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -368,20 +375,12 @@
       <artifactId>commons-beanutils-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.jaxrs</groupId>
-      <artifactId>jackson-jaxrs-json-provider</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-text</artifactId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
 
     <!-- Used during build phase only, to generate HQL scripts -->
@@ -390,15 +389,6 @@
       <artifactId>freemarker</artifactId>
     </dependency>
 
-    <!-- this needs to match cluster version -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-    </dependency>
     <!--
       Note: All the following will show as false positive on dependency:analyze
       They are however needed to package in the WF to provide (e.g.) GBIF UDFs.
@@ -456,12 +446,6 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-core</artifactId>
-      <version>${metrics-core.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <exclusions>
@@ -471,26 +455,6 @@
         </exclusion>
       </exclusions>
       <scope>provided</scope>
-    </dependency>
-
-    <!-- Small downloads process -->
-    <dependency>
-      <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-actor_2.12</artifactId>
-      <version>${akka-actor.version}</version>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.scala-lang.modules</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-testkit_2.12</artifactId>
-      <version>${akka-actor.version}</version>
-      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -512,12 +476,20 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.elasticsearch.client</groupId>
-      <artifactId>elasticsearch-rest-high-level-client</artifactId>
+      <groupId>co.elastic.clients</groupId>
+      <artifactId>elasticsearch-java</artifactId>
       <exclusions>
         <exclusion>
           <groupId>commmons-logging</groupId>
           <artifactId>commmons-logging</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tools.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>tools.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -531,12 +503,14 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client</artifactId>
+    </dependency>
 
-    <!-- Match elasticsearch-rest-high-level-client httpclient version -->
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>${es.httpclient.version}</version>
+      <artifactId>httpcore</artifactId>
     </dependency>
 
     <dependency>
@@ -595,11 +569,6 @@
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-library</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.scala-lang.modules</groupId>
-      <artifactId>scala-java8-compat_${scala.tools.version}</artifactId>
-      <version>${scala-java8-compat.version}</version>
-    </dependency>
 
     <!-- Avro -->
     <dependency>
@@ -619,6 +588,12 @@
       <artifactId>avro</artifactId>
       <version>${avro.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
 
     <!-- Test -->

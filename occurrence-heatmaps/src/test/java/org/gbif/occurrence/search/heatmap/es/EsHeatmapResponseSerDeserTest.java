@@ -13,10 +13,11 @@
  */
 package org.gbif.occurrence.search.heatmap.es;
 
+import org.gbif.search.heatmap.es.EsHeatmapResponse;
+
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.gbif.search.heatmap.es.EsHeatmapResponse;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;

@@ -13,29 +13,6 @@
  */
 package org.gbif.occurrence.download.action;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.time.Duration;
-import java.util.Map;
-import java.util.function.Function;
-import lombok.Builder;
-import lombok.Data;
-import lombok.experimental.UtilityClass;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.http.HttpHost;
-import org.elasticsearch.client.NodeSelector;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.sniff.SniffOnFailureListener;
-import org.elasticsearch.client.sniff.Sniffer;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
 import org.gbif.api.model.occurrence.DownloadFormat;
@@ -48,7 +25,7 @@ import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.occurrence.download.file.DownloadAggregator;
 import org.gbif.occurrence.download.file.DownloadMaster;
 import org.gbif.occurrence.download.file.OccurrenceMapReader;
-import org.gbif.occurrence.download.file.dwca.akka.DwcaDownloadAggregator;
+import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.search.es.*;
@@ -65,6 +42,33 @@ import org.gbif.wrangler.lock.ReadWriteMutexFactory;
 import org.gbif.wrangler.lock.zookeeper.ZookeeperSharedReadWriteMutex;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+import java.util.Map;
+import java.util.function.Function;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.NodeSelector;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.client.sniff.SniffOnFailureListener;
+import org.elasticsearch.client.sniff.Sniffer;
+
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import co.elastic.clients.transport.ElasticsearchTransport;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import lombok.Builder;
+import lombok.Data;
+import lombok.experimental.UtilityClass;
 
 /**
  * Utility factory class to create instances of common complex objects required by Download Actions.
@@ -160,7 +164,7 @@ public class DownloadWorkflowModule {
   /**
    * Factory method for Elasticsearch client.
    */
-  public static RestHighLevelClient esClient(WorkflowConfiguration workflowConfiguration) {
+  public static ElasticsearchClient esClient(WorkflowConfiguration workflowConfiguration) {
     EsConfig esConfig = EsConfig.fromProperties(workflowConfiguration.getDownloadSettings(), ES_PREFIX);
     HttpHost[] hosts = new HttpHost[esConfig.getHosts().length];
     int i = 0;
@@ -188,26 +192,33 @@ public class DownloadWorkflowModule {
       builder.setFailureListener(sniffOnFailureListener);
     }
 
-    RestHighLevelClient highLevelClient = new RestHighLevelClient(builder);
+    RestClient restClient = builder.build();
+    ElasticsearchTransport transport =
+        new RestClientTransport(restClient, new JacksonJsonpMapper());
+    ElasticsearchClient esClient = new ElasticsearchClient(transport);
 
+    Sniffer sniffer = null;
     if (esConfig.getSniffInterval() > 0) {
-      Sniffer sniffer = Sniffer.builder(highLevelClient.getLowLevelClient())
+      sniffer = Sniffer.builder(restClient)
         .setSniffIntervalMillis(esConfig.getSniffInterval())
         .setSniffAfterFailureDelayMillis(esConfig.getSniffAfterFailureDelay())
         .build();
       sniffOnFailureListener.setSniffer(sniffer);
-
-      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        sniffer.close();
-        try {
-          highLevelClient.close();
-        } catch (IOException e) {
-          throw new IllegalStateException("Couldn't close ES client", e);
-        }
-      }));
     }
 
-    return highLevelClient;
+    Sniffer finalSniffer = sniffer;
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      if (finalSniffer != null) {
+        finalSniffer.close();
+      }
+      try {
+        transport.close();
+      } catch (IOException e) {
+        throw new IllegalStateException("Couldn't close ES client", e);
+      }
+    }));
+
+    return esClient;
   }
 
 
@@ -218,7 +229,7 @@ public class DownloadWorkflowModule {
   }
 
   /**
-   *  Configuration for the DownloadMater actor.
+   *  Configuration for the DownloadMaster.
    */
   private DownloadMaster.MasterConfiguration masterConfiguration() {
     return  DownloadMaster.MasterConfiguration.builder()
@@ -247,25 +258,20 @@ public class DownloadWorkflowModule {
     );
   }
 
-  /** Creates an ActorRef that holds an instance of {@link DownloadMaster}. */
-  public ActorRef downloadMaster(ActorSystem system) {
-    return system.actorOf(
-        Props.create(
-            DownloadMaster.class,
-            () ->
-                DownloadMaster.builder()
-                    .workflowConfiguration(workflowConfiguration)
-                    .masterConfiguration(masterConfiguration())
-                    .esClient(esClient(workflowConfiguration))
-                    .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
-                    .jobConfiguration(downloadJobConfiguration)
-                    .aggregator(getAggregator())
-                    .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
-                    .interpretedMapper(interpreterMapper())
-                    .verbatimMapper(verbatimMapper())
-                    .searchHitConverter(searchHitConverter())
-                    .build()),
-        "DownloadMaster" + downloadJobConfiguration.getDownloadKey());
+  /** Creates a {@link DownloadMaster} instance ready to run the download job. */
+  public DownloadMaster downloadMaster() {
+    return DownloadMaster.builder()
+        .workflowConfiguration(workflowConfiguration)
+        .masterConfiguration(masterConfiguration())
+        .esClient(esClient(workflowConfiguration))
+        .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
+        .jobConfiguration(downloadJobConfiguration)
+        .aggregator(getAggregator())
+        .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
+        .interpretedMapper(interpreterMapper())
+        .verbatimMapper(verbatimMapper())
+        .searchHitConverter(searchHitConverter())
+        .build();
   }
 
   /**

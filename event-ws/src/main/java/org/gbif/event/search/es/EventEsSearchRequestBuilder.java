@@ -1,11 +1,5 @@
 package org.gbif.event.search.es;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import org.elasticsearch.index.query.BoolQueryBuilder;
-
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
@@ -15,6 +9,13 @@ import org.gbif.predicate.query.EventEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.event.EventEsFieldMapper;
 import org.gbif.vocabulary.client.ConceptClient;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
 public class EventEsSearchRequestBuilder
     extends BaseEsSearchRequestBuilder<EventSearchParameter, EventSearchRequest> {
@@ -35,7 +36,7 @@ public class EventEsSearchRequestBuilder
   }
 
   @Override
-  protected void handleIssueQueries(Map<EventSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
+  protected void handleIssueQueries(Map<EventSearchParameter, Set<String>> params, List<Query> filters) {
     // do nothing
   }
 

@@ -13,34 +13,35 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
-import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
-
-import akka.actor.AbstractActor;
-import com.google.common.base.Throwables;
-import java.util.Date;
-import java.util.Map;
-import java.util.function.Function;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.occurrence.download.file.DownloadFileWork;
+import org.gbif.occurrence.download.file.DownloadFileWorker;
+import org.gbif.occurrence.download.file.Result;
 import org.gbif.occurrence.download.file.common.DatasetUsagesCollector;
 import org.gbif.occurrence.download.file.common.SearchQueryProcessor;
 import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class SpeciesListDownloadActor<T extends Occurrence> extends AbstractActor {
-  private static final Logger LOG = LoggerFactory.getLogger(SpeciesListDownloadActor.class);
+import java.util.Date;
+import java.util.Map;
+import java.util.function.Function;
+
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
+
+import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;
+
+@Slf4j
+public class SpeciesListDownloadWorker<T extends Occurrence> implements DownloadFileWorker {
 
   private final SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor;
 
   private final Function<T, Map<String,String>> interpretedMapper;
 
-  public SpeciesListDownloadActor(
+  public SpeciesListDownloadWorker(
       SearchQueryProcessor<T, OccurrenceSearchParameter> searchQueryProcessor,
       Function<T, Map<String, String>> interpretedMapper) {
     this.searchQueryProcessor = searchQueryProcessor;
@@ -52,43 +53,32 @@ public class SpeciesListDownloadActor<T extends Occurrence> extends AbstractActo
     ConvertUtils.register(new DateConverter(null), Date.class);
   }
 
-  @Override
-  public Receive createReceive() {
-    return receiveBuilder()
-      .match(DownloadFileWork.class, this::doWork)
-      .build();
-  }
-
   /**
    * Executes the job.query and creates a data file that will contain the records from job.from to
    * job.to positions.
    */
-  private void doWork(DownloadFileWork work) {
+  @Override
+  public Result work(DownloadFileWork work) {
 
     DatasetUsagesCollector datasetUsagesCollector = new DatasetUsagesCollector();
     SpeciesListCollector speciesCollector = new SpeciesListCollector();
     try {
       searchQueryProcessor.processQuery(work, occurrence -> {
-        try {
-          Map<String, String> occurrenceRecordMap = selectTerms(interpretedMapper.apply(occurrence), DownloadTerms.SPECIES_LIST_TERMS);
-          if (occurrenceRecordMap != null) {
-            // collect usages
-            datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
-                occurrenceRecordMap.get(DcTerm.license.simpleName()));
-            speciesCollector.collect(occurrenceRecordMap);
-          }
-        } catch (Exception e) {
-          getSender().tell(e, getSelf()); // inform our master
-          throw Throwables.propagate(e);
+        Map<String, String> occurrenceRecordMap = selectTerms(interpretedMapper.apply(occurrence), DownloadTerms.SPECIES_LIST_TERMS);
+        if (occurrenceRecordMap != null) {
+          // collect usages
+          datasetUsagesCollector.collectDatasetUsage(occurrenceRecordMap.get(GbifTerm.datasetKey.simpleName()),
+              occurrenceRecordMap.get(DcTerm.license.simpleName()));
+          speciesCollector.collect(occurrenceRecordMap);
         }
       });
 
-      getSender().tell(new SpeciesListResult(work, datasetUsagesCollector.getDatasetUsages(), datasetUsagesCollector.getDatasetLicenses(),
-        speciesCollector.getDistinctSpecies()), getSelf());
+      return new SpeciesListResult(work, datasetUsagesCollector.getDatasetUsages(), datasetUsagesCollector.getDatasetLicenses(),
+        speciesCollector.getDistinctSpecies());
     } finally {
       // Release the lock
       work.getLock().unlock();
-      LOG.info("Lock released, job detail: {} ", work);
+      log.info("Lock released, job detail: {} ", work);
     }
   }
 }

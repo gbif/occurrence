@@ -13,16 +13,19 @@
  */
 package org.gbif.event.ws.config;
 
-import java.util.*;
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.rest.client.species.Metadata;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.ws.server.provider.EventSearchRequestHandlerMethodArgumentResolver;
+
+import java.util.*;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j

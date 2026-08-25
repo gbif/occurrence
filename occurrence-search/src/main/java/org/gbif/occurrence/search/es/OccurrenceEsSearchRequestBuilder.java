@@ -1,9 +1,5 @@
 package org.gbif.occurrence.search.es;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
@@ -11,6 +7,13 @@ import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.vocabulary.client.ConceptClient;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
 public class OccurrenceEsSearchRequestBuilder
     extends BaseEsSearchRequestBuilder<OccurrenceSearchParameter, OccurrenceSearchRequest> {
@@ -60,7 +63,26 @@ public class OccurrenceEsSearchRequestBuilder
    */
   @Override
   protected void handleIssueQueries(
-      Map<OccurrenceSearchParameter, Set<String>> params, BoolQueryBuilder bool) {
-    super.handleOccurrenceIssueQueries(params, bool);
+      Map<OccurrenceSearchParameter, Set<String>> params, List<Query> filters) {
+    super.handleOccurrenceIssueQueries(params, filters);
+  }
+
+  @Override
+  protected Query buildFullTextQuery(String qParam) {
+    return fullTextQuery(qParam, esFieldMapper.getFullTextField());
+  }
+
+  /** Query-time stand-in for mapping-time field boosts removed in ES 8+. */
+  public static Query fullTextQuery(String qParam, String fullTextField) {
+    return Query.of(
+        q ->
+            q.multiMatch(
+                m ->
+                    m.query(qParam)
+                        .fields(
+                            fullTextField,
+                            "gbifClassification.classification.name^90",
+                            "gbifClassification.usage.name^100",
+                            "gbifClassification.verbatimScientificName^100")));
   }
 }

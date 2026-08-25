@@ -13,15 +13,17 @@
  */
 package org.gbif.occurrence.downloads.launcher.listeners;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.common.messaging.AbstractMessageCallback;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.downloads.launcher.services.EventDownloadUpdaterService;
 import org.gbif.occurrence.downloads.launcher.services.OccurrenceDownloadUpdaterService;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /** Listen MQ for dead letter queue of download launcher */
 @Slf4j

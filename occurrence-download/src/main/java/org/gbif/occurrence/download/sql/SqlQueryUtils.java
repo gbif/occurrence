@@ -15,8 +15,8 @@ package org.gbif.occurrence.download.sql;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
+
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class SqlQueryUtils {
@@ -25,9 +25,11 @@ public class SqlQueryUtils {
    * Replaces variables in the text. Variables come in a map of names and values.
    */
   private static String replaceVariables(String text, Map<String,String> params) {
-    return StringUtils.replaceEach(text,
-                                   params.keySet().stream().map(k -> "${" + k  + "}").toArray(String[]::new),
-                                   params.values().toArray(new String[0]));
+    String result = text;
+    for (Map.Entry<String, String> param : params.entrySet()) {
+      result = result.replace("${" + param.getKey() + "}", param.getValue());
+    }
+    return result;
   }
 
   /**

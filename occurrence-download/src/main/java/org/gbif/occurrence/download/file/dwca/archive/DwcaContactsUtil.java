@@ -13,21 +13,19 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.vocabulary.ContactType;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import lombok.experimental.UtilityClass;
 
@@ -35,12 +33,11 @@ import lombok.experimental.UtilityClass;
  * Utility class used to manage contacts for DwcA download files.
  */
 @UtilityClass
+@Slf4j
 public class DwcaContactsUtil {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DwcaContactsUtil.class);
-
-  private static final List<ContactType> AUTHOR_TYPES =
-    ImmutableList.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
+  private static final Set<ContactType> AUTHOR_TYPES =
+    Set.of(ContactType.ORIGINATOR, ContactType.AUTHOR, ContactType.POINT_OF_CONTACT);
 
   private static final Predicate<Contact> IS_AUTHOR_PREDICATE = contact -> AUTHOR_TYPES.contains(contact.getType()) || contact.isPrimary();
 
@@ -57,7 +54,7 @@ public class DwcaContactsUtil {
   static Contact createContact(String firstName, String lastName, String email, ContactType type,
                                boolean preferred) {
     Contact contact = new Contact();
-    contact.setEmail(Lists.newArrayList(email));
+    contact.setEmail(new ArrayList<>(List.of(email)));
     contact.setFirstName(firstName);
     contact.setLastName(lastName);
     contact.setType(type);
@@ -81,7 +78,7 @@ public class DwcaContactsUtil {
                 provider.setType(ContactType.CONTENT_PROVIDER);
                 provider.setPrimary(false);
               } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                LOG.error("Error setting provider contact", e);
+                log.error("Error setting provider contact", e);
               }
               return provider;
               }

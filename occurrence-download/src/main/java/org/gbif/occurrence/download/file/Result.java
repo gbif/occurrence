@@ -19,19 +19,35 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import jakarta.annotation.Nullable;
-
-import com.google.common.base.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * Communicates the result of a file creation job.
  */
+@Getter
+@EqualsAndHashCode(of = {"downloadFileWork"})
 public class Result implements Comparable<Result> {
 
+  /**
+   * -- GETTER --
+   *
+   * @return the fileJob
+   */
   // FileJob associated to this Result instance.
   private final DownloadFileWork downloadFileWork;
 
+  /**
+   * -- GETTER --
+   *
+   * @return the datasetUsages map
+   */
   private final Map<UUID, Long> datasetUsages;
+  /**
+   * -- GETTER --
+   *
+   * @return may be null
+   */
   private final Set<License> datasetLicenses;
 
   /**
@@ -42,7 +58,7 @@ public class Result implements Comparable<Result> {
   }
 
   public Result(DownloadFileWork downloadFileWork, Map<UUID, Long> datasetUsages,
-                @Nullable Set<License> datasetLicenses) {
+                Set<License> datasetLicenses) {
     this.downloadFileWork = downloadFileWork;
     this.datasetUsages = datasetUsages;
     this.datasetLicenses = datasetLicenses;
@@ -54,45 +70,5 @@ public class Result implements Comparable<Result> {
   @Override
   public int compareTo(Result that) {
     return downloadFileWork.compareTo(that.downloadFileWork);
-  }
-
-  /**
-   * @return the datasetUsages map
-   */
-  public Map<UUID, Long> getDatasetUsages() {
-    return datasetUsages;
-  }
-
-  /**
-   *
-   * @return may be null
-   */
-  public Set<License> getDatasetLicenses() {
-    return datasetLicenses;
-  }
-
-  /**
-   * @return the fileJob
-   */
-  public DownloadFileWork getDownloadFileWork() {
-    return downloadFileWork;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(downloadFileWork);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof Result)) {
-      return false;
-    }
-
-    Result that = (Result) obj;
-    return Objects.equal(downloadFileWork, that.downloadFileWork);
   }
 }

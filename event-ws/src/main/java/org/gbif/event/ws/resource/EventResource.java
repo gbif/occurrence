@@ -13,24 +13,6 @@
  */
 package org.gbif.event.ws.resource;
 
-import static org.gbif.event.ws.docs.OpenAPIUtils.*;
-
-import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.extensions.Extension;
-import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.servers.Server;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import org.elasticsearch.index.query.AbstractQueryBuilder;
-
 import org.gbif.api.annotation.Experimental;
 import org.gbif.api.annotation.NullToNotFound;
 import org.gbif.api.model.common.paging.PagingRequest;
@@ -43,6 +25,10 @@ import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.event.search.es.EventSearchEs;
+import org.gbif.occurrence.search.es.EsQueryUtils;
+
+import java.util.List;
+
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -52,6 +38,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.extensions.Extension;
+import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+import static org.gbif.event.ws.docs.OpenAPIUtils.*;
 
 @OpenAPIDefinition(
     info =
@@ -339,17 +341,14 @@ public class EventResource {
     return eventSearchEs
         .getEsSearchRequestBuilder()
         .buildQuery(request)
-        .map(AbstractQueryBuilder::toString)
+        .map(EsQueryUtils::toJson)
         .orElseThrow(() -> new IllegalArgumentException("Request can't be translated"));
   }
 
   @Hidden
   @GetMapping("search/rest/toesquery")
   public String restToEsQuery(@NotNull @Valid @ParameterObject EventSearchRequest request) {
-    return eventSearchEs
-        .getEsSearchRequestBuilder()
-        .buildSearchRequest(request, "test")
-        .source()
-        .toString();
+    return EsQueryUtils.toJson(
+        eventSearchEs.getEsSearchRequestBuilder().buildSearchRequest(request, "test"));
   }
 }

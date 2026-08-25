@@ -53,6 +53,10 @@ public class HBaseServer implements DisposableBean, InitializingBean {
     TEST_UTIL.getConfiguration().set("fs.file.impl",
       org.apache.hadoop.fs.LocalFileSystem.class.getName()
     );
+    TEST_UTIL.getConfiguration().set("hbase.master.hostname", "localhost");
+    TEST_UTIL.getConfiguration().set("hbase.regionserver.hostname", "localhost");
+    TEST_UTIL.getConfiguration().set("hbase.master.ipc.address", "127.0.0.1");
+    TEST_UTIL.getConfiguration().set("hbase.regionserver.ipc.address", "127.0.0.1");
     TEST_UTIL.getConfiguration().setInt("hbase.master.port", HBaseTestingUtility.randomFreePort());
     TEST_UTIL
       .getConfiguration()

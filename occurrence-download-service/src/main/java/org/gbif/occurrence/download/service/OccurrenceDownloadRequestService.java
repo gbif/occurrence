@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
@@ -22,9 +21,12 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.registry.ws.client.DoiInteractionClient;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j

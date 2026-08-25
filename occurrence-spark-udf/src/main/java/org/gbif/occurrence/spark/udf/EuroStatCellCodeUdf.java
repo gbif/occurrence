@@ -13,8 +13,9 @@
  */
 package org.gbif.occurrence.spark.udf;
 
-import org.apache.spark.sql.api.java.UDF4;
 import org.gbif.occurrence.cube.functions.EuroStatCellCode;
+
+import org.apache.spark.sql.api.java.UDF4;
 
 import static org.gbif.occurrence.spark.udf.ConvertionUtils.toDouble;
 

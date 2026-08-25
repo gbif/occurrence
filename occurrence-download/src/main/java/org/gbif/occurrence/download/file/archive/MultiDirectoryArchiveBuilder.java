@@ -13,21 +13,23 @@
  */
 package org.gbif.occurrence.download.file.archive;
 
-import org.apache.commons.compress.utils.IOUtils;
-
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
 import org.gbif.hadoop.compress.d2.zip.ZipEntry;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
-import org.gbif.occurrence.download.file.common.DownloadFileUtils;
+import org.gbif.occurrence.download.util.IOUtils;
+import org.gbif.occurrence.download.util.Strings;
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -36,13 +38,6 @@ import java.util.zip.ZipOutputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.io.ByteStreams;
 
 import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 
@@ -55,9 +50,8 @@ import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
  *
  * TODO: citation file.
  */
+@Slf4j
 public class MultiDirectoryArchiveBuilder {
-
-  private static final Logger LOG = LoggerFactory.getLogger(MultiDirectoryArchiveBuilder.class);
 
   private static final String ZIP_EXTENSION = ".zip";
 
@@ -109,8 +103,8 @@ public class MultiDirectoryArchiveBuilder {
       }
 
     } catch (Exception ex) {
-      LOG.error(ERROR_ZIP_MSG, ex);
-      throw Throwables.propagate(ex);
+      log.error(ERROR_ZIP_MSG, ex);
+      throw new RuntimeException(ex);
     }
   }
 
@@ -118,7 +112,7 @@ public class MultiDirectoryArchiveBuilder {
    * Create Zip file using the standard Java library java.util.zip.
    */
   private void zipDefault(ZipOutputStream zos, final FileSystem sourceFS, final ZipEntrySource source) throws IOException {
-    LOG.info("Zipping uncompressed source {}/{} as entry {}", sourceFS, source.path, source.name);
+    log.info("Zipping uncompressed source {}/{} as entry {}", sourceFS, source.path, source.name);
 
     Path inputPath = new Path(source.path);
     if (!Strings.isNullOrEmpty(source.header)) {
@@ -131,7 +125,7 @@ public class MultiDirectoryArchiveBuilder {
         try {
           return sourceFS.open(fileStatus.getPath());
         } catch (IOException ex) {
-          throw Throwables.propagate(ex);
+          throw new RuntimeException(ex);
         }
       }).collect(Collectors.toList());
 
@@ -150,7 +144,7 @@ public class MultiDirectoryArchiveBuilder {
    * Inserts the pre-deflated content using the Hadoop-compress library.
    */
   private void zipPreDeflated(ModalZipOutputStream zos, final FileSystem sourceFS, final ZipEntrySource source) throws IOException {
-    LOG.info("Zipping pre-compressed source {}/{} as entry {}", sourceFS, source.path, source.name);
+    log.info("Zipping pre-compressed source {}/{} as entry {}", sourceFS, source.path, source.name);
 
     Path inputPath = new Path(source.path);
     if (!Strings.isNullOrEmpty(source.header)) {
@@ -163,7 +157,7 @@ public class MultiDirectoryArchiveBuilder {
         try {
           return sourceFS.open(fileStatus.getPath());
         } catch (IOException ex) {
-          throw Throwables.propagate(ex);
+          throw new RuntimeException(ex);
         }
       }).collect(Collectors.toList());
 
@@ -172,7 +166,7 @@ public class MultiDirectoryArchiveBuilder {
       ZipEntry ze = new ZipEntry(String.format("%s/%06d", source.name, nextEntryNumber));
       zos.putNextEntry(ze, ModalZipOutputStream.MODE.PRE_DEFLATED);
 
-      D2CombineInputStream in = new D2CombineInputStream(ImmutableList.of(fileInZipInputStream));
+      D2CombineInputStream in = new D2CombineInputStream(List.of(fileInZipInputStream));
 
       IOUtils.copy(in, zos, getFileCopyBufferSize());
       in.close(); // required to get the sizes
@@ -227,7 +221,7 @@ public class MultiDirectoryArchiveBuilder {
    * Private constructor.
    */
   private MultiDirectoryArchiveBuilder(String... sources) {
-    ImmutableList.Builder sourcesBuilder = ImmutableList.builder();
+    ArrayList<ZipEntrySource> sourcesBuilder = new ArrayList<>();
 
     for (int i = 0; i < sources.length; i+=3) {
       ZipEntrySource source = new ZipEntrySource();
@@ -237,6 +231,6 @@ public class MultiDirectoryArchiveBuilder {
       sourcesBuilder.add(source);
     }
 
-    this.sources = sourcesBuilder.build();
+    this.sources = Collections.unmodifiableList(sourcesBuilder);
   }
 }

@@ -15,7 +15,7 @@ package org.gbif.occurrence.download.license;
 
 import org.gbif.api.vocabulary.License;
 
-import com.google.common.base.Preconditions;
+import java.util.Objects;
 
 /**
  * Builder type that returns concrete implementation(s) of LicenseSelector.
@@ -29,9 +29,8 @@ public class LicenseSelectors {
    *
    * @param defaultLicense the default (or base) license.
    */
-  public static LicenseSelector getMostRestrictiveLicenseSelector(final License defaultLicense) {
-    Preconditions.checkNotNull(defaultLicense, "LicenseSelector requires a default license");
-    Preconditions.checkArgument(defaultLicense.isConcrete(), "LicenseSelector can only work on concrete license");
+  public static LicenseSelector getMostRestrictiveLicenseSelector(License defaultLicense) {
+    validateDefaultLicense(defaultLicense);
 
     return new LicenseSelector() {
 
@@ -47,5 +46,12 @@ public class LicenseSelectors {
         return license;
       }
     };
+  }
+
+  private static void validateDefaultLicense(License defaultLicense) {
+    Objects.requireNonNull(defaultLicense, "LicenseSelector requires a default license");
+    if (!defaultLicense.isConcrete()) {
+      throw new IllegalArgumentException("LicenseSelector can only work on concrete license");
+    }
   }
 }

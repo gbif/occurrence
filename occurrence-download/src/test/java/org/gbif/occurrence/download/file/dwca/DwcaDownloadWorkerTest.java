@@ -1,28 +1,36 @@
-package org.gbif.occurrence.download.file.dwca.akka;
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gbif.occurrence.download.file.dwca;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.*;
-import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DownloadDwcaActorTest {
+public class DwcaDownloadWorkerTest {
 
   @Test
   public void testNormalizeExtensionField() {
 
-    ActorSystem system = ActorSystem.create("test");
-    TestActorRef actor =  TestActorRef.apply(
-      Props.create(DownloadDwcaActor.class, null, null, null),
-      system
-    );
+    DwcaDownloadWorker<VerbatimOccurrence, OccurrenceSearchParameter> worker = new DwcaDownloadWorker<>(null, null, null);
 
     UUID datasetKey = UUID.randomUUID();
     VerbatimOccurrence record =  new VerbatimOccurrence();
@@ -49,7 +57,7 @@ public class DownloadDwcaActorTest {
     terms.put(ExifTerm.PixelYDimension, "8985");
     terms.put(DcTerm.title, "03538523.tif");
 
-    Map<String,String> result = ((DownloadDwcaActor)actor.underlyingActor()).toExtensionRecord(terms, record);
+    Map<String,String> result = worker.toExtensionRecord(terms, record);
 
     Map<String, String> expected = new LinkedHashMap<>();
     expected.put(GbifTerm.gbifID.simpleName().toLowerCase(), "1");
@@ -74,6 +82,5 @@ public class DownloadDwcaActorTest {
     expected.put(DcTerm.title.simpleName().toLowerCase(), "03538523.tif");
 
     assertEquals(expected, result);
-    system.terminate();
   }
 }

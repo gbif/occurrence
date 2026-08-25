@@ -13,21 +13,6 @@
  */
 package org.gbif.occurrence.search.es;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
-import org.elasticsearch.common.Strings;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -37,6 +22,23 @@ import org.gbif.api.vocabulary.DurationUnit;
 import org.gbif.vocabulary.api.ConceptView;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.vocabulary.model.Tag;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.google.common.base.Strings;
+
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 public class RequestFieldsTranslator {
 
@@ -69,7 +71,6 @@ public class RequestFieldsTranslator {
                       new EventSearchParameter.EventSearchParameterDeserializer()))
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-  @SneakyThrows
   public static Predicate translateOccurrencePredicateFields(
       Predicate predicate, ConceptClient conceptClient) {
     if (conceptClient == null || predicate == null) {
@@ -101,10 +102,13 @@ public class RequestFieldsTranslator {
               }
             });
 
-    return occurrenceObjectMapper.treeToValue(node, Predicate.class);
+    try {
+      return occurrenceObjectMapper.treeToValue(node, Predicate.class);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error translating occurrence predicate fields", e);
+    }
   }
 
-  @SneakyThrows
   public static Predicate translateEventPredicateFields(
       Predicate predicate, ConceptClient conceptClient) {
     if (conceptClient == null || predicate == null) {
@@ -126,7 +130,11 @@ public class RequestFieldsTranslator {
               }
             });
 
-    return eventObjectMapper.treeToValue(node, Predicate.class);
+    try {
+      return eventObjectMapper.treeToValue(node, Predicate.class);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error translating event predicate fields", e);
+    }
   }
 
   private static boolean containsParam(JsonNode node, String paramName) {
@@ -283,8 +291,8 @@ public class RequestFieldsTranslator {
           } else if (predicateType.equals("greaterThan")) {
             return geotimeAgesSingleParam.startAge;
           } else if (predicateType.equals("lessThan")) {
-          return geotimeAgesSingleParam.endAge;
-        }
+            return geotimeAgesSingleParam.endAge;
+          }
         } else {
           return geotimeAgesSingleParam.endAge
               + EsQueryUtils.RANGE_SEPARATOR
@@ -307,7 +315,10 @@ public class RequestFieldsTranslator {
 
   private static GeotimeAges getGeotimeAges(ConceptClient conceptClient, String geoTimeParam) {
     if (geoTimeParam.equals(EsQueryUtils.RANGE_WILDCARD)) {
-      return new GeotimeAges(EsQueryUtils.RANGE_WILDCARD, EsQueryUtils.RANGE_WILDCARD);
+      GeotimeAges ages = new GeotimeAges();
+      ages.startAge = EsQueryUtils.RANGE_WILDCARD;
+      ages.endAge = EsQueryUtils.RANGE_WILDCARD;
+      return ages;
     }
 
     // get the start and end age from the concepts tag

@@ -19,10 +19,10 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.BiFunction;
 
-import jakarta.annotation.Nullable;
-
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+
+import jakarta.annotation.Nullable;
 
 public class EsConfig {
 

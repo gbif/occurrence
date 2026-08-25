@@ -14,8 +14,8 @@
 package org.gbif.occurrence.download.hive;
 
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.predicate.query.SQLColumnsUtils;
+import org.gbif.terms.utils.TermUtils;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating TSV

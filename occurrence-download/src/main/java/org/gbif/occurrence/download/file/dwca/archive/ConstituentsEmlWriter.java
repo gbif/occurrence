@@ -75,7 +75,7 @@ public class ConstituentsEmlWriter implements Closeable, Consumer<Dataset> {
   private static boolean isEmpty(Path path) throws IOException {
     if (Files.isDirectory(path)) {
       try (Stream<Path> entries = Files.list(path)) {
-        return !entries.findFirst().isPresent();
+        return entries.findFirst().isEmpty();
       }
     }
     return false;

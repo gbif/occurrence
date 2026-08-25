@@ -22,9 +22,8 @@ import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipServic
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
-
-import jakarta.annotation.Nullable;
 
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -36,7 +35,7 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import jakarta.annotation.Nullable;
 
 /**
  * An implementation of OccurrenceService for retrieving Occurrence objects in HBase.
@@ -54,11 +53,11 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
 
   @Autowired
   public OccurrencePersistenceServiceImpl(OccHBaseConfiguration cfg, Connection connection) {
-    this.fragmenterTableName = checkNotNull(cfg.fragmenterTable, "fragmenterTable can't be null");
+    this.fragmenterTableName = Objects.requireNonNull(cfg.fragmenterTable, "fragmenterTable can't be null");
     this.fragmenterSalt = cfg.fragmenterSalt;
     this.relationshipTableName = cfg.relationshipTable;
     this.relationshipSalt = cfg.relationshipSalt;
-    this.connection = checkNotNull(connection, "connection can't be null");
+    this.connection = Objects.requireNonNull(connection, "connection can't be null");
   }
 
   /**

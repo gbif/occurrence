@@ -13,6 +13,32 @@
  */
 package org.gbif.search.es.occurrence;
 
+import org.gbif.api.model.occurrence.VerbatimOccurrence;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.dwc.terms.DcTerm;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.Term;
+import org.gbif.search.es.SearchHitConverter;
+import org.gbif.terms.utils.TermUtils;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+
+import co.elastic.clients.elasticsearch.core.search.Hit;
+
 import static org.gbif.search.es.occurrence.OccurrenceEsField.CRAWL_ID;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.DATASET_CATEGORY;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.DATASET_KEY;
@@ -28,29 +54,6 @@ import static org.gbif.search.es.occurrence.OccurrenceEsField.PUBLISHING_COUNTRY
 import static org.gbif.search.es.occurrence.OccurrenceEsField.PUBLISHING_ORGANIZATION_KEY;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.VERBATIM;
 
-import com.google.common.collect.Maps;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
-import org.gbif.api.model.occurrence.VerbatimOccurrence;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.dwc.terms.DcTerm;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.TermUtils;
-import org.gbif.search.es.SearchHitConverter;
-
 // FIXME: is this class used?
 public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccurrence> {
 
@@ -61,7 +64,7 @@ public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccur
   }
 
   @Override
-  public VerbatimOccurrence apply(SearchHit hit) {
+  public VerbatimOccurrence apply(Hit<Map<String, Object>> hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
     getValue(hit, PUBLISHING_COUNTRY, v -> Country.fromIsoCode(v.toUpperCase()))
         .ifPresent(vOcc::setPublishingCountry);
@@ -105,8 +108,8 @@ public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccur
     return vOcc;
   }
 
-  private Map<Term, String> extractVerbatimFields(SearchHit hit) {
-    Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+  private Map<Term, String> extractVerbatimFields(Hit<Map<String, Object>> hit) {
+    Map<String, Object> verbatimFields = (Map<String, Object>) hit.source().get("verbatim");
     if (verbatimFields == null) {
       return Collections.emptyMap();
     }
@@ -125,7 +128,7 @@ public class VerbatimSearchHitConverter extends SearchHitConverter<VerbatimOccur
    * only have been used for "un-starring" a DWCA star record. However, we've exposed it as
    * DcTerm.identifier for a long time in our public API v1, so we continue to do this.
    */
-  private void setIdentifier(SearchHit hit, VerbatimOccurrence occ) {
+  private void setIdentifier(Hit<Map<String, Object>> hit, VerbatimOccurrence occ) {
 
     String institutionCode = occ.getVerbatimField(DwcTerm.institutionCode);
     String collectionCode = occ.getVerbatimField(DwcTerm.collectionCode);

@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.ws.config;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
@@ -25,6 +24,8 @@ import java.util.*;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j

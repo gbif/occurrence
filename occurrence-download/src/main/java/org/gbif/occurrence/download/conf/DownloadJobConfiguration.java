@@ -13,38 +13,34 @@
  */
 package org.gbif.occurrence.download.conf;
 
-import lombok.SneakyThrows;
-
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.predicate.query.EsFieldMapper;
-import org.gbif.search.es.event.EventEsField;
 import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.file.TableSuffixes;
 import org.gbif.occurrence.download.file.dwca.archive.DwcDownloadsConstants;
 import org.gbif.occurrence.download.hive.ExtensionTable;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.util.DownloadRequestUtils;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
+import org.gbif.predicate.query.EsFieldMapper;
+import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 
 import java.util.Set;
 
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.SneakyThrows;
 
 /** Configuration of a small download execution. */
 @Data
+@Slf4j
 public class DownloadJobConfiguration {
-
-  private static final Logger log = LoggerFactory.getLogger(DownloadJobConfiguration.class);
 
   /** Occurrence download key/identifier. */
   private final String downloadKey;

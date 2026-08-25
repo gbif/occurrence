@@ -13,23 +13,6 @@
  */
 package org.gbif.search.es.occurrence;
 
-import com.google.common.collect.Maps;
-import java.net.URI;
-import java.text.ParseException;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.search.SearchHit;
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.common.Classification;
 import org.gbif.api.model.common.Identifier;
@@ -64,11 +47,31 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.IucnTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.UnknownTerm;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.predicate.query.EsField;
 import org.gbif.search.es.ChecklistEsField;
 import org.gbif.search.es.SearchHitConverter;
 import org.gbif.search.es.event.EventEsField;
+import org.gbif.terms.utils.TermUtils;
+
+import java.net.URI;
+import java.text.ParseException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Maps;
+
+import co.elastic.clients.elasticsearch.core.search.Hit;
 
 public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence> {
 
@@ -83,7 +86,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   }
 
   @Override
-  public Occurrence apply(SearchHit hit) {
+  public Occurrence apply(Hit<Map<String, Object>> hit) {
     // create occurrence
     Occurrence occ = new Occurrence();
 
@@ -128,8 +131,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     return occ;
   }
 
-  private Map<Term, String> extractVerbatimFields(SearchHit hit) {
-    Map<String, Object> verbatimFields = (Map<String, Object>) hit.getSourceAsMap().get("verbatim");
+  private Map<Term, String> extractVerbatimFields(Hit<Map<String, Object>> hit) {
+    Map<String, Object> verbatimFields = (Map<String, Object>) hit.source().get("verbatim");
     if(verbatimFields == null) {
       return Collections.emptyMap();
     }
@@ -146,7 +149,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   /**
    * Transforms a SearchHit into a suitable Verbatim map of terms.
    */
-  public VerbatimOccurrence toVerbatimOccurrence(SearchHit hit) {
+  public VerbatimOccurrence toVerbatimOccurrence(Hit<Map<String, Object>> hit) {
     VerbatimOccurrence vOcc = new VerbatimOccurrence();
     getValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.publishingCountry), v -> Country.fromIsoCode(v.toUpperCase()))
       .ifPresent(vOcc::setPublishingCountry);
@@ -221,7 +224,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
    * used for "un-starring" a DWCA star record. However, we've exposed it as DcTerm.identifier for a long time in
    * our public API v1, so we continue to do this.
    */
-  private void setIdentifier(SearchHit hit, VerbatimOccurrence occ) {
+  private void setIdentifier(Hit<Map<String, Object>> hit, VerbatimOccurrence occ) {
 
     String institutionCode = occ.getVerbatimField(DwcTerm.institutionCode);
     String collectionCode = occ.getVerbatimField(DwcTerm.collectionCode);
@@ -238,7 +241,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       .ifPresent(result -> occ.getVerbatimFields().put(DcTerm.identifier, result));
   }
 
-  private void setOccurrenceFields(SearchHit hit, Occurrence occ) {
+  private void setOccurrenceFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.gbifID), Long::valueOf)
       .ifPresent(
         id -> {
@@ -310,7 +313,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getStringValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.bed)).ifPresent(occ::setBed);
   }
 
-  private void parseAgentIds(SearchHit hit, Occurrence occ) {
+  private void parseAgentIds(Hit<Map<String, Object>> hit, Occurrence occ) {
     Function<Map<String, Object>, AgentIdentifier> mapFn = m -> {
       AgentIdentifier ai = new AgentIdentifier();
       extractStringValue(m, "type", AgentIdentifierType::valueOf).ifPresent(ai::setType);
@@ -327,7 +330,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       .ifPresent(occ::setIdentifiedByIds);
   }
 
-  private void setTemporalFields(SearchHit hit, Occurrence occ) {
+  private void setTemporalFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getDateValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.dateIdentified)).ifPresent(occ::setDateIdentified);
     getValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.day), Integer::valueOf).ifPresent(occ::setDay);
     getValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.month), Integer::valueOf).ifPresent(occ::setMonth);
@@ -341,7 +344,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     getValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.endDayOfYear), Integer::valueOf).ifPresent(occ::setEndDayOfYear);
   }
 
-  private void setLocationFields(SearchHit hit, Occurrence occ) {
+  private void setLocationFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.continent), Continent::valueOf).ifPresent(occ::setContinent);
     getStringValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.stateProvince)).ifPresent(occ::setStateProvince);
     getValue(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.countryCode), Country::fromIsoCode).ifPresent(occ::setCountry);
@@ -394,7 +397,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
    * @param occ the occurrence to set the fields on
    */
   @Deprecated
-  private void setTaxonFields(SearchHit hit, Occurrence occ) {
+  private void setTaxonFields(Hit<Map<String, Object>> hit, Occurrence occ) {
 
     getChecklistIntValue(hit, getChecklistField(GbifTerm.kingdomKey), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setKingdomKey);
     getChecklistStringValue(hit, getChecklistField(DwcTerm.kingdom), Constants.NUB_DATASET_KEY.toString()).ifPresent(occ::setKingdom);
@@ -462,7 +465,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     );
   }
 
-  private void setClassifications(SearchHit hit, Occurrence occ) {
+  private void setClassifications(Hit<Map<String, Object>> hit, Occurrence occ) {
     getMapValue(hit, "classifications").map(
       classifications -> classifications.entrySet().stream()
       .collect(Collectors.toMap(
@@ -512,12 +515,12 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
   }
 
 
-  private void setGrscicollFields(SearchHit hit, Occurrence occ) {
+  private void setGrscicollFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getStringValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.institutionKey)).ifPresent(occ::setInstitutionKey);
     getStringValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.collectionKey)).ifPresent(occ::setCollectionKey);
   }
 
-  private void setDatasetFields(SearchHit hit, Occurrence occ) {
+  private void setDatasetFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.publishingCountry), v -> Country.fromIsoCode(v.toUpperCase()))
       .ifPresent(occ::setPublishingCountry);
     getValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.datasetKey), UUID::fromString).ifPresent(occ::setDatasetKey);
@@ -535,14 +538,14 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       .ifPresent(occ::setDatasetCategory);
   }
 
-  private void setCrawlingFields(SearchHit hit, Occurrence occ) {
+  private void setCrawlingFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.crawlId), Integer::valueOf).ifPresent(occ::setCrawlId);
     getDateValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.lastInterpreted)).ifPresent(occ::setLastInterpreted);
     getDateValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.lastParsed)).ifPresent(occ::setLastParsed);
     getDateValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.lastCrawled)).ifPresent(occ::setLastCrawled);
   }
 
-  private void setDnaFields(SearchHit hit, Occurrence occ) {
+  private void setDnaFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getListValue(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.dnaSequenceID))
         .ifPresent(occ::setDnaSequenceID);
 
@@ -603,7 +606,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
         .ifPresent(occ::setNucleotideSequence);
   }
 
-  private void parseMultimediaItems(SearchHit hit, Occurrence occ) {
+  private void parseMultimediaItems(Hit<Map<String, Object>> hit, Occurrence occ) {
 
     Function<Map<String, Object>, MediaObject> mapFn = m -> {
       MediaObject mediaObject = new MediaObject();

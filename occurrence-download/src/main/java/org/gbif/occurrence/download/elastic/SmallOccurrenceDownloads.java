@@ -13,10 +13,11 @@
  */
 package org.gbif.occurrence.download.elastic;
 
-import java.io.IOException;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.download.conf.WorkflowConfiguration;
 import org.gbif.utils.file.properties.PropertiesUtil;
+
+import java.io.IOException;
 
 public class SmallOccurrenceDownloads {
 

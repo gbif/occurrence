@@ -14,7 +14,7 @@
 package org.gbif.occurrence.download.file.dwca.archive;
 
 import org.gbif.api.service.registry.DatasetService;
-import org.gbif.occurrence.download.file.dwca.akka.CitationsFileWriter;
+import org.gbif.occurrence.download.file.dwca.CitationsFileWriter;
 
 import java.io.File;
 import java.nio.file.Path;

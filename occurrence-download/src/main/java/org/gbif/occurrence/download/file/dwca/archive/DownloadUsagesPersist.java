@@ -13,16 +13,14 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.vocabulary.License;
 
 import java.util.Map;
 import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.gbif.api.vocabulary.License;
 
 @Slf4j
 @AllArgsConstructor(staticName = "create")

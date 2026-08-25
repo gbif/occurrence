@@ -13,17 +13,19 @@
  */
 package org.gbif.occurrence.download.query;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.google.common.collect.Sets;
-import java.util.Set;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
-import org.gbif.terms.utils.EventTermUtils;
-import org.gbif.terms.utils.TermUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.EventDownloadTerms;
+import org.gbif.terms.utils.EventTermUtils;
+import org.gbif.terms.utils.TermUtils;
+
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * This test makes sure the Terms used for headers in the download are available in the HDFS table.
@@ -33,10 +35,9 @@ public class TestDownloadHeaders {
   @Test
   public void testTermsConsistency() {
     Set<Term> diff =
-        Sets.newHashSet(
-            Sets.symmetricDifference(
-                Sets.newHashSet(TermUtils.interpretedTerms()),
-                DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS));
+            symmetricDifference(
+                new HashSet<>(TermUtils.interpretedTerms()),
+                DownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS);
     diff.remove(GbifTerm.gbifID);
     diff.remove(GbifTerm.verbatimScientificName);
     assertEquals(
@@ -46,9 +47,9 @@ public class TestDownloadHeaders {
             + diff);
 
     Set<Term> verbatimDiff =
-        Sets.newHashSet(
-            Sets.symmetricDifference(
-                Sets.newHashSet(TermUtils.verbatimTerms()), DownloadTerms.DOWNLOAD_VERBATIM_TERMS));
+      symmetricDifference(
+        new HashSet<>(TermUtils.verbatimTerms()),
+        DownloadTerms.DOWNLOAD_VERBATIM_TERMS);
     verbatimDiff.remove(GbifTerm.gbifID);
     assertEquals(
         0,
@@ -60,10 +61,9 @@ public class TestDownloadHeaders {
   @Test
   public void testEventTermsConsistency() {
     Set<Term> diff =
-        Sets.newHashSet(
-            Sets.symmetricDifference(
-                Sets.newHashSet(EventTermUtils.interpretedTerms()),
-                EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS));
+       symmetricDifference(
+                new HashSet<>(EventTermUtils.interpretedTerms()),
+                EventDownloadTerms.DOWNLOAD_INTERPRETED_TERMS_HDFS);
     diff.remove(GbifTerm.gbifID);
     diff.remove(GbifTerm.verbatimScientificName);
     assertEquals(
@@ -73,15 +73,23 @@ public class TestDownloadHeaders {
             + diff);
 
     Set<Term> verbatimDiff =
-        Sets.newHashSet(
-            Sets.symmetricDifference(
-                Sets.newHashSet(EventTermUtils.verbatimTerms()),
-                EventDownloadTerms.DOWNLOAD_VERBATIM_TERMS));
+            symmetricDifference(
+                new HashSet<>(EventTermUtils.verbatimTerms()),
+                EventDownloadTerms.DOWNLOAD_VERBATIM_TERMS);
     verbatimDiff.remove(GbifTerm.gbifID);
     assertEquals(
         0,
         verbatimDiff.size(),
         "EventTermUtils.verbatimTerms() and EventDownloadTerms.DOWNLOAD_VERBATIM_TERMS must use the same terms. Difference(s): "
             + verbatimDiff);
+  }
+
+  private static <T> Set<T> symmetricDifference(Set<T> a, Set<T> b) {
+    Set<T> result = new HashSet<>(a);
+    Set<T> intersection = new HashSet<>(a);
+    intersection.retainAll(b); // a ∩ b
+    result.addAll(b);          // a ∪ b
+    result.removeAll(intersection); // (a ∪ b) - (a ∩ b)
+    return result;
   }
 }

@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.download.file;
 
-import lombok.Getter;
-
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.wrangler.lock.Lock;
@@ -22,13 +20,12 @@ import org.gbif.wrangler.lock.Lock;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.elasticsearch.client.RestHighLevelClient;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.primitives.Ints;
-
-import static com.google.common.base.Preconditions.checkArgument;
+import static org.gbif.occurrence.download.util.Preconditions.checkArgument;
 
 /**
  * Holds the job information about the work that each file writer job/thread has to do.
@@ -36,29 +33,73 @@ import static com.google.common.base.Preconditions.checkArgument;
  * - query:*:* from: 200, to: 500, dataFile:occurrence.txt3.
  * - query:collector_name:juan from: 1000, to: 5500, dataFile:occurrence.txt99.
  */
+@Getter
+@EqualsAndHashCode(of = {"baseDataFileName", "jobId", "query", "from", "to"})
+@ToString(of = {"from", "to", "baseDataFileName", "jobId", "query"})
 public class DownloadFileWork implements Comparable<DownloadFileWork> {
 
+  /**
+   * -- GETTER --
+   *  Search query.
+   *
+   * @return the query
+   */
   private final String query;
 
+  /**
+   * -- GETTER --
+   *  Offset in the complete result set returned by the query.
+   *
+   * @return the from
+   */
   private final int from;
 
+  /**
+   * -- GETTER --
+   *  Number of the last result to be processed.
+   *
+   * @return the to
+   */
   private final int to;
 
+  /**
+   * -- GETTER --
+   *
+   * @return the job identifier
+   */
   private final int jobId;
 
+  /**
+   * -- GETTER --
+   *  Gets the base table name.
+   */
   private final String baseDataFileName;
 
+  /**
+   * -- GETTER --
+   *
+   * @return zookeeper lock
+   */
   private final Lock lock;
 
-  private final RestHighLevelClient esClient;
+  /**
+   * -- GETTER --
+   *
+   * @return Elasticsearch client to run queries
+   */
+  private final ElasticsearchClient esClient;
 
+  /**
+   * -- GETTER --
+   *
+   * @return the Elasticsearch index
+   */
   private final String esIndex;
 
   private final Set<Extension> verbatimExtensions;
 
   private final Set<Extension> interpretedExtensions;
 
-  @Getter
   private final DownloadFormat downloadFormat;
 
 
@@ -66,7 +107,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
    * Default constructor.
    */
   public DownloadFileWork(int from, int to, String baseDataFileName, int jobId, String query, Lock lock,
-                          RestHighLevelClient esClient, String esIndex, Set<Extension> verbatimExtensions,
+                          ElasticsearchClient esClient, String esIndex, Set<Extension> verbatimExtensions,
                           Set<Extension> interpretedExtensions, DownloadFormat downloadFormat) {
     checkArgument(to >= from, "'to' parameter should be greater than the 'from' argument");
     this.query = query;
@@ -87,14 +128,7 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
    */
   @Override
   public int compareTo(DownloadFileWork that) {
-    return Ints.compare(getFrom(), that.getFrom());
-  }
-
-  /**
-   * Gets the base table name.
-   */
-  public String getBaseDataFileName() {
-    return baseDataFileName;
+    return Integer.compare(getFrom(), that.getFrom());
   }
 
   /**
@@ -102,103 +136,6 @@ public class DownloadFileWork implements Comparable<DownloadFileWork> {
    */
   public String getJobDataFileName() {
     return baseDataFileName + jobId;
-  }
-
-  /**
-   * Offset in the complete result set returned by the query.
-   *
-   * @return the from
-   */
-  public int getFrom() {
-    return from;
-  }
-
-  /**
-   * Search query.
-   *
-   * @return the query
-   */
-  public String getQuery() {
-    return query;
-  }
-
-  /**
-   * Number of the last result to be processed.
-   *
-   * @return the to
-   */
-  public int getTo() {
-    return to;
-  }
-
-  /**
-   * @return the job identifier
-   */
-  public int getJobId() {
-    return jobId;
-  }
-
-  /**
-   * @return zookeeper lock
-   */
-  public Lock getLock() {
-    return lock;
-  }
-
-  /**
-   * @return Elasticsearch client to run queries
-   */
-  public RestHighLevelClient getEsClient() {
-    return esClient;
-  }
-
-  /**
-   *
-   * @return the Elasticsearch index
-   */
-  public String getEsIndex() {
-    return esIndex;
-  }
-
-  public Set<Extension> getVerbatimExtensions() {
-    return verbatimExtensions;
-  }
-
-  public Set<Extension> getInterpretedExtensions() {
-    return interpretedExtensions;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(baseDataFileName, jobId, query, from, to);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof DownloadFileWork)) {
-      return false;
-    }
-
-    DownloadFileWork that = (DownloadFileWork) obj;
-    return Objects.equal(this.baseDataFileName, that.baseDataFileName)
-           && Objects.equal(this.jobId, that.jobId)
-           && Objects.equal(this.query, that.query)
-           && Objects.equal(this.from, that.from)
-           && Objects.equal(this.to, that.to);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-      .add("from", from)
-      .add("to", to)
-      .add("baseDataFileName", baseDataFileName)
-      .add("jobId", jobId)
-      .add("query", query)
-      .toString();
   }
 
 }
