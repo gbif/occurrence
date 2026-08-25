@@ -215,8 +215,8 @@
     <jacoco.merged.output.file>${coverage.dir}/jacoco.exec</jacoco.merged.output.file>
 
     <!-- es versions -->
-    <elasticsearch.version>9.5.0</elasticsearch.version>
-    <testcontainers-elasticsearch.version>2.0.2</testcontainers-elasticsearch.version>
+    <elasticsearch.version>9.5.2</elasticsearch.version>
+    <testcontainers-elasticsearch.version>2.0.5</testcontainers-elasticsearch.version>
 
     <!-- Spark -->
     <spark.version>3.5.1</spark.version>
