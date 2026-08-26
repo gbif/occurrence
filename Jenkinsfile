@@ -134,7 +134,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE };
-              branch 'master';
+              branch 'fix-small-download-datasetkey';
           }
       }
       environment {
@@ -152,7 +152,7 @@ pipeline {
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
               git 'https://github.com/gbif/occurrence.git'
-              sh 'mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -Darguments="-Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE" $RELEASE_ARGS'
+              sh 'git checkout fix-small-download-datasetkey && mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -Darguments="-Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE" $RELEASE_ARGS'
             }
           }
 
@@ -166,7 +166,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE_TRINO };
-              branch 'master';
+              branch 'fix-small-download-datasetkey';
           }
       }
       environment {
@@ -178,6 +178,7 @@ pipeline {
                           variable: 'MAVEN_SETTINGS_XML')]) {
               git 'https://github.com/gbif/occurrence.git'
               sh '''
+                git checkout fix-small-download-datasetkey
                 cd occurrence-trino-udf
                 mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS_TRINO
               '''
@@ -190,7 +191,7 @@ pipeline {
         allOf {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
+          branch 'fix-small-download-datasetkey';
         }
       }
       environment {
