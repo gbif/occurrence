@@ -313,7 +313,7 @@ public class OccurrenceMapReader {
 
     event.getVerbatimFields().forEach( (term, value) -> {
       if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
-        interpretedEvent.put(term.simpleName(), value);
+        interpretedEvent.putIfAbsent(term.simpleName(), value);
       }
     });
 
