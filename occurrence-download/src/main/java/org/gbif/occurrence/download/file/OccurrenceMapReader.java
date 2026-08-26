@@ -55,7 +55,7 @@ import org.gbif.occurrence.common.download.DownloadUtils;
 import org.gbif.occurrence.download.hive.DownloadTerms;
 
 /**
- * Reads an occurrence record from Elasticsearch and return it in a Map<String,Object>.
+ * Reads an occurrence record from Elasticsearch and returns it in a Map<String,Object>.
  */
 public class OccurrenceMapReader {
 
@@ -68,7 +68,7 @@ public class OccurrenceMapReader {
 
     final Map<String,String> interpretedOccurrence = new HashMap<>();
 
-    //Basic record terms
+    // Basic record terms
     interpretedOccurrence.put(GbifTerm.gbifID.simpleName(), getSimpleValue(occurrence.getKey()));
     interpretedOccurrence.put(DwcTerm.basisOfRecord.simpleName(), getSimpleValue(occurrence.getBasisOfRecord()));
     interpretedOccurrence.put(DwcTerm.establishmentMeans.simpleName(), getSimpleValue(occurrence.getEstablishmentMeans()));
@@ -117,7 +117,7 @@ public class OccurrenceMapReader {
     Optional.ofNullable(occurrence.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedOccurrence.put(DcTerm.identifier.simpleName(), x));
 
-    //Dataset Metadata
+    // Dataset Metadata
     interpretedOccurrence.put(GbifInternalTerm.crawlId.simpleName(), getSimpleValue(occurrence.getCrawlId()));
     interpretedOccurrence.put(GbifTerm.datasetKey.simpleName(), getSimpleValue(occurrence.getDatasetKey()));
     interpretedOccurrence.put(GbifTerm.publishingCountry.simpleName(), getCountryCode(occurrence.getPublishingCountry()));
@@ -129,7 +129,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(GbifInternalTerm.publishingOrgKey.simpleName(), getSimpleValue(occurrence.getPublishingOrgKey()));
     interpretedOccurrence.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(occurrence.getLastCrawled()));
 
-    //Temporal fields
+    // Temporal fields
     interpretedOccurrence.put(DwcTerm.dateIdentified.simpleName(), getLocalDateValue(occurrence.getDateIdentified()));
     interpretedOccurrence.put(DcTerm.modified.simpleName(),getSimpleValue(occurrence.getModified()));
     interpretedOccurrence.put(DwcTerm.day.simpleName(), getSimpleValue(occurrence.getDay()));
@@ -139,7 +139,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.startDayOfYear.simpleName(), getSimpleValue(occurrence.getStartDayOfYear()));
     interpretedOccurrence.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(occurrence.getEndDayOfYear()));
 
-    // taxonomy terms
+    // Taxonomy terms
     if (occurrence.getClassifications() != null && occurrence.getClassifications().containsKey(checklistKey)){
       Classification classification = occurrence.getClassifications().get(checklistKey);
       interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(),
@@ -165,7 +165,7 @@ public class OccurrenceMapReader {
       }
       interpretedOccurrence.put(IucnTerm.iucnRedListCategory.simpleName(), getSimpleValue(occurrence.getIucnRedListCategory()));
 
-      // combine taxonomic issues for this classification, with non taxonomic issues
+      // combine taxonomic issues for this classification, with non-taxonomic issues
       List<String> nonTaxonomicIssues = occurrence.getIssues().stream()
         .filter(oi -> !OccurrenceIssue.TAXONOMIC_RULES.contains(oi)).map(OccurrenceIssue::name)
         .toList();
@@ -182,7 +182,7 @@ public class OccurrenceMapReader {
         .ifPresent(issues -> interpretedOccurrence.put(GbifTerm.issue.simpleName(), issues));
     }
 
-    //location fields
+    // location fields
     interpretedOccurrence.put(DwcTerm.countryCode.simpleName(), getCountryCode(occurrence.getCountry()));
     interpretedOccurrence.put(DwcTerm.continent.simpleName(), getSimpleValue(occurrence.getContinent()));
     interpretedOccurrence.put(DwcTerm.decimalLatitude.simpleName(), getSimpleValue(occurrence.getDecimalLatitude()));
@@ -208,7 +208,6 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.higherGeography.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getHigherGeography()));
     interpretedOccurrence.put(DwcTerm.georeferencedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getGeoreferencedBy()));
 
-
     extractMediaTypes(occurrence.getMedia())
       .ifPresent(mediaTypes -> interpretedOccurrence.put(GbifTerm.mediaType.simpleName(), mediaTypes));
     extractAgentIds(occurrence.getRecordedByIds())
@@ -223,9 +222,11 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.organismQuantityType.simpleName(), occurrence.getOrganismQuantityType());
     interpretedOccurrence.put(GbifTerm.relativeOrganismQuantity.simpleName(), getSimpleValue(occurrence.getRelativeOrganismQuantity()));
 
+    // Verbatim fields
     occurrence.getVerbatimFields().forEach( (term, value) -> {
       if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
-       interpretedOccurrence.put(term.simpleName(), value);
+        // Do not overwrite an existing field
+        interpretedOccurrence.putIfAbsent(term.simpleName(), value);
       }
     });
 
@@ -236,7 +237,7 @@ public class OccurrenceMapReader {
 
     Map<String,String> interpretedEvent = new HashMap<>();
 
-    //Basic record terms
+    // Basic record terms
     interpretedEvent.put(GbifTerm.gbifID.simpleName(), getSimpleValue(event.getKey()));
     interpretedEvent.put(DcTerm.references.simpleName(), getSimpleValue(event.getReferences()));
     interpretedEvent.put(GbifTerm.lastParsed.simpleName(), getSimpleValue(event.getLastParsed()));
@@ -249,7 +250,7 @@ public class OccurrenceMapReader {
     Optional.ofNullable(event.getVerbatimField(DcTerm.identifier))
       .ifPresent(x -> interpretedEvent.put(DcTerm.identifier.simpleName(), x));
 
-    //Dataset Metadata
+    // Dataset Metadata
     interpretedEvent.put(GbifInternalTerm.crawlId.simpleName(), getSimpleValue(event.getCrawlId()));
     interpretedEvent.put(GbifTerm.datasetKey.simpleName(), getSimpleValue(event.getDatasetKey()));
     interpretedEvent.put(GbifTerm.publishingCountry.simpleName(), getCountryCode(event.getPublishingCountry()));
@@ -261,7 +262,7 @@ public class OccurrenceMapReader {
     interpretedEvent.put(GbifInternalTerm.publishingOrgKey.simpleName(), getSimpleValue(event.getPublishingOrgKey()));
     interpretedEvent.put(GbifTerm.lastCrawled.simpleName(), getSimpleValue(event.getLastCrawled()));
 
-    //Temporal fields
+    // Temporal fields
     interpretedEvent.put(DwcTerm.dateIdentified.simpleName(), getLocalDateValue(event.getDateIdentified()));
     interpretedEvent.put(DcTerm.modified.simpleName(),getSimpleValue(event.getModified()));
     interpretedEvent.put(DwcTerm.day.simpleName(), getSimpleValue(event.getDay()));
@@ -269,7 +270,7 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DwcTerm.year.simpleName(), getSimpleValue(event.getYear()));
     interpretedEvent.put(DwcTerm.eventDate.simpleName(), getIsoDateIntervalValue(event.getEventDate()));
 
-    //location fields
+    // location fields
     interpretedEvent.put(DwcTerm.countryCode.simpleName(), getCountryCode(event.getCountry()));
     interpretedEvent.put(DwcTerm.continent.simpleName(), getSimpleValue(event.getContinent()));
     interpretedEvent.put(DwcTerm.decimalLatitude.simpleName(), getSimpleValue(event.getDecimalLatitude()));
@@ -310,9 +311,11 @@ public class OccurrenceMapReader {
     interpretedEvent.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(event.getEndDayOfYear()));
     interpretedEvent.put(DwcTerm.eventType.simpleName(), getSimpleValue(event.getEventType()));
 
+    // Verbatim fields
     event.getVerbatimFields().forEach( (term, value) -> {
       if (!INTERPRETED_SOURCE_TERMS.contains(term)) {
-        interpretedEvent.put(term.simpleName(), value);
+        // Do not overwrite an existing field
+        interpretedEvent.putIfAbsent(term.simpleName(), value);
       }
     });
 
@@ -421,21 +424,21 @@ public class OccurrenceMapReader {
   }
 
   /**
-   * Validates if the occurrence record it's a repatriated record.
+   * Validates if the occurrence record its a repatriated record.
    */
   private static Optional<String> getRepatriated(Occurrence occurrence) {
     return getRepatriated(occurrence.getPublishingCountry(), occurrence.getCountry());
   }
 
   /**
-   * Validates if the event record it's a repatriated record.
+   * Validates if the event record its a repatriated record.
    */
   private static Optional<String> getRepatriated(Event event) {
     return getRepatriated(event.getPublishingCountry(), event.getCountry());
   }
 
   /**
-   * Validates if the occurrence record it's a repatriated record.
+   * Validates if the occurrence record its a repatriated record.
    */
   private static Optional<String> getRepatriated(Country publishingCountry, Country country) {
     if (publishingCountry != null && country != null) {

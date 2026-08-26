@@ -26,6 +26,7 @@ import org.gbif.api.vocabulary.OccurrenceIssue;
 import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.dwc.terms.UnknownTerm;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -93,10 +94,10 @@ public class OccurrenceMapReaderTest {
     occurrence.setClassifications(
       Map.of(Constants.NUB_DATASET_KEY.toString(), classification));
 
-    //Varbatim fields not populated by Java fields must be copied into the result
+    // Verbatim fields not populated by Java fields must be copied into the result
     occurrence.setVerbatimField(DwcTerm.institutionCode, "INST");
 
-    //Latitude and longitude must be superseded by the interpreted values
+    // Latitude and longitude must be superseded by the interpreted values
     occurrence.setVerbatimField(DwcTerm.decimalLatitude, "89.200001");
     occurrence.setVerbatimField(DwcTerm.decimalLongitude, "100.200001");
 
@@ -145,5 +146,29 @@ public class OccurrenceMapReaderTest {
     assertEquals(occurrenceMap.get(DwcTerm.institutionCode.simpleName()), "INST");
     assertEquals(occurrenceMap.get(DwcTerm.decimalLatitude.simpleName()), "89.2");
     assertEquals(occurrenceMap.get(DwcTerm.decimalLongitude.simpleName()), "100.2");
+  }
+
+  /**
+   * Check known term values are not overwritten by any kind of verbatim value.
+   */
+  @Test
+  public void ignoreForeignDatasetKeyTest() {
+    UUID datasetKey = UUID.randomUUID();
+
+    Occurrence occurrence = new Occurrence();
+    occurrence.setDatasetKey(datasetKey);
+    occurrence.setContinent(Continent.AFRICA);
+
+    // Verbatim term values must not override known term values.
+    occurrence.setVerbatimField(GbifTerm.datasetKey, "must-be-ignored");
+    occurrence.setVerbatimField(UnknownTerm.build("http://unknown.org/datasetKey"), "ignored-2");
+    occurrence.setVerbatimField(UnknownTerm.build("http://something.else/1.0/datasetKey"), "ignored-3");
+    occurrence.setVerbatimField(UnknownTerm.build("http://something.else/1.0/continent"), "ignored-4");
+    occurrence.setVerbatimField(UnknownTerm.build("http://something.else/1.0/something"), "may-proceed");
+
+    Map<String,String> occurrenceMap = OccurrenceMapReader.buildInterpretedOccurrenceMap(occurrence, Constants.NUB_DATASET_KEY.toString());
+
+    assertEquals(datasetKey.toString(), occurrenceMap.get(GbifTerm.datasetKey.simpleName()));
+    assertEquals(Continent.AFRICA.name(), occurrenceMap.get(DwcTerm.continent.simpleName()));
   }
 }
