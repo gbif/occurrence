@@ -16,6 +16,8 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
 
+import java.util.Map;
+
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating the AVRO download schemas.
  */
@@ -39,7 +41,10 @@ class AvroSchemaQueries extends Queries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term, String checklistKey) {
+  String toInterpretedHiveInitializer(Term term,
+                                      String checklistKey,
+                                      String denormalisedTaxonomy,
+                                      Map<String, String> checklistNestedStructMap) {
     return term.simpleName();
   }
 
