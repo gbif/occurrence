@@ -17,6 +17,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
 
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating Parquet
@@ -40,7 +41,8 @@ class ParquetQueries extends Queries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term, String checklistKey) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey, String denormalisedTaxonomy,
+                                      Map<String, String> checklistNestedStructMap) {
     if (TermUtils.isInterpretedLocalDateSeconds(term)
         || TermUtils.isInterpretedUtcDateSeconds(term)
         || TermUtils.isInterpretedUtcDateMilliseconds(term)) {

@@ -13,6 +13,11 @@
  */
 package org.gbif.occurrence.download.conf;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -21,6 +26,7 @@ import org.gbif.occurrence.download.action.DownloadWorkflowModule.DefaultSetting
 import org.gbif.utils.file.properties.PropertiesUtil;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
@@ -35,6 +41,8 @@ import lombok.Getter;
  * parameter as java Properties class.
  */
 public class WorkflowConfiguration {
+
+
 
   public enum SearchType {
     EVENT, OCCURRENCE;
@@ -121,6 +129,31 @@ public class WorkflowConfiguration {
   public String getDefaultChecklistKey() {
     return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DEFAULT_CHECKLIST_KEY,
       Constants.NUB_DATASET_KEY.toString());
+  }
+
+  public String getDenormalisedTaxonomy() {
+    return settings.getProperty(DownloadWorkflowModule.DefaultSettings.DENORMALISED_TAXONOMY_KEY,
+      Constants.COL_DATASET_KEY.toString());
+  }
+
+  public Map<String, String> getChecklistNestedStructMap() {
+    String checklistNestedStructConfig = settings.getProperty(
+      DownloadWorkflowModule.DefaultSettings.CHECKLIST_NESTED_STRUCT_CONFIG
+    );
+    if (StringUtils.isBlank(checklistNestedStructConfig)) {
+      // return a default that includes the gbif backbone nested struct column
+      return Map.of(
+        Constants.NUB_DATASET_KEY.toString(), "gbif_classification"
+      );
+    }
+
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    try {
+      return mapper.readValue(checklistNestedStructConfig, new TypeReference<Map<String, String>>() {});
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Failed to parse checklist nested struct config", e);
+    }
   }
 
   /**

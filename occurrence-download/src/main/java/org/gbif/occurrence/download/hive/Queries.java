@@ -105,15 +105,15 @@ public abstract class Queries {
    * @return the select fields for the interpreted download fields
    */
   public Map<String, InitializableField> selectInterpretedFields(
-      boolean useInitializers, String checklistKey, DwcTerm coreTerm) {
+      boolean useInitializers, String checklistKey, String denormalisedTaxonomy, Map<String, String> checklistNestedStructMap, DwcTerm coreTerm) {
     return selectDownloadFields(
-        getDownloadInterpretedTerms(coreTerm), useInitializers, checklistKey);
+        getDownloadInterpretedTerms(coreTerm), useInitializers, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
   }
 
   public Map<String, InitializableField> selectInterpretedFields(
-      boolean useInitializers, String checklistKey) {
+      boolean useInitializers, String checklistKey, String denormalisedTaxonomy, Map<String, String> checklistNestedStructMap) {
     return selectDownloadFields(
-        getDownloadInterpretedTerms(DwcTerm.Occurrence), useInitializers, checklistKey);
+        getDownloadInterpretedTerms(DwcTerm.Occurrence), useInitializers, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
   }
 
   private Set<Term> getDownloadInterpretedTerms(DwcTerm coreTerm) {
@@ -129,7 +129,7 @@ public abstract class Queries {
    * @return the select fields for the interpreted multimedia extension fields
    */
   public Map<String, InitializableField> selectMultimediaFields(boolean useInitializers) {
-    return selectDownloadFields(DownloadTerms.DOWNLOAD_MULTIMEDIA_TERMS, useInitializers, null);
+    return selectDownloadFields(DownloadTerms.DOWNLOAD_MULTIMEDIA_TERMS, useInitializers, null, null, Map.of());
   }
 
   /**
@@ -137,7 +137,10 @@ public abstract class Queries {
    * @return the select fields for the interpreted multimedia extension fields
    */
   public Map<String, InitializableField> selectHumboldtFields(
-      boolean useInitializers, String checklistKey) {
+      boolean useInitializers,
+      String checklistKey, String denormalisedTaxonomy,
+      Map<String, String> checklistNestedStructMap) {
+
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
@@ -162,7 +165,7 @@ public abstract class Queries {
               toTaxonomicHiveInitializer(
                   term, checklistKey, EcoTerm.targetTaxonomicScope.simpleName().toLowerCase());
         } else {
-          columnName = toInterpretedHiveInitializer(term, checklistKey);
+          columnName = toInterpretedHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
         }
       }
 
@@ -185,7 +188,7 @@ public abstract class Queries {
 
       String columnName;
       if (useInitializers) {
-        columnName = toInterpretedHiveInitializer(term, null);
+        columnName = toInterpretedHiveInitializer(term, null, null, null);
       } else {
         columnName = toHiveInitializer(term);
       }
@@ -203,14 +206,18 @@ public abstract class Queries {
    * @return the select fields for the internal search fields
    */
   public Map<String, InitializableField> selectInternalSearchFields(boolean useInitializers, String checklistKey) {
-    return selectDownloadFields(DownloadTerms.INTERNAL_SEARCH_TERMS, useInitializers, checklistKey);
+    return selectDownloadFields(DownloadTerms.INTERNAL_SEARCH_TERMS, useInitializers, checklistKey, null, Map.of());
   }
 
   /**
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted download fields
    */
-  Map<String, InitializableField> selectDownloadFields(Set<Term> terms, boolean useInitializers, String checklistKey) {
+  Map<String, InitializableField> selectDownloadFields(Set<Term> terms,
+                                                       boolean useInitializers,
+                                                       String checklistKey,
+                                                       String denormalisedTaxonomy,
+                                                       Map<String, String> checklistNestedStructMap) {
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
     // always add the GBIF ID
@@ -230,7 +237,7 @@ public abstract class Queries {
       } else {
         result.put(term.simpleName(), new InitializableField(
           term,
-          useInitializers ? toInterpretedHiveInitializer(term, checklistKey) : toHiveInitializer(term),
+          useInitializers ? toInterpretedHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap) : toHiveInitializer(term),
           toHiveDataType(term)
         ));
       }
@@ -247,7 +254,10 @@ public abstract class Queries {
   /**
    * @return The initializer for an interpreted field, e.g. genus, toISO8601(eventdate) AS eventdate
    */
-  abstract String toInterpretedHiveInitializer(Term term, String checklistKey);
+  abstract String toInterpretedHiveInitializer(Term term,
+                                               String checklistKey,
+                                               String denormalisedTaxonomy,
+                                               Map<String, String> checklistNestedStructMap);
 
   /**
    * Used for complex types like Structs which have nested elements.
@@ -298,8 +308,10 @@ public abstract class Queries {
    * @return the select fields for the simple download fields
    */
   public Map<String, InitializableField> selectSimpleDownloadFields(
-      boolean useInitializers, String checklistKey, DwcTerm coreTerm) {
-    return selectGroupedDownloadFields(getSimpleDownloadTerms(coreTerm), useInitializers, checklistKey);
+      boolean useInitializers, String checklistKey, String denormalisedTaxonomy,
+      Map<String, String> checklistNestedStructMap, DwcTerm coreTerm) {
+    return selectGroupedDownloadFields(getSimpleDownloadTerms(coreTerm), useInitializers,
+      checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
   }
 
   private Set<Pair<DownloadTerms.Group, Term>> getSimpleDownloadTerms(DwcTerm coreTerm) {
@@ -316,7 +328,7 @@ public abstract class Queries {
    */
   Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(boolean useInitializers) {
     return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS,
-      useInitializers, null);
+      useInitializers, null, null, null);
   }
 
   public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(boolean useInitializers) {
@@ -339,7 +351,9 @@ public abstract class Queries {
    */
   Map<String, InitializableField> selectGroupedDownloadFields(Set<Pair<DownloadTerms.Group, Term>> termPairs,
                                                               boolean useInitializers,
-                                                              String checklistKey) {
+                                                              String checklistKey,
+                                                              String denormalisedTaxonomy,
+                                                              Map<String, String> checklistNestedStructMap) {
 
     Map<String, InitializableField> result = new LinkedHashMap<>();
 
@@ -361,7 +375,7 @@ public abstract class Queries {
       } else {
         result.put(term.simpleName(), new InitializableField(
           term,
-          useInitializers ? toInterpretedHiveInitializer(term, checklistKey) : toHiveInitializer(term),
+          useInitializers ? toInterpretedHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap) : toHiveInitializer(term),
           toHiveDataType(term)
         ));
       }

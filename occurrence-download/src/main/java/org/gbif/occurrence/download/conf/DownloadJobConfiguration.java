@@ -29,6 +29,7 @@ import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.fs.Path;
@@ -117,6 +118,8 @@ public class DownloadJobConfiguration {
         .filter(
             getDownloadFilter(
                 download,
+                workflowConfiguration.getDenormalisedTaxonomy(),
+                workflowConfiguration.getChecklistNestedStructMap(),
                 workflowConfiguration.getDefaultChecklistKey(),
                 "iceberg."
                     + workflowConfiguration.getHiveDb()
@@ -137,11 +140,16 @@ public class DownloadJobConfiguration {
    * Sql clause.
    */
   private static String getDownloadFilter(
-      Download download, String defaultChecklistKey, String disambiguationTable) {
+      Download download,
+      String denormalisedTaxonomy,
+      Map<String, String> checklistNestedStructMap,
+      String defaultChecklistKey, String disambiguationTable) {
     return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
         ? ((SqlDownloadRequest) download.getRequest()).getSql()
         : toSqlQuery(
             ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
+            denormalisedTaxonomy,
+            checklistNestedStructMap,
             defaultChecklistKey,
             disambiguationTable);
   }
@@ -291,8 +299,12 @@ public class DownloadJobConfiguration {
 
   @SneakyThrows
   private static String toSqlQuery(
-      Predicate predicate, String defaultChecklistKey, String disambiguationTable) {
-    return QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey, disambiguationTable)
+      Predicate predicate,
+      String denormalisedTaxonomy,
+      Map<String, String> checklistNestedStructMap,
+      String defaultChecklistKey,
+      String disambiguationTable) {
+    return QueryVisitorsFactory.createSqlQueryVisitor(denormalisedTaxonomy, checklistNestedStructMap, defaultChecklistKey, disambiguationTable)
         .buildQuery(predicate);
   }
 }

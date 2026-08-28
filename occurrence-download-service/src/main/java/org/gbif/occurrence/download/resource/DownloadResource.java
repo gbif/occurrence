@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.resource;
 
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.Constants;
 import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.*;
@@ -717,8 +718,13 @@ public class DownloadResource {
 
       if (downloadRequest.getPredicate() != null) {
         String generatedWhereClause =
-            QueryVisitorsFactory.createSqlQueryVisitor(defaultChecklistKey, null)
-                .buildQuery(downloadRequest.getPredicate());
+            QueryVisitorsFactory.createSqlQueryVisitor(
+                Constants.COL_DATASET_KEY.toString(),
+                Map.of(),
+                defaultChecklistKey,
+                "occcurence"
+            )
+            .buildQuery(downloadRequest.getPredicate());
         // This is not pretty.
         generatedWhereClause = generatedWhereClause
           .replaceAll("\\byear\\b", "\"year\"")
