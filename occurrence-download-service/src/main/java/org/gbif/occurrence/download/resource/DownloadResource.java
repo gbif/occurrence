@@ -722,7 +722,7 @@ public class DownloadResource {
                 Constants.COL_DATASET_KEY.toString(),
                 Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"),
                 defaultChecklistKey,
-                "occcurence"
+                "occurrence"
             )
             .buildQuery(downloadRequest.getPredicate());
         // This is not pretty.
