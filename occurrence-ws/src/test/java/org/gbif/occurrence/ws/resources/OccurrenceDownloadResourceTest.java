@@ -205,7 +205,7 @@ public class OccurrenceDownloadResourceTest {
             callbackService,
             downloadService,
             false,
-            "defaultChecklistKey");
+            Constants.NUB_DATASET_KEY.toString());
     dl =
         new PredicateDownloadRequest(
             new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false),

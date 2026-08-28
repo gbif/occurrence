@@ -14,6 +14,7 @@
 package org.gbif.occurrence.download.util;
 
 import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
@@ -264,6 +265,87 @@ public class SqlValidation {
       RelDataType structMapOfArrays = tdf.createMapType(varChar, varCharArray);
       RelDataType structMapOfMap = tdf.createMapType(varChar, tdf.createMapType(varChar, varChar));
 
+      RelDataType classification = tdf.createStructType(StructKind.FULLY_QUALIFIED,
+        Arrays.asList(
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varCharArray,
+          varCharArray,
+          varCharArray
+        ),
+        Arrays.asList(
+          "taxonkey",
+          "scientificname",
+          "acceptedtaxonkey",
+          "acceptednameusageid",
+          "acceptedscientificname",
+          "genericname",
+          "specificepithet",
+          "infraspecificepithet",
+          "taxonrank",
+          "kingdomkey",
+          "phylumkey",
+          "classkey",
+          "orderkey",
+          "superfamilykey",
+          "familykey",
+          "subfamilykey",
+          "tribekey",
+          "subtribekey",
+          "genuskey",
+          "subgenuskey",
+          "specieskey",
+          "kingdom",
+          "phylum",
+          "class",
+          "order",
+          "superfamily",
+          "family",
+          "subfamily",
+          "tribe",
+          "subtribe",
+          "genus",
+          "subgenus",
+          "species",
+          "iucnredlistcategory",
+          "taxonkeys",
+          "issues",
+          "taxonomicstatus"
+        )
+      );
+
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
         field -> {
           switch (field.getHiveDataType()) {
@@ -303,11 +385,24 @@ public class SqlValidation {
               builder.add(field.getColumnName(), geologicalRange);
               break;
 
+            case HiveDataTypes.TYPE_CLASSIFICATION_STRUCT:
+              // classification field
+              builder.add(field.getColumnName(), classification);
+              break;
+
             default:
               builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
           }
         }
       );
+
+      Map<String, String> config = Map.of(
+        Constants.NUB_DATASET_KEY.toString(), "gbif_classification"
+      );
+
+      for (String fieldName : config.values()) {
+        builder.add(fieldName, classification);
+      }
 
       return builder.build();
     }
