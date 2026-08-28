@@ -70,7 +70,7 @@ abstract class TsvQueries extends Queries {
 
     String prefix = "";
     if (!checklistKey.equals(denormalisedTaxonomy)) {
-      prefix = checklistNestedStructMap.get(checklistKey) + ".";
+      prefix = "occurrence." + checklistNestedStructMap.get(checklistKey) + ".";
     }
 
     if (term == GbifTerm.issue) {

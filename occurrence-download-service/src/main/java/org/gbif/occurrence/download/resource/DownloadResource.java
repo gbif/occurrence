@@ -720,7 +720,7 @@ public class DownloadResource {
         String generatedWhereClause =
             QueryVisitorsFactory.createSqlQueryVisitor(
                 Constants.COL_DATASET_KEY.toString(),
-                Map.of(),
+                Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"),
                 defaultChecklistKey,
                 "occcurence"
             )
