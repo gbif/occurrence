@@ -18,7 +18,7 @@
     <lombok.version>1.18.42</lombok.version>
     <guava.version>33.5.0-jre</guava.version>
     <geotools.version>34.0</geotools.version>
-    <jackson.version>2.19.4</jackson.version>
+    <jackson.version>2.21.4</jackson.version>
 
     <!-- GBIF dependencies -->
     <gbif-api.version>2.2.2</gbif-api.version>
