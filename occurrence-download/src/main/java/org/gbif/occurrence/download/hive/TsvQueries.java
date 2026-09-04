@@ -79,18 +79,10 @@ abstract class TsvQueries extends Queries {
       return String.format(
         "array_join(array_union(nontaxonomicissue, %s), '\\;') as issue",
         prefix + "issues");
-    } else if (term == GbifTerm.taxonomicIssue){
-      final String columnName = "issues";
-      return String.format(
-        "%s'%s' AS `%s`",
-        prefix,
-        columnName,
-        columnName
-      );
     } else {
       final String columnName = HiveColumns.columnFor(term);
       return String.format(
-        "%s'%s' AS `%s`",
+        "%s'%s' AS %s",
         prefix,
         columnName,
         columnName
