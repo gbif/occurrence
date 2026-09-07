@@ -306,7 +306,7 @@ public class SqlValidation {
           varChar,
           varCharArray,
           varCharArray,
-          varCharArray
+          varChar
         ),
         Arrays.asList(
           "taxonkey",
