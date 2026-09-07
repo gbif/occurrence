@@ -125,6 +125,8 @@ public class DownloadResource {
 
   protected final String defaultChecklistKey;
 
+  protected final Map<String, String> checklistNestedStructMap;
+
   @Autowired
   public DownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
@@ -144,7 +146,7 @@ public class DownloadResource {
     this.defaultChecklistKey = defaultChecklistKey;
     try {
       ObjectMapper objectMapper = new ObjectMapper();
-      Map<String, String>  checklistNestedStructMap =
+      this.checklistNestedStructMap =
         objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
       this.sqlValidation = new SqlValidation(null, checklistNestedStructMap);
     } catch (Exception e) {
@@ -729,7 +731,7 @@ public class DownloadResource {
         String generatedWhereClause =
             QueryVisitorsFactory.createSqlQueryVisitor(
                 Constants.COL_DATASET_KEY.toString(),
-                Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"),
+                this.checklistNestedStructMap,
                 defaultChecklistKey,
                 "occurrence"
             )
