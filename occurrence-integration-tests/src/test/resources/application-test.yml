@@ -53,6 +53,7 @@ occurrence:
     max:
       limit: 300
       offset: 200000
+spring:
   cloud:
     zookeeper:
       enabled: false
