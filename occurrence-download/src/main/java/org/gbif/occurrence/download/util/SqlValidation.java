@@ -60,13 +60,13 @@ public class SqlValidation {
   private final HiveSqlValidator hiveSqlValidator;
 
   public SqlValidation() {
-    this(null);
+    this(null, Map.of());
   }
 
-  public SqlValidation(String database) {
+  public SqlValidation(String database, Map<String, String> nestedStructConfig) {
     this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
-    OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence");
+    OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence", nestedStructConfig);
     rootSchema.add(occurrenceTable.getTableName(), occurrenceTable);
     if (database != null) {
       rootSchema.add(CATALOG + "." + database, new AbstractSchema() {
@@ -222,9 +222,11 @@ public class SqlValidation {
   class OccurrenceTable extends AbstractTable {
 
     private final String tableName;
+    private final Map<String, String> nestedStructConfig;
 
-    public OccurrenceTable(String tableName) {
+    public OccurrenceTable(String tableName, Map<String, String> nestedStructConfig) {
       this.tableName = tableName;
+      this.nestedStructConfig = nestedStructConfig;
     }
 
     @Override
@@ -396,11 +398,7 @@ public class SqlValidation {
         }
       );
 
-      Map<String, String> config = Map.of(
-        Constants.NUB_DATASET_KEY.toString(), "gbif_classification"
-      );
-
-      for (String fieldName : config.values()) {
+      for (String fieldName : nestedStructConfig.values()) {
         builder.add(fieldName, classification);
       }
 

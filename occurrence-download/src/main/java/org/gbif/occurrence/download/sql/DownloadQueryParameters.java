@@ -87,7 +87,7 @@ public class DownloadQueryParameters {
         DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
 
     if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
-      SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
+      SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb(), workflowConfiguration.getChecklistNestedStructMap());
 
       String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
       HiveSqlQuery sqlQuery =
