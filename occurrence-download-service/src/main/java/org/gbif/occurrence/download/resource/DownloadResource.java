@@ -125,6 +125,8 @@ public class DownloadResource {
 
   protected final String defaultChecklistKey;
 
+  protected final String denormalisedTaxonomy;
+
   protected final Map<String, String> checklistNestedStructMap;
 
   @Autowired
@@ -136,7 +138,8 @@ public class DownloadResource {
       DownloadType downloadType,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
-      @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
+      @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
+      @Value("${denormalisedTaxonomy: '7ddf754f-d193-4cc9-b351-99906754a03b'}") String denormalisedTaxonomy) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
@@ -144,6 +147,7 @@ public class DownloadResource {
     this.downloadType = downloadType;
     this.downloadsDisabled = downloadsDisabled;
     this.defaultChecklistKey = defaultChecklistKey;
+    this.denormalisedTaxonomy = denormalisedTaxonomy;
     try {
       ObjectMapper objectMapper = new ObjectMapper();
       this.checklistNestedStructMap =
@@ -730,7 +734,7 @@ public class DownloadResource {
       if (downloadRequest.getPredicate() != null) {
         String generatedWhereClause =
             QueryVisitorsFactory.createSqlQueryVisitor(
-                Constants.COL_DATASET_KEY.toString(),
+                this.denormalisedTaxonomy,
                 this.checklistNestedStructMap,
                 defaultChecklistKey,
                 "occurrence"
