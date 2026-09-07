@@ -126,6 +126,8 @@ public class GenerateHQL {
       DownloadQueryParameters downloadQueryParameters =
           DownloadQueryParameters.builder()
               .checklistKey(Constants.NUB_DATASET_KEY.toString())
+              .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
+              .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
               .build();
       generateDwcaQueryHQL(cfg, downloadQueryParameters, downloadDir);
       generateSimpleCsvQueryHQL(cfg, downloadQueryParameters, simpleCsvDownloadDir);
