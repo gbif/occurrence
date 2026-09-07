@@ -78,7 +78,7 @@ abstract class TsvQueries extends Queries {
       // taxonomic issues from the specified checklist
       return String.format(
         "array_join(array_union(nontaxonomicissue, %s), '\\;') as issue",
-        prefix + "issues");
+        prefix + "taxonomicissue");
     } else {
       final String columnName = HiveColumns.columnFor(term);
       return String.format(
