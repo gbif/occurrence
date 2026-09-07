@@ -13,8 +13,8 @@
  */
 package org.gbif.occurrence.download.util;
 
+import lombok.Getter;
 import org.gbif.api.exception.QueryBuildingException;
-import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
 import org.gbif.occurrence.download.hive.OccurrenceHDFSTableDefinition;
@@ -221,6 +221,7 @@ public class SqlValidation {
    */
   class OccurrenceTable extends AbstractTable {
 
+    @Getter
     private final String tableName;
     private final Map<String, String> nestedStructConfig;
 
@@ -403,10 +404,6 @@ public class SqlValidation {
       }
 
       return builder.build();
-    }
-
-    public String getTableName() {
-      return tableName;
     }
   }
 }
