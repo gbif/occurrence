@@ -78,7 +78,8 @@ public class EventDownloadResource extends DownloadResource {
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
-      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
+      @Value("${defaultChecklistKey}") String defaultChecklistKey,
+      @Value("${checklist.nested.struct.config}") String checklistNestedStructMapJson) {
     super(
         archiveServerUrl,
         eventDownloadRequestService,
@@ -86,6 +87,7 @@ public class EventDownloadResource extends DownloadResource {
         occurrenceDownloadService,
         DownloadType.EVENT,
         downloadsDisabled,
-        defaultChecklistKey);
+        defaultChecklistKey,
+        checklistNestedStructMapJson);
   }
 }
