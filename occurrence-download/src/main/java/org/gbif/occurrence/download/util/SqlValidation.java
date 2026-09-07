@@ -341,7 +341,7 @@ public class SqlValidation {
           "species",
           "iucnredlistcategory",
           "taxonkeys",
-          "issues",
+          "taxonomicissue",
           "taxonomicstatus"
         )
       );
