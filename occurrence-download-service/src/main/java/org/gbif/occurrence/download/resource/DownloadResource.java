@@ -109,7 +109,7 @@ public class DownloadResource {
 
   private static final Splitter COMMA_SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
 
-  private final SqlValidation sqlValidation = new SqlValidation();
+  private final SqlValidation sqlValidation;
 
   private final DownloadRequestService requestService;
 
@@ -133,7 +133,8 @@ public class DownloadResource {
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadType downloadType,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
-      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
+      @Value("${defaultChecklistKey}") String defaultChecklistKey,
+      @Value("${checklist.nested.struct.config}") String checklistNestedStructMapJson) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
@@ -141,6 +142,14 @@ public class DownloadResource {
     this.downloadType = downloadType;
     this.downloadsDisabled = downloadsDisabled;
     this.defaultChecklistKey = defaultChecklistKey;
+    try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      Map<String, String>  checklistNestedStructMap =
+        objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
+      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid checklistNestedStructMap JSON format", e);
+    }
   }
 
   private void assertDownloadType(Download download) {

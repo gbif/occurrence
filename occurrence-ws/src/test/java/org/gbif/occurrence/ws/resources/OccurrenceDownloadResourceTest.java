@@ -205,7 +205,9 @@ public class OccurrenceDownloadResourceTest {
             callbackService,
             downloadService,
             false,
-            Constants.NUB_DATASET_KEY.toString());
+            Constants.NUB_DATASET_KEY.toString(),
+          """
+            {"d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": "gbif_classification"}""");
     dl =
         new PredicateDownloadRequest(
             new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false),

@@ -77,7 +77,8 @@ public class OccurrenceDownloadResource extends DownloadResource {
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
-      @Value("${defaultChecklistKey}") String defaultChecklistKey) {
+      @Value("${defaultChecklistKey}") String defaultChecklistKey,
+      @Value("${checklist.nested.struct.config}") String checklistNestedStructMapJson) {
     super(
         archiveServerUrl,
         service,
@@ -85,6 +86,7 @@ public class OccurrenceDownloadResource extends DownloadResource {
         occurrenceDownloadService,
         DownloadType.OCCURRENCE,
         downloadsDisabled,
-        defaultChecklistKey);
+        defaultChecklistKey,
+        checklistNestedStructMapJson);
   }
 }
