@@ -48,7 +48,8 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       OccurrenceEmailManager emailManager,
       EmailSender emailSender,
       MessagePublisher messagePublisher,
-      DoiInteractionClient doiInteractionClient) {
+      DoiInteractionClient doiInteractionClient,
+      @Value("${checklist.nested.struct.config: {}") String checklistNestedStructConfigJson) {
     super(
         portalUrl,
         wsUrl,
@@ -59,7 +60,9 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
         emailSender,
         messagePublisher,
         DownloadType.OCCURRENCE,
-        doiInteractionClient);
+        doiInteractionClient,
+        checklistNestedStructConfigJson
+    );
     this.occurrenceSearchService = occurrenceSearchService;
   }
 

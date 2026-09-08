@@ -125,7 +125,9 @@ class CallbackServiceTest {
             emailManager,
             emailSender,
             messagePublisher,
-            doiInteractionClient);
+            doiInteractionClient,
+            "{}"
+          );
   }
 
   @Test

@@ -120,7 +120,7 @@ public abstract class DownloadRequestServiceImpl
       DownloadType downloadType,
       DoiInteractionClient doiInteractionClient,
       @Value("${checklist.nested.struct.config: {}") String checklistNestedStructConfigJson
-  ) throws IOException {
+  )  {
     this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
@@ -133,8 +133,12 @@ public abstract class DownloadRequestServiceImpl
     this.downloadType = downloadType;
     this.doiInteractionClient = doiInteractionClient;
     ObjectMapper mapper = new ObjectMapper();
-    Map<String, String> checklistNestedStructConfig = mapper.readValue(checklistNestedStructConfigJson, Map.class);
-    this.sqlValidation = new SqlValidation("occurrence", checklistNestedStructConfig);
+    try {
+      Map<String, String> checklistNestedStructConfig = mapper.readValue(checklistNestedStructConfigJson, Map.class);
+      this.sqlValidation = new SqlValidation("occurrence", checklistNestedStructConfig);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to parse checklist nested struct config JSON", e);
+    }
   }
 
   @Override
