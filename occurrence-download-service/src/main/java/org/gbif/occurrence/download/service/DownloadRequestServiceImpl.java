@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
@@ -58,6 +59,7 @@ import io.micrometer.core.instrument.Metrics;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
+import static org.gbif.api.model.Constants.NUB_DATASET_KEY;
 import static org.gbif.occurrence.common.download.DownloadUtils.downloadLink;
 import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 
@@ -104,6 +106,7 @@ public abstract class DownloadRequestServiceImpl
   private final MessagePublisher messagePublisher;
   private final DownloadType downloadType;
   private final DoiInteractionClient doiInteractionClient;
+  private final SqlValidation sqlValidation;
 
   public DownloadRequestServiceImpl(
       @Value("${occurrence.download.portal.url}") String portalUrl,
@@ -115,7 +118,9 @@ public abstract class DownloadRequestServiceImpl
       EmailSender emailSender,
       MessagePublisher messagePublisher,
       DownloadType downloadType,
-      DoiInteractionClient doiInteractionClient) {
+      DoiInteractionClient doiInteractionClient,
+      @Value("${checklist.nested.struct.config: {}") String checklistNestedStructConfigJson
+  ) throws IOException {
     this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
     this.wsUrl = wsUrl;
@@ -127,6 +132,9 @@ public abstract class DownloadRequestServiceImpl
     this.messagePublisher = messagePublisher;
     this.downloadType = downloadType;
     this.doiInteractionClient = doiInteractionClient;
+    ObjectMapper mapper = new ObjectMapper();
+    Map<String, String> checklistNestedStructConfig = mapper.readValue(checklistNestedStructConfigJson, Map.class);
+    this.sqlValidation = new SqlValidation("occurrence", checklistNestedStructConfig);
   }
 
   @Override
@@ -159,7 +167,6 @@ public abstract class DownloadRequestServiceImpl
       PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
     } else if (request instanceof SqlDownloadRequest) {
       try {
-        SqlValidation sqlValidation = new SqlValidation();
         HiveSqlQuery sqlQuery =
             sqlValidation.validateAndParse(((SqlDownloadRequest) request).getSql(), true);
         log.debug("HiveSqlQuery {}", sqlQuery.getSql());
