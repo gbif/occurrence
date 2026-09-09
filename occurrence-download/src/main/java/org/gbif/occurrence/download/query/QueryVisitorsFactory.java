@@ -17,11 +17,31 @@ import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.predicate.query.SQLQueryVisitor;
 import org.gbif.predicate.query.occurrence.OccurrenceTermsMapper;
 
+import java.util.Map;
+
 public class QueryVisitorsFactory {
 
+  /**
+   * Create a SQL Query visitor
+   *
+   * @param denormalisedTaxonomy the UUID of the taxonomy in the top level fields (e.g. COL)
+   * @param checklistNestedStructMap map of checklist UUID to nested struct name e.g. `gbif_classification`
+   * @param defaultChecklistKey the default checklist to use for query construction
+   * @param disambiguationTable the table to use when we have 2 columns of the same name
+   * @return a SQLQueryVisitor instance
+   */
   public static SQLQueryVisitor<SearchParameter> createSqlQueryVisitor(
-      String defaultChecklistKey, String disambiguationTable) {
+      String denormalisedTaxonomy,
+      Map<String, String> checklistNestedStructMap,
+      String defaultChecklistKey,
+      String disambiguationTable) {
+
     return new SQLQueryVisitor<>(
-        new OccurrenceTermsMapper(), defaultChecklistKey, disambiguationTable);
+        new OccurrenceTermsMapper(),
+        denormalisedTaxonomy,
+        checklistNestedStructMap,
+        defaultChecklistKey,
+        disambiguationTable
+    );
   }
 }

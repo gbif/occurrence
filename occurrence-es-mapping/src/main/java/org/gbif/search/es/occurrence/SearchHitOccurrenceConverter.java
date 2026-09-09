@@ -274,7 +274,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
           occRelation.setId(v);
           occ.setRelations(Collections.singletonList(occRelation));
         });
-    getListValueAsString(hit, occurrenceEsFieldMapper.getEsField(GbifTerm.projectId)).ifPresent(occ::setProjectId);
+    getListValueAsString(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.projectID)).ifPresent(occ::setProjectId);
     getStringValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.programmeAcronym)).ifPresent(occ::setProgrammeAcronym);
 
     getListValueAsString(hit, occurrenceEsFieldMapper.getEsField(DwcTerm.associatedSequences).getValueFieldName()).ifPresent(occ::setAssociatedSequences);

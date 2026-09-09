@@ -18,6 +18,8 @@ import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GenerateHQLTest {
@@ -28,6 +30,8 @@ public class GenerateHQLTest {
         GenerateHQL.simpleCsvQueryHQL(
             DownloadQueryParameters.builder()
                 .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
+                .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
                 .build());
     System.out.println(simpleCsvDownloadQuery);
   }
@@ -38,6 +42,8 @@ public class GenerateHQLTest {
         GenerateHQL.generateDwcaQueryHQL(
             DownloadQueryParameters.builder()
                 .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
+                .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
                 .build());
     System.out.println(dwcaDownloadQuery);
   }
@@ -48,6 +54,8 @@ public class GenerateHQLTest {
         GenerateHQL.generateDwcaQueryHQL(
             DownloadQueryParameters.builder()
                 .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
+                .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
                 .isFastaDownload(true)
                 .build());
 

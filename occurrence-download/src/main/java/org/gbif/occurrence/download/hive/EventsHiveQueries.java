@@ -17,6 +17,8 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.predicate.query.SQLColumnsUtils;
 import org.gbif.terms.utils.TermUtils;
 
+import java.util.Map;
+
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating TSV
  * downloads.
@@ -29,7 +31,8 @@ public class EventsHiveQueries extends TsvQueries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term, String checklistKey) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey, String denormalisedTaxonomy,
+                                      Map<String, String> checklistNestedStructMap) {
     if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {

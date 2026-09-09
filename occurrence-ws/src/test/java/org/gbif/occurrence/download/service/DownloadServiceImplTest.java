@@ -86,7 +86,8 @@ class DownloadServiceImplTest {
             emailManager,
             emailSender,
             messagePublisher,
-            doiInteractionClient);
+            doiInteractionClient,
+          "{}");
   }
 
   @Test

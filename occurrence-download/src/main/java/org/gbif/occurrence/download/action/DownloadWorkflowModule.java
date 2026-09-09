@@ -348,7 +348,12 @@ public class DownloadWorkflowModule {
     public static final String ES_SNIFF_AFTER_FAILURE_DELAY_KEY = "es.sniff_after_failure_delay";
     public static final String ES_REQUEST_BUFFER_LIMIT = "es.request_buffer_limit_bytes";
 
+    /** The default taxonomy to assume the query is based on, if no taxonomy is specified in the query. */
     public static final String DEFAULT_CHECKLIST_KEY = PROPERTIES_PREFIX + "default_checklist_key";
+    /** The taxonomy that populates the top-level taxonomic fields (e.g. kingdomkey) in iceberg/hive tables */
+    public static final String DENORMALISED_TAXONOMY_KEY = PROPERTIES_PREFIX + "denormalised_taxonomy";
+    /** A mapping of checklist keys to nested struct iceberg columns. e.g. {"<gbif backbone UUID>": "gbif_classification"} */
+    public static final String CHECKLIST_NESTED_STRUCT_CONFIG = PROPERTIES_PREFIX + "checklist.nested.struct.config";
 
     public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
@@ -370,6 +375,6 @@ public class DownloadWorkflowModule {
     public static final String ZK_SLEEP_TIME_KEY = PROPERTIES_PREFIX + "zookeeper.sleep_time";
     public static final String ZK_MAX_RETRIES_KEY = PROPERTIES_PREFIX + "zookeeper.max_retries";
 
-  }
 
+  }
 }
