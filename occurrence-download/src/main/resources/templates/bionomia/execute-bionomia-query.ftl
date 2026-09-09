@@ -50,6 +50,7 @@ AS SELECT
   v_catalogNumber,
   v_recordedBy,
   v_recordedByID,
+  v_recordNumber,
   v_scientificName,
   v_typeStatus
 FROM iceberg.${r"${hiveDB}"}.occurrence
