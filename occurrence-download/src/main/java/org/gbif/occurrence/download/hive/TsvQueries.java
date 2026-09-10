@@ -82,7 +82,7 @@ abstract class TsvQueries extends Queries {
     } else {
       final String columnName = HiveColumns.columnFor(term);
       return String.format(
-        "%s'%s' AS %s",
+        "%s%s AS %s",
         prefix,
         columnName,
         columnName
