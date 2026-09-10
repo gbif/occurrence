@@ -306,7 +306,19 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
                 download.getKey(),
                 status.orElse(null));
           } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            // Airflow API calls are already retried extensively (see AIRFLOW_RETRY); reaching
+            // here means Airflow is unreachable/unresponsive for an extended period.
+            log.error(
+                "Giving up on status checks for download {}, marking as FAILED",
+                download.getKey(),
+                ex);
+            try {
+              download.setStatus(Status.FAILED);
+              downloadClient.update(download);
+            } catch (Exception updateEx) {
+              log.error(
+                  "Failed to update download {} status to FAILED", download.getKey(), updateEx);
+            }
           } finally {
             lockerService.unlock(download.getKey());
           }
@@ -321,6 +333,8 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
         .airflowUser(airflowConfiguration.airflowUser)
         .airflowPass(airflowConfiguration.airflowPass)
         .airflowDagName(dagName)
+        .connectTimeoutSec(airflowConfiguration.connectTimeoutSec)
+        .socketTimeoutSec(airflowConfiguration.socketTimeoutSec)
         .build();
   }
 }

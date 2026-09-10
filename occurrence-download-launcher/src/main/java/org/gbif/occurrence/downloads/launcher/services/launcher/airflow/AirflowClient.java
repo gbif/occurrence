@@ -15,9 +15,11 @@ package org.gbif.occurrence.downloads.launcher.services.launcher.airflow;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
@@ -52,6 +54,10 @@ public class AirflowClient {
 
   public final String airflowDagName;
 
+  @Builder.Default public final int connectTimeoutSec = 10;
+
+  @Builder.Default public final int socketTimeoutSec = 30;
+
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private String getUri() {
@@ -62,10 +68,25 @@ public class AirflowClient {
     return String.join("/", getUri(), paths);
   }
 
+  /**
+   * A hung Airflow webserver must not block the calling thread forever: without these timeouts a
+   * stalled connection leaves the status-polling loop parked, which in turn leaves the RabbitMQ
+   * consumer thread parked and the message permanently unacknowledged.
+   */
+  private CloseableHttpClient buildClient() {
+    RequestConfig requestConfig =
+        RequestConfig.custom()
+            .setConnectTimeout((int) TimeUnit.SECONDS.toMillis(connectTimeoutSec))
+            .setConnectionRequestTimeout((int) TimeUnit.SECONDS.toMillis(connectTimeoutSec))
+            .setSocketTimeout((int) TimeUnit.SECONDS.toMillis(socketTimeoutSec))
+            .build();
+    return HttpClients.custom().setDefaultRequestConfig(requestConfig).build();
+  }
+
   @SneakyThrows
   public JsonNode createRun(AirflowBody body) {
 
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
+    try (CloseableHttpClient client = buildClient()) {
       JsonNode dagRun = getRun(body.getDagRunId());
       if (dagRun.has("dag_run_id")
           && dagRun.get("dag_run_id").asText().equals(body.getDagRunId())) {
@@ -83,7 +104,7 @@ public class AirflowClient {
 
   @SneakyThrows
   public JsonNode clearRun(String dagRunId) {
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
+    try (CloseableHttpClient client = buildClient()) {
       HttpPost post = new HttpPost(getUri(dagRunId) + "/clear");
       post.setEntity(new StringEntity("{\"dry_run\": false}"));
       post.setHeaders(getHeaders());
@@ -93,7 +114,7 @@ public class AirflowClient {
 
   @SneakyThrows
   public JsonNode deleteRun(String dagRunId) {
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
+    try (CloseableHttpClient client = buildClient()) {
       HttpDelete delete = new HttpDelete(getUri(dagRunId));
       delete.setHeaders(getHeaders());
       return MAPPER.readTree(client.execute(delete).getEntity().getContent());
@@ -102,7 +123,7 @@ public class AirflowClient {
 
   @SneakyThrows
   public JsonNode failRun(String dagRunId) {
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
+    try (CloseableHttpClient client = buildClient()) {
       HttpPatch patch = new HttpPatch(getUri(dagRunId));
       patch.setEntity(new StringEntity("{\"state\": \"failed\"}"));
       patch.setHeaders(getHeaders());
@@ -112,7 +133,7 @@ public class AirflowClient {
 
   @SneakyThrows
   public JsonNode setCancelledNote(String dagRunId) {
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
+    try (CloseableHttpClient client = buildClient()) {
       HttpPatch patch = new HttpPatch(getUri(dagRunId) + "/setNote");
       patch.setEntity(new StringEntity("{\"note\": \"CANCELLED\"}"));
       patch.setHeaders(getHeaders());
@@ -122,7 +143,7 @@ public class AirflowClient {
 
   @SneakyThrows
   public JsonNode getRun(String dagRunId) {
-    try (CloseableHttpClient client = HttpClients.createDefault()) {
+    try (CloseableHttpClient client = buildClient()) {
       HttpGet get = new HttpGet(getUri(dagRunId));
       get.setHeaders(getHeaders());
       return MAPPER.readTree(client.execute(get).getEntity().getContent());
