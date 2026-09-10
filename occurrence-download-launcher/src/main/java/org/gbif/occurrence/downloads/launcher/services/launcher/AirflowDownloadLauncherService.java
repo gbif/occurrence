@@ -313,8 +313,12 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
                 download.getKey(),
                 ex);
             try {
-              download.setStatus(Status.FAILED);
-              downloadClient.update(download);
+              Download currentDownload = downloadClient.get(download.getKey());
+              if (currentDownload != null
+                  && !FINISH_STATUSES.contains(currentDownload.getStatus())) {
+                currentDownload.setStatus(Status.FAILED);
+                downloadClient.update(currentDownload);
+              }
             } catch (Exception updateEx) {
               log.error(
                   "Failed to update download {} status to FAILED", download.getKey(), updateEx);
