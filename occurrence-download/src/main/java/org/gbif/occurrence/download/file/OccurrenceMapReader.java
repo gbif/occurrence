@@ -91,7 +91,7 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.identifiedBy.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getIdentifiedBy()));
     interpretedOccurrence.put(DwcTerm.preparations.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getPreparations()));
     interpretedOccurrence.put(DwcTerm.samplingProtocol.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getSamplingProtocol()));
-    interpretedOccurrence.put(GbifTerm.projectId.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getProjectId()));
+    interpretedOccurrence.put(DwcTerm.projectID.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getProjectId()));
     interpretedOccurrence.put(DwcTerm.associatedSequences.simpleName(), getSimpleValueAndNormalizeDelimiters(occurrence.getAssociatedSequences()));
     interpretedOccurrence.put(GbifTerm.isSequenced.simpleName(), Boolean.toString(occurrence.getIsSequenced()));
     interpretedOccurrence.put(GbifTerm.gbifRegion.simpleName(), getSimpleValue(occurrence.getGbifRegion()));

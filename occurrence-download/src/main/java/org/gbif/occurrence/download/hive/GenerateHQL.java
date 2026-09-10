@@ -126,6 +126,8 @@ public class GenerateHQL {
       DownloadQueryParameters downloadQueryParameters =
           DownloadQueryParameters.builder()
               .checklistKey(Constants.NUB_DATASET_KEY.toString())
+              .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
+              .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
               .build();
       generateDwcaQueryHQL(cfg, downloadQueryParameters, downloadDir);
       generateSimpleCsvQueryHQL(cfg, downloadQueryParameters, simpleCsvDownloadDir);
@@ -230,13 +232,19 @@ public class GenerateHQL {
                 "interpretedFields",
                 getQueries(queryParameters.getCoreTerm())
                     .selectInterpretedFields(
-                        false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                        false, queryParameters.getChecklistKey(),
+                      queryParameters.getDenormalisedTaxonomy(),
+                      queryParameters.getChecklistNestedStructMap(),
+                      queryParameters.getCoreTerm())
                     .values());
     dataBuilder.put(
                 "initializedInterpretedFields",
                 getQueries(queryParameters.getCoreTerm())
                     .selectInterpretedFields(
-                        true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                        true, queryParameters.getChecklistKey(),
+                      queryParameters.getDenormalisedTaxonomy(),
+                      queryParameters.getChecklistNestedStructMap(),
+                      queryParameters.getCoreTerm())
                     .values());
     dataBuilder.put("multimediaFields", HIVE_QUERIES.selectMultimediaFields(false).values());
     dataBuilder.put("initializedMultimediaFields", HIVE_QUERIES.selectMultimediaFields(true).values());
@@ -272,10 +280,12 @@ public class GenerateHQL {
     if (includeInterpretedExtension(queryParameters, Extension.HUMBOLDT)) {
       dataBuilder.put(
           "humboldtFields",
-          HIVE_QUERIES.selectHumboldtFields(false, queryParameters.getChecklistKey()).values());
+          HIVE_QUERIES.selectHumboldtFields(false, queryParameters.getChecklistKey(),
+            queryParameters.getDenormalisedTaxonomy(),
+            queryParameters.getChecklistNestedStructMap()).values());
       dataBuilder.put(
           "humboldtSelectFields",
-          HIVE_QUERIES.selectHumboldtFields(true, queryParameters.getChecklistKey()).values());
+          HIVE_QUERIES.selectHumboldtFields(true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap()).values());
     }
 
     if (includeInterpretedExtension(queryParameters, Extension.OCCURRENCE)) {
@@ -284,13 +294,19 @@ public class GenerateHQL {
               "occurrenceExtInterpretedFields",
               getQueries(DwcTerm.Occurrence)
                   .selectInterpretedFields(
-                      false, queryParameters.getChecklistKey(), DwcTerm.Occurrence)
+                      false, queryParameters.getChecklistKey(),
+                    queryParameters.getDenormalisedTaxonomy(),
+                    queryParameters.getChecklistNestedStructMap(),
+                    DwcTerm.Occurrence)
                   .values());
       dataBuilder.put(
               "occurrenceExtInitializedInterpretedFields",
               getQueries(DwcTerm.Occurrence)
                   .selectInterpretedFields(
-                      true, queryParameters.getChecklistKey(), DwcTerm.Occurrence)
+                      true, queryParameters.getChecklistKey(),
+                    queryParameters.getDenormalisedTaxonomy(),
+                    queryParameters.getChecklistNestedStructMap(),
+                    DwcTerm.Occurrence)
                   .values());
     }
 
@@ -344,7 +360,12 @@ public class GenerateHQL {
             FIELDS,
             getQueries(queryParameters.getCoreTerm())
                 .selectSimpleDownloadFields(
-                    true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                    true,
+                  queryParameters.getChecklistKey(),
+                  queryParameters.getDenormalisedTaxonomy(),
+                  queryParameters.getChecklistNestedStructMap(),
+                  queryParameters.getCoreTerm()
+                )
                 .values(),
             IS_HUMBOLDT_SEARCH,
             queryParameters.isHumboldtSearch());
@@ -391,11 +412,13 @@ public class GenerateHQL {
     }
   }
 
-  public static Schema simpleAvroSchema(DownloadQueryParameters queryParameters)
-      throws IOException {
+  public static Schema simpleAvroSchema(DownloadQueryParameters queryParameters) {
     Map<String, InitializableField> fields =
         SIMPLE_AVRO_SCHEMA_QUERIES.selectSimpleDownloadFields(
-            true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm());
+            true, queryParameters.getChecklistKey(),
+          queryParameters.getDenormalisedTaxonomy(),
+          queryParameters.getChecklistNestedStructMap(),
+          queryParameters.getCoreTerm());
 
     SchemaBuilder.FieldAssembler<Schema> builder =
         SchemaBuilder.record("SimpleOccurrence")
@@ -416,7 +439,10 @@ public class GenerateHQL {
               FIELDS,
               AVRO_QUERIES
                   .selectSimpleDownloadFields(
-                      true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                      true, queryParameters.getChecklistKey(),
+                    queryParameters.getDenormalisedTaxonomy(),
+                    queryParameters.getChecklistNestedStructMap(),
+                    queryParameters.getCoreTerm())
                   .values(),
               "avroSchema",
               simpleAvroSchema(queryParameters).toString(true));
@@ -433,7 +459,10 @@ public class GenerateHQL {
             FIELDS,
             AVRO_QUERIES
                 .selectSimpleDownloadFields(
-                    true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm())
+                    true, queryParameters.getChecklistKey(),
+                  queryParameters.getDenormalisedTaxonomy(),
+                  queryParameters.getChecklistNestedStructMap(),
+                  queryParameters.getCoreTerm())
                 .values(),
             "avroSchema",
             simpleAvroSchema(queryParameters).toString(true));
@@ -466,10 +495,13 @@ public class GenerateHQL {
     // name (verbatimScientificName etc).
     Map<String, InitializableField> interpretedNames =
         PARQUET_QUERIES.selectSimpleDownloadFields(
-            true, queryParameters.getChecklistKey(), queryParameters.getCoreTerm());
+            true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap(), queryParameters.getCoreTerm());
     Map<String, InitializableField> columnNames =
         PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(
-            false, queryParameters.getChecklistKey(), queryParameters.getCoreTerm());
+            false, queryParameters.getChecklistKey(),
+          queryParameters.getDenormalisedTaxonomy(),
+          queryParameters.getChecklistNestedStructMap(),
+          queryParameters.getCoreTerm());
 
     Map<String, Object> data =
         Map.of(
@@ -619,7 +651,10 @@ public class GenerateHQL {
         SIMPLE_AVRO_SCHEMA_QUERIES.selectGroupedDownloadFields(
             MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS,
             true,
-            queryParameters.getChecklistKey());
+            queryParameters.getChecklistKey(),
+            queryParameters.getDenormalisedTaxonomy(),
+            queryParameters.getChecklistNestedStructMap()
+          );
 
     SchemaBuilder.FieldAssembler<Schema> builder =
         SchemaBuilder.record("MapOfLife").namespace("org.gbif.occurrence.download.avro").fields();
@@ -649,7 +684,9 @@ public class GenerateHQL {
                 AVRO_QUERIES.selectGroupedDownloadFields(
                     MapOfLifeDownloadDefinition.MAP_OF_LIFE_DOWNLOAD_TERMS,
                     true,
-                    queryParameters.getChecklistKey()),
+                    queryParameters.getChecklistKey(),
+                    queryParameters.getDenormalisedTaxonomy(),
+                    queryParameters.getChecklistNestedStructMap()),
             "mapOfLifeAvroSchema", mapOfLifeSchema(queryParameters).toString(true));
     template.process(data, out);
   }

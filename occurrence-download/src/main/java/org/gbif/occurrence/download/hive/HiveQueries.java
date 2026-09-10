@@ -13,13 +13,13 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifDnaTerm;
 import org.gbif.dwc.terms.GbifInternalTerm;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.predicate.query.SQLColumnsUtils;
 import org.gbif.terms.utils.TermUtils;
+
+import java.util.Map;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating TSV
@@ -33,18 +33,10 @@ public class HiveQueries extends TsvQueries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term, String checklistKey) {
-    if (term == GbifTerm.issue) {
-      return String.format(
-          "array_join(array_union(nontaxonomicissue, element_at(taxonomicissue, '%s')), '\\;') as issue",
-          checklistKey);
-    } else if (term == DwcTerm.taxonomicStatus) {
-      return String.format(
-        "element_at(taxonomicstatuses, '%s') as taxonomicstatus",
-        checklistKey
-      );
-    } else if (TermUtils.isTaxonomic(term)) {
-      return toTaxonomicHiveInitializer(term, checklistKey);
+  String toInterpretedHiveInitializer(Term term, String checklistKey, String denormalisedTaxonomy,
+                                      Map<String, String> checklistNestedStructMap) {
+    if (TermUtils.isTaxonomic(term)) {
+      return toTaxonomicHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
     } else if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isVocabulary(term)) {

@@ -53,7 +53,7 @@ public enum OccurrenceEsField implements EsField {
   DATASET_CATEGORY(new BaseEsField("datasetCategory", GbifInternalTerm.datasetCategory)),
   PROTOCOL(new BaseEsField("protocol", GbifTerm.protocol)),
   LICENSE(new BaseEsField("license", DcTerm.license)),
-  PROJECT_ID(new BaseEsField("projectId", GbifTerm.projectId)),
+  PROJECT_ID(new BaseEsField("projectId", DwcTerm.projectID)),
   PROGRAMME(new BaseEsField("programmeAcronym", GbifInternalTerm.programmeAcronym)),
 
   //Core identification

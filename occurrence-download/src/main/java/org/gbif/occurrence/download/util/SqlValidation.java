@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.util;
 
+import lombok.Getter;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
@@ -59,13 +60,13 @@ public class SqlValidation {
   private final HiveSqlValidator hiveSqlValidator;
 
   public SqlValidation() {
-    this(null);
+    this(null, Map.of());
   }
 
-  public SqlValidation(String database) {
+  public SqlValidation(String database, Map<String, String> nestedStructConfig) {
     this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
-    OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence");
+    OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence", nestedStructConfig);
     rootSchema.add(occurrenceTable.getTableName(), occurrenceTable);
     if (database != null) {
       rootSchema.add(CATALOG + "." + database, new AbstractSchema() {
@@ -220,10 +221,13 @@ public class SqlValidation {
    */
   class OccurrenceTable extends AbstractTable {
 
+    @Getter
     private final String tableName;
+    private final Map<String, String> nestedStructConfig;
 
-    public OccurrenceTable(String tableName) {
+    public OccurrenceTable(String tableName, Map<String, String> nestedStructConfig) {
       this.tableName = tableName;
+      this.nestedStructConfig = nestedStructConfig;
     }
 
     @Override
@@ -264,6 +268,87 @@ public class SqlValidation {
       RelDataType structMapOfArrays = tdf.createMapType(varChar, varCharArray);
       RelDataType structMapOfMap = tdf.createMapType(varChar, tdf.createMapType(varChar, varChar));
 
+      RelDataType classification = tdf.createStructType(StructKind.FULLY_QUALIFIED,
+        Arrays.asList(
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varChar,
+          varCharArray,
+          varCharArray,
+          varChar
+        ),
+        Arrays.asList(
+          "taxonkey",
+          "scientificname",
+          "acceptedtaxonkey",
+          "acceptednameusageid",
+          "acceptedscientificname",
+          "genericname",
+          "specificepithet",
+          "infraspecificepithet",
+          "taxonrank",
+          "kingdomkey",
+          "phylumkey",
+          "classkey",
+          "orderkey",
+          "superfamilykey",
+          "familykey",
+          "subfamilykey",
+          "tribekey",
+          "subtribekey",
+          "genuskey",
+          "subgenuskey",
+          "specieskey",
+          "kingdom",
+          "phylum",
+          "class",
+          "order",
+          "superfamily",
+          "family",
+          "subfamily",
+          "tribe",
+          "subtribe",
+          "genus",
+          "subgenus",
+          "species",
+          "iucnredlistcategory",
+          "taxonkeys",
+          "taxonomicissue",
+          "taxonomicstatus"
+        )
+      );
+
       OccurrenceHDFSTableDefinition.definition().stream().forEach(
         field -> {
           switch (field.getHiveDataType()) {
@@ -303,17 +388,22 @@ public class SqlValidation {
               builder.add(field.getColumnName(), geologicalRange);
               break;
 
+            case HiveDataTypes.TYPE_CLASSIFICATION_STRUCT:
+              // classification field
+              builder.add(field.getColumnName(), classification);
+              break;
+
             default:
               builder.add(field.getColumnName(), HIVE_TYPE_MAPPING.get(field.getHiveDataType()));
           }
         }
       );
 
-      return builder.build();
-    }
+      for (String fieldName : nestedStructConfig.values()) {
+        builder.add(fieldName, classification);
+      }
 
-    public String getTableName() {
-      return tableName;
+      return builder.build();
     }
   }
 }

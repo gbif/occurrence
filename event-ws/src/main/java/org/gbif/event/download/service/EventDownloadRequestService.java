@@ -47,7 +47,8 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
     OccurrenceEmailManager emailManager,
     EmailSender emailSender,
     MessagePublisher messagePublisher,
-    DoiInteractionClient doiInteractionClient) {
+    DoiInteractionClient doiInteractionClient,
+    @Value("${checklist.nested.struct.config: {}") String checklistNestedStructConfigJson) {
     super(
         portalUrl,
         wsUrl,
@@ -58,7 +59,8 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
         emailSender,
         messagePublisher,
         DownloadType.EVENT,
-        doiInteractionClient);
+        doiInteractionClient,
+        checklistNestedStructConfigJson);
     this.defaultChecklistKey = defaultChecklistKey;
   }
 

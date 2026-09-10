@@ -18,6 +18,7 @@ import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
 
 import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -59,7 +60,8 @@ class ParquetSchemaQueries extends Queries {
   }
 
   @Override
-  String toInterpretedHiveInitializer(Term term, String checklistKey) {
+  String toInterpretedHiveInitializer(Term term, String checklistKey, String denormalisedTaxonomy,
+                                      Map<String, String> checklistNestedStructMap) {
     return term.simpleName().toLowerCase(Locale.ROOT);
   }
 }

@@ -62,6 +62,10 @@ public class DownloadQueryParameters {
 
   private final DwcTerm coreTerm;
 
+  private final String denormalisedTaxonomy;
+
+  private final Map<String, String> checklistNestedStructMap;
+
   @SneakyThrows
   public static DownloadQueryParameters from(
       Download download,
@@ -75,13 +79,15 @@ public class DownloadQueryParameters {
             .tableName(jobConfiguration.getCoreTerm().name().toLowerCase())
             .database(workflowConfiguration.getHiveDb())
             .warehouseDir(workflowConfiguration.getHiveWarehouseDir())
-            .coreTerm(jobConfiguration.getCoreTerm());
+            .coreTerm(jobConfiguration.getCoreTerm())
+            .denormalisedTaxonomy(workflowConfiguration.getDenormalisedTaxonomy())
+            .checklistNestedStructMap(workflowConfiguration.getChecklistNestedStructMap());
 
     builder.interpretedExtensions(
         DownloadRequestUtils.getInterpretedExtensions(download.getRequest()));
 
     if (DownloadFormat.SQL_TSV_ZIP == jobConfiguration.getDownloadFormat()) {
-      SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb());
+      SqlValidation sv = new SqlValidation(workflowConfiguration.getHiveDb(), workflowConfiguration.getChecklistNestedStructMap());
 
       String userSql = ((SqlDownloadRequest) download.getRequest()).getSql();
       HiveSqlQuery sqlQuery =
