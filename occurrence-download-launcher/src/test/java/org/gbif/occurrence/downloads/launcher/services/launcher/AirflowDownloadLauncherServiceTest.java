@@ -57,12 +57,17 @@ class AirflowDownloadLauncherServiceTest {
   @Test
   void markDownloadAsFailedRetriesWithFreshReadAfterConflict() throws Exception {
     Download staleDownload = new Download();
+    staleDownload.setKey("stale");
     staleDownload.setStatus(Status.RUNNING);
     Download refreshedDownload = new Download();
+    refreshedDownload.setKey("refreshed");
     refreshedDownload.setStatus(Status.RUNNING);
 
     when(downloadClient.get(DOWNLOAD_KEY)).thenReturn(staleDownload, refreshedDownload);
-    doThrow(new RuntimeException("conflict")).doNothing().when(downloadClient).update(any());
+    doThrow(new RuntimeException("conflict"))
+        .doReturn(refreshedDownload)
+        .when(downloadClient)
+        .update(any());
 
     launcherService.markDownloadAsFailed(DOWNLOAD_KEY);
 
