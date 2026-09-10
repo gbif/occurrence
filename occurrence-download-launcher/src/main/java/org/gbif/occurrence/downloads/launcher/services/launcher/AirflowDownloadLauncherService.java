@@ -45,6 +45,8 @@ import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 @Slf4j
 public abstract class AirflowDownloadLauncherService implements DownloadLauncher {
 
+  private static final int FAILED_STATUS_UPDATE_MAX_ATTEMPTS = 3;
+
   private static final Retry AIRFLOW_RETRY =
       Retry.of(
           "airflowApiCall",
@@ -313,12 +315,7 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
                 download.getKey(),
                 ex);
             try {
-              Download currentDownload = downloadClient.get(download.getKey());
-              if (currentDownload != null
-                  && !FINISH_STATUSES.contains(currentDownload.getStatus())) {
-                currentDownload.setStatus(Status.FAILED);
-                downloadClient.update(currentDownload);
-              }
+              markDownloadAsFailed(download.getKey());
             } catch (Exception updateEx) {
               log.error(
                   "Failed to update download {} status to FAILED", download.getKey(), updateEx);
@@ -327,6 +324,25 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
             lockerService.unlock(download.getKey());
           }
         });
+  }
+
+  void markDownloadAsFailed(String downloadKey) throws Exception {
+    for (int attempt = 1; attempt <= FAILED_STATUS_UPDATE_MAX_ATTEMPTS; attempt++) {
+      Download currentDownload = downloadClient.get(downloadKey);
+      if (currentDownload == null || FINISH_STATUSES.contains(currentDownload.getStatus())) {
+        return;
+      }
+
+      currentDownload.setStatus(Status.FAILED);
+      try {
+        downloadClient.update(currentDownload);
+        return;
+      } catch (Exception ex) {
+        if (attempt == FAILED_STATUS_UPDATE_MAX_ATTEMPTS) {
+          throw ex;
+        }
+      }
+    }
   }
 
   protected abstract AirflowClient getAirflowClient();
