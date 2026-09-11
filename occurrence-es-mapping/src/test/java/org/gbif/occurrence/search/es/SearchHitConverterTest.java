@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.search.es;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -180,5 +182,22 @@ public class SearchHitConverterTest {
     assertEquals(1, cal.get(Calendar.YEAR));
     assertEquals(0, cal.get(Calendar.MONTH));
     assertEquals(1, cal.get(Calendar.DAY_OF_MONTH));
+  }
+
+  @Test
+  public void extremeProlepticYearTest() {
+    // regression test: these used to throw and be logged as
+    // "Error extracting field dateIdentified with value ..."
+    Date date = STRING_TO_DATE.apply("-9121-11-20");
+    assertEquals(LocalDate.of(-9121, 11, 20).atStartOfDay().toInstant(ZoneOffset.UTC), date.toInstant());
+
+    date = STRING_TO_DATE.apply("-0423-12-20");
+    assertEquals(LocalDate.of(-423, 12, 20).atStartOfDay().toInstant(ZoneOffset.UTC), date.toInstant());
+
+    date = STRING_TO_DATE.apply("-0423-12");
+    assertEquals(LocalDate.of(-423, 12, 1).atStartOfDay().toInstant(ZoneOffset.UTC), date.toInstant());
+
+    date = STRING_TO_DATE.apply("-0423");
+    assertEquals(LocalDate.of(-423, 1, 1).atStartOfDay().toInstant(ZoneOffset.UTC), date.toInstant());
   }
 }

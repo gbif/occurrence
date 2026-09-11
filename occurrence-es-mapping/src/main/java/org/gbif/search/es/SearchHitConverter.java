@@ -19,7 +19,12 @@ import org.gbif.dwc.terms.UnknownTerm;
 import org.gbif.predicate.query.EsField;
 
 import java.time.*;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
+import java.time.format.SignStyle;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Function;
@@ -49,6 +54,27 @@ public abstract class SearchHitConverter<T> implements Function<Hit<Map<String, 
               + "[yyyy-MM-dd'T'HH:mm:ss XXX][yyyy-MM-dd'T'HH:mm:ssXXX][yyyy-MM-dd'T'HH:mm:ss]"
               + "[yyyy-MM-dd'T'HH:mm][yyyy-MM-dd][yyyy-MM][yyyy]");
 
+  /**
+   * Fallback for date-only values with extreme/proleptic years (e.g. "-9121-11-20") that the
+   * fixed-width, era-based "yyyy" pattern of {@link #FORMATTER} cannot parse. Mirrors the
+   * year handling in {@code org.gbif.api.util.IsoDateParsingUtils}, using the proleptic YEAR
+   * field with a variable width and a sign so negative and >4-digit years are accepted.
+   */
+  private static final DateTimeFormatter EXTENDED_YEAR_FORMATTER =
+      new DateTimeFormatterBuilder()
+          .appendValue(ChronoField.YEAR, 4, 10, SignStyle.EXCEEDS_PAD)
+          .optionalStart()
+          .appendLiteral('-')
+          .appendValue(ChronoField.MONTH_OF_YEAR, 1, 2, SignStyle.NEVER)
+          .optionalStart()
+          .appendLiteral('-')
+          .appendValue(ChronoField.DAY_OF_MONTH, 1, 2, SignStyle.NEVER)
+          .optionalEnd()
+          .optionalEnd()
+          .toFormatter()
+          .withResolverStyle(ResolverStyle.STRICT)
+          .withChronology(IsoChronology.INSTANCE);
+
   private static final Pattern DATE_WITH_MS_PATTERN =
       Pattern.compile("^(.*\\d{2}:\\d{2}:\\d{2}\\.)(\\d+)(.*)$");
 
@@ -75,14 +101,23 @@ public abstract class SearchHitConverter<T> implements Function<Hit<Map<String, 
         }
 
         // parse string
-        TemporalAccessor temporalAccessor =
-            FORMATTER.parseBest(
-                dateAsString,
-                ZonedDateTime::from,
-                LocalDateTime::from,
-                LocalDate::from,
-                YearMonth::from,
-                Year::from);
+        TemporalAccessor temporalAccessor;
+        try {
+          temporalAccessor =
+              FORMATTER.parseBest(
+                  dateAsString,
+                  ZonedDateTime::from,
+                  LocalDateTime::from,
+                  LocalDate::from,
+                  YearMonth::from,
+                  Year::from);
+        } catch (DateTimeException e) {
+          log.warn("Error parsing date {} with FORMATTER, trying EXTENDED_YEAR_FORMATTER", dateAsString, e);
+          // e.g. extreme/proleptic years such as "-9121-11-20" or "-0423-12-20"
+          temporalAccessor =
+              EXTENDED_YEAR_FORMATTER.parseBest(
+                  dateAsString, LocalDate::from, YearMonth::from, Year::from);
+        }
         Date dateParsed = null;
         if (temporalAccessor instanceof ZonedDateTime) {
           dateParsed = Date.from(((ZonedDateTime) temporalAccessor).toInstant());
