@@ -119,7 +119,7 @@ public abstract class DownloadRequestServiceImpl
       MessagePublisher messagePublisher,
       DownloadType downloadType,
       DoiInteractionClient doiInteractionClient,
-      @Value("${checklist.nested.struct.config: {}") String checklistNestedStructConfigJson
+      @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson
   )  {
     this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
