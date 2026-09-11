@@ -704,15 +704,19 @@ public abstract class BaseEsSearchRequestBuilder<
   private int calculateAggsSize(P facetParam, int facetOffset, int facetLimit) {
     int maxCardinality = CARDINALITIES.getOrDefault(facetParam, Integer.MAX_VALUE);
 
+    // use long arithmetic to avoid overflow from client-supplied facetOffset/facetLimit,
+    // and floor negative inputs at 0
+    long requestedSize = (long) Math.max(facetOffset, 0) + Math.max(facetLimit, 0);
+
     // the limit is bounded by the max cardinality of the field
-    int limit = Math.min(facetOffset + facetLimit, maxCardinality);
+    long limit = Math.min(requestedSize, maxCardinality);
 
     // we set a maximum limit for performance reasons
     if (limit > MAX_SIZE_TERMS_AGGS) {
       throw new IllegalArgumentException(
           "Facets paging is only supported up to " + MAX_SIZE_TERMS_AGGS + " elements");
     }
-    return limit;
+    return (int) limit;
   }
 
   private int getDefaultShardSize(int size) {
