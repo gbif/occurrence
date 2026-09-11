@@ -271,9 +271,7 @@ public class DownloadResource {
 
     String location = archiveServerUrl + downloadKey + extension;
     return ResponseEntity.status(HttpStatus.FOUND)
-        .header(
-            HttpHeaders.LAST_MODIFIED,
-            new SimpleDateFormat().format(new Date(downloadFile.lastModified())))
+        .lastModified(downloadFile.lastModified())
         .location(URI.create(location))
         .body(location);
   }
