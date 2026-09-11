@@ -138,7 +138,7 @@ public class DownloadResource {
       DownloadType downloadType,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
-      @Value("${denormalisedTaxonomy: '7ddf754f-d193-4cc9-b351-99906754a03b'}") String denormalisedTaxonomy,
+      @Value("${denormalisedTaxonomy: 7ddf754f-d193-4cc9-b351-99906754a03b}") String denormalisedTaxonomy,
       @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
