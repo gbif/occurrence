@@ -49,7 +49,7 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       EmailSender emailSender,
       MessagePublisher messagePublisher,
       DoiInteractionClient doiInteractionClient,
-      @Value("${checklist.nested.struct.config: {}") String checklistNestedStructConfigJson) {
+      @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson) {
     super(
         portalUrl,
         wsUrl,
