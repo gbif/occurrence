@@ -138,7 +138,7 @@ public class DownloadResource {
       DownloadType downloadType,
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
-      @Value("${denormalisedTaxonomy: '7ddf754f-d193-4cc9-b351-99906754a03b'}") String denormalisedTaxonomy,
+      @Value("${denormalisedTaxonomy: 7ddf754f-d193-4cc9-b351-99906754a03b}") String denormalisedTaxonomy,
       @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
@@ -271,9 +271,7 @@ public class DownloadResource {
 
     String location = archiveServerUrl + downloadKey + extension;
     return ResponseEntity.status(HttpStatus.FOUND)
-        .header(
-            HttpHeaders.LAST_MODIFIED,
-            new SimpleDateFormat().format(new Date(downloadFile.lastModified())))
+        .lastModified(downloadFile.lastModified())
         .location(URI.create(location))
         .body(location);
   }
