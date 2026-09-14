@@ -134,7 +134,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE };
-              branch 'master';
+              branch 'hotfix/580-infrageneric';
           }
       }
       environment {
@@ -166,7 +166,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE_TRINO };
-              branch 'master';
+              branch 'hotfix/580-infrageneric';
           }
       }
       environment {
@@ -190,7 +190,7 @@ pipeline {
         allOf {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
-          branch 'master';
+          branch 'hotfix/580-infrageneric';
         }
       }
       environment {
