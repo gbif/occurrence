@@ -152,6 +152,7 @@ pipeline {
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
               git 'https://github.com/gbif/occurrence.git'
+              sh 'git checkout hotfix/580-infrageneric'
               sh 'mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -Darguments="-Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE" $RELEASE_ARGS'
             }
           }
@@ -178,6 +179,7 @@ pipeline {
                           variable: 'MAVEN_SETTINGS_XML')]) {
               git 'https://github.com/gbif/occurrence.git'
               sh '''
+                git checkout hotfix/580-infrageneric
                 cd occurrence-trino-udf
                 mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform $RELEASE_ARGS_TRINO
               '''
