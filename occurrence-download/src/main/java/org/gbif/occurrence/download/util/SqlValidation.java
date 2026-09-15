@@ -304,6 +304,7 @@ public class SqlValidation {
           varChar,
           varChar,
           varChar,
+          varChar,
           varCharArray,
           varCharArray,
           varChar
@@ -317,6 +318,7 @@ public class SqlValidation {
           "genericname",
           "specificepithet",
           "infraspecificepithet",
+          "infragenericpithet",
           "taxonrank",
           "kingdomkey",
           "phylumkey",

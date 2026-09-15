@@ -80,6 +80,13 @@ abstract class TsvQueries extends Queries {
       return String.format(
         "array_join(array_union(nontaxonomicissue, %s), '\\;') as issue",
         prefix + "taxonomicissue");
+    } else if (term == GbifTerm.taxonomicIssue) {
+      final String columnName = HiveColumns.columnFor(term);
+      // combine the non taxonomic issues with the
+      // taxonomic issues from the specified checklist
+      return String.format(
+        "array_join(%s, '\\;') as %s",
+        prefix + columnName, columnName);
     } else if (term == DwcTerm.infragenericEpithet) {
       //FIX ME
       // gets around the fact that infragenericEpithet is present in the denormalised taxonomy,
