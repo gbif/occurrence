@@ -56,6 +56,12 @@ public class AirflowConfiguration {
 
   public long apiCheckDelaySec = 3L;
 
+  /** Connect/connection-request timeout for calls to the Airflow REST API. */
+  public int connectTimeoutSec = 10;
+
+  /** Socket (read) timeout for calls to the Airflow REST API. */
+  public int socketTimeoutSec = 30;
+
   private DownloadPodConfiguration podConfiguration;
 
   @JsonIgnore
