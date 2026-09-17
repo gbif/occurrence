@@ -94,6 +94,9 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       }
     }
 
+    // GEOLOGICAL_TIME is not supported on facets
+    request.getFacets().remove(OccurrenceSearchParameter.GEOLOGICAL_TIME);
+
     return request;
   }
 

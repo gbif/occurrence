@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.search.es;
 
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -222,8 +224,11 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     try {
       return esResponseParser.buildSearchResponse(
           esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class), request);
-    } catch (IOException e) {
-      LOG.error("Error executing the search operation", e);
+    } catch (Exception e) {
+      if (e instanceof ElasticsearchException) {
+        LOG.error("ElasticsearchException response error: {}", ((ElasticsearchException) e).response().error());
+      }
+      LOG.error("Error executing the search operation:", e);
       throw new SearchException(e);
     }
   }
