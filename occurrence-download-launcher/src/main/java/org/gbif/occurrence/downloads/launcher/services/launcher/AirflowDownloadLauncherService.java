@@ -45,6 +45,8 @@ import static org.gbif.api.model.occurrence.Download.Status.SUCCEEDED;
 @Slf4j
 public abstract class AirflowDownloadLauncherService implements DownloadLauncher {
 
+  private static final int FAILED_STATUS_UPDATE_MAX_ATTEMPTS = 3;
+
   private static final Retry AIRFLOW_RETRY =
       Retry.of(
           "airflowApiCall",
@@ -306,11 +308,41 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
                 download.getKey(),
                 status.orElse(null));
           } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            // Airflow API calls are already retried extensively (see AIRFLOW_RETRY); reaching
+            // here means Airflow is unreachable/unresponsive for an extended period.
+            log.error(
+                "Giving up on status checks for download {}, marking as FAILED",
+                download.getKey(),
+                ex);
+            try {
+              markDownloadAsFailed(download.getKey());
+            } catch (Exception updateEx) {
+              log.error(
+                  "Failed to update download {} status to FAILED", download.getKey(), updateEx);
+            }
           } finally {
             lockerService.unlock(download.getKey());
           }
         });
+  }
+
+  void markDownloadAsFailed(String downloadKey) throws Exception {
+    for (int attempt = 1; attempt <= FAILED_STATUS_UPDATE_MAX_ATTEMPTS; attempt++) {
+      Download currentDownload = downloadClient.get(downloadKey);
+      if (currentDownload == null || FINISH_STATUSES.contains(currentDownload.getStatus())) {
+        return;
+      }
+
+      currentDownload.setStatus(Status.FAILED);
+      try {
+        downloadClient.update(currentDownload);
+        return;
+      } catch (Exception ex) {
+        if (attempt == FAILED_STATUS_UPDATE_MAX_ATTEMPTS) {
+          throw ex;
+        }
+      }
+    }
   }
 
   protected abstract AirflowClient getAirflowClient();
@@ -321,6 +353,8 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
         .airflowUser(airflowConfiguration.airflowUser)
         .airflowPass(airflowConfiguration.airflowPass)
         .airflowDagName(dagName)
+        .connectTimeoutSec(airflowConfiguration.connectTimeoutSec)
+        .socketTimeoutSec(airflowConfiguration.socketTimeoutSec)
         .build();
   }
 }
