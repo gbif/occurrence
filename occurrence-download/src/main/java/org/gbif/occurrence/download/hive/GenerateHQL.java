@@ -36,7 +36,6 @@ import freemarker.template.TemplateException;
 import lombok.SneakyThrows;
 
 import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
-import static org.gbif.occurrence.download.util.Preconditions.checkState;
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_DNA_TERMS;
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
 
@@ -129,16 +128,19 @@ public class GenerateHQL {
               .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
               .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
               .build();
+
       generateDwcaQueryHQL(cfg, downloadQueryParameters, downloadDir);
       generateSimpleCsvQueryHQL(cfg, downloadQueryParameters, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, downloadQueryParameters, simpleAvroDownloadDir);
-      generateSimpleAvroSchema(cfg, downloadQueryParameters, simpleAvroDownloadDir.getParentFile());
+      generateSimpleAvroSchema(downloadQueryParameters, simpleAvroDownloadDir.getParentFile());
       generateSimpleParquetQueryHQL(cfg, downloadQueryParameters, simpleParquetDownloadDir);
       generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
       generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
       generateMapOfLifeQueryHQL(cfg, downloadQueryParameters, mapOfLifeDownloadDir);
       generateMapOfLifeSchema(cfg, downloadQueryParameters, mapOfLifeDownloadDir.getParentFile());
       generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
+
+      generateSpeciesListQueryHQL(cfg, downloadQueryParameters, downloadDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could
@@ -152,6 +154,18 @@ public class GenerateHQL {
               + "Exiting JVM as a precaution, after dumping technical details.");
       e.printStackTrace();
       System.exit(-1);
+    }
+  }
+
+  private static void generateSpeciesListQueryHQL(Configuration cfg, DownloadQueryParameters downloadQueryParameters, File downloadDir) {
+    try (FileWriter out = new FileWriter(new File(downloadDir, "execute-species-list-query.q"))) {
+      Template template = cfg.getTemplate("species-list-download/execute-species-list-query.ftl");
+      Map<String, Object> data = Map.of(
+        "taxonomyPrefix", "gbif_classification."
+      );
+      template.process(data, out);
+    } catch (IOException | TemplateException e) {
+      throw new RuntimeException("Error generating species list query HQL", e);
     }
   }
 
@@ -368,7 +382,8 @@ public class GenerateHQL {
                 )
                 .values(),
             IS_HUMBOLDT_SEARCH,
-            queryParameters.isHumboldtSearch());
+            queryParameters.isHumboldtSearch()
+        );
     template.process(data, writer);
   }
 
@@ -399,14 +414,24 @@ public class GenerateHQL {
   }
 
   @SneakyThrows
-  public static String speciesListQueryHQL() {
-    return resourceAsString(
-        "/download-workflow/species-list/hive-scripts/execute-species-list-query.q");
+  public static String speciesListQueryHQL(DownloadQueryParameters queryParameters) {
+
+    try (StringWriter stringWriter = new StringWriter()) {
+      Template template = templateConfig()
+        .getTemplate("species-list-download/execute-species-list-query.ftl");
+      Map<String, Object> data =
+        Map.of(
+          "taxonomyPrefix", ""
+        );
+
+      template.process(data, stringWriter);
+      return stringWriter.toString();
+    }
   }
 
   /** Generates the schema file used for simple AVRO downloads. */
-  public static void generateSimpleAvroSchema(
-      Configuration cfg, DownloadQueryParameters queryParameters, File outDir) throws IOException {
+  public static void generateSimpleAvroSchema(DownloadQueryParameters queryParameters, File outDir)
+    throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-occurrence.avsc"))) {
       out.write(simpleAvroSchema(queryParameters).toString(true));
     }
@@ -666,9 +691,6 @@ public class GenerateHQL {
   private static void generateMapOfLifeQueryHQL(
       Configuration cfg, DownloadQueryParameters queryParameters, File outDir)
       throws IOException, TemplateException {
-    // AVRO_QUERIES.selectVerbatimFields().keySet().stream().forEach(System.out::println);
-    // AVRO_QUERIES.selectInterpretedFields(true).keySet().stream().forEach(System.out::println);
-    // AVRO_QUERIES.selectInternalFields(true).keySet().stream().forEach(System.out::println);
     try (FileWriter out = new FileWriter(new File(outDir, "execute-map-of-life-query.q"))) {
       generateMapOfLifeQueryHQL(cfg, queryParameters, out);
     }

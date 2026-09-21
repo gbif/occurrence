@@ -34,7 +34,9 @@ public class AvroQueries extends TsvQueries {
                                       String checklistKey,
                                       String denormalisedTaxonomy,
                                       Map<String, String> checklistNestedStructMap) {
-    if (TermUtils.isInterpretedLocalDateSeconds(term)) {
+    if (TermUtils.isTaxonomic(term)) {
+      return toTaxonomicHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
+    } else if (TermUtils.isInterpretedLocalDateSeconds(term)) {
       return secondsToLocalISO8601Initializer(term);
     } else if (TermUtils.isInterpretedUtcDateSeconds(term)) {
       return secondsToISO8601Initializer(term);

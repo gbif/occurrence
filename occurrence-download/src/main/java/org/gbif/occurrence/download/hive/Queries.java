@@ -133,6 +133,66 @@ public abstract class Queries {
   }
 
   /**
+   *
+   * @param term the term to select
+   * @param denormalisedTaxonomy the UUID of the taxonomy in the top level fields (e.g. COL)
+   * @param checklistKey the checklist to use in the SELECT
+   * @param checklistNestedStructMap map of checklist UUID to nested struct name e.g. `gbif_classification`
+   * @return
+   */
+  protected static String toTaxonomicHiveInitializer(Term term,
+                                                     String checklistKey,
+                                                     String denormalisedTaxonomy,
+                                                     Map<String, String> checklistNestedStructMap) {
+    if (checklistKey == null || checklistKey.isEmpty()) {
+      throw new IllegalArgumentException("checklistKey must not be null or empty");
+    }
+
+    if (denormalisedTaxonomy == null || denormalisedTaxonomy.isEmpty()) {
+      throw new IllegalArgumentException("denormalisedTaxonomy must not be null or empty");
+    }
+
+    if (!checklistKey.equals(denormalisedTaxonomy) && !checklistNestedStructMap.containsKey(checklistKey)) {
+      // If the checklist key is not the denormalised taxonomy, but is in the nested struct map, use it
+      throw new IllegalArgumentException("checklistKey is not supported for downloads ! Check configuration" +
+        " for the checklistNestedStructMap and denormalisedTaxonomy properties");
+    }
+
+    String prefix = "";
+    if (!checklistKey.equals(denormalisedTaxonomy)) {
+      prefix = "occurrence." + checklistNestedStructMap.get(checklistKey) + ".";
+    }
+
+    if (term == GbifTerm.issue) {
+      // combine the non taxonomic issues with the
+      // taxonomic issues from the specified checklist
+      return String.format(
+        "array_join(array_union(nontaxonomicissue, %s), '\\;') as issue",
+        prefix + "taxonomicissue");
+    } else if (term == GbifTerm.taxonomicIssue) {
+      final String columnName = HiveColumns.columnFor(term);
+      // combine the non taxonomic issues with the
+      // taxonomic issues from the specified checklist
+      return String.format(
+        "array_join(%s, '\\;') as %s",
+        prefix + columnName, columnName);
+    } else if (term == DwcTerm.infragenericEpithet) {
+      //FIX ME
+      // gets around the fact that infragenericEpithet is present in the denormalised taxonomy,
+      // but is NOT present in the nested struct
+      return String.format("NULL AS %s", HiveColumns.columnFor(term));
+    } else {
+      final String columnName = HiveColumns.columnFor(term);
+      return String.format(
+        "%s%s AS %s",
+        prefix,
+        columnName,
+        columnName
+      );
+    }
+  }
+
+  /**
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted multimedia extension fields
    */

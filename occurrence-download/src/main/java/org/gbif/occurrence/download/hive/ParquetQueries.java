@@ -43,7 +43,10 @@ class ParquetQueries extends Queries {
   @Override
   String toInterpretedHiveInitializer(Term term, String checklistKey, String denormalisedTaxonomy,
                                       Map<String, String> checklistNestedStructMap) {
-    if (TermUtils.isInterpretedLocalDateSeconds(term)
+
+    if (TermUtils.isTaxonomic(term)) {
+      return toTaxonomicHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
+    } else if (TermUtils.isInterpretedLocalDateSeconds(term)
         || TermUtils.isInterpretedUtcDateSeconds(term)
         || TermUtils.isInterpretedUtcDateMilliseconds(term)) {
       return "cast(from_unixtime(" + HiveColumns.columnFor(term) + ") as timestamp)";
