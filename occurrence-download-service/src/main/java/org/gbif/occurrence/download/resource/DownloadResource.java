@@ -734,7 +734,7 @@ public class DownloadResource {
             QueryVisitorsFactory.createSqlQueryVisitor(
                 this.denormalisedTaxonomy,
                 this.checklistNestedStructMap,
-                defaultChecklistKey,
+                downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey() : defaultChecklistKey,
                 "occurrence"
             )
             .buildQuery(downloadRequest.getPredicate());
