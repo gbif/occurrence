@@ -76,6 +76,8 @@ public class GenerateHQLTest {
         GenerateHQL.simpleParquetQueryHQL(
             DownloadQueryParameters.builder()
                 .checklistKey(Constants.NUB_DATASET_KEY.toString())
+                .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
+                .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
                 .build());
     System.out.println(simpleParquetDownloadQuery);
 
