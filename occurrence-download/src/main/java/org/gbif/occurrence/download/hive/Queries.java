@@ -386,13 +386,20 @@ public abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the simple-with-verbatim download fields
    */
-  Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(boolean useInitializers) {
+  Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(
+    boolean useInitializers,
+    String checklistKey, String denormalisedTaxonomy,
+    Map<String, String> checklistNestedStructMap
+    ) {
     return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS,
-      useInitializers, null, null, null);
+      useInitializers, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
   }
 
-  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(boolean useInitializers) {
-    Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(useInitializers);
+  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(boolean useInitializers,
+                                                                           String checklistKey, String denormalisedTaxonomy,
+                                                                           Map<String, String> checklistNestedStructMap                                                                           ) {
+    Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(
+      useInitializers, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
     Map<String, InitializableField> verbatimFields = new TreeMap<>(selectVerbatimFields());
 
     // Omit any verbatim fields present in the simple download.

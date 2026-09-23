@@ -67,7 +67,7 @@ public class DownloadQueryRunner {
       case SPECIES_LIST -> GenerateHQL.speciesListQueryHQL(queryParameters);
       case SIMPLE_CSV -> GenerateHQL.simpleCsvQueryHQL(queryParameters);
       case SIMPLE_AVRO -> GenerateHQL.simpleAvroQueryHQL(queryParameters);
-      case SIMPLE_WITH_VERBATIM_AVRO -> GenerateHQL.simpleWithVerbatimAvroQueryHQL();
+      case SIMPLE_WITH_VERBATIM_AVRO -> GenerateHQL.simpleWithVerbatimAvroQueryHQL(queryParameters);
       case SIMPLE_PARQUET -> GenerateHQL.simpleParquetQueryHQL(queryParameters);
       case BIONOMIA -> GenerateHQL.bionomiaQueryHQL();
       case MAP_OF_LIFE -> GenerateHQL.mapOfLifeQueryHQL(queryParameters);

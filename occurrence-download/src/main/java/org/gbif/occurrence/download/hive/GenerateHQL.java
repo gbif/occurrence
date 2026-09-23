@@ -134,8 +134,8 @@ public class GenerateHQL {
       generateSimpleAvroQueryHQL(cfg, downloadQueryParameters, simpleAvroDownloadDir);
       generateSimpleAvroSchema(downloadQueryParameters, simpleAvroDownloadDir.getParentFile());
       generateSimpleParquetQueryHQL(cfg, downloadQueryParameters, simpleParquetDownloadDir);
-      generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
-      generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
+      generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir, downloadQueryParameters);
+      generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile(), downloadQueryParameters);
       generateMapOfLifeQueryHQL(cfg, downloadQueryParameters, mapOfLifeDownloadDir);
       generateMapOfLifeSchema(cfg, downloadQueryParameters, mapOfLifeDownloadDir.getParentFile());
       generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
@@ -575,22 +575,24 @@ public class GenerateHQL {
   }
 
   /** Generates the Hive query file used for simple with verbatim AVRO downloads. */
-  public static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, File outDir)
+  public static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, File outDir, DownloadQueryParameters queryParameters)
       throws IOException, TemplateException {
     try (FileWriter out =
         new FileWriter(new File(outDir, "execute-simple-with-verbatim-avro-query.q"))) {
-      generateSimpleWithVerbatimAvroQueryHQL(cfg, out);
+      generateSimpleWithVerbatimAvroQueryHQL(cfg, out, queryParameters);
     }
   }
 
-  private static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, Writer out)
+  private static void generateSimpleWithVerbatimAvroQueryHQL(
+    Configuration cfg, Writer out, DownloadQueryParameters queryParameters)
       throws IOException, TemplateException {
     Template template =
         cfg.getTemplate(
             "simple-with-verbatim-avro-download/execute-simple-with-verbatim-avro-query.ftl");
 
     Map<String, InitializableField> simpleFields =
-        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(
+          true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap());
     Map<String, InitializableField> verbatimFields =
         new TreeMap(AVRO_QUERIES.selectVerbatimFields());
 
@@ -603,21 +605,23 @@ public class GenerateHQL {
         Map.of(
             "simpleFields", simpleFields,
             "verbatimFields", verbatimFields,
-            "avroSchema", simpleWithVerbatimAvroSchema().toString(true));
+            "avroSchema", simpleWithVerbatimAvroSchema(queryParameters).toString(true));
     template.process(data, out);
   }
 
   @SneakyThrows
-  public static String simpleWithVerbatimAvroQueryHQL() {
+  public static String simpleWithVerbatimAvroQueryHQL(DownloadQueryParameters downloadQueryParameters) {
     try (StringWriter out = new StringWriter()) {
-      generateSimpleWithVerbatimAvroQueryHQL(templateConfig(), out);
+      generateSimpleWithVerbatimAvroQueryHQL(templateConfig(), out, downloadQueryParameters);
       return out.toString();
     }
   }
 
-  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields() {
+  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(
+      String checklistKey, String denormalisedTaxonomy, Map<String, String> checklistNestedStructMap) {
     Map<String, InitializableField> simpleFields =
-        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(
+          true, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
     Map<String, InitializableField> verbatimFields =
         new TreeMap<>(AVRO_QUERIES.selectVerbatimFields());
 
@@ -632,19 +636,20 @@ public class GenerateHQL {
   }
 
   /** Generates the schema used for simple with verbatim AVRO downloads. */
-  public static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir)
+  public static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir, DownloadQueryParameters queryParameters)
       throws IOException {
     try (FileWriter out =
         new FileWriter(new File(outDir, "simple-with-verbatim-occurrence.avsc"))) {
-      Schema schema = simpleWithVerbatimAvroSchema();
+      Schema schema = simpleWithVerbatimAvroSchema(queryParameters);
 
       out.write(schema.toString(true));
     }
   }
 
-  public static Schema simpleWithVerbatimAvroSchema() {
+  public static Schema simpleWithVerbatimAvroSchema(DownloadQueryParameters queryParameters) {
     Map<String, InitializableField> simpleFields =
-        AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+        AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(
+          true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap());
     Map<String, InitializableField> verbatimFields =
         new TreeMap<>(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
 
