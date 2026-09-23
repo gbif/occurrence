@@ -400,6 +400,7 @@ public abstract class Queries {
                                                                            Map<String, String> checklistNestedStructMap                                                                           ) {
     Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(
       useInitializers, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
+
     Map<String, InitializableField> verbatimFields = new TreeMap<>(selectVerbatimFields());
 
     // Omit any verbatim fields present in the simple download.

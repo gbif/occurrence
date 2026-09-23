@@ -51,6 +51,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.Builder;
 import lombok.Data;
 
+import static org.gbif.api.model.Constants.COL_DATASET_KEY;
+
 /**
  * Resource to describe file/table formats use in GBIF occurrence downloads.
  *
@@ -163,7 +165,7 @@ public class OccurrenceDownloadDescribeResource {
 
     private final Table interpreted = Table.builder()
       .fields(toFieldList(HIVE_QUERIES.selectInterpretedFields(false,
-        Constants.COL_DATASET_KEY.toString(), Constants.COL_DATASET_KEY.toString(), Map.of()
+        COL_DATASET_KEY.toString(), COL_DATASET_KEY.toString(), Map.of()
       ), true))
       .build();
 
@@ -256,7 +258,11 @@ public class OccurrenceDownloadDescribeResource {
   // Simple with verbatim Avro — names like "gbifID" and "v_scientificName", no text delimiters.
   // TODO: This isn't quite right, as it is lowercasing the names.
   private static final Table SIMPLE_WITH_VERBATIM_AVRO = Table.builder()
-    .fields(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(false).values()
+    .fields(AVRO_QUERIES.simpleWithVerbatimAvroQueryFields(false,
+        COL_DATASET_KEY.toString(),
+        COL_DATASET_KEY.toString(),
+        Map.of()
+        ).values()
       .stream()
       .map(initializableField -> Field.builder()
         .name(initializableField.getTerm().simpleName())
@@ -292,8 +298,8 @@ public class OccurrenceDownloadDescribeResource {
 
   private static final Table SQL = Table.builder()
     .fields(ImmutableSet.<Field>builder()
-      .addAll(toTypedFieldList(HIVE_QUERIES.selectInterpretedFields(false, Constants.COL_DATASET_KEY.toString(), Constants.COL_DATASET_KEY.toString(), Map.of()), true))
-      .addAll(toTypedFieldList(HIVE_QUERIES.selectInternalSearchFields(false, Constants.COL_DATASET_KEY.toString()), true))
+      .addAll(toTypedFieldList(HIVE_QUERIES.selectInterpretedFields(false, COL_DATASET_KEY.toString(), COL_DATASET_KEY.toString(), Map.of()), true))
+      .addAll(toTypedFieldList(HIVE_QUERIES.selectInternalSearchFields(false, COL_DATASET_KEY.toString()), true))
       .addAll(toTypedFieldList(HIVE_QUERIES.selectVerbatimFields(), false))
       .build()
       .asList()
