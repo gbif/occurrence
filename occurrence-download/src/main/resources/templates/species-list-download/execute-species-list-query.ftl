@@ -46,7 +46,7 @@ SET hive.merge.mapfiles=false;
 SET hive.merge.mapredfiles=false;
 CREATE TABLE ${r"${downloadTableName}"} ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 TBLPROPERTIES ("serialization.null.format"="")
-AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, COUNT(taxonkey) AS numberOfOccurrences, taxonrank, taxonomicstatus, kingdom, kingdomkey,
+AS SELECT taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, COUNT(*) AS numberOfOccurrences, taxonrank, taxonomicstatus, kingdom, kingdomkey,
           phylum, phylumkey, class, classkey, order, orderkey, family, familykey, genus, genuskey, species, specieskey, iucnredlistcategory
 FROM ${r"${downloadTableName}"}_tmp
 GROUP BY taxonkey, scientificname, acceptedtaxonkey, acceptedscientificname, taxonrank, taxonomicstatus, kingdom, kingdomkey, phylum, phylumkey, class, classkey,
