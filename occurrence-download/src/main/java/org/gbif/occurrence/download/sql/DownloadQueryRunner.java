@@ -64,10 +64,10 @@ public class DownloadQueryRunner {
   private String downloadQuery() {
     return switch (download.getRequest().getFormat()) {
       case DWCA, FASTA_ARCHIVE -> GenerateHQL.generateDwcaQueryHQL(queryParameters);
-      case SPECIES_LIST -> GenerateHQL.speciesListQueryHQL();
+      case SPECIES_LIST -> GenerateHQL.speciesListQueryHQL(queryParameters);
       case SIMPLE_CSV -> GenerateHQL.simpleCsvQueryHQL(queryParameters);
       case SIMPLE_AVRO -> GenerateHQL.simpleAvroQueryHQL(queryParameters);
-      case SIMPLE_WITH_VERBATIM_AVRO -> GenerateHQL.simpleWithVerbatimAvroQueryHQL();
+      case SIMPLE_WITH_VERBATIM_AVRO -> GenerateHQL.simpleWithVerbatimAvroQueryHQL(queryParameters);
       case SIMPLE_PARQUET -> GenerateHQL.simpleParquetQueryHQL(queryParameters);
       case BIONOMIA -> GenerateHQL.bionomiaQueryHQL();
       case MAP_OF_LIFE -> GenerateHQL.mapOfLifeQueryHQL(queryParameters);

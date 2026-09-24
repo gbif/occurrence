@@ -133,6 +133,66 @@ public abstract class Queries {
   }
 
   /**
+   *
+   * @param term the term to select
+   * @param denormalisedTaxonomy the UUID of the taxonomy in the top level fields (e.g. COL)
+   * @param checklistKey the checklist to use in the SELECT
+   * @param checklistNestedStructMap map of checklist UUID to nested struct name e.g. `gbif_classification`
+   * @return
+   */
+  protected static String toTaxonomicHiveInitializer(Term term,
+                                                     String checklistKey,
+                                                     String denormalisedTaxonomy,
+                                                     Map<String, String> checklistNestedStructMap) {
+    if (checklistKey == null || checklistKey.isEmpty()) {
+      throw new IllegalArgumentException("checklistKey must not be null or empty");
+    }
+
+    if (denormalisedTaxonomy == null || denormalisedTaxonomy.isEmpty()) {
+      throw new IllegalArgumentException("denormalisedTaxonomy must not be null or empty");
+    }
+
+    if (!checklistKey.equals(denormalisedTaxonomy) && !checklistNestedStructMap.containsKey(checklistKey)) {
+      // If the checklist key is not the denormalised taxonomy, but is in the nested struct map, use it
+      throw new IllegalArgumentException("checklistKey is not supported for downloads ! Check configuration" +
+        " for the checklistNestedStructMap and denormalisedTaxonomy properties");
+    }
+
+    String prefix = "";
+    if (!checklistKey.equals(denormalisedTaxonomy)) {
+      prefix = "occurrence." + checklistNestedStructMap.get(checklistKey) + ".";
+    }
+
+    if (term == GbifTerm.issue) {
+      // combine the non taxonomic issues with the
+      // taxonomic issues from the specified checklist
+      return String.format(
+        "array_join(array_union(nontaxonomicissue, %s), '\\;') as issue",
+        prefix + "taxonomicissue");
+    } else if (term == GbifTerm.taxonomicIssue) {
+      final String columnName = HiveColumns.columnFor(term);
+      // combine the non taxonomic issues with the
+      // taxonomic issues from the specified checklist
+      return String.format(
+        "array_join(%s, '\\;') as %s",
+        prefix + columnName, columnName);
+    } else if (term == DwcTerm.infragenericEpithet) {
+      //FIX ME
+      // gets around the fact that infragenericEpithet is present in the denormalised taxonomy,
+      // but is NOT present in the nested struct
+      return String.format("NULL AS %s", HiveColumns.columnFor(term));
+    } else {
+      final String columnName = HiveColumns.columnFor(term);
+      return String.format(
+        "%s%s AS %s",
+        prefix,
+        columnName,
+        columnName
+      );
+    }
+  }
+
+  /**
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the interpreted multimedia extension fields
    */
@@ -326,13 +386,21 @@ public abstract class Queries {
    * @param useInitializers whether to convert dates, arrays etc to strings
    * @return the select fields for the simple-with-verbatim download fields
    */
-  Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(boolean useInitializers) {
+  Map<String, InitializableField> selectSimpleWithVerbatimDownloadFields(
+    boolean useInitializers,
+    String checklistKey, String denormalisedTaxonomy,
+    Map<String, String> checklistNestedStructMap
+    ) {
     return selectGroupedDownloadFields(DownloadTerms.SIMPLE_WITH_VERBATIM_DOWNLOAD_TERMS,
-      useInitializers, null, null, null);
+      useInitializers, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
   }
 
-  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(boolean useInitializers) {
-    Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(useInitializers);
+  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(boolean useInitializers,
+                                                                           String checklistKey, String denormalisedTaxonomy,
+                                                                           Map<String, String> checklistNestedStructMap                                                                           ) {
+    Map<String, InitializableField> simpleFields = selectSimpleWithVerbatimDownloadFields(
+      useInitializers, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
+
     Map<String, InitializableField> verbatimFields = new TreeMap<>(selectVerbatimFields());
 
     // Omit any verbatim fields present in the simple download.

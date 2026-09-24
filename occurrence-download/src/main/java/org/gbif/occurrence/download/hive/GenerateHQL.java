@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.apache.commons.lang.StringUtils;
 import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -20,10 +21,7 @@ import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
@@ -34,9 +32,9 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.SneakyThrows;
+import org.jspecify.annotations.NonNull;
 
 import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
-import static org.gbif.occurrence.download.util.Preconditions.checkState;
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_DNA_TERMS;
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_SEQUENCE_TERMS;
 
@@ -65,6 +63,7 @@ public class GenerateHQL {
       "download-workflow/map-of-life/hive-scripts";
 
   private static final String BIONOMIA_DOWNLOAD_DIR = "download-workflow/bionomia/hive-scripts";
+  private static final String SPECIESLIST_DOWNLOAD_DIR = "download-workflow/specieslist/hive-scripts";
 
   private static final String AVRO_SCHEMAS_DIR = "create-tables/avro-schemas";
 
@@ -103,6 +102,7 @@ public class GenerateHQL {
       File mapOfLifeDownloadDir = new File(outDir, MAP_OF_LIFE_DOWNLOAD_DIR);
       File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
       File bionomiaSchemasDir = new File(outDir, BIONOMIA_DOWNLOAD_DIR);
+      File speciesListDir = new File(outDir, SPECIESLIST_DOWNLOAD_DIR);
 
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
@@ -113,6 +113,7 @@ public class GenerateHQL {
       mapOfLifeDownloadDir.mkdirs();
       avroSchemasDir.mkdirs();
       bionomiaSchemasDir.mkdirs();
+      speciesListDir.mkdirs();
 
       Configuration cfg = templateConfig();
 
@@ -132,13 +133,14 @@ public class GenerateHQL {
       generateDwcaQueryHQL(cfg, downloadQueryParameters, downloadDir);
       generateSimpleCsvQueryHQL(cfg, downloadQueryParameters, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, downloadQueryParameters, simpleAvroDownloadDir);
-      generateSimpleAvroSchema(cfg, downloadQueryParameters, simpleAvroDownloadDir.getParentFile());
+      generateSimpleAvroSchema(downloadQueryParameters, simpleAvroDownloadDir.getParentFile());
       generateSimpleParquetQueryHQL(cfg, downloadQueryParameters, simpleParquetDownloadDir);
-      generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir);
-      generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile());
+      generateSimpleWithVerbatimAvroQueryHQL(cfg, simpleWithVerbatimAvroDownloadDir, downloadQueryParameters);
+      generateSimpleWithVerbatimAvroSchema(cfg, simpleWithVerbatimAvroDownloadDir.getParentFile(), downloadQueryParameters);
       generateMapOfLifeQueryHQL(cfg, downloadQueryParameters, mapOfLifeDownloadDir);
       generateMapOfLifeSchema(cfg, downloadQueryParameters, mapOfLifeDownloadDir.getParentFile());
       generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
+      generateSpeciesListQueryHQL(cfg, downloadQueryParameters, speciesListDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could
@@ -152,6 +154,18 @@ public class GenerateHQL {
               + "Exiting JVM as a precaution, after dumping technical details.");
       e.printStackTrace();
       System.exit(-1);
+    }
+  }
+
+  private static void generateSpeciesListQueryHQL(Configuration cfg, DownloadQueryParameters downloadQueryParameters, File downloadDir) {
+    try (FileWriter out = new FileWriter(new File(downloadDir, "execute-species-list-query.q"))) {
+      Template template = cfg.getTemplate("species-list-download/execute-species-list-query.ftl");
+      Map<String, Object> data = Map.of(
+        "taxonomyPrefix", generateTaxonomyPrefix(downloadQueryParameters)
+      );
+      template.process(data, out);
+    } catch (IOException | TemplateException e) {
+      throw new RuntimeException("Error generating species list query HQL", e);
     }
   }
 
@@ -399,14 +413,38 @@ public class GenerateHQL {
   }
 
   @SneakyThrows
-  public static String speciesListQueryHQL() {
-    return resourceAsString(
-        "/download-workflow/species-list/hive-scripts/execute-species-list-query.q");
+  public static String speciesListQueryHQL(DownloadQueryParameters queryParameters) {
+
+    try (StringWriter stringWriter = new StringWriter()) {
+      Template template = templateConfig()
+        .getTemplate("species-list-download/execute-species-list-query.ftl");
+
+      Map<String, Object> data =
+        Map.of(
+          "taxonomyPrefix", generateTaxonomyPrefix(queryParameters)
+        );
+
+      template.process(data, stringWriter);
+      return stringWriter.toString();
+    }
+  }
+
+  private static @NonNull String generateTaxonomyPrefix(DownloadQueryParameters queryParameters) {
+    String prefix = "";
+    if (StringUtils.isNotBlank(queryParameters.getChecklistKey()) && !queryParameters.getChecklistKey().equals(queryParameters.getDenormalisedTaxonomy())) {
+      if (queryParameters.getChecklistNestedStructMap().containsKey(queryParameters.getChecklistKey())) {
+        prefix = "occurrence." + queryParameters.getChecklistNestedStructMap().get(queryParameters.getChecklistKey()) + ".";
+      } else {
+        throw new IllegalArgumentException("checklistKey is not supported for downloads ! Check configuration" +
+          " for the checklistNestedStructMap and denormalisedTaxonomy properties");
+      }
+    }
+    return prefix;
   }
 
   /** Generates the schema file used for simple AVRO downloads. */
-  public static void generateSimpleAvroSchema(
-      Configuration cfg, DownloadQueryParameters queryParameters, File outDir) throws IOException {
+  public static void generateSimpleAvroSchema(DownloadQueryParameters queryParameters, File outDir)
+    throws IOException {
     try (FileWriter out = new FileWriter(new File(outDir, "simple-occurrence.avsc"))) {
       out.write(simpleAvroSchema(queryParameters).toString(true));
     }
@@ -496,17 +534,36 @@ public class GenerateHQL {
     Map<String, InitializableField> interpretedNames =
         PARQUET_QUERIES.selectSimpleDownloadFields(
             true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap(), queryParameters.getCoreTerm());
-    Map<String, InitializableField> columnNames =
+    Map<String, InitializableField> parquetColumnNames =
         PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(
-            false, queryParameters.getChecklistKey(),
+            false,
+          queryParameters.getChecklistKey(),
           queryParameters.getDenormalisedTaxonomy(),
           queryParameters.getChecklistNestedStructMap(),
           queryParameters.getCoreTerm());
 
-    Map<String, Object> data =
-        Map.of(
-            "hiveFields", interpretedNames,
-            "parquetFields", columnNames);
+    List<String> selectFieldExpressions = new LinkedList<>();
+    for (Map.Entry<String, InitializableField> entry : interpretedNames.entrySet()) {
+      String key = entry.getKey();
+      InitializableField initializableField = entry.getValue();
+      String fieldName = initializableField.getInitializer();
+      // taxonomy fields are already aliased in the initializer, so we don't need to alias them again
+      if (fieldName.contains(" AS ")) {
+        selectFieldExpressions.add(fieldName);
+      } else {
+        selectFieldExpressions.add(
+            String.format("%s AS %s",
+              initializableField.getInitializer(),
+              parquetColumnNames.get(key).getHiveField()
+            )
+        );
+      }
+    }
+
+    Map<String, Object> data = Map.of(
+      "selectFieldExpressions", selectFieldExpressions,
+      "parquetFields", parquetColumnNames
+    );
     template.process(data, out);
   }
 
@@ -550,22 +607,24 @@ public class GenerateHQL {
   }
 
   /** Generates the Hive query file used for simple with verbatim AVRO downloads. */
-  public static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, File outDir)
+  public static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, File outDir, DownloadQueryParameters queryParameters)
       throws IOException, TemplateException {
     try (FileWriter out =
         new FileWriter(new File(outDir, "execute-simple-with-verbatim-avro-query.q"))) {
-      generateSimpleWithVerbatimAvroQueryHQL(cfg, out);
+      generateSimpleWithVerbatimAvroQueryHQL(cfg, out, queryParameters);
     }
   }
 
-  private static void generateSimpleWithVerbatimAvroQueryHQL(Configuration cfg, Writer out)
+  private static void generateSimpleWithVerbatimAvroQueryHQL(
+    Configuration cfg, Writer out, DownloadQueryParameters queryParameters)
       throws IOException, TemplateException {
     Template template =
         cfg.getTemplate(
             "simple-with-verbatim-avro-download/execute-simple-with-verbatim-avro-query.ftl");
 
     Map<String, InitializableField> simpleFields =
-        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(
+          true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap());
     Map<String, InitializableField> verbatimFields =
         new TreeMap(AVRO_QUERIES.selectVerbatimFields());
 
@@ -578,21 +637,23 @@ public class GenerateHQL {
         Map.of(
             "simpleFields", simpleFields,
             "verbatimFields", verbatimFields,
-            "avroSchema", simpleWithVerbatimAvroSchema().toString(true));
+            "avroSchema", simpleWithVerbatimAvroSchema(queryParameters).toString(true));
     template.process(data, out);
   }
 
   @SneakyThrows
-  public static String simpleWithVerbatimAvroQueryHQL() {
+  public static String simpleWithVerbatimAvroQueryHQL(DownloadQueryParameters downloadQueryParameters) {
     try (StringWriter out = new StringWriter()) {
-      generateSimpleWithVerbatimAvroQueryHQL(templateConfig(), out);
+      generateSimpleWithVerbatimAvroQueryHQL(templateConfig(), out, downloadQueryParameters);
       return out.toString();
     }
   }
 
-  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields() {
+  public Map<String, InitializableField> simpleWithVerbatimAvroQueryFields(
+      String checklistKey, String denormalisedTaxonomy, Map<String, String> checklistNestedStructMap) {
     Map<String, InitializableField> simpleFields =
-        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+        AVRO_QUERIES.selectSimpleWithVerbatimDownloadFields(
+          true, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
     Map<String, InitializableField> verbatimFields =
         new TreeMap<>(AVRO_QUERIES.selectVerbatimFields());
 
@@ -607,19 +668,20 @@ public class GenerateHQL {
   }
 
   /** Generates the schema used for simple with verbatim AVRO downloads. */
-  public static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir)
+  public static void generateSimpleWithVerbatimAvroSchema(Configuration cfg, File outDir, DownloadQueryParameters queryParameters)
       throws IOException {
     try (FileWriter out =
         new FileWriter(new File(outDir, "simple-with-verbatim-occurrence.avsc"))) {
-      Schema schema = simpleWithVerbatimAvroSchema();
+      Schema schema = simpleWithVerbatimAvroSchema(queryParameters);
 
       out.write(schema.toString(true));
     }
   }
 
-  public static Schema simpleWithVerbatimAvroSchema() {
+  public static Schema simpleWithVerbatimAvroSchema(DownloadQueryParameters queryParameters) {
     Map<String, InitializableField> simpleFields =
-        AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(true);
+        AVRO_SCHEMA_QUERIES.selectSimpleWithVerbatimDownloadFields(
+          true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap());
     Map<String, InitializableField> verbatimFields =
         new TreeMap<>(AVRO_SCHEMA_QUERIES.selectVerbatimFields());
 
@@ -666,9 +728,6 @@ public class GenerateHQL {
   private static void generateMapOfLifeQueryHQL(
       Configuration cfg, DownloadQueryParameters queryParameters, File outDir)
       throws IOException, TemplateException {
-    // AVRO_QUERIES.selectVerbatimFields().keySet().stream().forEach(System.out::println);
-    // AVRO_QUERIES.selectInterpretedFields(true).keySet().stream().forEach(System.out::println);
-    // AVRO_QUERIES.selectInternalFields(true).keySet().stream().forEach(System.out::println);
     try (FileWriter out = new FileWriter(new File(outDir, "execute-map-of-life-query.q"))) {
       generateMapOfLifeQueryHQL(cfg, queryParameters, out);
     }

@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.terms.utils.TermUtils;
 
@@ -43,7 +45,9 @@ class ParquetQueries extends Queries {
   @Override
   String toInterpretedHiveInitializer(Term term, String checklistKey, String denormalisedTaxonomy,
                                       Map<String, String> checklistNestedStructMap) {
-    if (TermUtils.isInterpretedLocalDateSeconds(term)
+    if (TermUtils.isTaxonomic(term)) {
+      return toTaxonomicHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
+    } else if (TermUtils.isInterpretedLocalDateSeconds(term)
         || TermUtils.isInterpretedUtcDateSeconds(term)
         || TermUtils.isInterpretedUtcDateMilliseconds(term)) {
       return "cast(from_unixtime(" + HiveColumns.columnFor(term) + ") as timestamp)";
@@ -55,6 +59,59 @@ class ParquetQueries extends Queries {
       }
     } else {
       return term.simpleName().toLowerCase();
+    }
+  }
+
+  /**
+   *
+   * @param term the term to select
+   * @param denormalisedTaxonomy the UUID of the taxonomy in the top level fields (e.g. COL)
+   * @param checklistKey the checklist to use in the SELECT
+   * @param checklistNestedStructMap map of checklist UUID to nested struct name e.g. `gbif_classification`
+   * @return
+   */
+   protected static String toTaxonomicHiveInitializer(Term term,
+                                           String checklistKey,
+                                           String denormalisedTaxonomy,
+                                           Map<String, String> checklistNestedStructMap) {
+    if (checklistKey == null || checklistKey.isEmpty()) {
+      throw new IllegalArgumentException("checklistKey must not be null or empty");
+    }
+
+    if (denormalisedTaxonomy == null || denormalisedTaxonomy.isEmpty()) {
+      throw new IllegalArgumentException("denormalisedTaxonomy must not be null or empty");
+    }
+
+    if (!checklistKey.equals(denormalisedTaxonomy) && !checklistNestedStructMap.containsKey(checklistKey)) {
+      // If the checklist key is not the denormalised taxonomy, but is in the nested struct map, use it
+      throw new IllegalArgumentException("checklistKey is not supported for downloads ! Check configuration" +
+        " for the checklistNestedStructMap and denormalisedTaxonomy properties");
+    }
+
+    String prefix = "";
+    if (!checklistKey.equals(denormalisedTaxonomy)) {
+      prefix = "occurrence." + checklistNestedStructMap.get(checklistKey) + ".";
+    }
+
+    if (term == GbifTerm.issue) {
+      // combine the non taxonomic issues with the
+      // taxonomic issues from the specified checklist
+      return String.format(
+        "array_union(nontaxonomicissue, %s) as issue",
+        prefix + "taxonomicissue");
+    } else if (term == DwcTerm.infragenericEpithet) {
+      //FIX ME
+      // gets around the fact that infragenericEpithet is present in the denormalised taxonomy,
+      // but is NOT present in the nested struct
+      return String.format("NULL AS %s", HiveColumns.columnFor(term));
+    } else {
+      final String columnName = HiveColumns.columnFor(term);
+      return String.format(
+        "%s%s AS %s",
+        prefix,
+        columnName,
+        columnName
+      );
     }
   }
 }
