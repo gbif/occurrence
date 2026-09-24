@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.hive;
 
+import org.apache.commons.lang.StringUtils;
 import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -62,6 +63,7 @@ public class GenerateHQL {
       "download-workflow/map-of-life/hive-scripts";
 
   private static final String BIONOMIA_DOWNLOAD_DIR = "download-workflow/bionomia/hive-scripts";
+  private static final String SPECIESLIST_DOWNLOAD_DIR = "download-workflow/specieslist/hive-scripts";
 
   private static final String AVRO_SCHEMAS_DIR = "create-tables/avro-schemas";
 
@@ -100,6 +102,7 @@ public class GenerateHQL {
       File mapOfLifeDownloadDir = new File(outDir, MAP_OF_LIFE_DOWNLOAD_DIR);
       File avroSchemasDir = new File(outDir, AVRO_SCHEMAS_DIR);
       File bionomiaSchemasDir = new File(outDir, BIONOMIA_DOWNLOAD_DIR);
+      File speciesListDir = new File(outDir, SPECIESLIST_DOWNLOAD_DIR);
 
       createTablesDir.mkdirs();
       downloadDir.mkdirs();
@@ -110,6 +113,7 @@ public class GenerateHQL {
       mapOfLifeDownloadDir.mkdirs();
       avroSchemasDir.mkdirs();
       bionomiaSchemasDir.mkdirs();
+      speciesListDir.mkdirs();
 
       Configuration cfg = templateConfig();
 
@@ -136,7 +140,7 @@ public class GenerateHQL {
       generateMapOfLifeQueryHQL(cfg, downloadQueryParameters, mapOfLifeDownloadDir);
       generateMapOfLifeSchema(cfg, downloadQueryParameters, mapOfLifeDownloadDir.getParentFile());
       generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
-      generateSpeciesListQueryHQL(cfg, downloadQueryParameters, downloadDir);
+      generateSpeciesListQueryHQL(cfg, downloadQueryParameters, speciesListDir);
 
     } catch (Exception e) {
       // Hard exit for safety, and since this is used in build pipelines, any generation error could
@@ -427,8 +431,13 @@ public class GenerateHQL {
 
   private static @NonNull String generateTaxonomyPrefix(DownloadQueryParameters queryParameters) {
     String prefix = "";
-    if (queryParameters.getChecklistKey() != null && !queryParameters.getChecklistKey().equals(queryParameters.getDenormalisedTaxonomy())) {
-      prefix = "occurrence." + queryParameters.getChecklistNestedStructMap().get(queryParameters.getChecklistKey()) + ".";
+    if (StringUtils.isNotBlank(queryParameters.getChecklistKey()) && !queryParameters.getChecklistKey().equals(queryParameters.getDenormalisedTaxonomy())) {
+      if (queryParameters.getChecklistNestedStructMap().containsKey(queryParameters.getChecklistKey())) {
+        prefix = "occurrence." + queryParameters.getChecklistNestedStructMap().get(queryParameters.getChecklistKey()) + ".";
+      } else {
+        throw new IllegalArgumentException("checklistKey is not supported for downloads ! Check configuration" +
+          " for the checklistNestedStructMap and denormalisedTaxonomy properties");
+      }
     }
     return prefix;
   }
@@ -525,7 +534,6 @@ public class GenerateHQL {
     Map<String, InitializableField> interpretedNames =
         PARQUET_QUERIES.selectSimpleDownloadFields(
             true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap(), queryParameters.getCoreTerm());
-
     Map<String, InitializableField> parquetColumnNames =
         PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(
             false,
