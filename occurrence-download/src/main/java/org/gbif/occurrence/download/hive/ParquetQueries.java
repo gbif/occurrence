@@ -43,7 +43,6 @@ class ParquetQueries extends Queries {
   @Override
   String toInterpretedHiveInitializer(Term term, String checklistKey, String denormalisedTaxonomy,
                                       Map<String, String> checklistNestedStructMap) {
-
     if (TermUtils.isTaxonomic(term)) {
       return toTaxonomicHiveInitializer(term, checklistKey, denormalisedTaxonomy, checklistNestedStructMap);
     } else if (TermUtils.isInterpretedLocalDateSeconds(term)

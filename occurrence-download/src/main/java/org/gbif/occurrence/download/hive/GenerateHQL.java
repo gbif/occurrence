@@ -31,6 +31,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.SneakyThrows;
+import org.jspecify.annotations.NonNull;
 
 import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_DNA_TERMS;
@@ -125,7 +126,6 @@ public class GenerateHQL {
               .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
               .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
               .build();
-
       generateDwcaQueryHQL(cfg, downloadQueryParameters, downloadDir);
       generateSimpleCsvQueryHQL(cfg, downloadQueryParameters, simpleCsvDownloadDir);
       generateSimpleAvroQueryHQL(cfg, downloadQueryParameters, simpleAvroDownloadDir);
@@ -136,7 +136,6 @@ public class GenerateHQL {
       generateMapOfLifeQueryHQL(cfg, downloadQueryParameters, mapOfLifeDownloadDir);
       generateMapOfLifeSchema(cfg, downloadQueryParameters, mapOfLifeDownloadDir.getParentFile());
       generateBionomiaQueryHQL(cfg, bionomiaSchemasDir);
-
       generateSpeciesListQueryHQL(cfg, downloadQueryParameters, downloadDir);
 
     } catch (Exception e) {
@@ -158,7 +157,7 @@ public class GenerateHQL {
     try (FileWriter out = new FileWriter(new File(downloadDir, "execute-species-list-query.q"))) {
       Template template = cfg.getTemplate("species-list-download/execute-species-list-query.ftl");
       Map<String, Object> data = Map.of(
-        "taxonomyPrefix", "gbif_classification."
+        "taxonomyPrefix", generateTaxonomyPrefix(downloadQueryParameters)
       );
       template.process(data, out);
     } catch (IOException | TemplateException e) {
@@ -379,8 +378,7 @@ public class GenerateHQL {
                 )
                 .values(),
             IS_HUMBOLDT_SEARCH,
-            queryParameters.isHumboldtSearch()
-        );
+            queryParameters.isHumboldtSearch());
     template.process(data, writer);
   }
 
@@ -417,19 +415,22 @@ public class GenerateHQL {
       Template template = templateConfig()
         .getTemplate("species-list-download/execute-species-list-query.ftl");
 
-      String prefix = "";
-      if (queryParameters.getChecklistKey() != null && !queryParameters.getChecklistKey().equals(queryParameters.getDenormalisedTaxonomy())) {
-        prefix = "occurrence." + queryParameters.getChecklistNestedStructMap().get(queryParameters.getChecklistKey()) + ".";
-      }
-
       Map<String, Object> data =
         Map.of(
-          "taxonomyPrefix", prefix
+          "taxonomyPrefix", generateTaxonomyPrefix(queryParameters)
         );
 
       template.process(data, stringWriter);
       return stringWriter.toString();
     }
+  }
+
+  private static @NonNull String generateTaxonomyPrefix(DownloadQueryParameters queryParameters) {
+    String prefix = "";
+    if (queryParameters.getChecklistKey() != null && !queryParameters.getChecklistKey().equals(queryParameters.getDenormalisedTaxonomy())) {
+      prefix = "occurrence." + queryParameters.getChecklistNestedStructMap().get(queryParameters.getChecklistKey()) + ".";
+    }
+    return prefix;
   }
 
   /** Generates the schema file used for simple AVRO downloads. */
