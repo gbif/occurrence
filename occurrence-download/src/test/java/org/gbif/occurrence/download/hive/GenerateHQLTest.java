@@ -79,13 +79,38 @@ public class GenerateHQLTest {
                 .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
                 .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
                 .build());
-    System.out.println(simpleParquetDownloadQuery);
-
     assertTrue(
         simpleParquetDownloadQuery.contains("`datasetkey` STRING"),
         "Column names should be lower-case");
     assertTrue(
         simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"),
         "Verbatim column names should be lower-case");
+
+    assertTrue(
+      simpleParquetDownloadQuery.contains("`verbatimscientificname` STRING"),
+      "Verbatim column names should be lower-case");
+
+    assertTrue(
+      simpleParquetDownloadQuery.contains("occurrence.gbif_classification.species AS species"),
+      "Verbatim column names should be lower-case");
+  }
+
+  @Test
+  public void simpleParquetTestWithCol() throws Exception {
+    String simpleParquetDownloadQuery =
+      GenerateHQL.simpleParquetQueryHQL(
+        DownloadQueryParameters.builder()
+          .checklistKey(Constants.COL_DATASET_KEY.toString())
+          .denormalisedTaxonomy(Constants.COL_DATASET_KEY.toString())
+          .checklistNestedStructMap(Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"))
+          .build());
+
+    assertTrue(
+      simpleParquetDownloadQuery.contains("`datasetkey` STRING"),
+      "Column names should be lower-case");
+
+    assertTrue(
+      simpleParquetDownloadQuery.contains("species AS species"),
+      "Verbatim column names should be lower-case");
   }
 }
