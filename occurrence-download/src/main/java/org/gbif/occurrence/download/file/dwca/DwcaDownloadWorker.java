@@ -165,12 +165,12 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
     new NotNull(), // gbifId
     new CleanStringProcessor(), // sequenceID
     new CleanStringProcessor(), // targetGene
-    new ParseInt(), // sequenceLength
-    new ParseDouble(), // gcContent
-    new ParseDouble(), // nonIupacFraction
-    new ParseDouble(), // nonACGTNFraction
-    new ParseDouble(), // nFraction
-    new ParseInt(), // nRunsCapped
+    new org.supercsv.cellprocessor.Optional(new ParseInt()), // sequenceLength
+    new org.supercsv.cellprocessor.Optional(new ParseDouble()), // gcContent
+    new org.supercsv.cellprocessor.Optional(new ParseDouble()), // nonIupacFraction
+    new org.supercsv.cellprocessor.Optional(new ParseDouble()), // nonACGTNFraction
+    new org.supercsv.cellprocessor.Optional(new ParseDouble()), // nFraction
+    new org.supercsv.cellprocessor.Optional(new ParseInt()), // nRunsCapped
     null, // naturalLanguageDetected
     null, // endsTrimmed
     null, // gapsOrWhitespaceRemoved
