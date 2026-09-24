@@ -25,7 +25,7 @@ TBLPROPERTIES ("parquet.compression"="SNAPPY");
 INSERT INTO ${r"${downloadTableName}"}
 SELECT
 <#list hiveFields as key, field>
-  ${field.hiveField} AS ${parquetFields[key].hiveField}<#if key_has_next>,</#if>
+  ${field.hiveField}<#if key_has_next>,</#if>
 </#list>
 FROM iceberg.${r"${hiveDB}"}.${r"${tableName}"}
 WHERE ${r"${whereClause}"};
