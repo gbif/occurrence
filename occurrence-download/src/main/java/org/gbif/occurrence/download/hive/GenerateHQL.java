@@ -20,10 +20,7 @@ import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
@@ -527,17 +524,37 @@ public class GenerateHQL {
     Map<String, InitializableField> interpretedNames =
         PARQUET_QUERIES.selectSimpleDownloadFields(
             true, queryParameters.getChecklistKey(), queryParameters.getDenormalisedTaxonomy(), queryParameters.getChecklistNestedStructMap(), queryParameters.getCoreTerm());
-    Map<String, InitializableField> columnNames =
+
+    Map<String, InitializableField> parquetColumnNames =
         PARQUET_SCHEMA_QUERIES.selectSimpleDownloadFields(
-            false, queryParameters.getChecklistKey(),
+            false,
+          queryParameters.getChecklistKey(),
           queryParameters.getDenormalisedTaxonomy(),
           queryParameters.getChecklistNestedStructMap(),
           queryParameters.getCoreTerm());
 
-    Map<String, Object> data =
-        Map.of(
-            "hiveFields", interpretedNames,
-            "parquetFields", columnNames);
+    List<String> selectFieldExpressions = new LinkedList<>();
+    for (Map.Entry<String, InitializableField> entry : interpretedNames.entrySet()) {
+      String key = entry.getKey();
+      InitializableField initializableField = entry.getValue();
+
+      String fieldName = initializableField.getInitializer();
+      if (fieldName.contains(" AS ")) {
+        selectFieldExpressions.add(fieldName);
+      } else {
+        selectFieldExpressions.add(
+            String.format("%s AS %s",
+              initializableField.getInitializer(),
+              parquetColumnNames.get(key).getHiveField()
+            )
+        );
+      }
+    }
+
+    Map<String, Object> data = Map.of(
+      "selectFieldExpressions", selectFieldExpressions,
+      "parquetFields", parquetColumnNames
+    );
     template.process(data, out);
   }
 
