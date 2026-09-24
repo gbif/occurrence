@@ -419,9 +419,15 @@ public class GenerateHQL {
     try (StringWriter stringWriter = new StringWriter()) {
       Template template = templateConfig()
         .getTemplate("species-list-download/execute-species-list-query.ftl");
+
+      String prefix = "";
+      if (queryParameters.getChecklistKey() != null && !queryParameters.getChecklistKey().equals(queryParameters.getDenormalisedTaxonomy())) {
+        prefix = "occurrence." + queryParameters.getChecklistNestedStructMap().get(queryParameters.getChecklistKey()) + ".";
+      }
+
       Map<String, Object> data =
         Map.of(
-          "taxonomyPrefix", ""
+          "taxonomyPrefix", prefix
         );
 
       template.process(data, stringWriter);
