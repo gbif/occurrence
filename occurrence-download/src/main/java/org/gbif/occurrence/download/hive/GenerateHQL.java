@@ -538,8 +538,8 @@ public class GenerateHQL {
     for (Map.Entry<String, InitializableField> entry : interpretedNames.entrySet()) {
       String key = entry.getKey();
       InitializableField initializableField = entry.getValue();
-
       String fieldName = initializableField.getInitializer();
+      // taxonomy fields are already aliased in the initializer, so we don't need to alias them again
       if (fieldName.contains(" AS ")) {
         selectFieldExpressions.add(fieldName);
       } else {
