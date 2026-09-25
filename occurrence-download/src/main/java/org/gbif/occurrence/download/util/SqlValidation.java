@@ -13,6 +13,8 @@
  */
 package org.gbif.occurrence.download.util;
 
+import calcite_gbif_shaded.org.apache.calcite.sql.*;
+import calcite_gbif_shaded.org.apache.calcite.sql.fun.SqlBasicAggFunction;
 import lombok.Getter;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
@@ -31,10 +33,6 @@ import calcite_gbif_shaded.org.apache.calcite.schema.SchemaPlus;
 import calcite_gbif_shaded.org.apache.calcite.schema.Table;
 import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractSchema;
 import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractTable;
-import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunction;
-import calcite_gbif_shaded.org.apache.calcite.sql.SqlFunctionCategory;
-import calcite_gbif_shaded.org.apache.calcite.sql.SqlKind;
-import calcite_gbif_shaded.org.apache.calcite.sql.SqlOperator;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +88,16 @@ public class SqlValidation {
       null,
       OperandTypes.ARRAY_ARRAY,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    // Added for https://github.com/gbif/occurrence-cube/issues/63
+    additionalOperators.add(
+      SqlBasicAggFunction.create(
+        "ARRAY_AGG",
+        SqlKind.ARRAY_AGG,
+        ReturnTypes.TO_ARRAY,
+        OperandTypes.ANY
+      )
+    );
 
     // org.gbif.occurrence.hive.udf.ContainsUDF
     additionalOperators.add(new SqlFunction(SqlDownloadFunction.CONTAINS.getSqlIdentifier(),
