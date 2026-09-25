@@ -15,18 +15,24 @@ package org.gbif.occurrence.download.util;
 
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
 
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SqlValidationTest {
 
   @Test
   public void testAllFunctionsMapped() throws Exception {
     assertEquals(SqlDownloadFunction.values().length, SqlValidation.additionalSqlOperators().size());
+  }
 
-
+  @Test
+  public void testArrayAggMapped() throws Exception {
+    assertEquals(SqlDownloadFunction.values().length, SqlValidation.additionalSqlOperators().size());
     SqlValidation v = new SqlValidation();
-    v.validateAndParse("SELECT species, concat_ws(',', ARRAY_AGG(DISTINCT(datasetkey))) AS datasetKeys FROM occurrence where genus = 'Acacia' GROUP BY species", false);
+    HiveSqlQuery q = v.validateAndParse("SELECT species, concat_ws(',', ARRAY_AGG(DISTINCT(datasetkey))) AS datasetKeys FROM occurrence where genus = 'Acacia' GROUP BY species", false);
+    assertNotNull(q);
   }
 }

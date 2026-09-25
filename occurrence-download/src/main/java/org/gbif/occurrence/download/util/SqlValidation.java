@@ -15,8 +15,6 @@ package org.gbif.occurrence.download.util;
 
 import calcite_gbif_shaded.org.apache.calcite.sql.*;
 import calcite_gbif_shaded.org.apache.calcite.sql.fun.SqlBasicAggFunction;
-import calcite_gbif_shaded.org.apache.calcite.sql.fun.SqlStdOperatorTable;
-import calcite_gbif_shaded.org.apache.calcite.util.Optionality;
 import lombok.Getter;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
@@ -91,7 +89,7 @@ public class SqlValidation {
       OperandTypes.ARRAY_ARRAY,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
-    // Built-in Hive function
+    // Added for https://github.com/gbif/occurrence-cube/issues/63
     additionalOperators.add(
       SqlBasicAggFunction.create(
         "ARRAY_AGG",
