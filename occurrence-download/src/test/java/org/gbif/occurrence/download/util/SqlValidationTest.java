@@ -22,7 +22,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SqlValidationTest {
 
   @Test
-  public void testAllFunctionsMapped() {
+  public void testAllFunctionsMapped() throws Exception {
     assertEquals(SqlDownloadFunction.values().length, SqlValidation.additionalSqlOperators().size());
+
+
+    SqlValidation v = new SqlValidation();
+    v.validateAndParse("SELECT species, concat_ws(',', ARRAY_AGG(DISTINCT(datasetkey))) AS datasetKeys FROM occurrence where genus = 'Acacia' GROUP BY species", false);
   }
 }
