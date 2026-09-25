@@ -91,6 +91,20 @@ public class SqlValidation {
       OperandTypes.ARRAY_ARRAY,
       SqlFunctionCategory.USER_DEFINED_FUNCTION));
 
+    additionalOperators.add(new SqlFunction("collect_set",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.TO_ARRAY,
+      null,
+      OperandTypes.ARRAY,
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
+    additionalOperators.add(new SqlFunction("collect_list",
+      SqlKind.OTHER_FUNCTION,
+      ReturnTypes.TO_ARRAY,
+      null,
+      OperandTypes.ARRAY,
+      SqlFunctionCategory.USER_DEFINED_FUNCTION));
+
     // org.gbif.occurrence.hive.udf.ContainsUDF
     additionalOperators.add(new SqlFunction(SqlDownloadFunction.CONTAINS.getSqlIdentifier(),
       SqlKind.OTHER_FUNCTION,
