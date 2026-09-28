@@ -59,10 +59,6 @@ public class SqlValidation {
 
   private final HiveSqlValidator hiveSqlValidator;
 
-  public SqlValidation() {
-    this(null, Map.of());
-  }
-
   public SqlValidation(String database, Map<String, String> nestedStructConfig) {
     this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
