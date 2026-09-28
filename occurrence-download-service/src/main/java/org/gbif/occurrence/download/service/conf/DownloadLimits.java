@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.download.service.conf;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.download.util.SqlValidation;
@@ -21,6 +22,7 @@ import org.gbif.occurrence.query.PredicateGeometryPointCounter;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,7 +63,7 @@ public class DownloadLimits {
   private static final Splitter COMMA_SPLITTER = Splitter.on(',');
   private final PredicateCounter predicateCounter = new PredicateCounter();
   private final PredicateGeometryPointCounter predicateGeometryPointCounter = new PredicateGeometryPointCounter();
-  private final SqlValidation sqlValidation = new SqlValidation();
+  private SqlValidation sqlValidation;
 
   private final int maxUserDownloads;
   private final Limit softLimit;
@@ -83,8 +85,8 @@ public class DownloadLimits {
                         @Value("${occurrence.download.downloads_soft_limit}") String softLimit,
                         @Value("${occurrence.download.downloads_hard_limit}") String hardLimit,
                         @Value("${occurrence.download.downloads_max_points}") int maxPoints,
-                        @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates) {
-
+                        @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates,
+                        @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
@@ -92,6 +94,14 @@ public class DownloadLimits {
     this.hardLimit = new Limit(Integer.parseInt(hardLimits.next()), Integer.parseInt(hardLimits.next()));
     this.maxPoints = maxPoints;
     this.maxPredicates = maxPredicates;
+    try {
+      ObjectMapper objectMapper = new ObjectMapper();
+      Map<String, String> checklistNestedStructMap =
+        objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
+      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap);
+    } catch (Exception e) {
+      throw new RuntimeException("Invalid checklistNestedStructMap JSON format", e);
+    }
   }
 
   public int getMaxUserDownloads() {
