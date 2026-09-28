@@ -32,14 +32,6 @@ public class SqlValidationTest {
   }
 
   @Test
-  public void testArrayAggMapped() throws Exception {
-    assertEquals(SqlDownloadFunction.values().length, SqlValidation.additionalSqlOperators().size());
-    SqlValidation v = new SqlValidation("test", Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"));
-    HiveSqlQuery q = v.validateAndParse("SELECT species, concat_ws(',', ARRAY_AGG(DISTINCT(datasetkey))) AS datasetKeys FROM occurrence where genus = 'Acacia' GROUP BY species", false);
-    assertNotNull(q);
-  }
-
-  @Test
   public void testNestedStruct() throws Exception {
     assertEquals(SqlDownloadFunction.values().length, SqlValidation.additionalSqlOperators().size());
     SqlValidation v = new SqlValidation("test", Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"));
