@@ -48,6 +48,7 @@ public class SqlValidationTest {
     assertNotNull(q);
   }
 
+  @Test
   public void testSQL() throws Exception {
     assertEquals(SqlDownloadFunction.values().length, SqlValidation.additionalSqlOperators().size());
     SqlValidation v = new SqlValidation("test", Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"));
