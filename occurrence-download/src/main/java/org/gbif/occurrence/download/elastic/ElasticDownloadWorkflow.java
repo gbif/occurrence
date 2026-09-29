@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.elastic;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
+import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -30,6 +31,8 @@ import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
 
 import java.util.Properties;
+
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -88,12 +91,7 @@ public class ElasticDownloadWorkflow {
     FromSearchDownloadAction.run(
         configuration,
         DownloadJobConfiguration.builder()
-            .searchQuery(
-                EsQueryUtils.toJson(
-                    EsPredicateUtil.searchQuery(
-                        ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
-                        OccurrenceEsField.buildFieldMapper(),
-                        workflowConfiguration.getDefaultChecklistKey())))
+          .searchQuery(EsQueryUtils.toJson(buildSearchQuery()))
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
                     ? download.getRequest().getChecklistKey()
@@ -148,6 +146,27 @@ public class ElasticDownloadWorkflow {
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
         .esFieldMapper(OccurrenceEsField.buildFieldMapper())
         .build();
+  }
+
+  private Query buildSearchQuery() {
+    Query baseQuery =
+        EsPredicateUtil.searchQuery(
+            ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
+            OccurrenceEsField.buildFieldMapper(),
+            workflowConfiguration.getDefaultChecklistKey());
+    if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      Query sequenceExistsFilter =
+          Query.of(
+              q ->
+                  q.exists(
+                      e ->
+                          e.field(
+                              OccurrenceEsField.NUCLEOTIDE_SEQUENCE
+                                  .getEsField()
+                                  .getValueFieldName())));
+      return Query.of(q -> q.bool(b -> b.filter(baseQuery).filter(sequenceExistsFilter)));
+    }
+    return baseQuery;
   }
 
   /** Updates the record count of the download entity. */
