@@ -13,40 +13,36 @@
  */
 package org.gbif.occurrence.download.elastic;
 
-import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.occurrence.search.es.EsPredicateUtil;
-import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
-
-import java.io.Closeable;
-
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.CountResponse;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.CountResponse;
+import java.io.Closeable;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Builder
 @Slf4j
 public class DownloadEsClient implements Closeable {
 
   private static final ObjectMapper OBJECT_MAPPER =
-    new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
     // only used by ES downloads so forcing occurence since events don't fo thru ES downloads
     OBJECT_MAPPER.registerModule(
-      new SimpleModule()
-        .addKeyDeserializer(
-          SearchParameter.class,
-          new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
-        .addDeserializer(
-          SearchParameter.class,
-          new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
+        new SimpleModule()
+            .addKeyDeserializer(
+                SearchParameter.class,
+                new OccurrenceSearchParameter.OccurrenceSearchParameterKeyDeserializer())
+            .addDeserializer(
+                SearchParameter.class,
+                new OccurrenceSearchParameter.OccurrenceSearchParameterDeserializer()));
   }
 
   private final ElasticsearchClient esClient;
@@ -58,16 +54,12 @@ public class DownloadEsClient implements Closeable {
   private final String defaultChecklistKey;
 
   /**
-   * Executes the ElasticSearch query and returns the number of records found.
-   * Throws SearchException on failure so callers can distinguish a real zero count.
+   * Executes the ElasticSearch query and returns the number of records found. Throws
+   * SearchException on failure so callers can distinguish a real zero count.
    */
-  public long getRecordCount(Predicate predicate) {
+  public long getRecordCount(Query query) {
     try {
-      CountResponse response =
-          esClient.count(
-              c ->
-                  c.index(esIndex)
-                      .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)));
+      CountResponse response = esClient.count(c -> c.index(esIndex).query(query));
       log.info("Download record count {}", response.count());
       return response.count();
     } catch (Exception ex) {
