@@ -13,10 +13,17 @@
  */
 package org.gbif.occurrence.download.elastic;
 
+import static org.gbif.occurrence.download.util.VocabularyUtils.translateOccurrencePredicateFields;
+
+import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import java.util.Properties;
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
-import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.occurrence.common.download.DownloadUtils;
@@ -29,16 +36,6 @@ import org.gbif.occurrence.search.es.EsPredicateUtil;
 import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
-
-import java.util.Properties;
-
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.occurrence.download.util.VocabularyUtils.translateOccurrencePredicateFields;
 
 @Slf4j
 public class ElasticDownloadWorkflow {
@@ -155,15 +152,18 @@ public class ElasticDownloadWorkflow {
             OccurrenceEsField.buildFieldMapper(),
             workflowConfiguration.getDefaultChecklistKey());
     if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
+      String valueField =
+        OccurrenceEsField.NUCLEOTIDE_SEQUENCE.getEsField().getExactMatchFieldName();
+
       Query sequenceExistsFilter =
-          Query.of(
-              q ->
-                  q.exists(
-                      e ->
-                          e.field(
-                              OccurrenceEsField.NUCLEOTIDE_SEQUENCE
-                                  .getEsField()
-                                  .getValueFieldName())));
+        Query.of(
+          q ->
+            q.nested(
+              n ->
+                n.path(OccurrenceEsField.NUCLEOTIDE_SEQUENCE.getNestedPath())
+                  .query(nq -> nq.exists(e -> e.field(valueField)))
+                  .scoreMode(ChildScoreMode.None)));
+
       return Query.of(q -> q.bool(b -> b.filter(baseQuery).filter(sequenceExistsFilter)));
     }
     return baseQuery;
