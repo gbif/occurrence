@@ -24,6 +24,8 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.occurrence.search.es.EsPredicateUtil;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 @Builder
@@ -57,9 +59,13 @@ public class DownloadEsClient implements Closeable {
    * Executes the ElasticSearch query and returns the number of records found. Throws
    * SearchException on failure so callers can distinguish a real zero count.
    */
-  public long getRecordCount(Query query) {
+  public long getRecordCount(Predicate predicate) {
     try {
-      CountResponse response = esClient.count(c -> c.index(esIndex).query(query));
+      CountResponse response =
+        esClient.count(
+          c ->
+            c.index(esIndex)
+              .query(EsPredicateUtil.searchQuery(predicate, esFieldMapper, defaultChecklistKey)));
       log.info("Download record count {}", response.count());
       return response.count();
     } catch (Exception ex) {

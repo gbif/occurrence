@@ -15,8 +15,6 @@ package org.gbif.occurrence.download.elastic;
 
 import static org.gbif.occurrence.download.util.VocabularyUtils.translateOccurrencePredicateFields;
 
-import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import java.util.Properties;
 import lombok.Builder;
 import lombok.SneakyThrows;
@@ -89,7 +87,12 @@ public class ElasticDownloadWorkflow {
     FromSearchDownloadAction.run(
         configuration,
         DownloadJobConfiguration.builder()
-            .searchQuery(EsQueryUtils.toJson(buildSearchQuery()))
+            .searchQuery(
+                EsQueryUtils.toJson(
+                    EsPredicateUtil.searchQuery(
+                        ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
+                        OccurrenceEsField.buildFieldMapper(),
+                        workflowConfiguration.getDefaultChecklistKey())))
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
                     ? download.getRequest().getChecklistKey()
@@ -132,7 +135,8 @@ public class ElasticDownloadWorkflow {
         "Download records count: {}, re-querying ES for accurate count",
         download.getTotalRecords());
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
-      return downloadEsClient.getRecordCount(buildSearchQuery());
+      return downloadEsClient.getRecordCount(
+          ((PredicateDownloadRequest) download.getRequest()).getPredicate());
     } catch (Exception ex) {
       log.error("Error when getting download record count from ES", ex);
       return ERROR_COUNT;
@@ -146,30 +150,6 @@ public class ElasticDownloadWorkflow {
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
         .esFieldMapper(OccurrenceEsField.buildFieldMapper())
         .build();
-  }
-
-  private Query buildSearchQuery() {
-    Query baseQuery =
-        EsPredicateUtil.searchQuery(
-            ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
-            OccurrenceEsField.buildFieldMapper(),
-            workflowConfiguration.getDefaultChecklistKey());
-    if (download.getRequest().getFormat() == DownloadFormat.FASTA_ARCHIVE) {
-      String valueField =
-          OccurrenceEsField.NUCLEOTIDE_SEQUENCE.getEsField().getExactMatchFieldName();
-
-      Query sequenceExistsFilter =
-          Query.of(
-              q ->
-                  q.nested(
-                      n ->
-                          n.path(OccurrenceEsField.NUCLEOTIDE_SEQUENCE.getNestedPath())
-                              .query(nq -> nq.exists(e -> e.field(valueField)))
-                              .scoreMode(ChildScoreMode.None)));
-
-      return Query.of(q -> q.bool(b -> b.filter(baseQuery).filter(sequenceExistsFilter)));
-    }
-    return baseQuery;
   }
 
   /** Updates the record count of the download entity. */
