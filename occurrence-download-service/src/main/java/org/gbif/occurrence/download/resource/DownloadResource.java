@@ -59,6 +59,7 @@ import org.gbif.api.model.common.paging.PagingRequest;
 import org.gbif.api.model.common.paging.PagingResponse;
 import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.CompoundPredicate;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
 import org.gbif.api.model.predicate.IsNotNullPredicate;
 import org.gbif.api.model.predicate.Predicate;
@@ -369,6 +370,20 @@ public class DownloadResource {
     }
   }
 
+  private boolean containsSequenceNotNullPredicate(Predicate predicate) {
+    if (predicate == null) {
+      return false;
+    }
+    if (predicate instanceof IsNotNullPredicate<?> isNotNullPredicate) {
+      return isNotNullPredicate.getParameter() == OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE;
+    }
+    if (predicate instanceof CompoundPredicate compoundPredicate) {
+      return compoundPredicate.getPredicates().stream()
+          .anyMatch(this::containsSequenceNotNullPredicate);
+    }
+    return false;
+  }
+
   /**
    * Creates/Starts a download.
    *
@@ -392,19 +407,22 @@ public class DownloadResource {
     if (downloadRequest.getFormat() == DownloadFormat.FASTA_ARCHIVE
         && downloadRequest instanceof PredicateDownloadRequest predicateDownloadRequest) {
 
-      // we add an extra filter to only include records with sequences
-      IsNotNullPredicate<OccurrenceSearchParameter> notNullSequencePredicate =
-          new IsNotNullPredicate<>(OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE);
+      Predicate existingPredicate = predicateDownloadRequest.getPredicate();
+      if (!containsSequenceNotNullPredicate(existingPredicate)) {
+        // we add an extra filter to only include records with sequences
+        IsNotNullPredicate<OccurrenceSearchParameter> notNullSequencePredicate =
+            new IsNotNullPredicate<>(OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE);
 
-      List<Predicate> predicates = new ArrayList<>();
-      predicates.add(notNullSequencePredicate);
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(notNullSequencePredicate);
 
-      if (predicateDownloadRequest.getPredicate() != null) {
-        predicates.add(predicateDownloadRequest.getPredicate());
+        if (existingPredicate != null) {
+          predicates.add(existingPredicate);
+        }
+
+        ConjunctionPredicate predicateWithFastaFilter = new ConjunctionPredicate(predicates);
+        predicateDownloadRequest.setPredicate(predicateWithFastaFilter);
       }
-
-      ConjunctionPredicate predicateWithFastaFilter = new ConjunctionPredicate(predicates);
-      predicateDownloadRequest.setPredicate(predicateWithFastaFilter);
     }
 
     if (!checkUserInRole(authentication, REGISTRY_ADMIN)
