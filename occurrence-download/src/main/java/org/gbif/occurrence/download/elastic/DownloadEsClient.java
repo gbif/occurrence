@@ -35,7 +35,7 @@ public class DownloadEsClient implements Closeable {
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   static {
-    // only used by ES downloads so forcing occurence since events don't fo thru ES downloads
+    // only used by ES downloads so forcing occurence since events don't go thru ES downloads
     OBJECT_MAPPER.registerModule(
         new SimpleModule()
             .addKeyDeserializer(
