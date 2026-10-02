@@ -375,10 +375,11 @@ public class DownloadResource {
       return false;
     }
     if (predicate instanceof IsNotNullPredicate<?> isNotNullPredicate) {
-      return isNotNullPredicate.getParameter() == OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE;
+      return isNotNullPredicate.getParameter()
+          == OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE;
     }
-    if (predicate instanceof ConjunctionPredicate compoundPredicate) {
-      return compoundPredicate.getPredicates().stream()
+    if (predicate instanceof ConjunctionPredicate conjunctionPredicate) {
+      return conjunctionPredicate.getPredicates().stream()
           .anyMatch(DownloadResource::containsSequenceNotNullPredicate);
     }
     return false;
