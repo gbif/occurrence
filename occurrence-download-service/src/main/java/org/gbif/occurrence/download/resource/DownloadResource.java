@@ -370,16 +370,16 @@ public class DownloadResource {
     }
   }
 
-  private boolean containsSequenceNotNullPredicate(Predicate predicate) {
+  static boolean containsSequenceNotNullPredicate(Predicate predicate) {
     if (predicate == null) {
       return false;
     }
     if (predicate instanceof IsNotNullPredicate<?> isNotNullPredicate) {
       return isNotNullPredicate.getParameter() == OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE;
     }
-    if (predicate instanceof CompoundPredicate compoundPredicate) {
+    if (predicate instanceof ConjunctionPredicate compoundPredicate) {
       return compoundPredicate.getPredicates().stream()
-          .anyMatch(this::containsSequenceNotNullPredicate);
+          .anyMatch(DownloadResource::containsSequenceNotNullPredicate);
     }
     return false;
   }
