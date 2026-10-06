@@ -13,56 +13,10 @@
  */
 package org.gbif.occurrence.download.resource;
 
-import org.gbif.api.exception.QueryBuildingException;
-import org.gbif.api.exception.ServiceUnavailableException;
-import org.gbif.api.model.Constants;
-import org.gbif.api.model.common.paging.PagingRequest;
-import org.gbif.api.model.common.paging.PagingResponse;
-import org.gbif.api.model.occurrence.*;
-import org.gbif.api.model.predicate.Predicate;
-import org.gbif.api.service.occurrence.DownloadRequestService;
-import org.gbif.api.service.registry.OccurrenceDownloadService;
-import org.gbif.api.util.VocabularyUtils;
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
-import org.gbif.occurrence.download.hive.DownloadTerms;
-import org.gbif.occurrence.download.hive.HiveColumns;
-import org.gbif.occurrence.download.query.QueryVisitorsFactory;
-import org.gbif.occurrence.download.service.CallbackService;
-import org.gbif.occurrence.download.service.PredicateFactory;
-import org.gbif.occurrence.download.util.SqlValidation;
-import org.gbif.occurrence.query.sql.HiveSqlQuery;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.net.URI;
-import java.security.Principal;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import static java.lang.annotation.ElementType.*;
+import static org.gbif.api.model.occurrence.Download.Status.*;
+import static org.gbif.api.vocabulary.UserRole.REGISTRY_ADMIN;
+import static org.gbif.occurrence.download.service.DownloadSecurityUtil.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,7 +25,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
-
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -86,11 +39,55 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-
-import static java.lang.annotation.ElementType.*;
-import static org.gbif.api.model.occurrence.Download.Status.*;
-import static org.gbif.api.vocabulary.UserRole.REGISTRY_ADMIN;
-import static org.gbif.occurrence.download.service.DownloadSecurityUtil.*;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.net.URI;
+import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.exception.ServiceUnavailableException;
+import org.gbif.api.model.common.paging.PagingRequest;
+import org.gbif.api.model.common.paging.PagingResponse;
+import org.gbif.api.model.occurrence.*;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.CompoundPredicate;
+import org.gbif.api.model.predicate.ConjunctionPredicate;
+import org.gbif.api.model.predicate.IsNotNullPredicate;
+import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.service.occurrence.DownloadRequestService;
+import org.gbif.api.service.registry.OccurrenceDownloadService;
+import org.gbif.api.util.VocabularyUtils;
+import org.gbif.dwc.terms.DwcTerm;
+import org.gbif.dwc.terms.GbifTerm;
+import org.gbif.occurrence.download.hive.DownloadTerms;
+import org.gbif.occurrence.download.hive.HiveColumns;
+import org.gbif.occurrence.download.query.QueryVisitorsFactory;
+import org.gbif.occurrence.download.service.CallbackService;
+import org.gbif.occurrence.download.service.PredicateFactory;
+import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.query.sql.HiveSqlQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @Validated
 public class DownloadResource {
@@ -373,6 +370,21 @@ public class DownloadResource {
     }
   }
 
+  static boolean containsSequenceNotNullPredicate(Predicate predicate) {
+    if (predicate == null) {
+      return false;
+    }
+    if (predicate instanceof IsNotNullPredicate<?> isNotNullPredicate) {
+      return isNotNullPredicate.getParameter()
+          == OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE;
+    }
+    if (predicate instanceof ConjunctionPredicate conjunctionPredicate) {
+      return conjunctionPredicate.getPredicates().stream()
+          .anyMatch(DownloadResource::containsSequenceNotNullPredicate);
+    }
+    return false;
+  }
+
   /**
    * Creates/Starts a download.
    *
@@ -393,10 +405,29 @@ public class DownloadResource {
     // User matches (or admin user)
     assertLoginMatches(downloadRequest, authentication, userAuthenticated);
 
+    if (downloadRequest.getFormat() == DownloadFormat.FASTA_ARCHIVE
+        && downloadRequest instanceof PredicateDownloadRequest predicateDownloadRequest) {
+
+      Predicate existingPredicate = predicateDownloadRequest.getPredicate();
+      if (!containsSequenceNotNullPredicate(existingPredicate)) {
+        // we add an extra filter to only include records with sequences
+        IsNotNullPredicate<OccurrenceSearchParameter> notNullSequencePredicate =
+            new IsNotNullPredicate<>(OccurrenceSearchParameter.NUCLEOTIDE_SEQUENCE_SEQUENCE);
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(notNullSequencePredicate);
+
+        if (existingPredicate != null) {
+          predicates.add(existingPredicate);
+        }
+
+        ConjunctionPredicate predicateWithFastaFilter = new ConjunctionPredicate(predicates);
+        predicateDownloadRequest.setPredicate(predicateWithFastaFilter);
+      }
+    }
+
     if (!checkUserInRole(authentication, REGISTRY_ADMIN)
-        && downloadRequest instanceof PredicateDownloadRequest) {
-      PredicateDownloadRequest predicateDownloadRequest =
-          (PredicateDownloadRequest) downloadRequest;
+        && downloadRequest instanceof PredicateDownloadRequest predicateDownloadRequest) {
       if (!predicateDownloadRequest.getFormat().equals(DownloadFormat.SPECIES_LIST)) {
 
         // Check for recent monthly downloads with the same predicate

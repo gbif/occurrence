@@ -13,6 +13,12 @@
  */
 package org.gbif.occurrence.download.elastic;
 
+import static org.gbif.occurrence.download.util.VocabularyUtils.translateOccurrencePredicateFields;
+
+import java.util.Properties;
+import lombok.Builder;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Download;
 import org.gbif.api.model.occurrence.DownloadFormat;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
@@ -28,14 +34,6 @@ import org.gbif.occurrence.search.es.EsPredicateUtil;
 import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
-
-import java.util.Properties;
-
-import lombok.Builder;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import static org.gbif.occurrence.download.util.VocabularyUtils.translateOccurrencePredicateFields;
 
 @Slf4j
 public class ElasticDownloadWorkflow {
@@ -70,10 +68,11 @@ public class ElasticDownloadWorkflow {
     if (download.getRequest().getFormat() != DownloadFormat.DWCA
         && download.getRequest().getFormat() != DownloadFormat.FASTA_ARCHIVE
         && download.getRequest().getFormat() != DownloadFormat.SIMPLE_CSV) {
-      throw new IllegalArgumentException("Only dwca, fasta and simple csv downloads can be run in ES");
+      throw new IllegalArgumentException(
+          "Only dwca, fasta and simple csv downloads can be run in ES");
     }
 
-    long recordCount = recordCount(download);
+    long recordCount = recordCount();
     if (!isSmallDownloadCount(recordCount)) {
       throw new IllegalArgumentException(
           "Download too big for ES. Number of records: " + recordCount);
@@ -105,7 +104,8 @@ public class ElasticDownloadWorkflow {
             .downloadFormat(configuration.getDownloadFormat())
             .coreTerm(coreDwcTerm)
             .verbatimExtensions(DownloadRequestUtils.getVerbatimExtensions(download.getRequest()))
-            .interpretedExtensions(DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
+            .interpretedExtensions(
+                DownloadRequestUtils.getInterpretedExtensions(download.getRequest()))
             .build());
 
     updateTotalRecordsCount(download.getKey(), recordCount);
@@ -125,13 +125,15 @@ public class ElasticDownloadWorkflow {
                 + ES_COUNT_MARGIN_ERROR;
   }
 
-  private long recordCount(Download download) {
+  private long recordCount() {
     // if set, dont recalculate
-    if (download.getTotalRecords() > 0){
+    if (download.getTotalRecords() > 0) {
       return download.getTotalRecords();
     }
 
-    log.info("Download records count: {}, re-querying ES for accurate count", download.getTotalRecords());
+    log.info(
+        "Download records count: {}, re-querying ES for accurate count",
+        download.getTotalRecords());
     try (DownloadEsClient downloadEsClient = downloadEsClient(workflowConfiguration)) {
       return downloadEsClient.getRecordCount(
           ((PredicateDownloadRequest) download.getRequest()).getPredicate());
