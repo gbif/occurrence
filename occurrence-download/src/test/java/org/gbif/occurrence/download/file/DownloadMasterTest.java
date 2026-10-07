@@ -32,10 +32,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.TotalHitsRelation;
+import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.util.ObjectBuilder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

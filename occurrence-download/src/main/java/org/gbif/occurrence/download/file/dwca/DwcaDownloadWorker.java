@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
-import lombok.EqualsAndHashCode;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.event.Event;
@@ -70,6 +69,7 @@ import org.supercsv.util.CsvContext;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 

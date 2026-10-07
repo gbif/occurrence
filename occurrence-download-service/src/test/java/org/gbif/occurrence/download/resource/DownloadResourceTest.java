@@ -13,16 +13,18 @@
  */
 package org.gbif.occurrence.download.resource;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
 import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.predicate.IsNotNullPredicate;
 import org.gbif.api.model.predicate.Predicate;
+
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DownloadResourceTest {
 

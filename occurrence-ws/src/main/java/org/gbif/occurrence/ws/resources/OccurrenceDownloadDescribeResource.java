@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.ws.resources;
 
-import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;

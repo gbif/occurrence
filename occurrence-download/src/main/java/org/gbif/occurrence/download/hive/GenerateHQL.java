@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.apache.commons.lang.StringUtils;
 import org.gbif.api.model.Constants;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.dwc.terms.DwcTerm;
@@ -26,13 +25,14 @@ import java.util.stream.Collectors;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
+import org.apache.commons.lang.StringUtils;
+import org.jspecify.annotations.NonNull;
 
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import lombok.SneakyThrows;
-import org.jspecify.annotations.NonNull;
 
 import static org.gbif.occurrence.download.hive.AvroDataTypes.avroField;
 import static org.gbif.terms.utils.TermUtils.DOWNLOAD_DNA_TERMS;

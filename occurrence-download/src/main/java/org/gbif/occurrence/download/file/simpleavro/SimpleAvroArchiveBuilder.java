@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.simpleavro;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.action.DownloadWorkflowModule;
 import org.gbif.occurrence.download.file.common.DownloadFileUtils;
 import org.gbif.utils.file.properties.PropertiesUtil;
@@ -34,6 +33,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class that creates a single Avro file from a directory that stores Avro data (of a Hive table or search queries).

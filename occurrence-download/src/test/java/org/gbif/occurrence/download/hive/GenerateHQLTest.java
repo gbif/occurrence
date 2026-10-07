@@ -16,9 +16,9 @@ package org.gbif.occurrence.download.hive;
 import org.gbif.api.model.Constants;
 import org.gbif.occurrence.download.sql.DownloadQueryParameters;
 
-import org.junit.jupiter.api.Test;
-
 import java.util.Map;
+
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

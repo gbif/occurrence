@@ -13,8 +13,9 @@
  */
 package org.gbif.occurrence.download.file.common;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /** Action for Species list download, helps with counts of the number of distinct species. */

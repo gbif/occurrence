@@ -13,12 +13,9 @@
  */
 package org.gbif.occurrence.download.hive;
 
-import org.gbif.dwc.terms.DwcTerm;
-import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * Utilities related to the actual queries executed at runtime — these functions for generating downloads.

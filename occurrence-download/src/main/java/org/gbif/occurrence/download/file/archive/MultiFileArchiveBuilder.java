@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.archive;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.hadoop.compress.d2.D2CombineInputStream;
 import org.gbif.hadoop.compress.d2.D2Utils;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -38,6 +37,8 @@ import java.util.zip.ZipOutputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.download.file.common.DownloadFileUtils.*;
 import static org.gbif.occurrence.download.file.d2.D2Utils.copyToCombinedStream;

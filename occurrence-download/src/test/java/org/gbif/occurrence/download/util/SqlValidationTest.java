@@ -15,11 +15,11 @@ package org.gbif.occurrence.download.util;
 
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
-
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
-import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

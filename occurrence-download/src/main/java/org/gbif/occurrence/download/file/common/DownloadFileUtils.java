@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.common;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.occurrence.download.util.IOUtils;
 
 import java.io.BufferedReader;
@@ -33,6 +32,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class for file operation in occurrence downloads.

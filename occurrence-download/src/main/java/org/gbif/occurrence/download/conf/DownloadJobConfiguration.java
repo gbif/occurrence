@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.conf;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.search.SearchParameter;
 import org.gbif.api.model.occurrence.*;
 import org.gbif.api.model.predicate.Predicate;
@@ -37,6 +36,7 @@ import org.apache.hadoop.fs.Path;
 import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /** Configuration of a small download execution. */
 @Data

@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.dwca.archive;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.registry.Contact;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.api.vocabulary.ContactType;
@@ -28,6 +27,7 @@ import java.util.function.Predicate;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class used to manage contacts for DwcA download files.

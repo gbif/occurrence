@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.DcTerm;
@@ -39,6 +38,8 @@ import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.populateVerbatimCsvFields;
 import static org.gbif.occurrence.download.file.OccurrenceMapReader.selectTerms;

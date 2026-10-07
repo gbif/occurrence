@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.specieslist;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -46,6 +45,8 @@ import org.supercsv.encoder.DefaultCsvEncoder;
 import org.supercsv.io.CsvMapWriter;
 import org.supercsv.io.ICsvMapWriter;
 import org.supercsv.prefs.CsvPreference;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Aggregates multiple files from different jobs and merge there result to final file.

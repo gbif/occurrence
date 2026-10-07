@@ -13,9 +13,6 @@
  */
 package org.gbif.occurrence.download.util;
 
-import calcite_gbif_shaded.org.apache.calcite.sql.*;
-import calcite_gbif_shaded.org.apache.calcite.sql.fun.SqlBasicAggFunction;
-import lombok.Getter;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.occurrence.SqlDownloadFunction;
 import org.gbif.occurrence.download.hive.HiveDataTypes;
@@ -33,8 +30,11 @@ import calcite_gbif_shaded.org.apache.calcite.schema.SchemaPlus;
 import calcite_gbif_shaded.org.apache.calcite.schema.Table;
 import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractSchema;
 import calcite_gbif_shaded.org.apache.calcite.schema.impl.AbstractTable;
+import calcite_gbif_shaded.org.apache.calcite.sql.*;
+import calcite_gbif_shaded.org.apache.calcite.sql.fun.SqlBasicAggFunction;
 import calcite_gbif_shaded.org.apache.calcite.sql.type.*;
 import calcite_gbif_shaded.org.apache.calcite.tools.Frameworks;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import static calcite_gbif_shaded.org.apache.calcite.sql.type.OperandTypes.family;

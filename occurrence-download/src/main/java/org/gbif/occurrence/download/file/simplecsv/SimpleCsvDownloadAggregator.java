@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.file.simplecsv;
 
-import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.License;
 import org.gbif.hadoop.compress.d2.zip.ModalZipOutputStream;
@@ -38,6 +37,8 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Combine the parts created by actor and combine them into single zip file.
