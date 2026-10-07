@@ -29,6 +29,8 @@ import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.search.es.*;
+import org.gbif.occurrence.search.records.HBaseRecordsStore;
+import org.gbif.occurrence.search.records.RecordsReader;
 import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.registry.ws.client.EventDownloadClient;
 import org.gbif.registry.ws.client.OccurrenceDownloadClient;
@@ -53,6 +55,10 @@ import java.util.function.Function;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
 import org.elasticsearch.client.RestClient;
@@ -66,6 +72,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
@@ -86,6 +93,8 @@ public class DownloadWorkflowModule {
   public static final String PROPERTIES_PREFIX = "occurrence.download.";
 
   private static final String ES_PREFIX = "es.";
+
+  private static final String HBASE_PREFIX = "hbase.";
 
   private static final String INDEX_LOCKING_PATH = "/indices/";
 
@@ -271,7 +280,38 @@ public class DownloadWorkflowModule {
         .interpretedMapper(interpreterMapper())
         .verbatimMapper(verbatimMapper())
         .searchHitConverter(searchHitConverter())
+        .recordsReader(recordsReader(workflowConfiguration))
         .build();
+  }
+
+  /**
+   * Reader of the HBase records table set in {@link DefaultSettings#RECORDS_TABLE_KEY}, null when it
+   * isn't set and the records are read from the Elasticsearch _source. The {@code hbase.*} settings
+   * are added to the HBase configuration of the classpath.
+   */
+  @Nullable
+  public static RecordsReader<Occurrence> recordsReader(WorkflowConfiguration workflowConfiguration) {
+    String recordsTable = workflowConfiguration.getSetting(DefaultSettings.RECORDS_TABLE_KEY);
+    if (recordsTable == null || recordsTable.isEmpty()) {
+      return null;
+    }
+    Configuration hbaseConfiguration = HBaseConfiguration.create();
+    workflowConfiguration.getDownloadSettings().stringPropertyNames().stream()
+        .filter(key -> key.startsWith(HBASE_PREFIX))
+        .forEach(key -> hbaseConfiguration.set(key, workflowConfiguration.getSetting(key)));
+    try {
+      Connection connection = ConnectionFactory.createConnection(hbaseConfiguration);
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        try {
+          connection.close();
+        } catch (IOException e) {
+          throw new IllegalStateException("Couldn't close HBase connection", e);
+        }
+      }));
+      return RecordsReader.occurrences(HBaseRecordsStore.occurrences(connection, recordsTable));
+    } catch (IOException e) {
+      throw new IllegalStateException("Couldn't connect to HBase", e);
+    }
   }
 
   /**
@@ -347,6 +387,9 @@ public class DownloadWorkflowModule {
     public static final String ES_SNIFF_INTERVAL_KEY = "es.sniff_interval";
     public static final String ES_SNIFF_AFTER_FAILURE_DELAY_KEY = "es.sniff_after_failure_delay";
     public static final String ES_REQUEST_BUFFER_LIMIT = "es.request_buffer_limit_bytes";
+
+    /** HBase table with the occurrence records, when set the records aren't read from ES. */
+    public static final String RECORDS_TABLE_KEY = "records.table";
 
     /** The default taxonomy to assume the query is based on, if no taxonomy is specified in the query. */
     public static final String DEFAULT_CHECKLIST_KEY = PROPERTIES_PREFIX + "default_checklist_key";

@@ -24,6 +24,7 @@ import org.gbif.occurrence.download.file.dwca.DwcaDownloadWorker;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadWorker;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadWorker;
 import org.gbif.occurrence.download.util.Strings;
+import org.gbif.occurrence.search.records.RecordsReader;
 import org.gbif.search.es.SearchHitConverter;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
@@ -53,6 +54,7 @@ import org.apache.hadoop.fs.Path;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +83,8 @@ public class DownloadMaster {
   private final SearchHitConverter<Occurrence> searchHitConverter;
   /** ES field for stable from/size pagination. */
   private final String sortField;
+  /** Reads the records from the HBase records table, null to read them from the ES _source. */
+  @Nullable private final RecordsReader<Occurrence> recordsReader;
 
 
   /**
@@ -97,7 +101,8 @@ public class DownloadMaster {
     int maxGlobalJobs,
     Function<Occurrence,Map<String,String>> verbatimMapper,
     Function<Occurrence,Map<String,String>> interpretedMapper,
-    SearchHitConverter<Occurrence> searchHitConverter) {
+    SearchHitConverter<Occurrence> searchHitConverter,
+    @Nullable RecordsReader<Occurrence> recordsReader) {
     conf = masterConfiguration;
     this.jobConfiguration = jobConfiguration;
     DownloadWorkflowModule downloadWorkflowModule = DownloadWorkflowModule.builder()
@@ -116,6 +121,7 @@ public class DownloadMaster {
     this.verbatimMapper = verbatimMapper;
     this.searchHitConverter = searchHitConverter;
     this.sortField = sortFieldFor(workflowConfiguration.getEsIndexType());
+    this.recordsReader = recordsReader;
   }
 
   static String sortFieldFor(WorkflowConfiguration.SearchType searchType) {
@@ -287,7 +293,10 @@ public class DownloadMaster {
     SearchQueryProcessor<Occurrence, OccurrenceSearchParameter> queryProcessor =
         new SearchQueryProcessor<>(
             new OccurrenceEsResponseParser(occurrenceEsFieldMapper, searchHitConverter),
-            sortField);
+            sortField,
+            recordsReader == null
+                ? null
+                : hits -> recordsReader.getWithAllVerbatimFields(RecordsReader.ids(hits)));
 
     return switch (downloadFormat) {
       case SIMPLE_CSV -> new SimpleCsvDownloadWorker<>(queryProcessor, interpretedMapper);

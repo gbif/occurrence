@@ -460,6 +460,24 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
+  public void sourceTest() throws IOException {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addCountryFilter(Country.DENMARK);
+
+    // records built from the _source
+    JsonNode withSource =
+        MAPPER.readTree(toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX)));
+    assertTrue(withSource.path("_source").path("excludes").isArray());
+
+    // records read from HBase, only the ids of the hits are needed
+    JsonNode idsOnly =
+        MAPPER.readTree(
+            toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX, false)));
+    assertFalse(idsOnly.path("_source").asBoolean(true));
+    assertEquals(withSource.path(QUERY), idsOnly.path(QUERY));
+  }
+
+  @Test
   public void simpleFacetQueryTest() throws IOException {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addFacets(OccurrenceSearchParameter.BASIS_OF_RECORD);
@@ -762,8 +780,8 @@ public class OccurrenceEsSearchRequestBuilderTest {
     OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     EsField esField = esFieldMapper.getEsField(param);
 
-    assertEquals(
-        esField.getSearchFieldName(), jsonQuery.path("_source").path("includes").get(0).asText());
+    // the documents aren't fetched, only the completion options
+    assertFalse(jsonQuery.path("_source").asBoolean(true));
 
     JsonNode suggestNode = jsonQuery.path(SUGGEST).path(esField.getSearchFieldName());
     assertEquals(prefix, suggestNode.path("prefix").asText());

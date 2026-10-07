@@ -13,7 +13,6 @@
  */
 package org.gbif.search.es;
 
-import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import org.gbif.api.model.common.paging.Pageable;
 import org.gbif.api.model.common.search.Facet;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
@@ -35,6 +34,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.NestedAggregate;
 import co.elastic.clients.elasticsearch.core.search.CompletionSuggest;
 import co.elastic.clients.elasticsearch.core.search.CompletionSuggestOption;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.search.TotalHits;
 
 public abstract class EsResponseParser<
     T extends VerbatimOccurrence, P extends SearchParameter> {
@@ -61,13 +61,25 @@ public abstract class EsResponseParser<
   public SearchResponse<T, P> buildSearchResponse(
       co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse,
       FacetedSearchRequest<P> request) {
+    return buildSearchResponse(
+        esResponse, request, hits -> hits.stream().map(hitMapper).collect(Collectors.toList()));
+  }
+
+  /**
+   * Builds a SearchResponse whose results are produced from the hits of the page by the given
+   * function, e.g. fetching the records of the hit ids from another store.
+   */
+  public SearchResponse<T, P> buildSearchResponse(
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse,
+      FacetedSearchRequest<P> request,
+      Function<List<Hit<Map<String, Object>>>, List<T>> hitsMapper) {
 
     SearchResponse<T, P> response = new SearchResponse<>(request);
     response.setCount(
         Optional.ofNullable(esResponse.hits().total())
             .map(TotalHits::value)
             .orElse((long) esResponse.hits().hits().size()));
-    parseHits(esResponse).ifPresent(response::setResults);
+    parseHits(esResponse, hitsMapper).ifPresent(response::setResults);
     parseFacets(esResponse, request).ifPresent(response::setFacets);
 
     return response;
@@ -186,13 +198,14 @@ public abstract class EsResponseParser<
   }
 
   private Optional<List<T>> parseHits(
-      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse) {
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse,
+      Function<List<Hit<Map<String, Object>>>, List<T>> hitsMapper) {
     if (esResponse.hits() == null
         || esResponse.hits().hits() == null
         || esResponse.hits().hits().isEmpty()) {
       return Optional.empty();
     }
 
-    return Optional.of(esResponse.hits().hits().stream().map(hitMapper).collect(Collectors.toList()));
+    return Optional.of(hitsMapper.apply(esResponse.hits().hits()));
   }
 }

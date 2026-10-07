@@ -13,8 +13,6 @@
  */
 package org.gbif.occurrence.search.es;
 
-import co.elastic.clients.elasticsearch._types.ElasticsearchException;
-
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
@@ -27,9 +25,10 @@ import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
+import org.gbif.occurrence.search.records.HBaseRecordsStore;
+import org.gbif.occurrence.search.records.RecordsReader;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.search.es.EsResponseParser;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 import org.gbif.search.es.occurrence.OccurrenceEsResponseParser;
 import org.gbif.search.es.occurrence.SearchHitOccurrenceConverter;
@@ -44,25 +43,34 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
-import jakarta.annotation.Nullable;
+import javax.validation.constraints.Min;
 
+import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.base.Strings;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.CountRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import javax.validation.constraints.Min;
+import jakarta.annotation.Nullable;
 
-/** Occurrence search service. */
+/**
+ * Occurrence search service.
+ *
+ * <p>When an HBase records table is configured ({@code occurrence.search.records.table}),
+ * Elasticsearch only returns the ids of the matching records and the records are read from the
+ * table. Otherwise, the records are built from the _source of the Elasticsearch documents.
+ */
 @Component
 public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey, SearchTermService {
 
@@ -79,6 +87,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final OccurrenceEsResponseParser esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
   private final String defaultChecklistKey;
+  @Nullable private final RecordsReader<Occurrence> recordsReader;
 
   @Autowired
   public OccurrenceSearchEsImpl(
@@ -90,7 +99,9 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     OccurrenceEsFieldMapper esFieldMapper,
     ConceptClient conceptClient,
     @Value("${defaultChecklistKey}") String defaultChecklistKey,
-    @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize) {
+    @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize,
+    @Value("${occurrence.search.records.table:}") String recordsTable,
+    ObjectProvider<Connection> hbaseConnection) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -107,6 +118,14 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new OccurrenceEsResponseParser(esFieldMapper, searchHitOccurrenceConverter);
     this.defaultChecklistKey = defaultChecklistKey;
+    this.recordsReader =
+        Strings.isNullOrEmpty(recordsTable)
+            ? null
+            : RecordsReader.occurrences(
+                HBaseRecordsStore.occurrences(hbaseConnection.getObject(), recordsTable));
+    LOG.info(
+        "Occurrence records read from {}",
+        recordsReader == null ? "the Elasticsearch _source" : "HBase table " + recordsTable);
   }
 
   private <T> T getByQuery(Query query, Function<Hit<Map<String, Object>>, T> mapper) {
@@ -116,13 +135,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
                 s.index(esIndex)
                     .size(1)
                     .query(query)
-                    .source(
-                        src ->
-                            src.filter(
-                                f ->
-                                    f.excludes(
-                                        Lists.newArrayList(
-                                            BaseEsSearchRequestBuilder.SOURCE_EXCLUDE)))));
+                    .source(BaseEsSearchRequestBuilder.sourceConfig(recordsReader == null)));
     try {
       co.elastic.clients.elasticsearch.core.SearchResponse<Map> response = esClient.search(searchRequest, Map.class);
       List<Hit<Map>> hits = response.hits().hits();
@@ -169,23 +182,36 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
   @Override
   public Occurrence get(Long key) {
+    if (recordsReader != null) {
+      return key == null ? null : recordsReader.get(key.toString());
+    }
     return searchByKey(key, searchHitOccurrenceConverter);
   }
 
   @Nullable
   @Override
   public Occurrence get(UUID datasetKey, String occurrenceId) {
+    if (recordsReader != null) {
+      return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, hit -> recordsReader.get(hit.id()));
+    }
     return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, searchHitOccurrenceConverter);
   }
 
   @Nullable
   @Override
   public VerbatimOccurrence getVerbatim(UUID datasetKey, String occurrenceId) {
+    if (recordsReader != null) {
+      return searchByDatasetKeyAndOccurrenceId(
+          datasetKey, occurrenceId, hit -> recordsReader.getVerbatim(hit.id()));
+    }
     return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, searchHitOccurrenceConverter::toVerbatimOccurrence);
   }
 
   @Override
   public VerbatimOccurrence getVerbatim(Long key) {
+    if (recordsReader != null) {
+      return key == null ? null : recordsReader.getVerbatim(key.toString());
+    }
     return searchByKey(key, searchHitOccurrenceConverter::toVerbatimOccurrence);
   }
 
@@ -217,13 +243,17 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     }
 
     // build request
-    SearchRequest esRequest = esSearchRequestBuilder.buildSearchRequest(request, esIndex);
+    SearchRequest esRequest =
+        esSearchRequestBuilder.buildSearchRequest(request, esIndex, recordsReader == null);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search
     try {
-      return esResponseParser.buildSearchResponse(
-          esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class), request);
+      co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse =
+          esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
+      return recordsReader == null
+          ? esResponseParser.buildSearchResponse(esResponse, request)
+          : esResponseParser.buildSearchResponse(esResponse, request, recordsReader.hitsMapper());
     } catch (Exception e) {
       if (e instanceof ElasticsearchException) {
         LOG.error("ElasticsearchException response error: {}", ((ElasticsearchException) e).response().error());

@@ -21,10 +21,11 @@ import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
 import org.gbif.search.es.EsResponseParser;
 
 import java.io.StringReader;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -33,6 +34,8 @@ import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import jakarta.annotation.Nullable;
 
 /**
  * Executes a Search query and applies a predicate to each result.
@@ -47,9 +50,23 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
   /** Mapped ES field used for stable pagination sort. */
   private final String sortField;
 
+  /**
+   * Reads the records of a page of hits from another store (HBase records table), using only the ids
+   * of the hits. When null, the records are built from the _source of the hits.
+   */
+  @Nullable private final Function<List<Hit<Map<String, Object>>>, List<T>> hitsMapper;
+
   public SearchQueryProcessor(EsResponseParser<T, P> esResponseParser, String sortField) {
+    this(esResponseParser, sortField, null);
+  }
+
+  public SearchQueryProcessor(
+      EsResponseParser<T, P> esResponseParser,
+      String sortField,
+      @Nullable Function<List<Hit<Map<String, Object>>>, List<T>> hitsMapper) {
     this.esResponseParser = esResponseParser;
     this.sortField = Objects.requireNonNull(sortField, "sortField");
+    this.hitsMapper = hitsMapper;
   }
 
   /**
@@ -80,10 +97,7 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
                         .size(pageSize)
                         .sort(so -> so.field(f -> f.field(sortField).order(SortOrder.Desc)))
                         // Response fields are not needed for download processing.
-                        .source(
-                            src ->
-                                src.filter(
-                                    f -> f.excludes(Arrays.asList(BaseEsSearchRequestBuilder.SOURCE_EXCLUDE)))));
+                        .source(BaseEsSearchRequestBuilder.sourceConfig(hitsMapper == null)));
 
         SearchResponse<Map<String, Object>> searchResponse =
             downloadFileWork
@@ -102,8 +116,11 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
     FacetedSearchRequest<P> r = new FacetedSearchRequest<>();
     r.setOffset(0);
     r.setLimit(searchResponse.hits().hits().size());
-    esResponseParser.buildSearchResponse(searchResponse, r)
-      .getResults().forEach(consumer);
+    (hitsMapper == null
+            ? esResponseParser.buildSearchResponse(searchResponse, r)
+            : esResponseParser.buildSearchResponse(searchResponse, r, hitsMapper))
+        .getResults()
+        .forEach(consumer);
   }
   /**
    * Creates a search query that contains the query parameter as the filter query value.

@@ -136,6 +136,12 @@
       <artifactId>commons-beanutils</artifactId>
     </dependency>
 
+    <!-- HBase records tables -->
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-client</artifactId>
+    </dependency>
+
     <!-- ES -->
     <dependency>
       <groupId>co.elastic.clients</groupId>

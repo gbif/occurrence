@@ -61,6 +61,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeRelation;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.search.SourceConfig;
 import co.elastic.clients.json.JsonData;
 
 import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
@@ -98,13 +99,21 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   public SearchRequest buildSearchRequest(S searchRequest, String index) {
+    return buildSearchRequest(searchRequest, index, true);
+  }
+
+  /**
+   * @param fetchSource false when the records are read from the HBase records tables, only the ids
+   *     of the hits are needed
+   */
+  public SearchRequest buildSearchRequest(S searchRequest, String index, boolean fetchSource) {
     SearchRequest.Builder searchRequestBuilder =
         new SearchRequest.Builder()
             .index(index)
             .size(searchRequest.getLimit())
             .from((int) searchRequest.getOffset())
             .trackTotalHits(t -> t.enabled(true))
-            .source(src -> src.filter(f -> f.excludes(List.of(SOURCE_EXCLUDE))));
+            .source(sourceConfig(fetchSource));
 
     // group params
     GroupedParams<P> groupedParams = groupParameters(searchRequest);
@@ -159,6 +168,13 @@ public abstract class BaseEsSearchRequestBuilder<
     return searchRequestBuilder.build();
   }
 
+  /** Source of the hits: the fields of the records, or nothing when only the ids are needed. */
+  public static SourceConfig sourceConfig(boolean fetchSource) {
+    return fetchSource
+        ? SourceConfig.of(src -> src.filter(f -> f.excludes(List.of(SOURCE_EXCLUDE))))
+        : SourceConfig.of(src -> src.fetch(false));
+  }
+
   public Optional<Query> buildQueryNode(S searchRequest) {
     return buildQuery(
         searchRequest.getParameters(),
@@ -174,7 +190,8 @@ public abstract class BaseEsSearchRequestBuilder<
     return SearchRequest.of(
         sr ->
             sr.index(index)
-                .source(src -> src.filter(f -> f.includes(esField.getSearchFieldName())))
+                // the suggestions are the completion options, the documents aren't needed
+                .source(src -> src.fetch(false))
                 .suggest(
                     su ->
                         su.suggesters(

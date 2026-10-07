@@ -29,11 +29,16 @@ import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 public class EventWsConfiguration {
@@ -64,6 +69,20 @@ public class EventWsConfiguration {
       .build(OccurrenceWsSearchClient.class);
   }
 
+
+  /**
+   * Connection to the HBase records tables, only created when a records table is configured
+   * (occurrence.search.records.table). Uses the hbase-site.xml of the classpath.
+   */
+  @Bean(destroyMethod = "close")
+  @Lazy
+  public Connection hbaseConnection() {
+    try {
+      return ConnectionFactory.createConnection(HBaseConfiguration.create());
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
 
   @Bean
   public RabbitProperties rabbitProperties() {

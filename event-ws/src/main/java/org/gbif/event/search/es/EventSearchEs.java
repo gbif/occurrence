@@ -29,6 +29,8 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
+import org.gbif.occurrence.search.records.HBaseRecordsStore;
+import org.gbif.occurrence.search.records.RecordsReader;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.SearchHitConverter;
@@ -40,7 +42,6 @@ import org.gbif.vocabulary.client.ConceptClient;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -49,11 +50,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
+import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -65,7 +66,15 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import jakarta.annotation.Nullable;
 
+/**
+ * Event search service.
+ *
+ * <p>When an HBase records table is configured ({@code occurrence.search.records.table}),
+ * Elasticsearch only returns the ids of the matching events and the events are read from the
+ * table. Otherwise, the events are built from the _source of the Elasticsearch documents.
+ */
 @Component
 public class EventSearchEs
     implements SearchService<Event, EventSearchParameter, EventSearchRequest> {
@@ -83,6 +92,7 @@ public class EventSearchEs
   private final EventEsFieldMapper eventEsFieldMapper;
   private final SearchHitConverter<Event> searchHitEventConverter;
   private final OccurrenceSearchService occurrenceSearchService;
+  @Nullable private final RecordsReader<Event> recordsReader;
 
   private static final SearchResponse<Event, EventSearchParameter> EMPTY_RESPONSE =
       new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
@@ -96,7 +106,9 @@ public class EventSearchEs
       ConceptClient conceptClient,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
       @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize,
-      @Qualifier("occurrenceWsSearchClient") OccurrenceSearchService occurrenceSearchService) {
+      @Qualifier("occurrenceWsSearchClient") OccurrenceSearchService occurrenceSearchService,
+      @Value("${occurrence.search.records.table:}") String recordsTable,
+      ObjectProvider<Connection> hbaseConnection) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
     this.maxOffset = maxOffset;
@@ -112,29 +124,33 @@ public class EventSearchEs
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
     this.occurrenceSearchService = occurrenceSearchService;
+    this.recordsReader =
+        Strings.isNullOrEmpty(recordsTable)
+            ? null
+            : RecordsReader.events(HBaseRecordsStore.events(hbaseConnection.getObject(), recordsTable));
+    LOG.info(
+        "Event records read from {}",
+        recordsReader == null ? "the Elasticsearch _source" : "HBase table " + recordsTable);
   }
 
   public EventEsSearchRequestBuilder getEsSearchRequestBuilder() {
     return esSearchRequestBuilder;
   }
 
-  private <T> T getByQuery(Query query, Function<Hit<Map<String, Object>>, T> mapper) {
+  private Event getByQuery(Query query) {
     SearchRequest searchRequest =
         SearchRequest.of(
             s ->
                 s.index(esIndex)
                     .size(1)
-                    .source(
-                        src ->
-                            src.filter(
-                                f -> f.excludes(Arrays.asList(BaseEsSearchRequestBuilder.SOURCE_EXCLUDE))))
+                    .source(BaseEsSearchRequestBuilder.sourceConfig(recordsReader == null))
                     .query(query));
     try {
       co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> response =
           esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
       List<Hit<Map<String, Object>>> hits = response.hits().hits();
       if (hits != null && !hits.isEmpty()) {
-        return mapper.apply(hits.get(0));
+        return toEvents(hits.subList(0, 1)).stream().findFirst().orElse(null);
       }
       return null;
     } catch (IOException ex) {
@@ -142,8 +158,7 @@ public class EventSearchEs
     }
   }
 
-  private <T> PagingResponse<T> pageByQuery(
-      Query query, PagingRequest request, Function<Hit<Map<String, Object>>, T> mapper) {
+  private PagingResponse<Event> pageByQuery(Query query, PagingRequest request) {
     SearchRequest searchRequest =
         SearchRequest.of(
             s ->
@@ -151,10 +166,7 @@ public class EventSearchEs
                     .from((int) request.getOffset())
                     .size(request.getLimit())
                     .trackTotalHits(t -> t.enabled(true))
-                    .source(
-                        src ->
-                            src.filter(
-                                f -> f.excludes(Arrays.asList(BaseEsSearchRequestBuilder.SOURCE_EXCLUDE))))
+                    .source(BaseEsSearchRequestBuilder.sourceConfig(recordsReader == null))
                     .query(query));
     try {
       co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse =
@@ -162,9 +174,9 @@ public class EventSearchEs
       List<Hit<Map<String, Object>>> hits = esResponse.hits().hits();
       long total = esResponse.hits().total() == null ? 0L : esResponse.hits().total().value();
       if (hits != null && !hits.isEmpty() && total > 0) {
-        PagingResponse<T> response =
+        PagingResponse<Event> response =
             new PagingResponse<>(request.getOffset(), hits.size(), total);
-        response.setResults(hits.stream().map(mapper).toList());
+        response.setResults(toEvents(hits));
         return response;
       }
       return new PagingResponse<>();
@@ -173,12 +185,18 @@ public class EventSearchEs
     }
   }
 
-  private <T> T searchByKey(String key, Function<Hit<Map<String, Object>>, T> mapper) {
-    return getByQuery(Query.of(q -> q.ids(i -> i.values(key))), mapper);
+  /** Events of the hits, read from HBase or from the _source of the hits. */
+  private List<Event> toEvents(List<Hit<Map<String, Object>>> hits) {
+    return recordsReader != null
+        ? recordsReader.hitsMapper().apply(hits)
+        : hits.stream().map(searchHitEventConverter).toList();
   }
 
   public Event get(String key) {
-    return searchByKey(key, searchHitEventConverter);
+    if (recordsReader != null) {
+      return key == null ? null : recordsReader.get(key);
+    }
+    return getByQuery(Query.of(q -> q.ids(i -> i.values(key))));
   }
 
   public Event get(String datasetKey, String eventId) {
@@ -195,8 +213,7 @@ public class EventSearchEs
                                             t.field("metadata.datasetKey")
                                                 .value(datasetKey)))
                             .filter(
-                                f -> f.term(t -> t.field("event.eventID").value(eventId))))),
-        searchHitEventConverter);
+                                f -> f.term(t -> t.field("event.eventID").value(eventId))))));
   }
 
   private Optional<Event> getParent(Event event) {
@@ -246,8 +263,7 @@ public class EventSearchEs
                                         t ->
                                             t.field("metadata.datasetKey")
                                                 .value(event.getDatasetKey().toString()))))),
-        pagingRequest,
-        searchHitEventConverter);
+        pagingRequest);
   }
 
   public List<Lineage> lineage(String id) {
@@ -334,15 +350,17 @@ public class EventSearchEs
     }
 
     // build request
-    SearchRequest esRequest = esSearchRequestBuilder.buildSearchRequest(searchRequest, esIndex);
+    SearchRequest esRequest =
+        esSearchRequestBuilder.buildSearchRequest(searchRequest, esIndex, recordsReader == null);
     LOG.debug("ES request: {}", esRequest);
 
     // perform the search
     try {
       co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> esResponse =
           esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
-      return esResponseParser.buildSearchResponse(
-          esResponse, searchRequest);
+      return recordsReader == null
+          ? esResponseParser.buildSearchResponse(esResponse, searchRequest)
+          : esResponseParser.buildSearchResponse(esResponse, searchRequest, recordsReader.hitsMapper());
     } catch (Exception e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
