@@ -116,7 +116,7 @@
     <!-- VERSIONS -->
     <hikaricp.version>7.0.2</hikaricp.version>
     <amqp-client.version>5.28.0</amqp-client.version>
-    <freemarker.version>2.3.34</freemarker.version>
+    <freemarker.version>2.3.35</freemarker.version>
     <jakarta.rs-api.version>4.0.0</jakarta.rs-api.version>
 
     <!-- Fixing to the version JUnit and Mockito depending on -->
