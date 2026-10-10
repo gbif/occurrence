@@ -1,6 +1,6 @@
 defaultChecklistKey: d7dddbf4-2cf0-4f39-9b2a-bb099caae36c
 appkeys:
-  file: @appkeys.testfile@
+  file: /Users/xrc439/dev/gbif/gbif-keys.properties
 occurrence:
   db:
     speciesMultimedia:

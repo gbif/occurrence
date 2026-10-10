@@ -15,13 +15,11 @@ package org.gbif.occurrence.search.configuration;
 
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.rest.client.species.NameUsageMatchingService;
-import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Duration;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.NodeSelector;
@@ -33,10 +31,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
+import feign.Contract;
+import feign.Feign;
+import feign.Retryer;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
 
 /** Occurrence search configuration. */
 public class OccurrenceSearchConfiguration  {
@@ -107,13 +112,19 @@ public class OccurrenceSearchConfiguration  {
     return esClient;
   }
 
+  /**
+   * The client is annotated with the Feign annotations since kvs 3.1, which the Spring MVC contract
+   * of the GBIF {@code ClientBuilder} doesn't read, so it's built with the default Feign contract.
+   */
   @Bean
   public NameUsageMatchingService nameUsageMatchingService(@Value("${nameUsageMatchingService.ws.url}") String apiUrl) {
-    return new ClientBuilder()
-        .withUrl(apiUrl)
-        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-        .withFormEncoder()
-        .withExponentialBackoffRetry(Duration.ofMillis(250), 1.0, 3)      
-        .build(NameUsageMatchingService.class);
+    ObjectMapper objectMapper = JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport();
+    return Feign.builder()
+        .contract(new Contract.Default())
+        .encoder(new JacksonEncoder(objectMapper))
+        .decoder(new JacksonDecoder(objectMapper))
+        .retryer(new Retryer.Default(250, 1000, 3))
+        .dismiss404()
+        .target(NameUsageMatchingService.class, apiUrl);
   }
 }
