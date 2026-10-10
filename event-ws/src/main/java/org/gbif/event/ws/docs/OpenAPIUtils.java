@@ -13,24 +13,10 @@
  */
 package org.gbif.event.ws.docs;
 
-import org.gbif.api.util.Range;
-import org.gbif.api.vocabulary.Continent;
-import org.gbif.api.vocabulary.Country;
-import org.gbif.api.vocabulary.EndpointType;
-import org.gbif.api.vocabulary.EventIssue;
-import org.gbif.api.vocabulary.GbifRegion;
-import org.gbif.api.vocabulary.License;
-import org.gbif.api.vocabulary.TaxonomicStatus;
-import org.gbif.api.vocabulary.ThreatStatus;
-
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.Date;
-import java.util.UUID;
-
-import org.springframework.http.MediaType;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -41,11 +27,22 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.Date;
+import java.util.UUID;
+import org.gbif.api.util.Range;
+import org.gbif.api.vocabulary.Continent;
+import org.gbif.api.vocabulary.Country;
+import org.gbif.api.vocabulary.EndpointType;
+import org.gbif.api.vocabulary.EventIssue;
+import org.gbif.api.vocabulary.GbifRegion;
+import org.gbif.api.vocabulary.License;
+import org.gbif.api.vocabulary.TaxonomicStatus;
+import org.gbif.api.vocabulary.ThreatStatus;
+import org.springframework.http.MediaType;
 
 public class OpenAPIUtils {
 
@@ -62,7 +59,6 @@ public class OpenAPIUtils {
   @Parameter(
       name = "id",
       description = "Internal ID of the record",
-      example = "5e48baa446c2a463bc76a13c1cef60c2b08fb1cf",
       schema = @Schema(implementation = String.class, minimum = "1"),
       in = ParameterIn.PATH)
   public @interface IdPathParameter {}
@@ -74,7 +70,6 @@ public class OpenAPIUtils {
   @Parameter(
       name = "eventId",
       description = "Event ID of the record",
-      example = "FISHINGTRIP_day1_PM",
       schema = @Schema(implementation = String.class, minimum = "1"),
       in = ParameterIn.PATH)
   public @interface EventIdPathParameter {}
@@ -86,7 +81,6 @@ public class OpenAPIUtils {
   @Parameter(
       name = "datasetKey",
       description = "Dataset key of the record",
-      example = "7b4b54bf-4a2f-4181-b28a-6f1943bdd782",
       schema = @Schema(implementation = UUID.class, minimum = "1"),
       in = ParameterIn.PATH)
   public @interface DatasetKeyPathParameter {}
@@ -191,8 +185,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Integer.class, minimum = "0")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2476674"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "checklistKey",
             description =
@@ -201,8 +194,7 @@ public class OpenAPIUtils {
                     + "backbone taxonomy will be used. It can be used to search in both the taxonomy of the event occurrences "
                     + "and in the humboldt taxonomic scope",
             schema = @Schema(implementation = String.class),
-            in = ParameterIn.QUERY,
-            example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "collectionCode",
             description =
@@ -212,8 +204,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "K"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "continent",
             description =
@@ -224,8 +215,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Continent.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "EUROPE"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "coordinateUncertaintyInMeters",
             description =
@@ -233,8 +223,7 @@ public class OpenAPIUtils {
                     + "describing the smallest circle containing the whole of the Location.\n\n"
                     + API_PARAMETER_RANGE_QUERIES,
             schema = @Schema(implementation = Range.class),
-            in = ParameterIn.QUERY,
-            example = "0,500"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "country",
             description =
@@ -244,31 +233,27 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Country.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AF"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "crawlId",
             description =
                 "Crawl attempt that harvested this record.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
-            in = ParameterIn.QUERY,
-            example = "1"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "datasetId",
             description = "The ID of the dataset.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "https://doi.org/10.1594/PANGAEA.315492"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "datasetKey",
             description = "The event dataset key (a UUID).\n\n" + API_PARAMETER_MAY_BE_REPEATED,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "13b70480-bd69-11dd-b15f-b8a03c50a862"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "datasetCategory",
             description =
@@ -278,8 +263,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "eDNA"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "datasetName",
             description = "The exact name of the dataset.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
@@ -297,24 +281,21 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Short.class, minimum = "1", maximum = "31")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "15"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "decimalLatitude",
             description =
                 "Latitude in decimal degrees between -90° and 90° based on WGS 84.\n\n"
                     + API_PARAMETER_RANGE_QUERIES,
             schema = @Schema(implementation = Range.class),
-            in = ParameterIn.QUERY,
-            example = "40.5,45"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "decimalLongitude",
             description =
                 "Longitude in decimals between -180 and 180 based on WGS 84.\n\n"
                     + API_PARAMETER_RANGE_QUERIES,
             schema = @Schema(implementation = Range.class),
-            in = ParameterIn.QUERY,
-            example = "-120,-95.5"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "depth",
             description =
@@ -322,8 +303,7 @@ public class OpenAPIUtils {
                     + "given altitude.\n\n"
                     + API_PARAMETER_RANGE_OR_REPEAT,
             schema = @Schema(implementation = Range.class),
-            in = ParameterIn.QUERY,
-            example = "10,20"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "dwcaExtension",
             description =
@@ -333,16 +313,14 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "http://rs.tdwg.org/ac/terms/Multimedia"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "elevation",
             description =
                 "Elevation (altitude) in metres above sea level.\n\n"
                     + API_PARAMETER_RANGE_OR_REPEAT,
             schema = @Schema(implementation = Range.class),
-            in = ParameterIn.QUERY,
-            example = "1000,1250"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "endDayOfYear",
             description =
@@ -353,8 +331,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Short.class, minimum = "1", maximum = "366")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "6"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "eventDate",
             description =
@@ -362,8 +339,7 @@ public class OpenAPIUtils {
                     + API_PARAMETER_RANGE_OR_REPEAT,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2000,2001-06-30"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "eventId",
             description =
@@ -372,15 +348,13 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "A 123"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "eventType",
             description = "The event type.",
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-            in = ParameterIn.QUERY,
-            example = "Event"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "fieldNumber",
             description =
@@ -389,8 +363,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "RV Sol 87-03-08"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "fundingAttribution",
             description =
@@ -399,8 +372,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Nippon Foundation"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "fundingAttributionID",
             description =
@@ -409,8 +381,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "https://www.wikidata.org/wiki/Q13102615"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "gadmGid",
             description =
@@ -419,8 +390,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AGO.1_1"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "gadmLevel0Gid",
             description =
@@ -429,8 +399,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AGO"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "gadmLevel1Gid",
             description =
@@ -439,8 +408,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AGO.1_1"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "gadmLevel2Gid",
             description =
@@ -449,8 +417,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AFG.1.1_1"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "gadmLevel3Gid",
             description =
@@ -459,14 +426,12 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AFG.1.1.1_1"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "gbifId",
             description = "The unique GBIF key for a single event.",
             schema = @Schema(implementation = Long.class),
-            in = ParameterIn.QUERY,
-            example = "2005380410"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "gbifRegion",
             description = "Gbif region based on country code.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
@@ -475,16 +440,14 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = GbifRegion.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AFRICA"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "geoDistance",
             description =
                 "Filters to match event records with coordinate values within a specified distance of "
                     + "a coordinate.\n\nDistance may be specified in kilometres (km) or metres (m).",
             schema = @Schema(implementation = String.class),
-            in = ParameterIn.QUERY,
-            example = "90,100,5km"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "georeferencedBy",
             description =
@@ -493,8 +456,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Brad Millen"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "geometry",
             description =
@@ -509,8 +471,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "POLYGON ((30.1 10.1, 40 40, 20 40, 10 20, 30.1 10.1))"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "hasCoordinate",
             description =
@@ -518,8 +479,7 @@ public class OpenAPIUtils {
                     + "longitude (i.e. `hasCoordinate=true` limits to event records with coordinate values and "
                     + "`hasCoordinate=false` limits to event records without coordinate values).",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "higherGeography",
             description =
@@ -528,8 +488,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Argentina"),
+            in = ParameterIn.QUERY),
         /** Humboldt extension params * */
         @Parameter(
             name = "humboldtAbundanceCap",
@@ -538,15 +497,13 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "50"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtAreNonTargetTaxaFullyReported",
             description =
                 "Indicates whether there were non-target taxa that were detected, but left unreported",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtCompilationSourceTypes",
             description =
@@ -555,8 +512,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "localKnowledge"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtCompilationTypes",
             description =
@@ -565,8 +521,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "compilationOfExistingSourcesAndSamplingEvents"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtEventDuration",
             description =
@@ -576,8 +531,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "1.5 hours"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtEventDurationUnit",
             description =
@@ -585,16 +539,14 @@ public class OpenAPIUtils {
                     + "for the humboldtEventDurationValue. To filter by multiple values or use ranges the "
                     + "humboldtEventDuration parameter should be used instead.",
             schema = @Schema(implementation = String.class),
-            in = ParameterIn.QUERY,
-            example = "hour"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtEventDurationValue",
             description =
                 "The numeric value for the duration of the event. It accepts decimals. To filter by multiple values or use "
                     + "ranges the humboldtEventDuration parameter should be used instead.",
             schema = @Schema(implementation = Double.class),
-            in = ParameterIn.QUERY,
-            example = "2"),
+            in = ParameterIn.QUERY),
         @Parameter(name = "humboldtEventDurationValueInMinutes", hidden = true),
         @Parameter(
             name = "humboldtGeospatialScopeAreaUnit",
@@ -604,8 +556,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "km²"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtGeospatialScopeAreaValue",
             description =
@@ -614,34 +565,29 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "100"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtHasMaterialSamples",
             description = "Indicates if material samples were collected during the event.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtHasNonTargetOrganisms",
             description =
                 "Indicates if there were organisms outside the target organismal scopes that were detected and reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtHasNonTargetTaxa",
             description =
                 "Indicates if there were organisms outside the target taxonomic scope that were detected and reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtHasVouchers",
             description = "Indicates if specimen vouchers were collected during the event.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtInventoryTypes",
             description =
@@ -650,75 +596,64 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "openSearch"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsAbsenceReported",
             description = "Indicates if taxonomic absences were reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsAbundanceCapReported",
             description = "Indicates if the abundance cap was reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsAbundanceReported",
             description = "Indicates if the abundance was reported",
             schema = @Schema(implementation = Boolean.class),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsDegreeOfEstablishmentScopeFullyReported",
             description =
                 "Indicates if the organisms included in the degree of establishment scope that were detected were reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsGrowthFormScopeFullyReported",
             description =
                 "Indicates if the organisms included in the growth form scope that were detected were reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsLeastSpecificTargetCategoryQuantityInclusive",
             description =
                 "Indicates if the total detected quantity for a taxon in an event is given explicitly in a single record "
                     + "for that taxon.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsLifeStageScopeFullyReported",
             description =
                 "Indicates if the organisms included in the life stage scope that were detected were reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsSamplingEffortReported",
             description = "Indicates if the sampling effort of the event was reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsTaxonomicScopeFullyReported",
             description =
                 "Indicates if the organisms included in the taxonomic scope that were detected were reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtIsVegetationCoverReported",
             description = "Indicates if a vegetation cover metric was reported.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtMaterialSampleTypes",
             description =
@@ -727,8 +662,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "skeleton"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtProtocolNames",
             description =
@@ -737,8 +671,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "boxTrapping"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtSamplingEffortUnit",
             description =
@@ -747,8 +680,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "trapHours"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtSamplingEffortValue",
             description =
@@ -757,8 +689,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "100"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtSamplingPerformedBy",
             description =
@@ -767,8 +698,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "North American Butterfly Association"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtSiteCount",
             description =
@@ -777,8 +707,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "5"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetDegreeOfEstablishmentScope",
             description =
@@ -787,8 +716,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "native"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetGrowthFormScope",
             description =
@@ -797,8 +725,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "tree"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetHabitatScope",
             description =
@@ -806,8 +733,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "pineForest"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetLifeStageScope",
             description =
@@ -815,8 +741,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "adult"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetTaxonomicScopeAcceptedUsageKey",
             description =
@@ -827,8 +752,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Integer.class, minimum = "0")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "212"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetTaxonomicScopeAcceptedUsageName",
             description =
@@ -837,8 +761,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Aves"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetTaxonomicScopeIssue",
             description =
@@ -865,8 +788,7 @@ public class OpenAPIUtils {
                               "TAXON_MATCH_NONE"
                             })),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "TAXON_MATCH_HIGHERRANK"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetTaxonomicScopeIucnRedListCategory",
             description =
@@ -876,8 +798,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Aves"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetTaxonomicScopeTaxonKey",
             description =
@@ -888,8 +809,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Integer.class, minimum = "0")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "212"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetTaxonomicScopeUsageKey",
             description =
@@ -900,8 +820,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Integer.class, minimum = "0")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "212"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTargetTaxonomicScopeUsageName",
             description =
@@ -910,8 +829,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Aves"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTaxonCompletenessProtocols",
             description =
@@ -920,8 +838,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "census"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTotalAreaSampledUnit",
             description =
@@ -930,8 +847,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "km²"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtTotalAreaSampledValue",
             description =
@@ -940,8 +856,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "1.6"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtVerbatimSiteNames",
             description =
@@ -950,8 +865,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "East coast"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "humboldtVoucherInstitutions",
             description =
@@ -960,8 +874,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "FMNH"),
+            in = ParameterIn.QUERY),
         /** End Humboldt extension params * */
         @Parameter(
             name = "hasGeospatialIssue",
@@ -971,8 +884,7 @@ public class OpenAPIUtils {
                     + "while hasGeospatialIssue=false includes only records without spatial issues.\n\n"
                     + "The absence of this parameter returns any record with or without spatial issues.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "hostingOrganizationKey",
             description =
@@ -982,8 +894,7 @@ public class OpenAPIUtils {
                     + API_PARAMETER_MAY_BE_REPEATED,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "fbca90e3-8aed-48b1-84e3-369afbd000ce"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "installationKey",
             description =
@@ -993,8 +904,7 @@ public class OpenAPIUtils {
                     + API_PARAMETER_MAY_BE_REPEATED,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "17a83780-3060-4851-9d6f-029d5fcb81c9"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "institutionCode",
             description =
@@ -1004,8 +914,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "K"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "issue",
             description =
@@ -1016,8 +925,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = EventIssue.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "COUNTRY_COORDINATE_MISMATCH"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "island",
             description =
@@ -1026,8 +934,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Zanzibar"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "islandGroup",
             description =
@@ -1036,8 +943,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Seychelles"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "iucnRedListCategory",
             description =
@@ -1051,8 +957,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = ThreatStatus.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "EX"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "lastInterpreted",
             description =
@@ -1064,8 +969,7 @@ public class OpenAPIUtils {
                     + API_PARAMETER_RANGE_OR_REPEAT,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2023-02"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "license",
             description =
@@ -1074,8 +978,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = License.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "CC0_1_0"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "locality",
             description =
@@ -1085,13 +988,12 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
         @Parameter(
-          name = "locationID",
-          description =
-            "The location ID of the event.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
-          array =
-          @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
-          explode = Explode.TRUE,
-          in = ParameterIn.QUERY),
+            name = "locationID",
+            description = "The location ID of the event.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "measurementType",
             description =
@@ -1128,8 +1030,7 @@ public class OpenAPIUtils {
                     + API_PARAMETER_RANGE_OR_REPEAT,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Date.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2023-02-20"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "month",
             description =
@@ -1140,15 +1041,13 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Short.class, minimum = "1", maximum = "12")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "5"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "networkKey",
             description = "The network's GBIF key (a UUID).\n\n" + API_PARAMETER_MAY_BE_REPEATED,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2b7c7b4f-4d4f-40d3-94de-c28b6fa054a6"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "parentEventId",
             description =
@@ -1157,8 +1056,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "A 123"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "programme",
             description =
@@ -1168,8 +1066,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "BID"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "projectId",
             description =
@@ -1178,8 +1075,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "RCN276730"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "projectTitle",
             description =
@@ -1188,8 +1084,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Nippon Foundation"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "protocol",
             description =
@@ -1200,8 +1095,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = EndpointType.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "DWC_ARCHIVE"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "publishingCountry",
             description =
@@ -1209,8 +1103,7 @@ public class OpenAPIUtils {
                     + API_PARAMETER_MAY_BE_REPEATED,
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Country.class)),
-            explode = Explode.TRUE,
-            example = "AD"),
+            explode = Explode.TRUE),
         @Parameter(
             name = "publishedByGbifRegion",
             description =
@@ -1221,8 +1114,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = GbifRegion.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "AFRICA"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "publishingOrg",
             description =
@@ -1230,16 +1122,14 @@ public class OpenAPIUtils {
                     + API_PARAMETER_MAY_BE_REPEATED,
             array = @ArraySchema(uniqueItems = true, schema = @Schema(implementation = UUID.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "e2e717bf-551a-4917-bdc9-4fa0f342c530"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "repatriated",
             description =
                 "Searches for records whose publishing country is different to the country in which the "
                     + "record was recorded.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "sampleSizeUnit",
             description =
@@ -1249,8 +1139,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "hectares"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "sampleSizeValue",
             description =
@@ -1260,8 +1149,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Double.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "50.50"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "samplingProtocol",
             description =
@@ -1270,8 +1158,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "malaise trap"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "scientificName",
             description =
@@ -1287,8 +1174,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Quercus robur"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "startDayOfYear",
             description =
@@ -1299,8 +1185,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Short.class, minimum = "1", maximum = "366")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "5"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "stateProvince",
             description =
@@ -1311,8 +1196,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Leicestershire"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "taxonId",
             description =
@@ -1323,8 +1207,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "urn:lsid:dyntaxa.se:Taxon:103026"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "taxonKey",
             description =
@@ -1337,8 +1220,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = Integer.class, minimum = "0")),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "2476674"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "taxonomicIssue",
             description =
@@ -1367,8 +1249,7 @@ public class OpenAPIUtils {
                               "TAXON_MATCH_NONE"
                             })),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "TAXON_CONCEPT_ID_NOT_FOUND"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "taxonomicStatus",
             description =
@@ -1381,8 +1262,7 @@ public class OpenAPIUtils {
                     uniqueItems = true,
                     schema = @Schema(implementation = TaxonomicStatus.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "SYNONYM"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "waterBody",
             description =
@@ -1391,8 +1271,7 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "Lake Michigan"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "year",
             description =
@@ -1401,20 +1280,17 @@ public class OpenAPIUtils {
             array =
                 @ArraySchema(uniqueItems = true, schema = @Schema(implementation = Integer.class)),
             explode = Explode.TRUE,
-            in = ParameterIn.QUERY,
-            example = "1998"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "matchCase",
             description = "*Experimental.* Indicates if the search has to be case sensitive",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "shuffle",
             description = "*Experimental.* Seed to sort the results randomly.",
             schema = @Schema(implementation = String.class),
-            in = ParameterIn.QUERY,
-            example = "abcdefgh"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "hl",
             description =
@@ -1425,8 +1301,7 @@ public class OpenAPIUtils {
                     + "title, hosting organization title, and description. One additional full text field is searched which "
                     + "includes information from metadata documents, but the text of this field is not returned in the response.",
             schema = @Schema(implementation = Boolean.class),
-            in = ParameterIn.QUERY,
-            example = "true"),
+            in = ParameterIn.QUERY),
         @Parameter(
             name = "q",
             description =
