@@ -21,14 +21,24 @@ package org.gbif.occurrence.search.records;
  *   <li>Occurrences: {@code <gbifId % 100, 2 digits>:<gbifId>}, e.g. "67:1234567".
  *   <li>Events: the internalId, which is also the id of the event documents in Elasticsearch.
  * </ul>
+ *
+ * <p>The records are in the {@value #DATA_FAMILY} family, the only one read here. The
+ * {@value #METADATA_FAMILY} family describes the load (dataset and attempt) for reports by dataset.
  */
 public final class RecordsTable {
 
-  public static final String COLUMN_FAMILY = "o";
+  public static final String DATA_FAMILY = "d";
+  public static final String METADATA_FAMILY = "m";
+
+  // d
   /** JSON of the API Occurrence (or Event). */
   public static final String INTERPRETED_COLUMN = "interpreted";
   /** JSON of the API VerbatimOccurrence. */
   public static final String VERBATIM_COLUMN = "verbatim";
+
+  // m
+  public static final String DATASET_KEY_COLUMN = "datasetKey";
+  public static final String ATTEMPT_COLUMN = "attempt";
 
   private static final int OCCURRENCE_SALT = 100;
 

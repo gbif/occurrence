@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.search.records;
 
+import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.vocabulary.Country;
@@ -22,6 +23,7 @@ import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.dwc.terms.Term;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RecordsReaderTest {
 
@@ -159,6 +162,84 @@ class RecordsReaderTest {
     assertEquals(verbatim(1L).getVerbatimFields(), occ.getVerbatimFields());
     assertEquals("Puma concolor (Linnaeus, 1771)", occ.getScientificName());
     assertFalse(occ.getExtensions().isEmpty());
+  }
+
+  /** Fallback with the records of the keys, recording the ids it's asked for. */
+  private static RecordsFallback<Occurrence> fallback(List<List<String>> requests, long... keys) {
+    Map<String, Occurrence> records = new HashMap<>();
+    for (long key : keys) {
+      Occurrence occ = occurrence(key);
+      occ.setScientificName("from the fallback");
+      records.put(String.valueOf(key), occ);
+    }
+    return new RecordsFallback<>() {
+      @Override
+      public Map<String, Occurrence> get(List<String> ids) {
+        requests.add(ids);
+        return ids.stream()
+            .filter(records::containsKey)
+            .collect(Collectors.toMap(id -> id, records::get));
+      }
+
+      @Override
+      public Map<String, VerbatimOccurrence> getVerbatim(List<String> ids) {
+        requests.add(ids);
+        return ids.stream()
+            .filter(records::containsKey)
+            .collect(Collectors.toMap(id -> id, id -> verbatim(Long.parseLong(id))));
+      }
+    };
+  }
+
+  @Test
+  void missingRecordsAreReadFromTheFallbackKeepingTheOrder() throws Exception {
+    List<List<String>> requests = new ArrayList<>();
+    RecordsReader<Occurrence> reader = reader(1L, 3L).withFallback(fallback(requests, 2L, 3L));
+
+    List<Occurrence> records = reader.get(List.of("3", "2", "4", "1"));
+
+    assertEquals(List.of(3L, 2L, 1L), records.stream().map(Occurrence::getKey).toList());
+    // records in the table aren't read from the fallback
+    assertEquals("Puma concolor (Linnaeus, 1771)", records.get(0).getScientificName());
+    assertEquals("from the fallback", records.get(1).getScientificName());
+    assertEquals(List.of(List.of("2", "4")), requests);
+  }
+
+  @Test
+  void fallbackIsNotQueriedWhenAllRecordsAreInTheTable() throws Exception {
+    List<List<String>> requests = new ArrayList<>();
+    RecordsReader<Occurrence> reader = reader(1L, 2L).withFallback(fallback(requests, 1L, 2L));
+
+    reader.get(List.of("1", "2"));
+    reader.getWithAllVerbatimFields(List.of("1", "2"));
+
+    assertEquals(List.of(), requests);
+  }
+
+  @Test
+  void singleRecordsAreReadFromTheFallback() throws Exception {
+    List<List<String>> requests = new ArrayList<>();
+    RecordsReader<Occurrence> reader = reader().withFallback(fallback(requests, 5L));
+
+    assertEquals("from the fallback", reader.get("5").getScientificName());
+    assertEquals(verbatim(5L), reader.getVerbatim("5"));
+    assertNull(reader.get("6"));
+    assertNull(reader.getVerbatim("6"));
+  }
+
+  @Test
+  void allRecordsAreReadFromTheFallbackWhenTheTableFails() {
+    RecordsStore failing =
+        (ids, interpreted, verbatim) -> {
+          throw new ServiceUnavailableException("HBase down");
+        };
+    List<List<String>> requests = new ArrayList<>();
+
+    List<Occurrence> records =
+        RecordsReader.occurrences(failing).withFallback(fallback(requests, 1L, 2L)).get(List.of("2", "1"));
+
+    assertEquals(List.of(2L, 1L), records.stream().map(Occurrence::getKey).toList());
+    assertThrows(ServiceUnavailableException.class, () -> RecordsReader.occurrences(failing).get(List.of("1")));
   }
 
   @Test

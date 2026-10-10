@@ -16,6 +16,25 @@ from the table ([gbif/pipelines#1534](https://github.com/gbif/pipelines/issues/1
 When the setting is empty or missing, the records are built from the Elasticsearch `_source`, as
 before. The HBase connection uses the `hbase-site.xml` of the classpath.
 
+The records are read from the `d` (data) column family, `d:interpreted` and `d:verbatim`; the `m`
+(metadata) family, with the dataset and attempt of each record, isn't read by the services.
+
+Pipelines keeps the `_source` of the indices until `indexConfig.sourceEnabled` is set to `false`,
+so the services can be switched to HBase one at a time and switched back by removing the setting.
+Once the `_source` is disabled, new indices don't store the documents (nor the `verbatim` and
+`multimediaItems` fields): every service, including small downloads, must have the table configured
+before that.
+
+While the indices keep the `_source`, the records missing from the table, or all of them when HBase
+can't be read, are tried once more from Elasticsearch: one query by id for the missing records of a
+page, returning their `_source`. Documents without `_source` are skipped, as if they didn't exist.
+Turn it off together with `indexConfig.sourceEnabled` in pipelines:
+
+| Service                 | Setting                             | Default |
+|-------------------------|-------------------------------------|---------|
+| occurrence-ws, event-ws | `occurrence.search.es.sourceEnabled` | `true`  |
+| small downloads         | `es.source_enabled`                 | `true`  |
+
 - `occurrence/{key}` and `occurrence/{key}/verbatim` (`event/{key}` in event-ws) are read from
   HBase directly, without querying Elasticsearch.
 - Searches query Elasticsearch for the ids of the page and read the records with one multi-get,

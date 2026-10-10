@@ -29,6 +29,7 @@ import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
+import org.gbif.occurrence.search.records.EsSourceRecordsFallback;
 import org.gbif.occurrence.search.records.HBaseRecordsStore;
 import org.gbif.occurrence.search.records.RecordsReader;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
@@ -74,6 +75,10 @@ import jakarta.annotation.Nullable;
  * <p>When an HBase records table is configured ({@code occurrence.search.records.table}),
  * Elasticsearch only returns the ids of the matching events and the events are read from the
  * table. Otherwise, the events are built from the _source of the Elasticsearch documents.
+ *
+ * <p>While the indices keep the _source ({@code occurrence.search.es.sourceEnabled}, true by
+ * default), the events missing from the table, or all of them when it can't be read, are read once
+ * more from the _source of their documents.
  */
 @Component
 public class EventSearchEs
@@ -108,6 +113,7 @@ public class EventSearchEs
       @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize,
       @Qualifier("occurrenceWsSearchClient") OccurrenceSearchService occurrenceSearchService,
       @Value("${occurrence.search.records.table:}") String recordsTable,
+      @Value("${occurrence.search.es.sourceEnabled:true}") boolean sourceEnabled,
       ObjectProvider<Connection> hbaseConnection) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
@@ -127,10 +133,17 @@ public class EventSearchEs
     this.recordsReader =
         Strings.isNullOrEmpty(recordsTable)
             ? null
-            : RecordsReader.events(HBaseRecordsStore.events(hbaseConnection.getObject(), recordsTable));
+            : RecordsReader.events(HBaseRecordsStore.events(hbaseConnection.getObject(), recordsTable))
+                .withFallback(
+                    sourceEnabled
+                        ? new EsSourceRecordsFallback<>(
+                            esClient, esIndex, searchHitEventConverter, searchHitEventConverter::apply)
+                        : null);
     LOG.info(
         "Event records read from {}",
-        recordsReader == null ? "the Elasticsearch _source" : "HBase table " + recordsTable);
+        recordsReader == null
+            ? "the Elasticsearch _source"
+            : "HBase table " + recordsTable + (sourceEnabled ? ", falling back to the Elasticsearch _source" : ""));
   }
 
   public EventEsSearchRequestBuilder getEsSearchRequestBuilder() {

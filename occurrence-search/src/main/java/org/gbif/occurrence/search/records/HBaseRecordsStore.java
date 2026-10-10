@@ -34,7 +34,7 @@ import org.apache.hadoop.hbase.util.Bytes;
  */
 public class HBaseRecordsStore implements RecordsStore {
 
-  private static final byte[] CF = Bytes.toBytes(RecordsTable.COLUMN_FAMILY);
+  private static final byte[] CF = Bytes.toBytes(RecordsTable.DATA_FAMILY);
   private static final byte[] INTERPRETED = Bytes.toBytes(RecordsTable.INTERPRETED_COLUMN);
   private static final byte[] VERBATIM = Bytes.toBytes(RecordsTable.VERBATIM_COLUMN);
 

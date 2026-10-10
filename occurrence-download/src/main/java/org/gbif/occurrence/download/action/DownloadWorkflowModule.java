@@ -29,6 +29,7 @@ import org.gbif.occurrence.download.file.dwca.DwcaDownloadAggregator;
 import org.gbif.occurrence.download.file.simplecsv.SimpleCsvDownloadAggregator;
 import org.gbif.occurrence.download.file.specieslist.SpeciesListDownloadAggregator;
 import org.gbif.occurrence.search.es.*;
+import org.gbif.occurrence.search.records.EsSourceRecordsFallback;
 import org.gbif.occurrence.search.records.HBaseRecordsStore;
 import org.gbif.occurrence.search.records.RecordsReader;
 import org.gbif.predicate.query.EsFieldMapper;
@@ -269,18 +270,21 @@ public class DownloadWorkflowModule {
 
   /** Creates a {@link DownloadMaster} instance ready to run the download job. */
   public DownloadMaster downloadMaster() {
+    ElasticsearchClient esClient = esClient(workflowConfiguration);
+    String esIndex = workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY);
+    SearchHitConverter<Occurrence> searchHitConverter = searchHitConverter();
     return DownloadMaster.builder()
         .workflowConfiguration(workflowConfiguration)
         .masterConfiguration(masterConfiguration())
-        .esClient(esClient(workflowConfiguration))
-        .esIndex(workflowConfiguration.getSetting(DefaultSettings.ES_INDEX_KEY))
+        .esClient(esClient)
+        .esIndex(esIndex)
         .jobConfiguration(downloadJobConfiguration)
         .aggregator(getAggregator())
         .maxGlobalJobs(workflowConfiguration.getIntSetting(DefaultSettings.MAX_GLOBAL_THREADS_KEY))
         .interpretedMapper(interpreterMapper())
         .verbatimMapper(verbatimMapper())
-        .searchHitConverter(searchHitConverter())
-        .recordsReader(recordsReader(workflowConfiguration))
+        .searchHitConverter(searchHitConverter)
+        .recordsReader(recordsReader(workflowConfiguration, esClient, esIndex, searchHitConverter))
         .build();
   }
 
@@ -288,9 +292,16 @@ public class DownloadWorkflowModule {
    * Reader of the HBase records table set in {@link DefaultSettings#RECORDS_TABLE_KEY}, null when it
    * isn't set and the records are read from the Elasticsearch _source. The {@code hbase.*} settings
    * are added to the HBase configuration of the classpath.
+   *
+   * <p>Unless {@link DefaultSettings#ES_SOURCE_ENABLED_KEY} is false, the records missing from the
+   * table, or all of them when it can't be read, are read once more from the Elasticsearch _source.
    */
   @Nullable
-  public static RecordsReader<Occurrence> recordsReader(WorkflowConfiguration workflowConfiguration) {
+  public static RecordsReader<Occurrence> recordsReader(
+      WorkflowConfiguration workflowConfiguration,
+      ElasticsearchClient esClient,
+      String esIndex,
+      SearchHitConverter<Occurrence> searchHitConverter) {
     String recordsTable = workflowConfiguration.getSetting(DefaultSettings.RECORDS_TABLE_KEY);
     if (recordsTable == null || recordsTable.isEmpty()) {
       return null;
@@ -308,10 +319,21 @@ public class DownloadWorkflowModule {
           throw new IllegalStateException("Couldn't close HBase connection", e);
         }
       }));
-      return RecordsReader.occurrences(HBaseRecordsStore.occurrences(connection, recordsTable));
+      return RecordsReader.occurrences(HBaseRecordsStore.occurrences(connection, recordsTable))
+          .withFallback(
+              isSourceEnabled(workflowConfiguration)
+                  ? new EsSourceRecordsFallback<>(
+                      esClient, esIndex, searchHitConverter, searchHitConverter::apply)
+                  : null);
     } catch (IOException e) {
       throw new IllegalStateException("Couldn't connect to HBase", e);
     }
+  }
+
+  /** The ES indices keep the _source unless {@link DefaultSettings#ES_SOURCE_ENABLED_KEY} is false. */
+  private static boolean isSourceEnabled(WorkflowConfiguration workflowConfiguration) {
+    String sourceEnabled = workflowConfiguration.getSetting(DefaultSettings.ES_SOURCE_ENABLED_KEY);
+    return sourceEnabled == null || sourceEnabled.isEmpty() || Boolean.parseBoolean(sourceEnabled);
   }
 
   /**
@@ -390,6 +412,12 @@ public class DownloadWorkflowModule {
 
     /** HBase table with the occurrence records, when set the records aren't read from ES. */
     public static final String RECORDS_TABLE_KEY = "records.table";
+
+    /**
+     * Whether the ES indices keep the _source (default true), to read the records missing from the
+     * records table from it.
+     */
+    public static final String ES_SOURCE_ENABLED_KEY = "es.source_enabled";
 
     /** The default taxonomy to assume the query is based on, if no taxonomy is specified in the query. */
     public static final String DEFAULT_CHECKLIST_KEY = PROPERTIES_PREFIX + "default_checklist_key";

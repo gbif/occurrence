@@ -25,6 +25,7 @@ import org.gbif.kvs.species.NameUsageMatchRequest;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
+import org.gbif.occurrence.search.records.EsSourceRecordsFallback;
 import org.gbif.occurrence.search.records.HBaseRecordsStore;
 import org.gbif.occurrence.search.records.RecordsReader;
 import org.gbif.rest.client.species.NameUsageMatchResponse;
@@ -70,6 +71,10 @@ import jakarta.annotation.Nullable;
  * <p>When an HBase records table is configured ({@code occurrence.search.records.table}),
  * Elasticsearch only returns the ids of the matching records and the records are read from the
  * table. Otherwise, the records are built from the _source of the Elasticsearch documents.
+ *
+ * <p>While the indices keep the _source ({@code occurrence.search.es.sourceEnabled}, true by
+ * default), the records missing from the table, or all of them when it can't be read, are read once
+ * more from the _source of their documents.
  */
 @Component
 public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey, SearchTermService {
@@ -101,6 +106,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     @Value("${defaultChecklistKey}") String defaultChecklistKey,
     @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize,
     @Value("${occurrence.search.records.table:}") String recordsTable,
+    @Value("${occurrence.search.es.sourceEnabled:true}") boolean sourceEnabled,
     ObjectProvider<Connection> hbaseConnection) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
@@ -122,10 +128,20 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
         Strings.isNullOrEmpty(recordsTable)
             ? null
             : RecordsReader.occurrences(
-                HBaseRecordsStore.occurrences(hbaseConnection.getObject(), recordsTable));
+                    HBaseRecordsStore.occurrences(hbaseConnection.getObject(), recordsTable))
+                .withFallback(
+                    sourceEnabled
+                        ? new EsSourceRecordsFallback<>(
+                            esClient,
+                            esIndex,
+                            searchHitOccurrenceConverter,
+                            searchHitOccurrenceConverter::toVerbatimOccurrence)
+                        : null);
     LOG.info(
         "Occurrence records read from {}",
-        recordsReader == null ? "the Elasticsearch _source" : "HBase table " + recordsTable);
+        recordsReader == null
+            ? "the Elasticsearch _source"
+            : "HBase table " + recordsTable + (sourceEnabled ? ", falling back to the Elasticsearch _source" : ""));
   }
 
   private <T> T getByQuery(Query query, Function<Hit<Map<String, Object>>, T> mapper) {
