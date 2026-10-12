@@ -14,6 +14,8 @@
 package org.gbif.occurrence.search.configuration;
 
 import org.gbif.occurrence.search.es.EsConfig;
+import org.gbif.rest.client.RestClientFactory;
+import org.gbif.rest.client.configuration.ClientConfiguration;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.ws.client.ClientBuilder;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
@@ -109,11 +111,10 @@ public class OccurrenceSearchConfiguration  {
 
   @Bean
   public NameUsageMatchingService nameUsageMatchingService(@Value("${nameUsageMatchingService.ws.url}") String apiUrl) {
-    return new ClientBuilder()
-        .withUrl(apiUrl)
-        .withObjectMapper(JacksonJsonObjectMapperProvider.getObjectMapperWithBuilderSupport())
-        .withFormEncoder()
-        .withExponentialBackoffRetry(Duration.ofMillis(250), 1.0, 3)      
-        .build(NameUsageMatchingService.class);
+    ClientConfiguration clientConfiguration =
+      ClientConfiguration.builder()
+        .withBaseApiUrl(apiUrl)
+        .build();
+    return RestClientFactory.createNameMatchService(clientConfiguration);
   }
 }
