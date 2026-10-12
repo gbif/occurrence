@@ -86,7 +86,7 @@ public class RequestFieldsTranslatorTest {
         OccurrenceSearchParameter.OCCURRENCE_STATUS, new HashSet<>(Set.of("present", "ABSENT")));
     RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
     assertEquals(
-        Set.of("Detected", "NotDetected"),
+        Set.of("DETECTED", "NOT_DETECTED"),
         params.get(OccurrenceSearchParameter.OCCURRENCE_STATUS));
 
     params.put(OccurrenceSearchParameter.OCCURRENCE_STATUS, Set.of("foo"));
@@ -98,7 +98,7 @@ public class RequestFieldsTranslatorTest {
     Predicate translated =
         RequestFieldsTranslator.translateOccurrencePredicateFields(
             equalsPredicate, new ConceptClientMock());
-    assertEquals("Detected", ((EqualsPredicate<?>) translated).getValue());
+    assertEquals("DETECTED", ((EqualsPredicate<?>) translated).getValue());
 
     InPredicate<OccurrenceSearchParameter> inPredicate =
         new InPredicate<>(
@@ -107,7 +107,7 @@ public class RequestFieldsTranslatorTest {
         RequestFieldsTranslator.translateOccurrencePredicateFields(
             inPredicate, new ConceptClientMock());
     assertEquals(
-        Set.of("NotDetected", "Detected"),
+        Set.of("NOT_DETECTED", "DETECTED"),
         new HashSet<>(((InPredicate<?>) translatedIn).getValues()));
   }
 
