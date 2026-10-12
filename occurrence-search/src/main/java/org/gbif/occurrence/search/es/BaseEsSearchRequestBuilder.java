@@ -25,6 +25,7 @@ import org.gbif.api.util.Range;
 import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.OccurrenceIssue;
+import org.gbif.api.vocabulary.OccurrenceStatus;
 import org.gbif.predicate.query.EsField;
 import org.gbif.predicate.query.EsFieldMapper;
 import org.gbif.predicate.query.EsQueryVisitor;
@@ -731,6 +732,7 @@ public abstract class BaseEsSearchRequestBuilder<
     if (Enum.class.isAssignableFrom(parameter.type())
         && !Country.class.isAssignableFrom(parameter.type())) {
       return VocabularyUtils.lookup(value, (Class<Enum<?>>) parameter.type())
+          .map(e -> e instanceof OccurrenceStatus status ? status.normalize() : e)
           .map(Enum::name)
           .orElse(null);
     }
