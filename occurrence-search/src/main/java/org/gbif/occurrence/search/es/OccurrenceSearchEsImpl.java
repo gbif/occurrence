@@ -74,7 +74,8 @@ import jakarta.annotation.Nullable;
  *
  * <p>While the indices keep the _source ({@code occurrence.search.es.sourceEnabled}, true by
  * default), the records missing from the table, or all of them when it can't be read, are read once
- * more from the _source of their documents.
+ * more from the _source of their documents: {@link OccurrenceGetByKey} methods first read the record
+ * from HBase and, when it isn't there, from Elasticsearch.
  */
 @Component
 public class OccurrenceSearchEsImpl implements OccurrenceSearchService, OccurrenceGetByKey, SearchTermService {
@@ -92,7 +93,11 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final OccurrenceEsResponseParser esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
   private final String defaultChecklistKey;
+  /** Reader of the HBase records table only, null when the records are read from the _source. */
   @Nullable private final RecordsReader<Occurrence> recordsReader;
+  /** Reader of search pages, with the _source fallback for the records missing from the table. */
+  @Nullable private final RecordsReader<Occurrence> searchRecordsReader;
+  private final boolean sourceEnabled;
 
   @Autowired
   public OccurrenceSearchEsImpl(
@@ -124,24 +129,33 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.searchHitOccurrenceConverter = new SearchHitOccurrenceConverter(esFieldMapper, true);
     this.esResponseParser = new OccurrenceEsResponseParser(esFieldMapper, searchHitOccurrenceConverter);
     this.defaultChecklistKey = defaultChecklistKey;
+    this.sourceEnabled = sourceEnabled;
     this.recordsReader =
         Strings.isNullOrEmpty(recordsTable)
             ? null
             : RecordsReader.occurrences(
-                    HBaseRecordsStore.occurrences(hbaseConnection.getObject(), recordsTable))
-                .withFallback(
-                    sourceEnabled
-                        ? new EsSourceRecordsFallback<>(
-                            esClient,
-                            esIndex,
-                            searchHitOccurrenceConverter,
-                            searchHitOccurrenceConverter::toVerbatimOccurrence)
-                        : null);
+                HBaseRecordsStore.occurrences(hbaseConnection.getObject(), recordsTable));
+    this.searchRecordsReader =
+        recordsReader == null
+            ? null
+            : recordsReader.withFallback(
+                sourceEnabled
+                    ? new EsSourceRecordsFallback<>(
+                        esClient,
+                        esIndex,
+                        searchHitOccurrenceConverter,
+                        searchHitOccurrenceConverter::toVerbatimOccurrence)
+                    : null);
     LOG.info(
         "Occurrence records read from {}",
         recordsReader == null
             ? "the Elasticsearch _source"
             : "HBase table " + recordsTable + (sourceEnabled ? ", falling back to the Elasticsearch _source" : ""));
+  }
+
+  /** The _source is fetched when the records aren't read from HBase or it can be their fallback. */
+  private boolean fetchSource() {
+    return recordsReader == null || sourceEnabled;
   }
 
   private <T> T getByQuery(Query query, Function<Hit<Map<String, Object>>, T> mapper) {
@@ -151,7 +165,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
                 s.index(esIndex)
                     .size(1)
                     .query(query)
-                    .source(BaseEsSearchRequestBuilder.sourceConfig(recordsReader == null)));
+                    .source(BaseEsSearchRequestBuilder.sourceConfig(fetchSource())));
     try {
       co.elastic.clients.elasticsearch.core.SearchResponse<Map> response = esClient.search(searchRequest, Map.class);
       List<Hit<Map>> hits = response.hits().hits();
@@ -170,7 +184,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     return getByQuery(Query.of(q -> q.ids(i -> i.values(key.toString()))), mapper);
   }
 
-  private <T> T searchByDatasetKeyAndOccurrenceId(
+  private <T> T  searchByDatasetKeyAndOccurrenceId(
       UUID datasetKey, String occurrenceId, Function<Hit<Map<String, Object>>, T> mapper) {
     return getByQuery(
         Query.of(
@@ -196,39 +210,72 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
         mapper);
   }
 
+  /**
+   * Reads the record of the hit from HBase or, when it isn't there and the _source is enabled, from
+   * the _source of the hit. Without HBase the record is always read from the _source.
+   */
+  private <T> Function<Hit<Map<String, Object>>, T> hitReader(
+      Function<String, T> tableReader, Function<Hit<Map<String, Object>>, T> sourceReader) {
+    return hit -> {
+      if (recordsReader != null) {
+        T record = tableReader.apply(hit.id());
+        if (record != null || !sourceEnabled) {
+          return record;
+        }
+      }
+      return fromSource(sourceReader).apply(hit);
+    };
+  }
+
+  /** Documents of indices with the _source disabled come without it, as if they didn't exist. */
+  private static <T> Function<Hit<Map<String, Object>>, T> fromSource(
+      Function<Hit<Map<String, Object>>, T> sourceReader) {
+    return hit -> hit.source() == null ? null : sourceReader.apply(hit);
+  }
+
   @Override
   public Occurrence get(Long key) {
     if (recordsReader != null) {
-      return key == null ? null : recordsReader.get(key.toString());
+      if (key == null) {
+        return null;
+      }
+      Occurrence occurrence = recordsReader.get(key.toString());
+      if (occurrence != null || !sourceEnabled) {
+        return occurrence;
+      }
     }
-    return searchByKey(key, searchHitOccurrenceConverter);
+    return searchByKey(key, fromSource(searchHitOccurrenceConverter));
   }
 
   @Nullable
   @Override
   public Occurrence get(UUID datasetKey, String occurrenceId) {
-    if (recordsReader != null) {
-      return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, hit -> recordsReader.get(hit.id()));
-    }
-    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, searchHitOccurrenceConverter);
+    return searchByDatasetKeyAndOccurrenceId(
+        datasetKey, occurrenceId, hitReader(id -> recordsReader.get(id), searchHitOccurrenceConverter));
   }
 
   @Nullable
   @Override
   public VerbatimOccurrence getVerbatim(UUID datasetKey, String occurrenceId) {
-    if (recordsReader != null) {
-      return searchByDatasetKeyAndOccurrenceId(
-          datasetKey, occurrenceId, hit -> recordsReader.getVerbatim(hit.id()));
-    }
-    return searchByDatasetKeyAndOccurrenceId(datasetKey, occurrenceId, searchHitOccurrenceConverter::toVerbatimOccurrence);
+    return searchByDatasetKeyAndOccurrenceId(
+        datasetKey,
+        occurrenceId,
+        hitReader(
+            id -> recordsReader.getVerbatim(id), searchHitOccurrenceConverter::toVerbatimOccurrence));
   }
 
   @Override
   public VerbatimOccurrence getVerbatim(Long key) {
     if (recordsReader != null) {
-      return key == null ? null : recordsReader.getVerbatim(key.toString());
+      if (key == null) {
+        return null;
+      }
+      VerbatimOccurrence verbatim = recordsReader.getVerbatim(key.toString());
+      if (verbatim != null || !sourceEnabled) {
+        return verbatim;
+      }
     }
-    return searchByKey(key, searchHitOccurrenceConverter::toVerbatimOccurrence);
+    return searchByKey(key, fromSource(searchHitOccurrenceConverter::toVerbatimOccurrence));
   }
 
   @Override
@@ -269,7 +316,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
           esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
       return recordsReader == null
           ? esResponseParser.buildSearchResponse(esResponse, request)
-          : esResponseParser.buildSearchResponse(esResponse, request, recordsReader.hitsMapper());
+          : esResponseParser.buildSearchResponse(esResponse, request, searchRecordsReader.hitsMapper());
     } catch (Exception e) {
       if (e instanceof ElasticsearchException) {
         LOG.error("ElasticsearchException response error: {}", ((ElasticsearchException) e).response().error());

@@ -78,7 +78,8 @@ import jakarta.annotation.Nullable;
  *
  * <p>While the indices keep the _source ({@code occurrence.search.es.sourceEnabled}, true by
  * default), the events missing from the table, or all of them when it can't be read, are read once
- * more from the _source of their documents.
+ * more from the _source of their documents: the get methods first read the event from HBase and,
+ * when it isn't there, from Elasticsearch.
  */
 @Component
 public class EventSearchEs
@@ -97,7 +98,11 @@ public class EventSearchEs
   private final EventEsFieldMapper eventEsFieldMapper;
   private final SearchHitConverter<Event> searchHitEventConverter;
   private final OccurrenceSearchService occurrenceSearchService;
+  /** Reader of the HBase records table only, null when the events are read from the _source. */
   @Nullable private final RecordsReader<Event> recordsReader;
+  /** Reader of search pages, with the _source fallback for the events missing from the table. */
+  @Nullable private final RecordsReader<Event> searchRecordsReader;
+  private final boolean sourceEnabled;
 
   private static final SearchResponse<Event, EventSearchParameter> EMPTY_RESPONSE =
       new SearchResponse<>(0, 0, 0L, Collections.emptyList(), Collections.emptyList());
@@ -130,15 +135,19 @@ public class EventSearchEs
     searchHitEventConverter = new SearchHitEventConverter(eventEsFieldMapper, true);
     this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
     this.occurrenceSearchService = occurrenceSearchService;
+    this.sourceEnabled = sourceEnabled;
     this.recordsReader =
         Strings.isNullOrEmpty(recordsTable)
             ? null
-            : RecordsReader.events(HBaseRecordsStore.events(hbaseConnection.getObject(), recordsTable))
-                .withFallback(
-                    sourceEnabled
-                        ? new EsSourceRecordsFallback<>(
-                            esClient, esIndex, searchHitEventConverter, searchHitEventConverter::apply)
-                        : null);
+            : RecordsReader.events(HBaseRecordsStore.events(hbaseConnection.getObject(), recordsTable));
+    this.searchRecordsReader =
+        recordsReader == null
+            ? null
+            : recordsReader.withFallback(
+                sourceEnabled
+                    ? new EsSourceRecordsFallback<>(
+                        esClient, esIndex, searchHitEventConverter, searchHitEventConverter::apply)
+                    : null);
     LOG.info(
         "Event records read from {}",
         recordsReader == null
@@ -150,20 +159,36 @@ public class EventSearchEs
     return esSearchRequestBuilder;
   }
 
+  /** The _source is fetched when the events aren't read from HBase or it can be their fallback. */
+  private boolean fetchSource() {
+    return recordsReader == null || sourceEnabled;
+  }
+
+  /**
+   * Event of the first hit, read from HBase or, when it isn't there and the _source is enabled, from
+   * the _source of the hit.
+   */
   private Event getByQuery(Query query) {
     SearchRequest searchRequest =
         SearchRequest.of(
             s ->
                 s.index(esIndex)
                     .size(1)
-                    .source(BaseEsSearchRequestBuilder.sourceConfig(recordsReader == null))
+                    .source(BaseEsSearchRequestBuilder.sourceConfig(fetchSource()))
                     .query(query));
     try {
       co.elastic.clients.elasticsearch.core.SearchResponse<Map<String, Object>> response =
           esClient.search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
       List<Hit<Map<String, Object>>> hits = response.hits().hits();
       if (hits != null && !hits.isEmpty()) {
-        return toEvents(hits.subList(0, 1)).stream().findFirst().orElse(null);
+        Hit<Map<String, Object>> hit = hits.get(0);
+        if (recordsReader != null) {
+          Event event = recordsReader.get(hit.id());
+          if (event != null || !sourceEnabled) {
+            return event;
+          }
+        }
+        return fromSource(hit);
       }
       return null;
     } catch (IOException ex) {
@@ -200,14 +225,26 @@ public class EventSearchEs
 
   /** Events of the hits, read from HBase or from the _source of the hits. */
   private List<Event> toEvents(List<Hit<Map<String, Object>>> hits) {
-    return recordsReader != null
-        ? recordsReader.hitsMapper().apply(hits)
+    return searchRecordsReader != null
+        ? searchRecordsReader.hitsMapper().apply(hits)
         : hits.stream().map(searchHitEventConverter).toList();
+  }
+
+  /** Documents of indices with the _source disabled come without it, as if they didn't exist. */
+  @Nullable
+  private Event fromSource(Hit<Map<String, Object>> hit) {
+    return hit.source() == null ? null : searchHitEventConverter.apply(hit);
   }
 
   public Event get(String key) {
     if (recordsReader != null) {
-      return key == null ? null : recordsReader.get(key);
+      if (key == null) {
+        return null;
+      }
+      Event event = recordsReader.get(key);
+      if (event != null || !sourceEnabled) {
+        return event;
+      }
     }
     return getByQuery(Query.of(q -> q.ids(i -> i.values(key))));
   }
@@ -373,7 +410,7 @@ public class EventSearchEs
           esClient.search(esRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
       return recordsReader == null
           ? esResponseParser.buildSearchResponse(esResponse, searchRequest)
-          : esResponseParser.buildSearchResponse(esResponse, searchRequest, recordsReader.hitsMapper());
+          : esResponseParser.buildSearchResponse(esResponse, searchRequest, searchRecordsReader.hitsMapper());
     } catch (Exception e) {
       LOG.error("Error executing the search operation", e);
       throw new SearchException(e);
