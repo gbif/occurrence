@@ -26,6 +26,7 @@ import org.gbif.vocabulary.model.HiddenLabel;
 import org.gbif.vocabulary.model.Label;
 import org.gbif.vocabulary.model.Tag;
 import org.gbif.vocabulary.model.search.KeyNameResult;
+import org.gbif.vocabulary.model.search.LookupResult;
 
 import java.util.List;
 
@@ -175,5 +176,16 @@ public class ConceptClientMock implements ConceptClient {
   @Override
   public List<KeyNameResult> suggestLatestRelease(String s, SuggestParams suggestParams) {
     return null;
+  }
+
+  @Override
+  public List<LookupResult> lookup(String vocabularyName, LookupParams lookupParams) {
+    return List.of();
+  }
+
+  @Override
+  public List<LookupResult> lookupInLatestRelease(
+      String vocabularyName, LookupParams lookupParams) {
+    return List.of();
   }
 }

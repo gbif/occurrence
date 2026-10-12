@@ -17,10 +17,12 @@ import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.DisjunctionPredicate;
 import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.InPredicate;
 import org.gbif.api.model.predicate.Predicate;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -75,6 +77,38 @@ public class RequestFieldsTranslatorTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock()));
+  }
+
+  @Test
+  public void occurrenceStatusTranslationTest() {
+    Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
+    params.put(
+        OccurrenceSearchParameter.OCCURRENCE_STATUS, new HashSet<>(Set.of("present", "ABSENT")));
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
+    assertEquals(
+        Set.of("Detected", "NotDetected"),
+        params.get(OccurrenceSearchParameter.OCCURRENCE_STATUS));
+
+    params.put(OccurrenceSearchParameter.OCCURRENCE_STATUS, Set.of("foo"));
+    RequestFieldsTranslator.translateOccurrenceFields(params, new ConceptClientMock());
+    assertEquals(Set.of("foo"), params.get(OccurrenceSearchParameter.OCCURRENCE_STATUS));
+
+    EqualsPredicate<OccurrenceSearchParameter> equalsPredicate =
+        new EqualsPredicate<>(OccurrenceSearchParameter.OCCURRENCE_STATUS, "present", false);
+    Predicate translated =
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
+            equalsPredicate, new ConceptClientMock());
+    assertEquals("Detected", ((EqualsPredicate<?>) translated).getValue());
+
+    InPredicate<OccurrenceSearchParameter> inPredicate =
+        new InPredicate<>(
+            OccurrenceSearchParameter.OCCURRENCE_STATUS, Set.of("absent", "PRESENT"), false);
+    Predicate translatedIn =
+        RequestFieldsTranslator.translateOccurrencePredicateFields(
+            inPredicate, new ConceptClientMock());
+    assertEquals(
+        Set.of("NotDetected", "Detected"),
+        new HashSet<>(((InPredicate<?>) translatedIn).getValues()));
   }
 
   @Test

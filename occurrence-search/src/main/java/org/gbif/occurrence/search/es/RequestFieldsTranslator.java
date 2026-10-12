@@ -22,11 +22,15 @@ import org.gbif.api.vocabulary.DurationUnit;
 import org.gbif.vocabulary.api.ConceptView;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.vocabulary.model.Tag;
+import org.gbif.vocabulary.model.search.LookupResult;
 
+import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,17 +40,29 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.Strings;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RequestFieldsTranslator {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RequestFieldsTranslator.class);
 
   // TODO: add to this class the dnaSequence conversion too?
 
   private static final List<String> GT_LT_PREDICATES =
       List.of("greaterThanOrEquals", "greaterThan", "lessThanOrEquals", "lessThan");
   private static final String GEO_TIME_VOCAB = "GeoTime";
+  private static final String OCCURRENCE_STATUS_VOCAB = "OccurrenceStatus";
+
+  // A vocabulary change is picked up after 24h, not on the next search.
+  private static final Cache<String, Optional<String>> OCCURRENCE_STATUS_CACHE =
+      CacheBuilder.newBuilder().maximumSize(500).expireAfterWrite(Duration.ofHours(24)).build();
   private static final ObjectMapper occurrenceObjectMapper =
       new ObjectMapper()
           .registerModule(
@@ -99,6 +115,11 @@ public class RequestFieldsTranslator {
                   }
                   ((ObjectNode) parent).replace("values", translatedValues);
                 }
+              } else if (containsParam(
+                  keyNode, OccurrenceSearchParameter.OCCURRENCE_STATUS.name())) {
+                replaceStringValues(
+                    (ObjectNode) parent,
+                    value -> processOccurrenceStatusParam(value, conceptClient));
               }
             });
 
@@ -148,6 +169,52 @@ public class RequestFieldsTranslator {
     }
   }
 
+  private static void replaceStringValues(
+      ObjectNode parent, Function<String, String> translator) {
+    if (parent.has("value")) {
+      parent.replace("value", new TextNode(translator.apply(parent.get("value").asText())));
+    } else if (parent.has("values")) {
+      ArrayNode translatedValues = occurrenceObjectMapper.createArrayNode();
+      for (JsonNode value : parent.get("values")) {
+        translatedValues.add(translator.apply(value.asText()));
+      }
+      parent.replace("values", translatedValues);
+    }
+  }
+
+  /**
+   * Resolves an occurrence status query value to the current concept name. Deprecated values such
+   * as {@code Present} come back as their replacement ({@code Detected}). A miss or a vocabulary
+   * failure leaves the raw value for enum lookup.
+   */
+  private static String processOccurrenceStatusParam(String value, ConceptClient conceptClient) {
+    if (Strings.isNullOrEmpty(value)) {
+      return value;
+    }
+    try {
+      return OCCURRENCE_STATUS_CACHE
+          .get(value, () -> lookupOccurrenceStatus(value, conceptClient))
+          .orElse(value);
+    } catch (Exception e) {
+      LOG.warn("OccurrenceStatus lookup failed for {}: {}", value, e.toString());
+      return value;
+    }
+  }
+
+  private static Optional<String> lookupOccurrenceStatus(
+      String value, ConceptClient conceptClient) {
+    List<LookupResult> results =
+        conceptClient.lookupInLatestRelease(
+            OCCURRENCE_STATUS_VOCAB, ConceptClient.LookupParams.of(value, null));
+    if (results == null) {
+      return Optional.empty();
+    }
+    return results.stream()
+        .map(LookupResult::getConceptName)
+        .filter(name -> !Strings.isNullOrEmpty(name))
+        .findFirst();
+  }
+
   private static void replaceKeyParam(ObjectNode node, String replacement) {
     if (node.findValue("key") instanceof ArrayNode) {
       ArrayNode arrayNode = (ArrayNode) node.findValue("key");
@@ -172,6 +239,14 @@ public class RequestFieldsTranslator {
       String geoTimeParam = params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next();
       String translatedParam = processGeoTimeParam(geoTimeParam, conceptClient, null);
       params.replace(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of(translatedParam));
+    }
+
+    if (params.containsKey(OccurrenceSearchParameter.OCCURRENCE_STATUS)) {
+      Set<String> translated = new HashSet<>();
+      for (String value : params.get(OccurrenceSearchParameter.OCCURRENCE_STATUS)) {
+        translated.add(processOccurrenceStatusParam(value, conceptClient));
+      }
+      params.replace(OccurrenceSearchParameter.OCCURRENCE_STATUS, translated);
     }
   }
 

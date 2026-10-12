@@ -26,8 +26,10 @@ import org.gbif.vocabulary.model.HiddenLabel;
 import org.gbif.vocabulary.model.Label;
 import org.gbif.vocabulary.model.Tag;
 import org.gbif.vocabulary.model.search.KeyNameResult;
+import org.gbif.vocabulary.model.search.LookupResult;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class ConceptClientMock implements ConceptClient {
@@ -215,6 +217,38 @@ public class ConceptClientMock implements ConceptClient {
   public List<KeyNameResult> suggestLatestRelease(String s, SuggestParams suggestParams) {
     return null;
   }
+
+  @Override
+  public List<LookupResult> lookup(String vocabularyName, LookupParams lookupParams) {
+    return lookupOccurrenceStatus(lookupParams);
+  }
+
+  @Override
+  public List<LookupResult> lookupInLatestRelease(
+      String vocabularyName, LookupParams lookupParams) {
+    return lookupOccurrenceStatus(lookupParams);
+  }
+
+  private static List<LookupResult> lookupOccurrenceStatus(LookupParams lookupParams) {
+    if (lookupParams == null || lookupParams.getQ() == null) {
+      return List.of();
+    }
+    String concept =
+        OCCURRENCE_STATUS.get(lookupParams.getQ().toLowerCase(Locale.ROOT).replace("_", ""));
+    if (concept == null) {
+      return List.of();
+    }
+    LookupResult result = new LookupResult();
+    result.setConceptName(concept);
+    return List.of(result);
+  }
+
+  private static final Map<String, String> OCCURRENCE_STATUS =
+      Map.of(
+          "present", "Detected",
+          "absent", "NotDetected",
+          "detected", "Detected",
+          "notdetected", "NotDetected");
 
   private ConceptView getConcept(String s) {
     if (!TAGS_MAP.containsKey(s)) {
