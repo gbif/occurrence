@@ -100,6 +100,9 @@ public class RequestFieldsTranslatorTest {
             equalsPredicate, new ConceptClientMock());
     assertEquals("DETECTED", ((EqualsPredicate<?>) translated).getValue());
 
+    Predicate stored = RequestFieldsTranslator.normalizeOccurrenceStatus(equalsPredicate);
+    assertEquals("DETECTED", ((EqualsPredicate<?>) stored).getValue());
+
     InPredicate<OccurrenceSearchParameter> inPredicate =
         new InPredicate<>(
             OccurrenceSearchParameter.OCCURRENCE_STATUS, Set.of("absent", "PRESENT"), false);

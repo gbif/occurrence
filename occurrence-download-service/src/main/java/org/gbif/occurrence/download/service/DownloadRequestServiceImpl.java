@@ -30,6 +30,7 @@ import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.common.messaging.api.messages.DownloadCancelMessage;
 import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.search.es.RequestFieldsTranslator;
 import org.gbif.occurrence.mail.BaseEmailModel;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
@@ -168,7 +169,10 @@ public abstract class DownloadRequestServiceImpl
     Objects.requireNonNull(request);
 
     if (request instanceof PredicateDownloadRequest) {
-      PredicateValidator.validate(((PredicateDownloadRequest) request).getPredicate());
+      PredicateDownloadRequest predicateRequest = (PredicateDownloadRequest) request;
+      PredicateValidator.validate(predicateRequest.getPredicate());
+      predicateRequest.setPredicate(
+          RequestFieldsTranslator.normalizeOccurrenceStatus(predicateRequest.getPredicate()));
     } else if (request instanceof SqlDownloadRequest) {
       try {
         HiveSqlQuery sqlQuery =

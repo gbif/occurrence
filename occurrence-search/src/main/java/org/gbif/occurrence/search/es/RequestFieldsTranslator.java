@@ -75,8 +75,36 @@ public class RequestFieldsTranslator {
                       new EventSearchParameter.EventSearchParameterDeserializer()))
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+  /**
+   * Rewrites deprecated {@code occurrenceStatus} values so the stored predicate matches the term
+   * that is searched.
+   */
+  public static Predicate normalizeOccurrenceStatus(Predicate predicate) {
+    if (predicate == null) {
+      return null;
+    }
+
+    ObjectNode node = occurrenceObjectMapper.valueToTree(predicate);
+    node.findParents("key")
+        .forEach(
+            parent -> {
+              if (containsParam(
+                  parent.findValue("key"), OccurrenceSearchParameter.OCCURRENCE_STATUS.name())) {
+                replaceStringValues(
+                    (ObjectNode) parent, RequestFieldsTranslator::toCurrentOccurrenceStatus);
+              }
+            });
+
+    try {
+      return occurrenceObjectMapper.treeToValue(node, Predicate.class);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error normalizing occurrenceStatus", e);
+    }
+  }
+
   public static Predicate translateOccurrencePredicateFields(
       Predicate predicate, ConceptClient conceptClient) {
+    predicate = normalizeOccurrenceStatus(predicate);
     if (conceptClient == null || predicate == null) {
       return predicate;
     }
@@ -103,10 +131,6 @@ public class RequestFieldsTranslator {
                   }
                   ((ObjectNode) parent).replace("values", translatedValues);
                 }
-              } else if (containsParam(
-                  keyNode, OccurrenceSearchParameter.OCCURRENCE_STATUS.name())) {
-                replaceStringValues(
-                    (ObjectNode) parent, RequestFieldsTranslator::normalizeOccurrenceStatus);
               }
             });
 
@@ -173,7 +197,7 @@ public class RequestFieldsTranslator {
    * {@link OccurrenceStatus#PRESENT} and {@link OccurrenceStatus#ABSENT} are queried as {@link
    * OccurrenceStatus#DETECTED} and {@link OccurrenceStatus#NOT_DETECTED}.
    */
-  private static String normalizeOccurrenceStatus(String value) {
+  private static String toCurrentOccurrenceStatus(String value) {
     return VocabularyUtils.lookup(value, OccurrenceStatus.class)
         .map(status -> status.normalize().name())
         .orElse(value);
@@ -208,7 +232,7 @@ public class RequestFieldsTranslator {
     if (params.containsKey(OccurrenceSearchParameter.OCCURRENCE_STATUS)) {
       Set<String> translated = new HashSet<>();
       for (String value : params.get(OccurrenceSearchParameter.OCCURRENCE_STATUS)) {
-        translated.add(normalizeOccurrenceStatus(value));
+        translated.add(toCurrentOccurrenceStatus(value));
       }
       params.replace(OccurrenceSearchParameter.OCCURRENCE_STATUS, translated);
     }
