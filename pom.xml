@@ -135,7 +135,7 @@
     <hamcrest.version>3.0</hamcrest.version>
 
     <!-- Version for ES client -->
-    <httpclient.version>4.5.2</httpclient.version>
+    <httpclient.version>4.5.14</httpclient.version>
     <httpcore.version>4.4.13</httpcore.version>
 
     <jackson.version>2.19.4</jackson.version>
@@ -180,7 +180,7 @@
     <download-query-tools.version>2.0.12</download-query-tools.version>
     <dwc-api.version>2.1.15</dwc-api.version>
     <dwca-io.version>3.0.2</dwca-io.version>
-    <gbif-api.version>2.4.26</gbif-api.version>
+    <gbif-api.version>2.4.27</gbif-api.version>
     <gbif-common.version>0.60</gbif-common.version>
     <gbif-common-test.version>0.7</gbif-common-test.version>
     <gbif-common-service.version>0.19</gbif-common-service.version>
@@ -198,7 +198,7 @@
     <gbif-cli.version>3.0.1</gbif-cli.version>
     <gbif-predicates.version>2.2.5</gbif-predicates.version>
     <gbif-occurrence-cube-functions.version>1.0.2</gbif-occurrence-cube-functions.version>
-    <gbif-vocabulary.version>1.0.9</gbif-vocabulary.version>
+    <gbif-vocabulary.version>2.0.15</gbif-vocabulary.version>
     <gbif-hdfs-tables.version>1.3.11</gbif-hdfs-tables.version>
 
     <!-- Sonar -->
