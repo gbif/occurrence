@@ -26,6 +26,7 @@
     {"name": "v_institutionCode",  "type": ["null", "string"], "default": null },
     {"name": "v_collectionCode",   "type": ["null", "string"], "default": null },
     {"name": "v_catalogNumber",    "type": ["null", "string"], "default": null },
+    {"name": "v_recordNumber",     "type": ["null", "string"], "default": null },
     {"name": "v_recordedBy",       "type": ["null", "string"], "default": null },
     {"name": "v_recordedByID",     "type": ["null", "string"], "default": null },
     {"name": "v_scientificName",   "type": ["null", "string"], "default": null },
