@@ -464,6 +464,18 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "http://rs.tdwg.org/ac/terms/Multimedia"),
         @Parameter(
+            name = "environments",
+            description =
+                "An environment the taxon is known to live in, according to the checklist used "
+                    + "(see `checklistKey`): MARINE, BRACKISH, FRESHWATER or TERRESTRIAL.  This is a property "
+                    + "of the taxon, not of the individual occurrence.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "MARINE"),
+        @Parameter(
             name = "earliestEonOrLowestEonothem",
             description =
                 "The full name of the earliest possible geochronologic era or lowest chronostratigraphic "
