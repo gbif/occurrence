@@ -496,6 +496,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
     cl.setIucnRedListCategoryCode((String) value.get("iucnRedListCategoryCode"));
+    cl.setEnvironments((List<String>) value.get("environments"));
 
     cl.setClassification(
       keysSorted.stream()
