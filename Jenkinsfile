@@ -43,7 +43,7 @@ pipeline {
         script {
           // Branch-qualified version for feature branches: workspace only, never committed.
           // dev/master keep the version as checked in, so this never touches those pom.xml files.
-          if (env.BRANCH_NAME != 'dev' && env.BRANCH_NAME != 'master') {
+          if (env.BRANCH_NAME != 'dev' && env.BRANCH_NAME != 'ebird') {
             def suffix = env.BRANCH_NAME.replaceAll('[^a-zA-Z0-9.-]', '-').toUpperCase()
             sh """
               BASE_VERSION=\$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
@@ -134,7 +134,7 @@ pipeline {
       when {
           allOf {
               expression { params.RELEASE };
-              branch 'hotfix/occurrence-1.2.10.x';
+              branch 'ebird';
           }
       }
       environment {
@@ -152,7 +152,7 @@ pipeline {
                 configFile(fileId: 'org.jenkinsci.plugins.configfiles.custom.CustomConfig1389220396351', variable: 'APPKEYS_TESTFILE')
               ]) {
               git 'https://github.com/gbif/occurrence.git'
-              sh 'git checkout hotfix/occurrence-1.2.10.x'
+              sh 'git checkout ebird'
               sh 'mvn -s $MAVEN_SETTINGS_XML -B release:prepare release:perform -T 1C -Dparallel=classes -DuseUnlimitedThreads=true -Pgbif-dev -Darguments="-Djetty.port=$HTTP_PORT -Dappkeys.testfile=$APPKEYS_TESTFILE" $RELEASE_ARGS'
             }
           }
@@ -192,7 +192,7 @@ pipeline {
         allOf {
           expression { params.RELEASE };
           not { expression { params.DRY_RUN_RELEASE } }
-          branch 'hotfix/occurrence-1.2.10.x';
+          branch 'ebird';
         }
       }
       environment {
