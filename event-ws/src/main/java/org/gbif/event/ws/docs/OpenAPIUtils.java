@@ -800,6 +800,17 @@ public class OpenAPIUtils {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
         @Parameter(
+            name = "humboldtTargetTaxonomicScopeEnvironments",
+            description =
+                "An environment a taxon in the target taxonomic scope is known to live in, according to the "
+                    + "checklist: MARINE, BRACKISH, FRESHWATER or TERRESTRIAL.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "MARINE"),
+        @Parameter(
             name = "humboldtTargetTaxonomicScopeTaxonKey",
             description =
                 "The taxon keys of the taxonomic groups targeted during the event.\n\n"
@@ -958,6 +969,20 @@ public class OpenAPIUtils {
                     schema = @Schema(implementation = ThreatStatus.class)),
             explode = Explode.TRUE,
             in = ParameterIn.QUERY),
+        @Parameter(
+            name = "environments",
+            description =
+                "An environment the taxon is known to live in, according to the checklist used "
+                    + "(see `checklistKey`): MARINE, BRACKISH, FRESHWATER or TERRESTRIAL.  This is a property "
+                    + "of the taxon, not of the event."
+                    + DERIVED_TAXON
+                    + "\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "MARINE"),
         @Parameter(
             name = "lastInterpreted",
             description =
