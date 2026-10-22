@@ -219,7 +219,7 @@
     <testcontainers-elasticsearch.version>2.0.5</testcontainers-elasticsearch.version>
 
     <!-- Spark -->
-    <spark.version>3.5.1</spark.version>
+    <spark.version>3.5.8</spark.version>
     <scala.tools.version>2.12</scala.tools.version>
     <iceberg.version>1.6.1</iceberg.version>
     <scala.library.version>2.12.18</scala.library.version>
