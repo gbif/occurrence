@@ -341,7 +341,7 @@ public class DownloadResource {
             responseCode = "400",
             description = "Invalid query, see [predicates](#predicates)."),
         @ApiResponse(
-            responseCode = "429",
+            responseCode = "420",
             description =
                 "Too many downloads, wait for one of your downloads to complete. See [limits](#limits)")
       })
