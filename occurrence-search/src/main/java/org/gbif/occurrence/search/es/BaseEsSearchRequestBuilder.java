@@ -13,6 +13,27 @@
  */
 package org.gbif.occurrence.search.es;
 
+import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
+import static org.gbif.occurrence.search.es.EsQueryUtils.*;
+
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.ScriptLanguage;
+import co.elastic.clients.elasticsearch._types.ScriptSortType;
+import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
+import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.RangeRelation;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.json.JsonData;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchConstants;
@@ -36,42 +57,18 @@ import org.gbif.search.es.ChecklistEsField;
 import org.gbif.search.es.event.EventEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.vocabulary.client.ConceptClient;
-
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-
-import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.ScriptLanguage;
-import co.elastic.clients.elasticsearch._types.ScriptSortType;
-import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
-import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeRelation;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.json.JsonData;
-
-import static org.gbif.api.util.SearchTypeValidator.isNumericRange;
-import static org.gbif.occurrence.search.es.EsQueryUtils.*;
-
 public abstract class BaseEsSearchRequestBuilder<
     P extends SearchParameter, S extends FacetedSearchRequest<P>> {
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
   private static final int MAX_SHARD_SIZE = 10000;
+  private static final String DNA_ASSISTED_SUFFIX = "_dna_assisted";
 
   public static String[] SOURCE_EXCLUDE =
       new String[] {"all", "notIssues", "*.verbatim", "*.suggest"};
@@ -112,6 +109,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
     // checklistKey to be used later
     String checklistKey = getChecklistKey(searchRequest.getParameters());
+    boolean dnaTaxonSearch = isDnaTaxonSearch(searchRequest.getParameters());
 
     // add query
     if (searchRequest instanceof PredicateSearchRequest) {
@@ -121,7 +119,8 @@ public abstract class BaseEsSearchRequestBuilder<
               groupedParams.queryParams,
               searchRequest.getQ(),
               searchRequest.isMatchCase(),
-              checklistKey)
+              checklistKey,
+              dnaTaxonSearch)
           .ifPresent(searchRequestBuilder::query);
     }
 
@@ -165,7 +164,8 @@ public abstract class BaseEsSearchRequestBuilder<
         searchRequest.getParameters(),
         searchRequest.getQ(),
         searchRequest.isMatchCase(),
-        getChecklistKey(searchRequest.getParameters()));
+        getChecklistKey(searchRequest.getParameters()),
+        isDnaTaxonSearch(searchRequest.getParameters()));
   }
 
   SearchRequest buildSuggestQuery(String prefix, P parameter, Integer limit, String index) {
@@ -220,7 +220,11 @@ public abstract class BaseEsSearchRequestBuilder<
 
   @VisibleForTesting
   Optional<Query> buildQuery(
-      Map<P, Set<String>> params, String qParam, boolean matchCase, String checklistKey) {
+      Map<P, Set<String>> params,
+      String qParam,
+      boolean matchCase,
+      String checklistKey,
+      boolean dnaTaxonSearch) {
     translateFields(params);
     List<Query> mustQueries = new ArrayList<>();
     List<Query> filterQueries = new ArrayList<>();
@@ -257,7 +261,7 @@ public abstract class BaseEsSearchRequestBuilder<
               });
 
       // adding term queries to bool
-      filterQueries.addAll(createQueries(params, matchCase, checklistKey));
+      filterQueries.addAll(createQueries(params, matchCase, checklistKey, dnaTaxonSearch));
     }
     esFieldMapper.getDefaultFilter().ifPresent(filterQueries::add);
 
@@ -268,7 +272,15 @@ public abstract class BaseEsSearchRequestBuilder<
 
   private List<Query> createQueries(
       Map<P, Set<String>> params, boolean matchCase, String checklistKey) {
-    return createQueries(params, matchCase, true, checklistKey);
+    return createQueries(params, matchCase, checklistKey, false);
+  }
+
+  private List<Query> createQueries(
+      Map<P, Set<String>> params,
+      boolean matchCase,
+      String checklistKey,
+      boolean dnaTaxonSearch) {
+    return createQueries(params, matchCase, true, checklistKey, dnaTaxonSearch);
   }
 
   private List<Query> createQueries(
@@ -276,6 +288,15 @@ public abstract class BaseEsSearchRequestBuilder<
       boolean matchCase,
       boolean wrappedChildrenQueries,
       String checklistKey) {
+    return createQueries(params, matchCase, wrappedChildrenQueries, checklistKey, false);
+  }
+
+  private List<Query> createQueries(
+      Map<P, Set<String>> params,
+      boolean matchCase,
+      boolean wrappedChildrenQueries,
+      String checklistKey,
+      boolean dnaTaxonSearch) {
     Map<String, List<Query>> queriesByNestedPath = new HashMap<>();
     List<Query> nonNestedQueries = new ArrayList<>();
     for (Map.Entry<P, Set<String>> e : params.entrySet()) {
@@ -290,7 +311,8 @@ public abstract class BaseEsSearchRequestBuilder<
               esFieldMapper.getEsField(e.getKey()),
               matchCase,
               wrappedChildrenQueries,
-              checklistKey);
+              checklistKey,
+              dnaTaxonSearch);
 
       if (esField.isNestedField()) {
         queriesByNestedPath
@@ -748,7 +770,8 @@ public abstract class BaseEsSearchRequestBuilder<
       EsField esField,
       boolean matchCase,
       boolean wrappedChildrenQueries,
-      String checklistKey) {
+      String checklistKey,
+      boolean dnaTaxonSearch) {
     List<Query> queries = new ArrayList<>();
 
     // collect queries for each value
@@ -781,31 +804,39 @@ public abstract class BaseEsSearchRequestBuilder<
     }
 
     // get the field name based on the taxonomy and the matchCase
-    String fieldName = null;
+    List<String> fieldsToSearch = new ArrayList<>();
     if (isTaxonomic(param)) {
-      fieldName = esFieldMapper.getChecklistField(checklistKey, param);
-    } else {
-      fieldName = matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
-    }
-    final String finalFieldName = fieldName;
+      fieldsToSearch.add(esFieldMapper.getChecklistField(checklistKey, param));
 
-    if (parsedValues.size() == 1) {
-      // single term
-      queries.add(Query.of(q -> q.term(t -> t.field(finalFieldName).value(parsedValues.get(0)))));
-    } else if (parsedValues.size() > 1) {
-      // multi term query
+      if (dnaTaxonSearch) {
+        // dna assisted taxon query
+        String dnaChecklistKey = getDnaAssistedChecklistKey(checklistKey);
+        String dnaFieldName = esFieldMapper.getChecklistField(dnaChecklistKey, param);
+        if (!fieldsToSearch.contains(dnaFieldName)) {
+          fieldsToSearch.add(dnaFieldName);
+        }
+      }
+    } else {
+      fieldsToSearch.add(matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName());
+    }
+
+    if (!parsedValues.isEmpty()) {
+      List<FieldValue> searchParsedValues = parsedValues.stream().map(FieldValue::of).toList();
+      List<Query> termQueries =
+          fieldsToSearch.stream()
+              .map(
+                  field -> {
+                    if (searchParsedValues.size() == 1) {
+                      return Query.of(q -> q.term(t -> t.field(field).value(searchParsedValues.get(0))));
+                    }
+                    return Query.of(
+                        q -> q.terms(t -> t.field(field).terms(v -> v.value(searchParsedValues))));
+                  })
+              .toList();
       queries.add(
-          Query.of(
-              q ->
-                  q.terms(
-                      t ->
-                          t.field(finalFieldName)
-                              .terms(
-                                  v ->
-                                      v.value(
-                                          parsedValues.stream()
-                                              .map(FieldValue::of)
-                                              .toList())))));
+        termQueries.size() == 1
+              ? termQueries.get(0)
+              : Query.of(q -> q.bool(b -> b.should(termQueries))));
     }
 
     if (wrappedChildrenQueries && esField.isChildField()) {
@@ -815,6 +846,14 @@ public abstract class BaseEsSearchRequestBuilder<
     }
 
     return queries;
+  }
+
+  private boolean isDnaTaxonSearch(Map<P, Set<String>> params) {
+    return getParam(OccurrenceSearchParameter.DNA_TAXON_SEARCH.name()).filter(params::containsKey).isPresent();
+  }
+
+  private String getDnaAssistedChecklistKey(String checklistKey) {
+    return checklistKey + DNA_ASSISTED_SUFFIX;
   }
 
   private Query buildRangeQuery(EsField esField, String value) {
