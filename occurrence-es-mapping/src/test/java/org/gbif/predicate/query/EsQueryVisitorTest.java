@@ -47,7 +47,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -1761,6 +1763,37 @@ public class EsQueryVisitorTest {
                 throw new RuntimeException(ex);
               }
             });
+  }
+
+  @Test
+  public void testDnaTaxonSearchEqualsPredicate() throws QueryBuildingException {
+    Predicate p =
+        new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "6", false, "1", true);
+    String query = occurrenceVisitor.buildQuery(p);
+
+    assertTrue(query.contains("classifications.1.classificationKeys.KINGDOM"));
+    assertTrue(query.contains("classifications.1_dna_assisted.classificationKeys.KINGDOM"));
+  }
+
+  @Test
+  public void testDnaTaxonSearchInPredicate() throws QueryBuildingException {
+    Predicate p =
+        new InPredicate<>(
+            OccurrenceSearchParameter.TAXON_KEY, Arrays.asList("6", "7"), false, "1", true);
+    String query = occurrenceVisitor.buildQuery(p);
+
+    assertTrue(query.contains("classifications.1.taxonKeys"));
+    assertTrue(query.contains("classifications.1_dna_assisted.taxonKeys"));
+  }
+
+  @Test
+  public void testWithoutDnaTaxonSearchOnlyUsesChecklist() throws QueryBuildingException {
+    Predicate p =
+        new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "6", false, "1", false);
+    String query = occurrenceVisitor.buildQuery(p);
+
+    assertTrue(query.contains("classifications.1.classificationKeys.KINGDOM"));
+    assertFalse(query.contains("_dna_assisted"));
   }
 
   @Test

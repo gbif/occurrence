@@ -13,9 +13,9 @@
  */
 package org.gbif.search.heatmap;
 
+import org.gbif.api.model.common.search.BaseSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
 import org.gbif.api.model.common.search.SearchParameter;
-import org.gbif.api.model.common.search.SearchRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.util.SearchTypeValidator;
 import org.gbif.api.util.VocabularyUtils;
@@ -36,7 +36,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public abstract class BaseHeatmapRequestProvider<
         P extends SearchParameter,
-        R extends HeatmapRequest & PredicateSearchRequest & SearchRequest<P>>
+        R extends BaseSearchRequest<P> & HeatmapRequest & PredicateSearchRequest>
     implements HeatmapRequestProvider<R> {
 
   public static final String POLYGON_PATTERN = "POLYGON((%s))";
@@ -46,6 +46,7 @@ public abstract class BaseHeatmapRequestProvider<
   public static final String MODE_PARAM = "mode";
   public static final String BUCKET_LIMIT_PARAM = "bucketLimit";
   public static final String PARAM_PREDICATE_HASH = "predicateHash";
+  public static final String DNA_TAXON_SEARCH_PARAM = "dnaTaxonSearch";
   private static final int DEFAULT_ZOOM_LEVEL = 3;
   public static final int DEFAULT_BUCKET_LIMIT = 15000;
   private static final Logger LOG = LoggerFactory.getLogger(BaseHeatmapRequestProvider.class);
@@ -119,6 +120,9 @@ public abstract class BaseHeatmapRequestProvider<
                 }
               });
     }
+
+    Optional.ofNullable(request.getParameter(DNA_TAXON_SEARCH_PARAM))
+        .ifPresent(v -> heatmapSearchRequest.setDnaTaxonSearch(Boolean.parseBoolean(v.trim())));
 
     heatmapSearchRequest.setZoom(getIntParam(request, ZOOM_PARAM, DEFAULT_ZOOM_LEVEL));
     if (request.getParameterMap().containsKey(GEOM_PARAM)) {

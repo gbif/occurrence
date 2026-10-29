@@ -1674,6 +1674,14 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "true"),
         @Parameter(
+            name = "dnaTaxonSearch",
+            description =
+                "*Experimental.* Indicates if the taxonomic parameters have to be searched also in the DNA "
+                    + "assisted classification of the checklist",
+            schema = @Schema(implementation = Boolean.class),
+            in = ParameterIn.QUERY,
+            example = "true"),
+        @Parameter(
             name = "shuffle",
             description = "*Experimental.* Seed to sort the results randomly.",
             schema = @Schema(implementation = String.class),
