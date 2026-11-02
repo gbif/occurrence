@@ -21,6 +21,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.util.Range;
 import org.gbif.api.vocabulary.*;
+import org.gbif.occurrence.search.RequestLimits;
 import org.gbif.occurrence.search.SearchTermService;
 import org.gbif.occurrence.search.es.EsQueryUtils;
 import org.gbif.occurrence.search.es.OccurrenceEsSearchRequestBuilder;
@@ -120,14 +121,24 @@ public class OccurrenceSearchResource {
 
   private final OccurrenceEsSearchRequestBuilder esSearchRequestBuilder;
 
+  private final RequestLimits requestLimits;
+
   @Autowired
   public OccurrenceSearchResource(
     OccurrenceSearchService searchService,
     SearchTermService searchTermService,
     ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService,
     @Value("${defaultChecklistKey}") String defaultChecklistKey,
-    @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize) {
+    @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize,
+    @Value("${occurrence.search.limits.max_values_per_parameter:1000}") int maxValuesPerParameter,
+    @Value("${occurrence.search.limits.max_values_total:5000}") int maxValuesTotal,
+    @Value("${occurrence.search.limits.max_predicate_leaves:5000}") int maxPredicateLeaves,
+    @Value("${occurrence.search.limits.max_predicate_depth:10}") int maxPredicateDepth,
+    @Value("${occurrence.search.limits.max_same_key_siblings:100}") int maxSameKeySiblings) {
     this.searchService = searchService;
+    this.requestLimits = new RequestLimits(
+      maxValuesPerParameter, maxValuesTotal, maxPredicateLeaves, maxPredicateDepth, maxSameKeySiblings,
+      RequestLimits.SEARCH_HINT);
     this.searchTermService = searchTermService;
     OccurrenceEsFieldMapper esFieldMapper = OccurrenceEsField.buildFieldMapper();
     this.esSearchRequestBuilder =
@@ -1703,6 +1714,7 @@ public class OccurrenceSearchResource {
       @ParameterObject OccurrenceSearchRequest request) {
     LOG.debug("Executing query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
               request.getOffset());
+    requestLimits.validate(request.getParameters());
     return searchService.search(request);
   }
 
@@ -1714,6 +1726,7 @@ public class OccurrenceSearchResource {
   public SearchResponse<Occurrence,OccurrenceSearchParameter> postSearch(@NotNull @Valid @RequestBody OccurrenceSearchRequest request) {
     LOG.debug("Executing post query, parameters {}, limit {}, offset {}", request.getParameters(), request.getLimit(),
       request.getOffset());
+    requestLimits.validate(request.getParameters());
     return searchService.search(request);
   }
 
@@ -1783,6 +1796,8 @@ public class OccurrenceSearchResource {
   public SearchResponse<Occurrence,OccurrenceSearchParameter> search(@NotNull @Valid @RequestBody OccurrencePredicateSearchRequest request) {
     LOG.debug("Executing query, predicate {}, limit {}, offset {}", request.getPredicate(), request.getLimit(),
       request.getOffset());
+    requestLimits.validate(request.getParameters());
+    requestLimits.validate(request.getPredicate());
     return searchService.search(request);
   }
 

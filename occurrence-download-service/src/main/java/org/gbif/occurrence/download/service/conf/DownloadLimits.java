@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.occurrence.download.util.SqlValidation;
+import org.gbif.occurrence.search.RequestLimits;
 import org.gbif.occurrence.query.PredicateCounter;
 import org.gbif.occurrence.query.PredicateGeometryPointCounter;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
@@ -72,12 +73,16 @@ public class DownloadLimits {
   private final int maxPoints;
   private final int maxPredicates;
 
+  private final RequestLimits requestLimits;
+
   public DownloadLimits(int maxUserDownloads, Limit softLimit, Limit hardLimit, int maxPoints, int maxPredicates) {
     this.maxUserDownloads = maxUserDownloads;
     this.softLimit = softLimit;
     this.hardLimit = hardLimit;
     this.maxPoints = maxPoints;
     this.maxPredicates = maxPredicates;
+    this.requestLimits = new RequestLimits(
+        Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, "");
   }
 
   @Autowired
@@ -86,7 +91,12 @@ public class DownloadLimits {
                         @Value("${occurrence.download.downloads_hard_limit}") String hardLimit,
                         @Value("${occurrence.download.downloads_max_points}") int maxPoints,
                         @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates,
-                        @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
+                        @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
+                        @Value("${occurrence.download.limits.max_values_per_parameter:100000}") int maxValuesPerParameter,
+                        @Value("${occurrence.download.limits.max_values_total:2147483647}") int maxValuesTotal,
+                        @Value("${occurrence.download.limits.max_predicate_leaves:2147483647}") int maxPredicateLeaves,
+                        @Value("${occurrence.download.limits.max_predicate_depth:20}") int maxPredicateDepth,
+                        @Value("${occurrence.download.limits.max_same_key_siblings:1000}") int maxSameKeySiblings) {
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
@@ -94,6 +104,9 @@ public class DownloadLimits {
     this.hardLimit = new Limit(Integer.parseInt(hardLimits.next()), Integer.parseInt(hardLimits.next()));
     this.maxPoints = maxPoints;
     this.maxPredicates = maxPredicates;
+    this.requestLimits =
+        new RequestLimits(
+            maxValuesPerParameter, maxValuesTotal, maxPredicateLeaves, maxPredicateDepth, maxSameKeySiblings, "");
     try {
       ObjectMapper objectMapper = new ObjectMapper();
       Map<String, String> checklistNestedStructMap =
@@ -114,6 +127,15 @@ public class DownloadLimits {
 
   public Limit getHardLimit() {
     return hardLimit;
+  }
+
+  /**
+   * Checks the per-parameter value count, total value count, leaf count and nesting depth of the predicate.
+   *
+   * @throws IllegalArgumentException if a limit is exceeded
+   */
+  public void validateRequestLimits(Predicate p) {
+    requestLimits.validate(p);
   }
 
   public boolean violatesLimits(int userDownloads, int globalDownloads) {

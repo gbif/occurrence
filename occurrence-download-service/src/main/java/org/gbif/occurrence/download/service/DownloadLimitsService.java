@@ -64,6 +64,15 @@ public class DownloadLimitsService {
   }
 
   /**
+   * Validates the predicate against the per-parameter, total, leaf-count and depth limits.
+   *
+   * @throws IllegalArgumentException (HTTP 400) if a limit is exceeded
+   */
+  public void validateRequestLimits(PredicateDownloadRequest request) {
+    downloadLimits.validateRequestLimits(request.getPredicate());
+  }
+
+  /**
    * Checks if the user is allowed to create this download request. Validates if the download is too
    * long/complicated.
    */

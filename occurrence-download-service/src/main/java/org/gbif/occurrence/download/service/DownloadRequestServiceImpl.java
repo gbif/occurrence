@@ -171,6 +171,7 @@ public abstract class DownloadRequestServiceImpl
     if (request instanceof PredicateDownloadRequest) {
       PredicateDownloadRequest predicateRequest = (PredicateDownloadRequest) request;
       PredicateValidator.validate(predicateRequest.getPredicate());
+      downloadLimitsService.validateRequestLimits(predicateRequest);
       predicateRequest.setPredicate(
           RequestFieldsTranslator.normalizeOccurrenceStatus(predicateRequest.getPredicate()));
     } else if (request instanceof SqlDownloadRequest) {
