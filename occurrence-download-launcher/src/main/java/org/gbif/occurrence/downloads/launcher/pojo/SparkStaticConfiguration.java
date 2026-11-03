@@ -62,6 +62,8 @@ public class SparkStaticConfiguration {
   private long recordsPerInstance;
   private int minInstances;
   private int maxInstances;
+  // downloads with an unknown record count use maxInstances divided by this
+  @Builder.Default private double unknownRecordsInstancesDivisor = 2;
   private int memoryPerCoreGb;
 
   // Making it possible to configure the value via configurations
