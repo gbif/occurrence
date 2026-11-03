@@ -20,6 +20,8 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.occurrence.query.PredicateCounter;
+import org.gbif.occurrence.query.PredicateGeometryPointCounter;
 import org.gbif.registry.ws.client.DoiInteractionClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,15 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
 
   @Value("${occurrence.download.small_download_cut_off}")
   private int smallDownloadCutOff;
+
+  // queries with more predicate values than this don't use Elasticsearch, a negative value disables
+  // the check
+  @Value("${occurrence.download.small_download_max_predicate_values:-1}")
+  private int smallDownloadMaxPredicateValues = -1;
+
+  private final PredicateCounter predicateCounter = new PredicateCounter();
+  private final PredicateGeometryPointCounter predicateGeometryPointCounter =
+      new PredicateGeometryPointCounter();
 
   @Autowired
   public OccurrenceDownloadRequestService(
@@ -73,6 +84,17 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
 
   @Override
   protected long countRecords(Predicate predicate) {
+    if (smallDownloadMaxPredicateValues >= 0) {
+      // predicate values (each IN value counts separately) plus geometry points
+      int values = predicateCounter.count(predicate) + predicateGeometryPointCounter.count(predicate);
+      if (values > smallDownloadMaxPredicateValues) {
+        // skip the Elasticsearch count, -1 is never a small download so this goes to Spark
+        log.info(
+            "Query has {} predicate values, more than {}, not counting with Elasticsearch",
+            values, smallDownloadMaxPredicateValues);
+        return -1;
+      }
+    }
     return occurrenceSearchService.countRecords(predicate);
   }
 }
