@@ -41,8 +41,8 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
 
   // queries with more predicate values than this don't use Elasticsearch, a negative value disables
   // the check
-  @Value("${occurrence.download.small_download_max_predicate_values:-1}")
-  private int smallDownloadMaxPredicateValues = -1;
+  @Value("${occurrence.download.small_download_max_predicate_values:1000}")
+  private int smallDownloadMaxPredicateValues = 1000;
 
   private final PredicateCounter predicateCounter = new PredicateCounter();
   private final PredicateGeometryPointCounter predicateGeometryPointCounter =
