@@ -66,8 +66,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -463,6 +463,18 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "http://rs.tdwg.org/ac/terms/Multimedia"),
+        @Parameter(
+            name = "environments",
+            description =
+                "An environment the taxon is known to live in, according to the checklist used "
+                    + "(see `checklistKey`): MARINE, BRACKISH, FRESHWATER or TERRESTRIAL.  This is a property "
+                    + "of the taxon, not of the individual occurrence.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "MARINE"),
         @Parameter(
             name = "earliestEonOrLowestEonothem",
             description =

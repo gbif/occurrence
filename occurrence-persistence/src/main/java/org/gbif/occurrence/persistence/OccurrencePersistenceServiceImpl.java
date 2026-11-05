@@ -116,18 +116,18 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
         scan.addFamily(Bytes.toBytes("o"));
         int salt = Math.abs(String.valueOf(key).hashCode()) % relationshipSalt;
         scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key + ":"));
-        ResultScanner s = table.getScanner(scan);
+        try (ResultScanner s = table.getScanner(scan)) {
+          Result row = s.next();
+          int count=0;
+          while (row != null && count++<100) {
+            String reasons = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("reasons")));
+            // convert a -> ["a"] or a,b,c -> ["a","b", "c"]
+            String reasonsAsJsonArray = "[\"" + reasons.replaceAll(",", "\",\"") + "\"]";
 
-        Result row = s.next();
-        int count=0;
-        while (row != null && count++<100) {
-          String reasons = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("reasons")));
-          // convert a -> ["a"] or a,b,c -> ["a","b", "c"]
-          String reasonsAsJsonArray = "[\"" + reasons.replaceAll(",", "\",\"") + "\"]";
-
-          String occurrence = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence2")));
-          result.add(String.format("{\n  \"reasons\": %s,\n  \"occurrence\":%s\n}", reasonsAsJsonArray, occurrence));
-          row = s.next();
+            String occurrence = Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence2")));
+            result.add(String.format("{\n  \"reasons\": %s,\n  \"occurrence\":%s\n}", reasonsAsJsonArray, occurrence));
+            row = s.next();
+          }
         }
 
       } catch (IOException e) {
@@ -145,11 +145,12 @@ public class OccurrencePersistenceServiceImpl implements OccurrenceService, Occu
         Scan scan = new Scan();
         scan.addFamily(Bytes.toBytes("o"));
         int salt = Math.abs(String.valueOf(key).hashCode()) % relationshipSalt;
-        scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key));
-        ResultScanner s = table.getScanner(scan);
-        Result row = s.next();
-        if (row != null) {
-          return Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence1")));
+        scan.setRowPrefixFilter(Bytes.toBytes(salt + ":" + key + ":"));
+        try (ResultScanner s = table.getScanner(scan)) {
+          Result row = s.next();
+          if (row != null) {
+            return Bytes.toString(row.getValue(Bytes.toBytes("o"), Bytes.toBytes("occurrence1")));
+          }
         }
 
       } catch (IOException e) {

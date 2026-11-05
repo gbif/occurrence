@@ -60,7 +60,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.CountRequest;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Min;
 
 /** Occurrence search service. */
 @Component

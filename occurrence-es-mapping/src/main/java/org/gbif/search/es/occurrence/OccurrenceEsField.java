@@ -161,6 +161,7 @@ public enum OccurrenceEsField implements EsField {
   GENERIC_NAME(new ChecklistEsField("classifications.%s.usage.genericName", DwcTerm.genericName)),
   TAXONOMIC_STATUS(new ChecklistEsField("classifications.%s.status", DwcTerm.taxonomicStatus)),
   IUCN_RED_LIST_CATEGORY(new ChecklistEsField("classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
+  ENVIRONMENTS(new ChecklistEsField("classifications.%s.environments", GbifTerm.environments)),
   TAXONOMIC_ISSUE(new ChecklistEsField("classifications.%s.issues", GbifTerm.taxonomicIssue)),
 
   // verbatim taxon fields - not specific to a single classification
@@ -421,6 +422,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.IS_IN_CLUSTER, IS_IN_CLUSTER)
       .put(OccurrenceSearchParameter.DWCA_EXTENSION, EXTENSIONS)
       .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
+      .put(OccurrenceSearchParameter.ENVIRONMENTS, ENVIRONMENTS)
       .put(OccurrenceSearchParameter.DATASET_ID, DATASET_ID)
       .put(OccurrenceSearchParameter.DATASET_NAME, DATASET_NAME)
       .put(OccurrenceSearchParameter.OTHER_CATALOG_NUMBERS, OTHER_CATALOG_NUMBERS)

@@ -165,6 +165,7 @@ public class OccurrenceMapReader {
         });
       }
       interpretedOccurrence.put(IucnTerm.iucnRedListCategory.simpleName(), getSimpleValue(occurrence.getIucnRedListCategory()));
+      interpretedOccurrence.put(GbifTerm.environments.simpleName(), joinStrings(classification.getEnvironments()));
 
       // combine taxonomic issues for this classification, with non-taxonomic issues
       List<String> nonTaxonomicIssues = occurrence.getIssues().stream()

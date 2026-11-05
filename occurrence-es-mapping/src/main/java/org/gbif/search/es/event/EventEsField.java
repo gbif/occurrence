@@ -125,6 +125,7 @@ public enum EventEsField implements EsField {
   TAXONOMIC_ISSUE(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.issues", GbifTerm.taxonomicIssue)),
   TAXON_ID(new BaseEsField("derivedMetadata.taxonomicCoverage.taxonIDs", DwcTerm.taxonID)),
   IUCN_RED_LIST_CATEGORY(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.iucnRedListCategoryCode", IucnTerm.iucnRedListCategory)),
+  ENVIRONMENTS(new ChecklistEsField("derivedMetadata.taxonomicCoverage.classifications.%s.environments", GbifTerm.environments)),
 
   // TODO: convex hull and temporal coverage
 
@@ -194,6 +195,7 @@ public enum EventEsField implements EsField {
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.acceptedUsage.key", null, "event.humboldt")),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.taxonKeys", null, "event.humboldt")),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE_IUCN_RED_LIST_CATEGORY(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.iucnRedListCategoryCode", null, "event.humboldt")),
+  HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ENVIRONMENTS(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.environments", GbifTerm.environments, "event.humboldt")),
   HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE(new ChecklistEsField("event.humboldt.targetTaxonomicScope.%s.issues", GbifTerm.taxonomicIssue, "event.humboldt")),
   HUMBOLDT_EXCLUDED_TAXONOMIC_SCOPE(new BaseEsField("event.humboldt.excludedTaxonomicScope", EcoTerm.excludedTaxonomicScope)),
   HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS(new BaseEsField("event.humboldt.taxonCompletenessProtocols", EcoTerm.taxonCompletenessProtocols)),
@@ -282,6 +284,7 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.TAXONOMIC_STATUS, TAXONOMIC_STATUS)
       .put(EventSearchParameter.TAXONOMIC_ISSUE, TAXONOMIC_ISSUE)
       .put(EventSearchParameter.IUCN_RED_LIST_CATEGORY, IUCN_RED_LIST_CATEGORY)
+      .put(EventSearchParameter.ENVIRONMENTS, ENVIRONMENTS)
       // end derived taxon
 
       .put(EventSearchParameter.MEDIA_TYPE, MEDIA_TYPE)
@@ -341,6 +344,7 @@ public enum EventEsField implements EsField {
       .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ACCEPTED_USAGE_KEY)
       .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY)
       .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_IUCN_RED_LIST_CATEGORY, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_IUCN_RED_LIST_CATEGORY)
+      .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ENVIRONMENTS, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ENVIRONMENTS)
       .put(EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE, HUMBOLDT_TARGET_TAXONOMIC_SCOPE_ISSUE)
       .put(EventSearchParameter.HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS, HUMBOLDT_TAXON_COMPLETENESS_PROTOCOLS)
       .put(EventSearchParameter.HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED, HUMBOLDT_IS_TAXONOMIC_SCOPE_FULLY_REPORTED)

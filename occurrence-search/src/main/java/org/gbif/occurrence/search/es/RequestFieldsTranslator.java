@@ -18,15 +18,19 @@ import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.util.VocabularyUtils;
 import org.gbif.api.vocabulary.DurationUnit;
+import org.gbif.api.vocabulary.OccurrenceStatus;
 import org.gbif.vocabulary.api.ConceptView;
 import org.gbif.vocabulary.client.ConceptClient;
 import org.gbif.vocabulary.model.Tag;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,8 +75,36 @@ public class RequestFieldsTranslator {
                       new EventSearchParameter.EventSearchParameterDeserializer()))
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+  /**
+   * Rewrites deprecated {@code occurrenceStatus} values so the stored predicate matches the term
+   * that is searched.
+   */
+  public static Predicate normalizeOccurrenceStatus(Predicate predicate) {
+    if (predicate == null) {
+      return null;
+    }
+
+    ObjectNode node = occurrenceObjectMapper.valueToTree(predicate);
+    node.findParents("key")
+        .forEach(
+            parent -> {
+              if (containsParam(
+                  parent.findValue("key"), OccurrenceSearchParameter.OCCURRENCE_STATUS.name())) {
+                replaceStringValues(
+                    (ObjectNode) parent, RequestFieldsTranslator::toCurrentOccurrenceStatus);
+              }
+            });
+
+    try {
+      return occurrenceObjectMapper.treeToValue(node, Predicate.class);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error normalizing occurrenceStatus", e);
+    }
+  }
+
   public static Predicate translateOccurrencePredicateFields(
       Predicate predicate, ConceptClient conceptClient) {
+    predicate = normalizeOccurrenceStatus(predicate);
     if (conceptClient == null || predicate == null) {
       return predicate;
     }
@@ -148,6 +180,29 @@ public class RequestFieldsTranslator {
     }
   }
 
+  private static void replaceStringValues(
+      ObjectNode parent, Function<String, String> translator) {
+    if (parent.has("value")) {
+      parent.replace("value", new TextNode(translator.apply(parent.get("value").asText())));
+    } else if (parent.has("values")) {
+      ArrayNode translatedValues = occurrenceObjectMapper.createArrayNode();
+      for (JsonNode value : parent.get("values")) {
+        translatedValues.add(translator.apply(value.asText()));
+      }
+      parent.replace("values", translatedValues);
+    }
+  }
+
+  /**
+   * {@link OccurrenceStatus#PRESENT} and {@link OccurrenceStatus#ABSENT} are queried as {@link
+   * OccurrenceStatus#DETECTED} and {@link OccurrenceStatus#NOT_DETECTED}.
+   */
+  private static String toCurrentOccurrenceStatus(String value) {
+    return VocabularyUtils.lookup(value, OccurrenceStatus.class)
+        .map(status -> status.normalize().name())
+        .orElse(value);
+  }
+
   private static void replaceKeyParam(ObjectNode node, String replacement) {
     if (node.findValue("key") instanceof ArrayNode) {
       ArrayNode arrayNode = (ArrayNode) node.findValue("key");
@@ -172,6 +227,14 @@ public class RequestFieldsTranslator {
       String geoTimeParam = params.get(OccurrenceSearchParameter.GEOLOGICAL_TIME).iterator().next();
       String translatedParam = processGeoTimeParam(geoTimeParam, conceptClient, null);
       params.replace(OccurrenceSearchParameter.GEOLOGICAL_TIME, Set.of(translatedParam));
+    }
+
+    if (params.containsKey(OccurrenceSearchParameter.OCCURRENCE_STATUS)) {
+      Set<String> translated = new HashSet<>();
+      for (String value : params.get(OccurrenceSearchParameter.OCCURRENCE_STATUS)) {
+        translated.add(toCurrentOccurrenceStatus(value));
+      }
+      params.replace(OccurrenceSearchParameter.OCCURRENCE_STATUS, translated);
     }
   }
 

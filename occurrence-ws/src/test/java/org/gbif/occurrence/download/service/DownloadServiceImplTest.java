@@ -23,19 +23,24 @@ import org.gbif.api.model.occurrence.DownloadRequest;
 import org.gbif.api.model.occurrence.DownloadType;
 import org.gbif.api.model.occurrence.PredicateDownloadRequest;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.ConjunctionPredicate;
 import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.InPredicate;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.common.messaging.api.MessagePublisher;
+import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.registry.ws.client.DoiInteractionClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -47,14 +52,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,13 +77,14 @@ class DownloadServiceImplTest {
   @Mock private EmailSender emailSender;
   @Mock private DoiInteractionClient doiInteractionClient;
 
+  private MessagePublisher messagePublisher;
   private DownloadRequestService requestService;
 
   private static final Predicate DEFAULT_TEST_PREDICATE = new EqualsPredicate(PARAM, "bar", false);
 
   @BeforeEach
   public void setup() {
-    MessagePublisher messagePublisher = mock(MessagePublisher.class);
+    messagePublisher = mock(MessagePublisher.class);
     requestService =
         new OccurrenceDownloadRequestService(
             "",
@@ -135,6 +145,109 @@ class DownloadServiceImplTest {
     } catch (ResponseStatusException e) {
       // NOP
     }
+  }
+
+  @Test
+  void testComplexQueryAvoidsElastic() throws Exception {
+    ReflectionTestUtils.setField(requestService, "smallDownloadCutOff", 1000);
+    ReflectionTestUtils.setField(requestService, "smallDownloadMaxPredicateValues", 2);
+
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            new InPredicate<>(PARAM, Arrays.asList("a", "b", "c"), false),
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            "testDescription",
+            null,
+            Collections.singleton(Extension.AUDUBON),
+            null,
+            null);
+    requestService.create(dl, null);
+
+    // no Elasticsearch count, and sent to the big downloads queue
+    verify(occurrenceSearchService, never()).countRecords(any());
+    verify(messagePublisher).send(any(DownloadLauncherMessage.class));
+    verify(downloadService).create(argThat(d -> d.getTotalRecords() == -1));
+  }
+
+  @Test
+  void testTooManyTotalValuesAvoidsElastic() throws Exception {
+    ReflectionTestUtils.setField(requestService, "smallDownloadCutOff", 1000);
+    ReflectionTestUtils.setField(requestService, "smallDownloadMaxPredicateValues", 3);
+
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            new ConjunctionPredicate(
+                Arrays.asList(
+                    new InPredicate<>(PARAM, Arrays.asList("a", "b"), false),
+                    new InPredicate<>(PARAM, Arrays.asList("c", "d"), false))),
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            "testDescription",
+            null,
+            Collections.singleton(Extension.AUDUBON),
+            null,
+            null);
+    requestService.create(dl, null);
+
+    verify(occurrenceSearchService, never()).countRecords(any());
+    verify(messagePublisher).send(any(DownloadLauncherMessage.class));
+  }
+
+  @Test
+  void testComplexPolygonAvoidsElastic() throws Exception {
+    ReflectionTestUtils.setField(requestService, "smallDownloadCutOff", 1000);
+    ReflectionTestUtils.setField(requestService, "smallDownloadMaxPredicateValues", 4);
+
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            new WithinPredicate("POLYGON((0 0,1 0,1 1,0 1,0 0))"),
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            "testDescription",
+            null,
+            Collections.singleton(Extension.AUDUBON),
+            null,
+            null);
+    requestService.create(dl, null);
+
+    verify(occurrenceSearchService, never()).countRecords(any());
+    verify(messagePublisher).send(any(DownloadLauncherMessage.class));
+  }
+
+  @Test
+  void testSimpleQueryUsesElastic() throws Exception {
+    ReflectionTestUtils.setField(requestService, "smallDownloadCutOff", 1000);
+    ReflectionTestUtils.setField(requestService, "smallDownloadMaxPredicateValues", 3);
+    when(occurrenceSearchService.countRecords(any())).thenReturn(10L);
+
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            new InPredicate<>(PARAM, Arrays.asList("a", "b", "c"), false),
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            "testDescription",
+            null,
+            Collections.singleton(Extension.AUDUBON),
+            null,
+            null);
+    requestService.create(dl, null);
+
+    verify(occurrenceSearchService).countRecords(any());
+    verify(messagePublisher)
+        .send(any(DownloadLauncherMessage.class), eq("occurrence"), eq("occurrence.download.launch.small"));
   }
 
   @Test

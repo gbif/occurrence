@@ -30,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import io.github.resilience4j.core.IntervalFunction;
@@ -67,6 +68,10 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
       AirflowConfiguration airflowConfiguration,
       BaseDownloadClient downloadClient,
       LockerService lockerService) {
+    Preconditions.checkArgument(
+        sparkStaticConfiguration.getUnknownRecordsInstancesDivisor() > 0,
+        "spark.unknownRecordsInstancesDivisor must be greater than zero, but was %s",
+        sparkStaticConfiguration.getUnknownRecordsInstancesDivisor());
     this.sparkStaticConfiguration = sparkStaticConfiguration;
     this.downloadClient = downloadClient;
     this.airflowConfiguration = airflowConfiguration;
@@ -79,14 +84,21 @@ public abstract class AirflowDownloadLauncherService implements DownloadLauncher
    */
   protected abstract boolean isSmallLauncher();
 
-  private long calculateExecutorInstances(Download download) {
-    return isSmallLauncher()
-        ? sparkStaticConfiguration.getMinInstances()
-        : Math.min(
-            sparkStaticConfiguration.getMaxInstances(),
-            Math.max(
-                download.getTotalRecords() / sparkStaticConfiguration.getRecordsPerInstance(),
-                sparkStaticConfiguration.getMinInstances()));
+  long calculateExecutorInstances(Download download) {
+    if (isSmallLauncher()) {
+      return sparkStaticConfiguration.getMinInstances();
+    }
+    // the record count is unknown (-1), e.g. complex queries that weren't counted with Elasticsearch
+    if (download.getTotalRecords() < 0) {
+      return (long)
+          (sparkStaticConfiguration.getMaxInstances()
+              / sparkStaticConfiguration.getUnknownRecordsInstancesDivisor());
+    }
+    return Math.min(
+        sparkStaticConfiguration.getMaxInstances(),
+        Math.max(
+            download.getTotalRecords() / sparkStaticConfiguration.getRecordsPerInstance(),
+            sparkStaticConfiguration.getMinInstances()));
   }
 
   /** Calculate the executor memory limit based on the number of executor instances. */
