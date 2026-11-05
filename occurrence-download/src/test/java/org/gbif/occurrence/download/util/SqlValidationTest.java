@@ -61,7 +61,7 @@ public class SqlValidationTest {
       FROM occurrence
       WHERE countrycode = 'CN'
         AND occurrence.gbif_classification.phylumkey = '7707728'
-        AND occurrencestatus = 'PRESENT'
+        AND occurrencestatus = 'DETECTED'
         AND decimallatitude IS NOT NULL
         AND decimallongitude IS NOT NULL
         AND hasgeospatialissues = FALSE
