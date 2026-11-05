@@ -16,6 +16,7 @@ package org.gbif.occurrence.persistence.experimental;
 import org.gbif.occurrence.persistence.OccurrenceSpeciesMultimediaService;
 import org.gbif.occurrence.persistence.meta.ZKMetastore;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,10 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
 
   private static final byte[] MEDIA_CF = Bytes.toBytes("media");
   private static final byte[] TOTAL_MULTIMEDIA_COUNTS = Bytes.toBytes("total_multimedia_count");
+  // Legacy cells (MediaInfo schema v1, no datasetKey); read only when v2 is absent.
   private static final byte[] MEDIA_INFOS = Bytes.toBytes("media_infos");
+  // MediaInfo schema v2, adds datasetKey.
+  private static final byte[] MEDIA_INFOS_V2 = Bytes.toBytes("media_infos_v2");
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
 
@@ -140,15 +144,14 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
       int remaining = limit;
       int currentOffset = offset % chunkSize;
       for (Result result : hbaseResults) {
-        byte[] value = result.getValue(MEDIA_CF, MEDIA_INFOS);
         if (totalCount == null) {
           byte[] byteTotalCount = result.getValue(MEDIA_CF, TOTAL_MULTIMEDIA_COUNTS);
           if (byteTotalCount != null) {
             totalCount = Bytes.toLong(byteTotalCount);
           }
         }
-        if (value != null) {
-          List<Map<String, Object>> mediaInfos = MediaInfosAvroSerializer.deserializeMediaInfosAvro(value);
+        List<Map<String, Object>> mediaInfos = readMediaInfos(result);
+        if (mediaInfos != null) {
           for (int i = currentOffset; i < mediaInfos.size() && remaining > 0; i++, remaining--) {
             results.add(mediaInfos.get(i));
           }
@@ -157,6 +160,20 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
       }
       return new TaxonMultimediaSearchResponse(offset, results.size(), totalCount, taxonKey, mediaType, results);
     }
+  }
+
+  /**
+   * Reads the media infos of a row, preferring the v2 cell (with datasetKey) over the legacy v1 cell.
+   *
+   * @return the media infos, or null if the row has neither cell
+   */
+  private static List<Map<String, Object>> readMediaInfos(Result result) throws IOException {
+    byte[] v2 = result.getValue(MEDIA_CF, MEDIA_INFOS_V2);
+    if (v2 != null) {
+      return MediaInfosAvroSerializer.deserializeMediaInfosV2Avro(v2);
+    }
+    byte[] v1 = result.getValue(MEDIA_CF, MEDIA_INFOS);
+    return v1 != null ? MediaInfosAvroSerializer.deserializeMediaInfosV1Avro(v1) : null;
   }
 
   /**
