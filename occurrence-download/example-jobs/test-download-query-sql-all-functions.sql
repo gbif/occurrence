@@ -32,7 +32,7 @@ SELECT
   GBIF_SecondsToISO8601(MAX(dateIdentified)) AS identifiedDate
 FROM
   occurrence
-WHERE occurrenceStatus = 'PRESENT'
+WHERE occurrenceStatus = 'DETECTED'
   AND "year" >= 1900
   AND hasCoordinate = TRUE
   AND (coordinateUncertaintyInMeters <= 1000 OR coordinateUncertaintyInMeters IS NULL)
