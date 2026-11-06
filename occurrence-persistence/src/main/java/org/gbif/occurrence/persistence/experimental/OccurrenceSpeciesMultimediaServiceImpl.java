@@ -101,6 +101,12 @@ public class OccurrenceSpeciesMultimediaServiceImpl implements OccurrenceSpecies
 
       TableName tn = TableName.valueOf(new String(child.getData(), StandardCharsets.UTF_8));
       int regions = connection.getAdmin().getRegions(tn).size();
+      // getRegions returns an empty list for a missing table; publishing 0 splits breaks computeKey
+      if (regions < 1) {
+        log.error("Table {} referenced by {} has no regions (missing or offline); keeping previous metadata.",
+                  tn, cache.getPath());
+        return;
+      }
       String pf = "%0" + Integer.toString(regions - 1).length() + 'd';
 
       // publish new immutable snapshot
