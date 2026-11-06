@@ -1196,10 +1196,10 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "occurrenceStatus",
             description =
-                "Either `ABSENT` or `PRESENT`; the presence or absence of the occurrence.",
+                "Either `NOT_DETECTED` or `DETECTED`; whether the occurrence was detected.",
             schema = @Schema(implementation = OccurrenceStatus.class),
             in = ParameterIn.QUERY,
-            example = "PRESENT"),
+            example = "DETECTED"),
         @Parameter(
             name = "orderKey",
             description = "Order classification key.\n\n" + API_PARAMETER_MAY_BE_REPEATED,
