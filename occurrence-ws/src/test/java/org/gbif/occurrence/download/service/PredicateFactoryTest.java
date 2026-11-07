@@ -14,6 +14,9 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.ConjunctionPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.InPredicate;
 import org.gbif.api.model.predicate.Predicate;
 
 import java.util.HashMap;
@@ -21,7 +24,9 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PredicateFactoryTest {
@@ -82,5 +87,43 @@ public class PredicateFactoryTest {
     Predicate predicate = PredicateFactory.build(params);
 
     assertNotNull(predicate);
+  }
+
+  @Test
+  public void testDnaTaxonSearchOnTaxonomicPredicates() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.TAXON_KEY.name(), new String[] {"212"});
+    params.put(OccurrenceSearchParameter.KINGDOM_KEY.name(), new String[] {"1", "6"});
+    params.put(OccurrenceSearchParameter.COUNTRY.name(), new String[] {"DK"});
+    params.put("dnaTaxonSearch", new String[] {"true"});
+
+    ConjunctionPredicate predicate = (ConjunctionPredicate) PredicateFactory.build(params);
+
+    for (Predicate p : predicate.getPredicates()) {
+      if (p instanceof EqualsPredicate<?> equals) {
+        if (equals.getKey() == OccurrenceSearchParameter.TAXON_KEY) {
+          assertEquals(Boolean.TRUE, equals.getDnaTaxonSearch());
+        } else {
+          // it only applies to the taxonomic parameters
+          assertEquals(OccurrenceSearchParameter.COUNTRY, equals.getKey());
+          assertNull(equals.getDnaTaxonSearch());
+        }
+      } else {
+        InPredicate<?> in = (InPredicate<?>) p;
+        assertEquals(OccurrenceSearchParameter.KINGDOM_KEY, in.getKey());
+        assertEquals(Boolean.TRUE, in.getDnaTaxonSearch());
+      }
+    }
+  }
+
+  @Test
+  public void testWithoutDnaTaxonSearch() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.TAXON_KEY.name(), new String[] {"212"});
+    params.put("dnaTaxonSearch", new String[] {"false"});
+
+    EqualsPredicate<?> predicate = (EqualsPredicate<?>) PredicateFactory.build(params);
+
+    assertNull(predicate.getDnaTaxonSearch());
   }
 }
