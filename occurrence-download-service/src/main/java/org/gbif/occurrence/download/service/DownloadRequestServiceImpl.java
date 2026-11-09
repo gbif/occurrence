@@ -68,9 +68,6 @@ import static org.gbif.occurrence.download.service.Constants.NOTIFY_ADMIN;
 public abstract class DownloadRequestServiceImpl
     implements DownloadRequestService, CallbackService {
 
-  // magic prefix for download keys to indicate these aren't real download files
-  private static final String NON_DOWNLOAD_PREFIX = "dwca-";
-
   // Must match DOWNLOADS_EXCHANGE and SMALL_DOWNLOAD_ROUTING_KEY in RabbitConfiguration (launcher)
   private static final String DOWNLOADS_EXCHANGE = "occurrence";
   private static final String SMALL_DOWNLOAD_ROUTING_KEY = "occurrence.download.launch.small";
@@ -240,22 +237,16 @@ public abstract class DownloadRequestServiceImpl
   public File getResultFile(String downloadKey) {
     String filename;
 
-    // avoid check for download in the registry if we have secret non download files with a magic
-    // prefix!
-    if (downloadKey == null || !downloadKey.toLowerCase().startsWith(NON_DOWNLOAD_PREFIX)) {
-      Download d = occurrenceDownloadService.get(downloadKey);
+    Download d = occurrenceDownloadService.get(downloadKey);
 
-      if (d == null) {
-        throw new ResponseStatusException(
-            HttpStatus.NOT_FOUND, "Download " + downloadKey + " doesn't exist");
-      }
-
-      checkDownloadPreConditions(downloadKey, d);
-
-      filename = getDownloadFilename(d);
-    } else {
-      filename = downloadKey + ".zip";
+    if (d == null) {
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "Download " + downloadKey + " doesn't exist");
     }
+
+    checkDownloadPreConditions(downloadKey, d);
+
+    filename = getDownloadFilename(d);
 
     return getDownloadFile(filename, downloadKey);
   }
@@ -270,15 +261,8 @@ public abstract class DownloadRequestServiceImpl
 
     String downloadKey = download.getKey();
 
-    // avoid check for download in the registry if we have secret non download files with a magic
-    // prefix!
-    if (!downloadKey.toLowerCase().startsWith(NON_DOWNLOAD_PREFIX)) {
-      checkDownloadPreConditions(downloadKey, download);
-
-      filename = getDownloadFilename(download);
-    } else {
-      filename = downloadKey + ".zip";
-    }
+    checkDownloadPreConditions(downloadKey, download);
+    filename = getDownloadFilename(download);
 
     return getDownloadFile(filename, downloadKey);
   }
