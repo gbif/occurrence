@@ -44,7 +44,6 @@ def download_request(file, username, email):
   f = open(file)
   download_request = json.load(f)
   download_request['creator'] = username
-  download_request['notificationAddresses'] = [email]
   f.close()
   return download_request
 
@@ -61,7 +60,6 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument("username", help="GBIF Portal username")
   parser.add_argument("password", help="GBIF Portal user password")
-  parser.add_argument("email", help="Download notification email")
   parser.add_argument("env", help="GBIF environment")
   parser.add_argument("download_type", help="Download type occurrence or event",  nargs="?", default="occurrence")
   parser.add_argument("source_dir", help="Directory containing the Download JSON requests", nargs="?", default="../../../example-jobs/")

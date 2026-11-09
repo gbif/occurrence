@@ -1,6 +1,5 @@
 {
   "creator":"markus",
-  "notificationAddresses": ["gbif@mailinator.com"],
   "sendNotification":"true",
   "format": "DWCA",
   "predicate":{

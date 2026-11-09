@@ -86,14 +86,14 @@ public class OccurrenceEmailManager {
         "Download key is [{}], portal URL is [{}]", download.getKey(), portal);
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
+    String email = creator.getEmail();
     String downloadCreatedDate = String.format(locale, "%te %<tB %<tY", download.getCreated());
 
     try {
       DownloadTemplateDataModel dataModel =
           new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale), downloadCreatedDate);
 
-      return emailTemplateProcessor.buildEmail(
-          OccurrenceEmailType.SUCCESSFUL_DOWNLOAD, getNotificationAddresses(download, creator), dataModel, locale);
+      return emailTemplateProcessor.buildEmail(OccurrenceEmailType.SUCCESSFUL_DOWNLOAD, Set.of(email), dataModel, locale);
     } catch (TemplateException | IOException e) {
       LOG.error(
           NOTIFY_ADMIN,
@@ -108,14 +108,14 @@ public class OccurrenceEmailManager {
         "Download key is [{}], portal URL is [{}]", download.getKey(), portal);
     GbifUser creator = getCreator(download);
     Locale locale = getLocale(creator);
+    String email = creator.getEmail();
     String downloadCreatedDate = String.format(locale, "%te %<tB %<tY", download.getCreated());
 
     try {
       DownloadTemplateDataModel dataModel =
           new DownloadTemplateDataModel(download, new URL(portal), getHumanQuery(download, locale), downloadCreatedDate);
 
-      return emailTemplateProcessor.buildEmail(
-          OccurrenceEmailType.FAILED_DOWNLOAD, getNotificationAddresses(download, creator), dataModel, locale);
+      return emailTemplateProcessor.buildEmail(OccurrenceEmailType.FAILED_DOWNLOAD, Set.of(email), dataModel, locale);
     } catch (TemplateException | IOException e) {
       LOG.error(
           NOTIFY_ADMIN,
@@ -199,26 +199,6 @@ public class OccurrenceEmailManager {
     } else {
       return new HumanPredicateBuilder(titleLookup, OccurrenceSearchParameter.class);
     }
-  }
-
-  /**
-   * Gets the list of notification addresses from the download object.
-   * If the list of addresses is empty, the email of the creator is used.
-   */
-  private Set<String> getNotificationAddresses(Download download, GbifUser creator) {
-    LOG.debug("Get notification addresses. Download: [{}]", download.getKey());
-    Set<String> emails = new HashSet<>();
-    if (download.getRequest().getNotificationAddresses() == null
-        || download.getRequest().getNotificationAddresses().isEmpty()) {
-      if (creator != null) {
-        emails.add(creator.getEmail());
-      }
-    } else {
-      emails.addAll(download.getRequest().getNotificationAddresses());
-    }
-
-    LOG.debug("Notification addresses are: [{}]", emails);
-    return emails;
   }
 
   private GbifUser getCreator(Download download) {

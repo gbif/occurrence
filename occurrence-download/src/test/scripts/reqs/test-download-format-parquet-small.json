@@ -1,7 +1,6 @@
 {
   "creator": "",
   "sendNotification": true,
-  "notificationAddresses": [""],
   "format": "SIMPLE_PARQUET",
   "predicate": {
     "type": "and",

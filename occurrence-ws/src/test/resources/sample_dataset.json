@@ -1,6 +1,5 @@
 {
   "creator":"fmendez",
-  "notification_addresses": ["fmendez@gbif.org"],
   "send_notification":"true",
   "format": "DWCA",
   "verbatimExtensions": ["http://rs.gbif.org/terms/1.0/Multimedia"],
@@ -20,4 +19,3 @@
     ]
   }
 }
-

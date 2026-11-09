@@ -1,8 +1,5 @@
 {
   "creator": "SET THIS HERE",
-  "notificationAddresses": [
-    "SET THIS HERE"
-  ],
   "sendNotification": true,
   "format": "SIMPLE_CSV",
   "predicates": [

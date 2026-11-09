@@ -1,7 +1,6 @@
 {
   "creator": "",
   "sendNotification": true,
-  "notificationAddresses": [""],
   "format": "SIMPLE_WITH_VERBATIM_AVRO",
   "predicate": {
     "type": "and",

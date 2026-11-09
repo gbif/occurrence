@@ -1,6 +1,5 @@
 {
   "creator":"ddddd",
-  "notificationAddresses": ["ddddd@gbif.org"],
   "sendNotification":"true",
   "format": "DWCA",
   "predicate": {
