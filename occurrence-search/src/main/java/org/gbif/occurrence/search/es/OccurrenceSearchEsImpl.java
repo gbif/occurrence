@@ -45,8 +45,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
-import javax.validation.constraints.Min;
-
 import org.apache.hadoop.hbase.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
