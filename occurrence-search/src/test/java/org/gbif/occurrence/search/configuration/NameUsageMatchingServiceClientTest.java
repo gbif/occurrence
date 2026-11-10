@@ -20,6 +20,7 @@ import org.gbif.rest.client.species.NameUsageMatchingService;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -77,9 +78,11 @@ class NameUsageMatchingServiceClientTest {
                 .withScientificName("Puma concolor")
                 .build());
 
-    assertTrue(requestUri.get().startsWith("/v2/species/match?"), requestUri.get());
-    assertTrue(requestUri.get().contains("scientificName=Puma%20concolor"), requestUri.get());
-    assertTrue(requestUri.get().contains("checklistKey=7ddf754f-d193-4cc9-b351-99906754a03b"), requestUri.get());
+    // spaces may be encoded as '+' or '%20', both are decoded to a space by the API
+    String uri = URLDecoder.decode(requestUri.get(), StandardCharsets.UTF_8);
+    assertTrue(uri.startsWith("/v2/species/match?"), uri);
+    assertTrue(uri.contains("scientificName=Puma concolor"), uri);
+    assertTrue(uri.contains("checklistKey=7ddf754f-d193-4cc9-b351-99906754a03b"), uri);
     assertEquals("5219404", response.getUsage().getKey());
     assertEquals(NameUsageMatchResponse.MatchType.EXACT, response.getDiagnostics().getMatchType());
   }
