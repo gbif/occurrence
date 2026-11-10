@@ -99,11 +99,6 @@ class ParquetQueries extends Queries {
       return String.format(
         "array_union(nontaxonomicissue, %s) as issue",
         prefix + "taxonomicissue");
-    } else if (term == DwcTerm.infragenericEpithet) {
-      //FIX ME
-      // gets around the fact that infragenericEpithet is present in the denormalised taxonomy,
-      // but is NOT present in the nested struct
-      return String.format("NULL AS %s", HiveColumns.columnFor(term));
     } else {
       final String columnName = HiveColumns.columnFor(term);
       return String.format(
