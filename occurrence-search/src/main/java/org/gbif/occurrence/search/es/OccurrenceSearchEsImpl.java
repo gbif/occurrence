@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.search.es;
 
+import jakarta.validation.constraints.Min;
 import org.gbif.api.model.common.search.SearchResponse;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
