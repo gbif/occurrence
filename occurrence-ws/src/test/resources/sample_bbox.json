@@ -1,6 +1,5 @@
 {
   "creator":"fmendez",
-  "notification_addresses": ["fmendez@gbif.org"],
   "send_notification":"true",
   "format": "SIMPLE_CSV",
   "predicate":{

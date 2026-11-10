@@ -1,7 +1,5 @@
 {
-  "creator": "MattBlissett",
   "sendNotification": true,
-  "notification_address": ["mblissett@gbif.org"],
   "format": "MAP_OF_LIFE",
   "predicate": {
     "type": "and",

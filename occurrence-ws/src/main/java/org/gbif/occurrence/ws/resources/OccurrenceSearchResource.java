@@ -37,9 +37,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.core.annotations.ParameterObject;
@@ -69,6 +66,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
@@ -464,6 +463,18 @@ public class OccurrenceSearchResource {
             explode = Explode.TRUE,
             in = ParameterIn.QUERY,
             example = "http://rs.tdwg.org/ac/terms/Multimedia"),
+        @Parameter(
+            name = "environments",
+            description =
+                "An environment the taxon is known to live in, according to the checklist used "
+                    + "(see `checklistKey`): MARINE, BRACKISH, FRESHWATER or TERRESTRIAL.  This is a property "
+                    + "of the taxon, not of the individual occurrence.\n\n"
+                    + API_PARAMETER_MAY_BE_REPEATED,
+            array =
+                @ArraySchema(uniqueItems = true, schema = @Schema(implementation = String.class)),
+            explode = Explode.TRUE,
+            in = ParameterIn.QUERY,
+            example = "MARINE"),
         @Parameter(
             name = "earliestEonOrLowestEonothem",
             description =
@@ -1185,10 +1196,10 @@ public class OccurrenceSearchResource {
         @Parameter(
             name = "occurrenceStatus",
             description =
-                "Either `ABSENT` or `PRESENT`; the presence or absence of the occurrence.",
+                "Either `NOT_DETECTED` or `DETECTED`; whether the occurrence was detected.",
             schema = @Schema(implementation = OccurrenceStatus.class),
             in = ParameterIn.QUERY,
-            example = "PRESENT"),
+            example = "DETECTED"),
         @Parameter(
             name = "orderKey",
             description = "Order classification key.\n\n" + API_PARAMETER_MAY_BE_REPEATED,

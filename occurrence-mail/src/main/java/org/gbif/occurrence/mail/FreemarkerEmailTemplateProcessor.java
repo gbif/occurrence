@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 
+import freemarker.core.HTMLOutputFormat;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
 import freemarker.template.Configuration;
@@ -91,6 +92,8 @@ public abstract class FreemarkerEmailTemplateProcessor implements EmailTemplateP
 
   private Configuration createFreemarkerConfiguration(Locale locale) {
     Configuration freemarkerConfig = new Configuration(Configuration.VERSION_2_3_25);
+    freemarkerConfig.setOutputFormat(HTMLOutputFormat.INSTANCE);
+    freemarkerConfig.setAutoEscapingPolicy(Configuration.ENABLE_IF_DEFAULT_AUTO_ESCAPING_POLICY);
     freemarkerConfig.setLocale(locale);
     freemarkerConfig.setDefaultEncoding(StandardCharsets.UTF_8.name());
     freemarkerConfig.setTimeZone(TimeZone.getTimeZone("GMT"));

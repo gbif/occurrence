@@ -1,6 +1,5 @@
 {
   "creator":"fmendez",
-  "notificationAddresses": ["fmendez@gbif.org"],
   "sendNotification":"true",
   "format": "DWCA",
   "predicate":{

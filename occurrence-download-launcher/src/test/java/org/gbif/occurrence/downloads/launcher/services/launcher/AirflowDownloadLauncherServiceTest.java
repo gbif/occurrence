@@ -24,6 +24,8 @@ import org.gbif.registry.ws.client.BaseDownloadClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class AirflowDownloadLauncherServiceTest {
@@ -31,14 +33,19 @@ class AirflowDownloadLauncherServiceTest {
   private static final String DOWNLOAD_KEY = "000001";
 
   private BaseDownloadClient downloadClient;
+  private SparkStaticConfiguration sparkStaticConfiguration;
   private AirflowDownloadLauncherService launcherService;
 
   @BeforeEach
   void setUp() {
     downloadClient = mock(BaseDownloadClient.class);
+    sparkStaticConfiguration = new SparkStaticConfiguration();
+    sparkStaticConfiguration.setMinInstances(2);
+    sparkStaticConfiguration.setMaxInstances(20);
+    sparkStaticConfiguration.setRecordsPerInstance(1000);
     launcherService =
         new AirflowDownloadLauncherService(
-            new SparkStaticConfiguration(),
+            sparkStaticConfiguration,
             new AirflowConfiguration(),
             downloadClient,
             mock(LockerService.class)) {
@@ -93,5 +100,58 @@ class AirflowDownloadLauncherServiceTest {
     verify(downloadClient, times(1)).update(any(Download.class));
     verify(downloadClient).update(staleDownload);
     verify(downloadClient, never()).update(succeededDownload);
+  }
+
+  @Test
+  void calculateExecutorInstancesFromRecordCount() {
+    assertEquals(2, launcherService.calculateExecutorInstances(downloadWithRecords(0)));
+    assertEquals(5, launcherService.calculateExecutorInstances(downloadWithRecords(5_000)));
+    assertEquals(20, launcherService.calculateExecutorInstances(downloadWithRecords(1_000_000)));
+  }
+
+  @Test
+  void calculateExecutorInstancesUsesHalfOfMaxWhenRecordCountUnknown() {
+    assertEquals(10, launcherService.calculateExecutorInstances(downloadWithRecords(-1)));
+  }
+
+  @Test
+  void calculateExecutorInstancesUsesConfiguredDivisorWhenRecordCountUnknown() {
+    sparkStaticConfiguration.setUnknownRecordsInstancesDivisor(1.5);
+    assertEquals(13, launcherService.calculateExecutorInstances(downloadWithRecords(-1)));
+  }
+
+  @Test
+  void rejectsDivisorThatIsNotPositive() {
+    for (double divisor : new double[] {0, -1}) {
+      SparkStaticConfiguration config = new SparkStaticConfiguration();
+      config.setUnknownRecordsInstancesDivisor(divisor);
+      assertThrows(
+          IllegalArgumentException.class,
+          () ->
+              new AirflowDownloadLauncherService(
+                  config, new AirflowConfiguration(), downloadClient, mock(LockerService.class)) {
+                @Override
+                protected boolean isSmallLauncher() {
+                  return false;
+                }
+
+                @Override
+                protected AirflowClient getAirflowClient() {
+                  return mock(AirflowClient.class);
+                }
+              });
+    }
+  }
+
+  @Test
+  void unknownRecordsInstancesDivisorDefaultsToTwo() {
+    assertEquals(2, SparkStaticConfiguration.builder().build().getUnknownRecordsInstancesDivisor());
+    assertEquals(2, new SparkStaticConfiguration().getUnknownRecordsInstancesDivisor());
+  }
+
+  private static Download downloadWithRecords(long totalRecords) {
+    Download download = new Download();
+    download.setTotalRecords(totalRecords);
+    return download;
   }
 }

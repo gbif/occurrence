@@ -275,6 +275,9 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
       if (occurrence.getNucleotideSequence() != null
         && !occurrence.getNucleotideSequence().isEmpty()) {
         for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          if (!hasSequence(nucleotideSequence)) {
+            continue;
+          }
           sequencesCsvWriter.write(
             new InnerNucleotideObject(nucleotideSequence, getRecordKey(record)),
             SEQUENCES_COLUMNS,
@@ -284,18 +287,29 @@ public class DwcaDownloadWorker<T extends VerbatimOccurrence, P extends SearchPa
     }
   }
 
+  /**
+   * Sequences can be indexed without a sequence (missing, invalid or wiped by the cleaning), so
+   * they are skipped in the FASTA download files.
+   */
+  private static boolean hasSequence(NucleotideSequence nucleotideSequence) {
+    return nucleotideSequence != null && nucleotideSequence.getSequence() != null;
+  }
+
   /** Writes a fasta file for a FASTA download. */
-  private void writeFastaFile(BufferedWriter fastaWriter, T record) throws IOException {
+  void writeFastaFile(BufferedWriter fastaWriter, T record) throws IOException {
     if (record instanceof Occurrence occurrence) {
       if (occurrence.getNucleotideSequence() != null
           && !occurrence.getNucleotideSequence().isEmpty()) {
         for (NucleotideSequence nucleotideSequence : occurrence.getNucleotideSequence()) {
+          if (!hasSequence(nucleotideSequence)) {
+            continue;
+          }
           fastaWriter.write(">");
           fastaWriter.write(nucleotideSequence.getNucleotideSequenceID());
           fastaWriter.write("|");
           fastaWriter.write(getRecordKey(record));
           fastaWriter.write("|");
-          fastaWriter.write(nucleotideSequence.getTargetGene());
+          fastaWriter.write(Objects.toString(nucleotideSequence.getTargetGene(), ""));
           fastaWriter.newLine();
           fastaWriter.write(nucleotideSequence.getSequence());
           fastaWriter.newLine();

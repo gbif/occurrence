@@ -1,7 +1,5 @@
 {
   "creator":"",
-  "notificationAddresses": [""],
-  "sendNotification": true,
   "format": "DWCA",
   "predicate":{
       "type":"equals",

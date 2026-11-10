@@ -309,7 +309,6 @@ public class DownloadResource {
         example = "{\n" +
           "  \"creator\": \"gbif_username\",\n" +
           "  \"sendNotification\": true,\n" +
-          "  \"notification_address\": [\"gbif@example.org\"],\n" +
           "  \"format\": \"DWCA\",\n" +
           "  \"description\": \"A user-friendly description of the download request.\",\n" +
           "  \"machineDescription\": {\"key\": \"value\"},\n" +
@@ -344,7 +343,7 @@ public class DownloadResource {
             responseCode = "400",
             description = "Invalid query, see [predicates](#predicates)."),
         @ApiResponse(
-            responseCode = "429",
+            responseCode = "420",
             description =
                 "Too many downloads, wait for one of your downloads to complete. See [limits](#limits)")
       })
@@ -516,7 +515,6 @@ public class DownloadResource {
         example = "{\n" +
           "  \"creator\": \"gbif_username\",\n" +
           "  \"sendNotification\": true,\n" +
-          "  \"notification_address\": [\"gbif@example.org\"],\n" +
           "  \"format\": \"SQL_TSV_ZIP\",\n" +
           "  \"sql\": \"SELECT datasetKey, countryCode, COUNT(*) FROM occurrence WHERE continent = 'EUROPE' GROUP BY datasetKey, countryCode\"" +
           "}"
@@ -577,7 +575,7 @@ public class DownloadResource {
   @ResponseBody
   public ResponseEntity<String> download(
       @Autowired HttpServletRequest httpRequest,
-      @RequestParam(name = "notification_address", required = false) String emails,
+      @RequestParam(name = "send_notification", required = false) Boolean sendNotification,
       @RequestParam("format") String format,
       @RequestParam(name = "extensions", required = false) String extensions,
       @RequestParam(name = "interpretedExtensions", required = false) String interpretedExtensions,
@@ -595,7 +593,7 @@ public class DownloadResource {
           createDownload(
               downloadPredicate(
                   httpRequest,
-                  emails,
+                  sendNotification,
                   format,
                   extensions,
                   interpretedExtensions,
@@ -626,7 +624,6 @@ public class DownloadResource {
       properties = @ExtensionProperty(name = "Order", value = "0050")))
   @Parameters(
     value = {
-      @Parameter(name = "notification_address", description = "Email notification address."),
       @Parameter(name = "format", description = "Download format."),
       @Parameter(name = "verbatimExtensions", description = "Verbatim extensions to include in a Darwin Core Archive " +
         "download."),
@@ -638,7 +635,7 @@ public class DownloadResource {
   @GetMapping("predicate")
   public DownloadRequest downloadPredicate(
       @Autowired HttpServletRequest httpRequest,
-      @RequestParam(name = "notification_address", required = false) String emails,
+      @RequestParam(name = "send_notification", required = false) Boolean sendNotification,
       @RequestParam("format") String format,
       @RequestParam(name = "verbatimExtensions", required = false) String verbatimExtensions,
       @RequestParam(name = "interpretedExtensions", required = false) String interpretedExtensions,
@@ -649,7 +646,6 @@ public class DownloadResource {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
     String creator = principal != null ? principal.getName() : null;
-    Set<String> notificationAddress = asSet(emails);
     Set<org.gbif.api.vocabulary.Extension> requestVerbatimExtensions = toExtension(verbatimExtensions);
     Set<org.gbif.api.vocabulary.Extension> requestInterpretedExtensions = toExtension(interpretedExtensions);
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
@@ -668,8 +664,8 @@ public class DownloadResource {
     return new PredicateDownloadRequest(
         predicate,
         creator,
-        notificationAddress,
-        notificationAddress != null,
+        null, // Notification address will be the creator's registered address
+        Boolean.TRUE.equals(sendNotification),
         downloadFormat,
         downloadType,
         description,
@@ -713,7 +709,6 @@ public class DownloadResource {
         example = "{\n" +
           "  \"creator\": \"gbif_username\",\n" +
           "  \"sendNotification\": true,\n" +
-          "  \"notification_address\": [\"gbif@example.org\"],\n" +
           "  \"format\": \"SIMPLE_CSV\",\n" +
           "  \"description\": \"A user-friendly description of the download request.\",\n" +
           "  \"machineDescription\": {\"key\": \"value\"},\n" +
@@ -832,13 +827,12 @@ public class DownloadResource {
       properties = @ExtensionProperty(name = "Order", value = "0062")))
   @GetMapping("sql")
   public ResponseEntity<Object> downloadSqlGet(@Autowired HttpServletRequest httpRequest,
-    @RequestParam(name = "notification_address", required = false) String emails,
+    @RequestParam(name = "send_notification", required = false) Boolean sendNotification,
     @RequestParam(name = "description", required = false) String description,
     @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
     @RequestParam(name = "checklistKey", required = false) String checklistKey,
     @Autowired Principal principal) {
     String creator = principal != null ? principal.getName() : null;
-    Set<String> notificationAddress = asSet(emails);
 
     Predicate predicate = PredicateFactory.build(httpRequest.getParameterMap());
     LOG.info("Predicate build for passing to download [{}]", predicate);
@@ -856,8 +850,8 @@ public class DownloadResource {
     PredicateDownloadRequest request = new PredicateDownloadRequest(
       predicate,
       creator,
-      notificationAddress,
-      notificationAddress != null,
+      null, // Notification address will be the creator's registered address
+      Boolean.TRUE.equals(sendNotification),
       DownloadFormat.SIMPLE_CSV,
       downloadType,
       description,

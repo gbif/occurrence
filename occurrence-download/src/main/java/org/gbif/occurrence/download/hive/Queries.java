@@ -169,18 +169,12 @@ public abstract class Queries {
       return String.format(
         "array_join(array_union(nontaxonomicissue, %s), '\\;') as issue",
         prefix + "taxonomicissue");
-    } else if (term == GbifTerm.taxonomicIssue) {
+    } else if (term == GbifTerm.taxonomicIssue || term == GbifTerm.environments) {
       final String columnName = HiveColumns.columnFor(term);
-      // combine the non taxonomic issues with the
-      // taxonomic issues from the specified checklist
+      // array columns of the specified checklist, joined to a single string
       return String.format(
         "array_join(%s, '\\;') as %s",
         prefix + columnName, columnName);
-    } else if (term == DwcTerm.infragenericEpithet) {
-      //FIX ME
-      // gets around the fact that infragenericEpithet is present in the denormalised taxonomy,
-      // but is NOT present in the nested struct
-      return String.format("NULL AS %s", HiveColumns.columnFor(term));
     } else {
       final String columnName = HiveColumns.columnFor(term);
       return String.format(

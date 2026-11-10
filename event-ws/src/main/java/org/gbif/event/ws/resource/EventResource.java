@@ -29,9 +29,6 @@ import org.gbif.occurrence.search.es.EsQueryUtils;
 
 import java.util.List;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -53,6 +50,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import static org.gbif.event.ws.docs.OpenAPIUtils.*;
 
@@ -62,7 +61,8 @@ import static org.gbif.event.ws.docs.OpenAPIUtils.*;
             title = "Event API",
             version = "v1",
             description =
-                "This API works against the GBIF Event Store, which handles event records and makes them available "
+                "**Experimental API**: this API is still under development and it may change at any time. \n"
+                    + "This API works against the GBIF Event Store, which handles event records and makes them available "
                     + "through the web service and download files.\n",
             termsOfService = "https://www.gbif.org/terms"),
     servers = {@Server(url = "https://api.gbif-test.org/v1/", description = "User testing")},
@@ -79,14 +79,17 @@ import static org.gbif.event.ws.docs.OpenAPIUtils.*;
                   properties = @ExtensionProperty(name = "Order", value = "0500"))),
       // And this for the GADM methods from geocode-ws
       @Tag(
-        name = "GADM regions",
-        description = "The [GADM Global Administrative Area Database](https://gadm.org) " +
-          "is a high-resolution database of administrative areas of countries.\n\n" +
-          "Within GBIF, it is used to index event data by administrative region.\n\n" +
-          "This API provides services to search and browse regions and sub-regions " +
-          "down to the third level sub-region.",
-        extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0800"))
-      )
+          name = "GADM regions",
+          description =
+              "The [GADM Global Administrative Area Database](https://gadm.org) "
+                  + "is a high-resolution database of administrative areas of countries.\n\n"
+                  + "Within GBIF, it is used to index event data by administrative region.\n\n"
+                  + "This API provides services to search and browse regions and sub-regions "
+                  + "down to the third level sub-region.",
+          extensions =
+              @Extension(
+                  name = "Order",
+                  properties = @ExtensionProperty(name = "Order", value = "0800")))
     })
 @Tag(
     name = "Events",

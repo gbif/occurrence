@@ -202,6 +202,8 @@ public class EsQueryUtils {
           .put(OccurrenceSearchParameter.KINGDOM_KEY, Kingdom.values().length)
           .put(OccurrenceSearchParameter.MONTH, 12)
           .put(OccurrenceSearchParameter.IUCN_RED_LIST_CATEGORY, ThreatStatus.values().length)
+          // MARINE, BRACKISH, FRESHWATER, TERRESTRIAL
+          .put(OccurrenceSearchParameter.ENVIRONMENTS, 4)
           .build();
 
   static <P extends SearchParameter, S extends FacetedSearchRequest<P>> int extractFacetLimit(
