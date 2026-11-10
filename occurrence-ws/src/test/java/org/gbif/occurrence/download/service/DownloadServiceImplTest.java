@@ -37,6 +37,10 @@ import org.gbif.common.messaging.api.messages.DownloadLauncherMessage;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.registry.ws.client.DoiInteractionClient;
+import org.gbif.vocabulary.api.ConceptView;
+import org.gbif.vocabulary.client.ConceptClient;
+import org.gbif.vocabulary.model.Concept;
+import org.gbif.vocabulary.model.Tag;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -76,6 +80,7 @@ class DownloadServiceImplTest {
   @Mock private OccurrenceEmailManager emailManager;
   @Mock private EmailSender emailSender;
   @Mock private DoiInteractionClient doiInteractionClient;
+  @Mock private ConceptClient conceptClient;
 
   private MessagePublisher messagePublisher;
   private DownloadRequestService requestService;
@@ -97,6 +102,7 @@ class DownloadServiceImplTest {
             emailSender,
             messagePublisher,
             doiInteractionClient,
+            conceptClient,
           "{}");
   }
 
@@ -248,6 +254,73 @@ class DownloadServiceImplTest {
     verify(occurrenceSearchService).countRecords(any());
     verify(messagePublisher)
         .send(any(DownloadLauncherMessage.class), eq("occurrence"), eq("occurrence.download.launch.small"));
+  }
+
+  @Test
+  void testCountUsesTranslatedPredicateButPersistsOriginal() throws Exception {
+    ReflectionTestUtils.setField(requestService, "smallDownloadCutOff", 1000);
+    Concept neogene = new Concept();
+    neogene.setName("neogene");
+    neogene.setTags(Arrays.asList(Tag.of("startAge: 23.03"), Tag.of("endAge: 2.58")));
+    when(conceptClient.getFromLatestRelease("GeoTime", "neogene", false, false))
+        .thenReturn(new ConceptView(neogene));
+    when(occurrenceSearchService.countRecords(any())).thenReturn(10L);
+
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            new EqualsPredicate<>(OccurrenceSearchParameter.GEOLOGICAL_TIME, "neogene", false),
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            "testDescription",
+            null,
+            Collections.singleton(Extension.AUDUBON),
+            null,
+            null);
+    requestService.create(dl, null);
+
+    // the count query uses the translated geological time
+    verify(occurrenceSearchService)
+        .countRecords(argThat(p -> "2.58,23.03".equals(((EqualsPredicate<?>) p).getValue())));
+    // the original predicate is persisted
+    verify(downloadService)
+        .create(
+            argThat(
+                d ->
+                    d.getTotalRecords() == 10
+                        && "neogene"
+                            .equals(
+                                ((EqualsPredicate<?>)
+                                        ((PredicateDownloadRequest) d.getRequest()).getPredicate())
+                                    .getValue())));
+  }
+
+  @Test
+  void testTranslationErrorSetsCountToMinusOne() throws Exception {
+    ReflectionTestUtils.setField(requestService, "smallDownloadCutOff", 1000);
+    // unknown concept, the translation fails
+    when(conceptClient.getFromLatestRelease("GeoTime", "foo", false, false)).thenReturn(null);
+
+    DownloadRequest dl =
+        new PredicateDownloadRequest(
+            new EqualsPredicate<>(OccurrenceSearchParameter.GEOLOGICAL_TIME, "foo", false),
+            "markus",
+            null,
+            true,
+            DownloadFormat.DWCA,
+            DownloadType.OCCURRENCE,
+            "testDescription",
+            null,
+            Collections.singleton(Extension.AUDUBON),
+            null,
+            null);
+    requestService.create(dl, null);
+
+    verify(occurrenceSearchService, never()).countRecords(any());
+    verify(downloadService).create(argThat(d -> d.getTotalRecords() == -1));
+    verify(messagePublisher).send(any(DownloadLauncherMessage.class));
   }
 
   @Test

@@ -441,8 +441,12 @@ public abstract class DownloadRequestServiceImpl
     // big or small
     if (request instanceof PredicateDownloadRequest) {
       try {
+        // the count query needs the translated predicate (e.g. geological time as age ranges), but
+        // the original one is persisted because the download workflows translate it again
         download.setTotalRecords(
-            countRecords(((PredicateDownloadRequest) download.getRequest()).getPredicate()));
+            countRecords(
+                translatePredicateFields(
+                    ((PredicateDownloadRequest) download.getRequest()).getPredicate())));
       } catch (Exception ex) {
         download.setTotalRecords(-1);
         log.error(
@@ -476,4 +480,7 @@ public abstract class DownloadRequestServiceImpl
   }
 
   protected abstract long countRecords(Predicate predicate);
+
+  /** Translates the predicate fields (e.g. vocabulary concepts) so it can be used in a query. */
+  protected abstract Predicate translatePredicateFields(Predicate predicate);
 }
