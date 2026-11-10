@@ -143,6 +143,10 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.gbif.vocabulary</groupId>
+      <artifactId>vocabulary-rest-ws-client</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.gbif.occurrence</groupId>
       <artifactId>occurrence-common</artifactId>
       <exclusions>

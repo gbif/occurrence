@@ -22,7 +22,9 @@ import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.occurrence.query.PredicateCounter;
 import org.gbif.occurrence.query.PredicateGeometryPointCounter;
+import org.gbif.occurrence.search.es.RequestFieldsTranslator;
 import org.gbif.registry.ws.client.DoiInteractionClient;
+import org.gbif.vocabulary.client.ConceptClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl {
 
   private final OccurrenceSearchService occurrenceSearchService;
+  private final ConceptClient conceptClient;
 
   @Value("${occurrence.download.small_download_cut_off}")
   private int smallDownloadCutOff;
@@ -60,6 +63,7 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       EmailSender emailSender,
       MessagePublisher messagePublisher,
       DoiInteractionClient doiInteractionClient,
+      ConceptClient conceptClient,
       @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson) {
     super(
         portalUrl,
@@ -75,6 +79,7 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
         checklistNestedStructConfigJson
     );
     this.occurrenceSearchService = occurrenceSearchService;
+    this.conceptClient = conceptClient;
   }
 
   @Override
@@ -96,5 +101,10 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       }
     }
     return occurrenceSearchService.countRecords(predicate);
+  }
+
+  @Override
+  protected Predicate translatePredicateFields(Predicate predicate) {
+    return RequestFieldsTranslator.translateOccurrencePredicateFields(predicate, conceptClient);
   }
 }
