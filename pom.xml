@@ -139,7 +139,7 @@
     <httpcore.version>4.4.13</httpcore.version>
 
     <jackson.version>2.19.4</jackson.version>
-    <json.version>20250517</json.version>
+    <json.version>20260719</json.version>
     <jcommander.version>1.60</jcommander.version>
     <slf4j.version>2.0.17</slf4j.version>
     <logback.version>1.5.21</logback.version>
