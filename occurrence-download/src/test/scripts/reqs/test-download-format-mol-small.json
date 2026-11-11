@@ -1,7 +1,6 @@
 {
   "creator": "",
   "sendNotification": true,
-  "notificationAddresses": [""],
   "format": "MAP_OF_LIFE",
   "predicate": {
     "type": "and",

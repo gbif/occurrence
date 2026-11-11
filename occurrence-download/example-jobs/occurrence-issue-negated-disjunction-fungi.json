@@ -1,6 +1,4 @@
 {
-  "creator": "MattBlissett",
-  "notification_address": ["mblissett@gbif.org"],
   "sendNotification": true,
   "format": "DWCA",
   "predicate": {

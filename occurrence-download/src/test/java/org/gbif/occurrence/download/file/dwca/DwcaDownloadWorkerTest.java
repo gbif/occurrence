@@ -13,10 +13,17 @@
  */
 package org.gbif.occurrence.download.file.dwca;
 
+import org.gbif.api.model.occurrence.NucleotideSequence;
+import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.dwc.terms.*;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -82,5 +89,37 @@ public class DwcaDownloadWorkerTest {
     expected.put(DcTerm.title.simpleName().toLowerCase(), "03538523.tif");
 
     assertEquals(expected, result);
+  }
+
+  @Test
+  public void testWriteFastaFileWithNullValues() throws IOException {
+    DwcaDownloadWorker<Occurrence, OccurrenceSearchParameter> worker = new DwcaDownloadWorker<>(null, null, null);
+
+    NucleotideSequence noTargetGene = new NucleotideSequence();
+    noTargetGene.setNucleotideSequenceID("seq1");
+    noTargetGene.setSequence("ACGT");
+
+    NucleotideSequence complete = new NucleotideSequence();
+    complete.setNucleotideSequenceID("seq2");
+    complete.setTargetGene("COI");
+    complete.setSequence("TTGA");
+
+    // invalid or missing sequence: no sequence and no id
+    NucleotideSequence noSequence = new NucleotideSequence();
+    noSequence.setTargetGene("COI");
+    noSequence.setInvalid(true);
+
+    Occurrence occurrence = new Occurrence();
+    occurrence.setKey(1L);
+    occurrence.setNucleotideSequence(
+        new ArrayList<>(Arrays.asList(noTargetGene, complete, noSequence)));
+
+    StringWriter out = new StringWriter();
+    try (BufferedWriter writer = new BufferedWriter(out)) {
+      worker.writeFastaFile(writer, occurrence);
+    }
+
+    String nl = System.lineSeparator();
+    assertEquals(">seq1|1|" + nl + "ACGT" + nl + ">seq2|1|COI" + nl + "TTGA" + nl, out.toString());
   }
 }

@@ -22,7 +22,9 @@ import org.gbif.occurrence.download.service.DownloadLimitsService;
 import org.gbif.occurrence.download.service.DownloadRequestServiceImpl;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.occurrence.search.es.RequestFieldsTranslator;
 import org.gbif.registry.ws.client.DoiInteractionClient;
+import org.gbif.vocabulary.client.ConceptClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EventDownloadRequestService extends DownloadRequestServiceImpl {
 
   private final String defaultChecklistKey;
+  private final ConceptClient conceptClient;
 
   @Autowired
   public EventDownloadRequestService(
@@ -48,6 +51,7 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
     EmailSender emailSender,
     MessagePublisher messagePublisher,
     DoiInteractionClient doiInteractionClient,
+    ConceptClient conceptClient,
     @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson) {
     super(
         portalUrl,
@@ -62,6 +66,7 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
         doiInteractionClient,
         checklistNestedStructConfigJson);
     this.defaultChecklistKey = defaultChecklistKey;
+    this.conceptClient = conceptClient;
   }
 
   @Override
@@ -73,6 +78,11 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
   protected long countRecords(Predicate predicate) {
     // it always goes thru the big downloads wf
     return -1;
+  }
+
+  @Override
+  protected Predicate translatePredicateFields(Predicate predicate) {
+    return RequestFieldsTranslator.translateEventPredicateFields(predicate, conceptClient);
   }
 
   @Override

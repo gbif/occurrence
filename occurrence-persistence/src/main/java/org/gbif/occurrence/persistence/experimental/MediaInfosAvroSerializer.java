@@ -32,8 +32,10 @@ import org.xerial.snappy.Snappy;
 
 public class MediaInfosAvroSerializer {
 
-  // Define schema once (can also load from a .avsc file)
-  private static final String MEDIA_INFO_SCHEMA_JSON = """
+  // Cells are raw Avro binary without an embedded writer schema, so the schema each cell was written
+  // with is implied by its HBase qualifier (see OccurrenceSpeciesMultimediaServiceImpl).
+  // v1 ("media_infos"): original fields.
+  private static final String MEDIA_INFO_V1_SCHEMA_JSON = """
     {
       "type": "record",
       "name": "MediaInfo",
@@ -47,16 +49,44 @@ public class MediaInfosAvroSerializer {
     }
     """;
 
-  private static final String MEDIA_INFO_ARRAY_SCHEMA_JSON =
-      "{\"type\": \"array\", \"items\": " + MEDIA_INFO_SCHEMA_JSON + "}";
+  // v2 ("media_infos_v2"): adds datasetKey.
+  private static final String MEDIA_INFO_V2_SCHEMA_JSON = """
+    {
+      "type": "record",
+      "name": "MediaInfo",
+      "fields": [
+        {"name": "identifier",   "type": ["null", "string"], "default": null},
+        {"name": "title",        "type": ["null", "string"], "default": null},
+        {"name": "occurrenceKey","type": ["null", "string"], "default": null},
+        {"name": "rightsHolder", "type": ["null", "string"], "default": null},
+        {"name": "license",      "type": ["null", "string"], "default": null},
+        {"name": "datasetKey",   "type": ["null", "string"], "default": null}
+      ]
+    }
+    """;
 
-  private static final Schema MEDIA_INFO_ARRAY_SCHEMA = new Schema.Parser().parse(MEDIA_INFO_ARRAY_SCHEMA_JSON);
+  static final Schema MEDIA_INFO_ARRAY_V1_SCHEMA = arraySchema(MEDIA_INFO_V1_SCHEMA_JSON);
+  static final Schema MEDIA_INFO_ARRAY_V2_SCHEMA = arraySchema(MEDIA_INFO_V2_SCHEMA_JSON);
 
-  // Reader (on the API side)
-  public static List<Map<String,Object>> deserializeMediaInfosAvro(byte[] data) throws IOException {
+  private static Schema arraySchema(String itemSchemaJson) {
+    return new Schema.Parser().parse("{\"type\": \"array\", \"items\": " + itemSchemaJson + "}");
+  }
+
+  /** Reads a v1 ("media_infos") cell; datasetKey is returned as null. */
+  public static List<Map<String,Object>> deserializeMediaInfosV1Avro(byte[] data) throws IOException {
+    return deserialize(data, MEDIA_INFO_ARRAY_V1_SCHEMA);
+  }
+
+  /** Reads a v2 ("media_infos_v2") cell. */
+  public static List<Map<String,Object>> deserializeMediaInfosV2Avro(byte[] data) throws IOException {
+    return deserialize(data, MEDIA_INFO_ARRAY_V2_SCHEMA);
+  }
+
+  // Reader (on the API side). Always resolves to the latest schema so the response shape is stable.
+  private static List<Map<String,Object>> deserialize(byte[] data, Schema writerSchema) throws IOException {
     byte[] avroBytes = Snappy.uncompress(data);
     GenericDatumReader<Array<GenericRecord>> reader =
-        new GenericDatumReader<>(MEDIA_INFO_ARRAY_SCHEMA);
+        new GenericDatumReader<>(writerSchema, MEDIA_INFO_ARRAY_V2_SCHEMA);
     BinaryDecoder decoder = DecoderFactory.get().binaryDecoder(avroBytes, null);
     Array<GenericRecord> array = reader.read(null, decoder);
     return array.stream().map(MediaInfosAvroSerializer::genericRecordToMap).toList();

@@ -60,7 +60,6 @@ class SmallDownloadLauncherListenerTest {
     PredicateDownloadRequest request = new PredicateDownloadRequest();
     request.setCreator("testUser");
     request.setFormat(DownloadFormat.DWCA);
-    request.setNotificationAddresses(Collections.singleton("testEmail"));
     request.setType(DownloadType.OCCURRENCE);
     request.setPredicate(
         new EqualsPredicate(

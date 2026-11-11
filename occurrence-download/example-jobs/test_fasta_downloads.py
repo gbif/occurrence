@@ -45,8 +45,6 @@ BIG_PREDICATE = {
 def create_download_request(include_verbatim_dna_extension, include_interpreted_dna_extension, format, big_download):
     """Create download request with or without extensions"""
     payload = {
-        "creator": USERNAME,
-        "notification_addresses": [USERNAME + "@gbif.org"],
         "send_notification": True,
         "format": format,
     }
@@ -79,8 +77,6 @@ def create_download_request(include_verbatim_dna_extension, include_interpreted_
 def create_dwca_download_request(include_verbatim_dna_extension=True, include_interpreted_dna_extension=True):
     """Create download request with or without extensions"""
     payload = {
-        "creator": USERNAME,
-        "notification_addresses": [USERNAME + "@gbif.org"],
         "send_notification": True,
         "format": "DWCA",
         "predicate": {
@@ -382,5 +378,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

@@ -20,7 +20,11 @@ import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.common.messaging.api.MessagePublisher;
 import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
+import org.gbif.occurrence.query.PredicateCounter;
+import org.gbif.occurrence.query.PredicateGeometryPointCounter;
+import org.gbif.occurrence.search.es.RequestFieldsTranslator;
 import org.gbif.registry.ws.client.DoiInteractionClient;
+import org.gbif.vocabulary.client.ConceptClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,9 +37,19 @@ import lombok.extern.slf4j.Slf4j;
 public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl {
 
   private final OccurrenceSearchService occurrenceSearchService;
+  private final ConceptClient conceptClient;
 
   @Value("${occurrence.download.small_download_cut_off}")
   private int smallDownloadCutOff;
+
+  // queries with more predicate values than this don't use Elasticsearch, a negative value disables
+  // the check
+  @Value("${occurrence.download.small_download_max_predicate_values:1000}")
+  private int smallDownloadMaxPredicateValues = 1000;
+
+  private final PredicateCounter predicateCounter = new PredicateCounter();
+  private final PredicateGeometryPointCounter predicateGeometryPointCounter =
+      new PredicateGeometryPointCounter();
 
   @Autowired
   public OccurrenceDownloadRequestService(
@@ -49,6 +63,7 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       EmailSender emailSender,
       MessagePublisher messagePublisher,
       DoiInteractionClient doiInteractionClient,
+      ConceptClient conceptClient,
       @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson) {
     super(
         portalUrl,
@@ -64,6 +79,7 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
         checklistNestedStructConfigJson
     );
     this.occurrenceSearchService = occurrenceSearchService;
+    this.conceptClient = conceptClient;
   }
 
   @Override
@@ -73,6 +89,22 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
 
   @Override
   protected long countRecords(Predicate predicate) {
+    if (smallDownloadMaxPredicateValues >= 0) {
+      // predicate values (each IN value counts separately) plus geometry points
+      int values = predicateCounter.count(predicate) + predicateGeometryPointCounter.count(predicate);
+      if (values > smallDownloadMaxPredicateValues) {
+        // skip the Elasticsearch count, -1 is never a small download so this goes to Spark
+        log.info(
+            "Query has {} predicate values, more than {}, not counting with Elasticsearch",
+            values, smallDownloadMaxPredicateValues);
+        return -1;
+      }
+    }
     return occurrenceSearchService.countRecords(predicate);
+  }
+
+  @Override
+  protected Predicate translatePredicateFields(Predicate predicate) {
+    return RequestFieldsTranslator.translateOccurrencePredicateFields(predicate, conceptClient);
   }
 }

@@ -24,7 +24,7 @@ SELECT
   IF(ISNULL(familyKey), NULL, SUM(COUNT(*)) OVER (PARTITION BY familyKey)) AS familyCount
 FROM
   occurrence
-WHERE occurrenceStatus = 'PRESENT'
+WHERE occurrenceStatus = 'DETECTED'
   AND countryCode = 'PL'
   AND "year" >= 2000
   AND kingdomKey = 1

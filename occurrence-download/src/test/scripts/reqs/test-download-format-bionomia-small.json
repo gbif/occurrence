@@ -1,7 +1,6 @@
 {
   "creator": "",
   "sendNotification": true,
-  "notificationAddresses": [""],
   "format": "BIONOMIA",
   "predicate": {
     "type": "and",

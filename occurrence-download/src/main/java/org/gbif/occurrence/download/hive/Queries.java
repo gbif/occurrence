@@ -175,11 +175,6 @@ public abstract class Queries {
       return String.format(
         "array_join(%s, '\\;') as %s",
         prefix + columnName, columnName);
-    } else if (term == DwcTerm.infragenericEpithet) {
-      //FIX ME
-      // gets around the fact that infragenericEpithet is present in the denormalised taxonomy,
-      // but is NOT present in the nested struct
-      return String.format("NULL AS %s", HiveColumns.columnFor(term));
     } else {
       final String columnName = HiveColumns.columnFor(term);
       return String.format(
