@@ -573,7 +573,7 @@ public class DownloadResource {
       @RequestParam(name = "source", required = false) String source,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
-      @RequestParam(name = "checklistKey", required = false) String checklistKey,
+      @RequestParam(name = "checklistKey", required = false) UUID checklistKey,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
@@ -632,7 +632,7 @@ public class DownloadResource {
       @RequestParam(name = "interpretedExtensions", required = false) String interpretedExtensions,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
-      @RequestParam(name = "checklistKey", required = false) String checklistKey,
+      @RequestParam(name = "checklistKey", required = false) UUID checklistKey,
       @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
@@ -755,7 +755,7 @@ public class DownloadResource {
             QueryVisitorsFactory.createSqlQueryVisitor(
                 this.denormalisedTaxonomy,
                 this.checklistNestedStructMap,
-                downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey() : defaultChecklistKey,
+                downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey().toString() : defaultChecklistKey,
                 "occurrence"
             )
             .buildQuery(downloadRequest.getPredicate());
@@ -818,7 +818,7 @@ public class DownloadResource {
     @RequestParam(name = "send_notification", required = false) Boolean sendNotification,
     @RequestParam(name = "description", required = false) String description,
     @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
-    @RequestParam(name = "checklistKey", required = false) String checklistKey,
+    @RequestParam(name = "checklistKey", required = false) UUID checklistKey,
     @Autowired Principal principal) {
     String creator = principal != null ? principal.getName() : null;
 

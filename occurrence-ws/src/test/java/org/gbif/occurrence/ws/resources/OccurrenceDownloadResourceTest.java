@@ -143,10 +143,10 @@ public class OccurrenceDownloadResourceTest {
       new PredicateDownloadRequest(
         new DisjunctionPredicate(
           List.of(
-            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false, Constants.NUB_DATASET_KEY.toString()),
-            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "A", false, Constants.COL_DATASET_KEY.toString()),
-            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("2", "3"), false, Constants.NUB_DATASET_KEY.toString()),
-            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("F", "N"), false, Constants.COL_DATASET_KEY.toString()),
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false, Constants.NUB_DATASET_KEY),
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "A", false, Constants.COL_DATASET_KEY),
+            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("2", "3"), false, Constants.NUB_DATASET_KEY),
+            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("F", "N"), false, Constants.COL_DATASET_KEY),
 
             new EqualsPredicate(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, "AGAC", false),
             new InPredicate(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, List.of("AGAC", "CAGA"), false),
