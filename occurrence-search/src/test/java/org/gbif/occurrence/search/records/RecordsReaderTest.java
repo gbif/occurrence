@@ -206,6 +206,19 @@ class RecordsReaderTest {
   }
 
   @Test
+  void recordsAreReadByIdKeepingTheOrder() throws Exception {
+    List<List<String>> requests = new ArrayList<>();
+    RecordsReader<Occurrence> reader = reader(1L, 3L).withFallback(fallback(requests, 2L));
+
+    Map<String, Occurrence> records = reader.getById(List.of("3", "4", "2", "1"));
+
+    assertEquals(List.of("3", "2", "1"), List.copyOf(records.keySet()));
+    assertEquals(2L, records.get("2").getKey());
+    assertEquals("from the fallback", records.get("2").getScientificName());
+    assertEquals(List.of(List.of("4", "2")), requests);
+  }
+
+  @Test
   void fallbackIsNotQueriedWhenAllRecordsAreInTheTable() throws Exception {
     List<List<String>> requests = new ArrayList<>();
     RecordsReader<Occurrence> reader = reader(1L, 2L).withFallback(fallback(requests, 1L, 2L));

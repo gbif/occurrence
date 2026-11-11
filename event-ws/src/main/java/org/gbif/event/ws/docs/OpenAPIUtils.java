@@ -99,6 +99,20 @@ public class OpenAPIUtils {
       })
   public @interface EventErrorResponses {}
 
+  /** Responses of the batch lookups for documentation. */
+  @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.RUNTIME)
+  @Inherited
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "200", description = "Events found and ids not found"),
+        @ApiResponse(
+            responseCode = "400",
+            description = "Invalid identifiers supplied or too many identifiers",
+            content = @Content)
+      })
+  public @interface BatchResponses {}
+
   /** The usual (search) limit and offset parameters */
   @Target({PARAMETER, METHOD, FIELD, ANNOTATION_TYPE})
   @Retention(RetentionPolicy.RUNTIME)

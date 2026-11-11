@@ -21,10 +21,11 @@ import org.gbif.occurrence.search.SearchException;
 import org.gbif.ws.json.JacksonJsonObjectMapperProvider;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -107,6 +108,16 @@ public class RecordsReader<T extends VerbatimOccurrence> {
         RecordsFallback::get);
   }
 
+  /** Records of the ids that exist, by id, in the order of the ids. */
+  public Map<String, T> getById(List<String> ids) {
+    return readById(
+        ids,
+        true,
+        false,
+        (row, records) -> records.put(row.id(), read(row.interpreted(), type)),
+        RecordsFallback::get);
+  }
+
   /**
    * Like {@link #get(List)}, but the verbatim fields of the records are the complete verbatim
    * record. The interpreted view of the API leaves out the verbatim terms that have an interpreted
@@ -137,11 +148,24 @@ public class RecordsReader<T extends VerbatimOccurrence> {
     return hits.stream().map(Hit::id).toList();
   }
 
+  /** Records of the ids that exist, in the order of the ids. */
+  private <R> List<R> read(
+      List<String> ids,
+      boolean interpreted,
+      boolean verbatim,
+      BiConsumer<RecordsStore.Row, Map<String, R>> rowReader,
+      FallbackReader<T, R> fallbackReader) {
+    return ids.stream()
+        .map(readById(ids, interpreted, verbatim, rowReader, fallbackReader)::get)
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
   /**
    * Reads the rows of the ids from the table, then the missing ones from the fallback, and returns
-   * the records in the order of the ids.
+   * the records that exist by id, in the order of the ids.
    */
-  private <R> List<R> read(
+  private <R> Map<String, R> readById(
       List<String> ids,
       boolean interpreted,
       boolean verbatim,
@@ -158,11 +182,11 @@ public class RecordsReader<T extends VerbatimOccurrence> {
       records.putAll(fallbackReader.read(fallback, missing));
     }
 
-    List<R> ordered = new ArrayList<>(records.size());
+    Map<String, R> ordered = new LinkedHashMap<>();
     for (String id : ids) {
       R record = records.get(id);
       if (record != null) {
-        ordered.add(record);
+        ordered.put(id, record);
       }
     }
     return ordered;

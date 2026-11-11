@@ -25,6 +25,7 @@ import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.event.search.EventSearchRequest;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.event.search.es.EventSearchEs;
+import org.gbif.occurrence.search.BatchResponse;
 import org.gbif.occurrence.search.es.EsQueryUtils;
 
 import java.util.List;
@@ -37,15 +38,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.servers.Server;
@@ -131,6 +137,48 @@ public class EventResource {
   @GetMapping("{id}")
   public Event get(@PathVariable("id") String id) {
     return eventSearchEs.get(id);
+  }
+
+  @Operation(
+      operationId = "getEventsByIds",
+      summary = "Events by ids",
+      description =
+          "Retrieve details for several interpreted events in a single request.\n\n"
+              + "The events are returned in the same format as the single event lookup, in the order of the "
+              + "requested ids. Duplicated ids are returned once and the ids that can't be found are listed in "
+              + "`notFound`. The number of distinct ids per request is limited to the maximum page size.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0110")))
+  @io.swagger.v3.oas.annotations.parameters.RequestBody(
+      description = "JSON array of event ids.",
+      content = @Content(array = @ArraySchema(schema = @Schema(implementation = String.class))))
+  @BatchResponses
+  @PostMapping(value = "batch", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public BatchResponse<String, Event> getBatch(@RequestBody List<String> ids) {
+    return BatchResponse.of(ids, eventSearchEs.getByIds(ids));
+  }
+
+  @Operation(
+      operationId = "getEventsByIdsGet",
+      summary = "Events by ids (GET)",
+      description =
+          "Retrieve details for several interpreted events in a single request, with the ids as repeated "
+              + "`id` parameters. Same as the POST variant, which is preferred for long lists of ids.",
+      extensions =
+          @Extension(
+              name = "Order",
+              properties = @ExtensionProperty(name = "Order", value = "0120")))
+  @Parameter(
+      name = "id",
+      description = "Id of an event, can be repeated.",
+      array = @ArraySchema(schema = @Schema(implementation = String.class)),
+      in = ParameterIn.QUERY)
+  @BatchResponses
+  @GetMapping("batch")
+  public BatchResponse<String, Event> getBatchGet(@RequestParam("id") List<String> ids) {
+    return getBatch(ids);
   }
 
   @Operation(

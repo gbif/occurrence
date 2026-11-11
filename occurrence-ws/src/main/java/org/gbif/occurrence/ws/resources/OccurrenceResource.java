@@ -18,6 +18,7 @@ import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 import org.gbif.api.service.occurrence.OccurrenceService;
 import org.gbif.occurrence.persistence.experimental.OccurrenceRelationshipService;
+import org.gbif.occurrence.search.BatchResponse;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.ws.provider.OccurrenceDwcXMLConverter;
 import org.gbif.occurrence.ws.provider.OccurrenceVerbatimDwcXMLConverter;
@@ -47,6 +48,7 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.extensions.Extension;
 import io.swagger.v3.oas.annotations.extensions.ExtensionProperty;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -127,6 +129,8 @@ public class OccurrenceResource {
 
   @VisibleForTesting
   public static final String ANNOSYS_PATH = "annosys";
+
+  public static final String BATCH_PATH = "batch";
 
   private static final Logger LOG = LoggerFactory.getLogger(OccurrenceResource.class);
 
@@ -229,6 +233,72 @@ public class OccurrenceResource {
   public Occurrence get(@PathVariable("gbifId") Long gbifId) {
     LOG.debug("Request Occurrence [{}]:", gbifId);
     return occurrenceGetByKey.get(gbifId);
+  }
+
+  /**
+   * This retrieves several Occurrences by their gbifIds from the occurrence store.
+   *
+   * @param gbifIds Occurrence gbifIds
+   * @return the occurrences found, in the order of the gbifIds, and the gbifIds that weren't found
+   */
+  @Operation(
+    operationId = "getOccurrencesByIds",
+    summary = "Occurrences by ids",
+    description = "Retrieve details for several interpreted occurrences in a single request.\n\n" +
+      "The occurrences are returned in the same format as the single occurrence lookup, in the order of the " +
+      "requested ids. Duplicated ids are returned once and the ids that can't be found are listed in `notFound`. " +
+      "The number of distinct ids per request is limited to the maximum page size.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0101"))
+  )
+  @io.swagger.v3.oas.annotations.parameters.RequestBody(
+    description = "JSON array of integer gbifIds.",
+    content = @Content(array = @ArraySchema(schema = @Schema(implementation = Long.class, minimum = "1"))))
+  @ApiResponses(
+    value = {
+      @ApiResponse(responseCode = "200", description = "Occurrences found and gbifIds not found"),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid identifiers supplied or too many identifiers",
+        content = @Content)
+    }
+  )
+  @PostMapping(value = BATCH_PATH, consumes = MediaType.APPLICATION_JSON_VALUE)
+  public BatchResponse<Long, Occurrence> getBatch(@RequestBody List<Long> gbifIds) {
+    LOG.debug("Request Occurrences {}:", gbifIds);
+    return BatchResponse.of(gbifIds, occurrenceGetByKey.getByKeys(gbifIds));
+  }
+
+  /**
+   * GET variant of {@link #getBatch(List)} for short lists of gbifIds.
+   *
+   * @param gbifIds Occurrence gbifIds
+   * @return the occurrences found, in the order of the gbifIds, and the gbifIds that weren't found
+   */
+  @Operation(
+    operationId = "getOccurrencesByIdsGet",
+    summary = "Occurrences by ids (GET)",
+    description = "Retrieve details for several interpreted occurrences in a single request, with the ids as " +
+      "repeated `gbifId` parameters. Same as the POST variant, which is preferred for long lists of ids.",
+    extensions = @Extension(name = "Order", properties = @ExtensionProperty(name = "Order", value = "0102"))
+  )
+  @Parameter(
+    name = "gbifId",
+    description = "Integer gbifId for an occurrence, can be repeated.",
+    example = "1258202889",
+    array = @ArraySchema(schema = @Schema(implementation = Long.class, minimum = "1")),
+    in = ParameterIn.QUERY)
+  @ApiResponses(
+    value = {
+      @ApiResponse(responseCode = "200", description = "Occurrences found and gbifIds not found"),
+      @ApiResponse(
+        responseCode = "400",
+        description = "Invalid identifiers supplied or too many identifiers",
+        content = @Content)
+    }
+  )
+  @GetMapping(BATCH_PATH)
+  public BatchResponse<Long, Occurrence> getBatchGet(@RequestParam("gbifId") List<Long> gbifIds) {
+    return getBatch(gbifIds);
   }
 
   /**

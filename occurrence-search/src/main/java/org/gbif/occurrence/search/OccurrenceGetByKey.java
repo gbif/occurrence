@@ -17,6 +17,8 @@ import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Occurrence;
 import org.gbif.api.model.occurrence.VerbatimOccurrence;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import jakarta.annotation.Nullable;
@@ -34,6 +36,18 @@ public interface OccurrenceGetByKey {
    */
   @Nullable
   Occurrence get(Long key);
+
+  /**
+   * Find the occurrences matching the passed keys.
+   *
+   * @param keys that identify the occurrences, duplicates and nulls are ignored
+   *
+   * @return the matching occurrences by key, in the order of the keys, without the keys that can't be found
+   *
+   * @throws IllegalArgumentException if there are more keys than the maximum allowed
+   * @throws ServiceUnavailableException if the underlying data connection fails
+   */
+  Map<Long, Occurrence> getByKeys(List<Long> keys);
 
   /**
    * Attempt to find the verbatim values for an occurrence matching the passed key.

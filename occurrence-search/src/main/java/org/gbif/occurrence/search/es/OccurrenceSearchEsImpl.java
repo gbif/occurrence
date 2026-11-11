@@ -23,6 +23,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.model.predicate.Predicate;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
+import org.gbif.occurrence.search.BatchResponse;
 import org.gbif.occurrence.search.OccurrenceGetByKey;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.SearchTermService;
@@ -39,6 +40,7 @@ import org.gbif.vocabulary.client.ConceptClient;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -96,6 +98,8 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   @Nullable private final RecordsReader<Occurrence> recordsReader;
   /** Reader of search pages, with the _source fallback for the records missing from the table. */
   @Nullable private final RecordsReader<Occurrence> searchRecordsReader;
+  /** Records built from the _source of the Elasticsearch documents, fetched by id. */
+  private final EsSourceRecordsFallback<Occurrence> sourceRecords;
   private final boolean sourceEnabled;
 
   @Autowired
@@ -129,6 +133,12 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.esResponseParser = new OccurrenceEsResponseParser(esFieldMapper, searchHitOccurrenceConverter);
     this.defaultChecklistKey = defaultChecklistKey;
     this.sourceEnabled = sourceEnabled;
+    this.sourceRecords =
+        new EsSourceRecordsFallback<>(
+            esClient,
+            esIndex,
+            searchHitOccurrenceConverter,
+            searchHitOccurrenceConverter::toVerbatimOccurrence);
     this.recordsReader =
         Strings.isNullOrEmpty(recordsTable)
             ? null
@@ -137,14 +147,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     this.searchRecordsReader =
         recordsReader == null
             ? null
-            : recordsReader.withFallback(
-                sourceEnabled
-                    ? new EsSourceRecordsFallback<>(
-                        esClient,
-                        esIndex,
-                        searchHitOccurrenceConverter,
-                        searchHitOccurrenceConverter::toVerbatimOccurrence)
-                    : null);
+            : recordsReader.withFallback(sourceEnabled ? sourceRecords : null);
     LOG.info(
         "Occurrence records read from {}",
         recordsReader == null
@@ -244,6 +247,26 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
       }
     }
     return searchByKey(key, fromSource(searchHitOccurrenceConverter));
+  }
+
+  /**
+   * Reads the records from HBase and the ones missing there, when the _source is enabled, from
+   * Elasticsearch. Without HBase the records are read from Elasticsearch.
+   */
+  @Override
+  public Map<Long, Occurrence> getByKeys(List<Long> keys) {
+    List<Long> distinctKeys = BatchResponse.distinctKeys(keys, maxLimit);
+    List<String> ids = distinctKeys.stream().map(String::valueOf).toList();
+    Map<String, Occurrence> byId =
+        searchRecordsReader != null ? searchRecordsReader.getById(ids) : sourceRecords.get(ids);
+    Map<Long, Occurrence> occurrences = new LinkedHashMap<>();
+    for (Long key : distinctKeys) {
+      Occurrence occurrence = byId.get(key.toString());
+      if (occurrence != null) {
+        occurrences.put(key, occurrence);
+      }
+    }
+    return occurrences;
   }
 
   @Nullable

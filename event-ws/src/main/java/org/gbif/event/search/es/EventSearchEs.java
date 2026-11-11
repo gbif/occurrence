@@ -27,6 +27,7 @@ import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.service.common.SearchService;
 import org.gbif.api.service.occurrence.OccurrenceSearchService;
 import org.gbif.kvs.species.NameUsageMatchRequest;
+import org.gbif.occurrence.search.BatchResponse;
 import org.gbif.occurrence.search.SearchException;
 import org.gbif.occurrence.search.es.BaseEsSearchRequestBuilder;
 import org.gbif.occurrence.search.records.EsSourceRecordsFallback;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -102,6 +104,8 @@ public class EventSearchEs
   @Nullable private final RecordsReader<Event> recordsReader;
   /** Reader of search pages, with the _source fallback for the events missing from the table. */
   @Nullable private final RecordsReader<Event> searchRecordsReader;
+  /** Events built from the _source of the Elasticsearch documents, fetched by id. */
+  private final EsSourceRecordsFallback<Event> sourceRecords;
   private final boolean sourceEnabled;
 
   private static final SearchResponse<Event, EventSearchParameter> EMPTY_RESPONSE =
@@ -136,6 +140,9 @@ public class EventSearchEs
     this.esResponseParser = new EventEsResponseParser(eventEsFieldMapper, searchHitEventConverter);
     this.occurrenceSearchService = occurrenceSearchService;
     this.sourceEnabled = sourceEnabled;
+    this.sourceRecords =
+        new EsSourceRecordsFallback<>(
+            esClient, esIndex, searchHitEventConverter, searchHitEventConverter::apply);
     this.recordsReader =
         Strings.isNullOrEmpty(recordsTable)
             ? null
@@ -143,11 +150,7 @@ public class EventSearchEs
     this.searchRecordsReader =
         recordsReader == null
             ? null
-            : recordsReader.withFallback(
-                sourceEnabled
-                    ? new EsSourceRecordsFallback<>(
-                        esClient, esIndex, searchHitEventConverter, searchHitEventConverter::apply)
-                    : null);
+            : recordsReader.withFallback(sourceEnabled ? sourceRecords : null);
     LOG.info(
         "Event records read from {}",
         recordsReader == null
@@ -247,6 +250,29 @@ public class EventSearchEs
       }
     }
     return getByQuery(Query.of(q -> q.ids(i -> i.values(key))));
+  }
+
+  /**
+   * Events of the ids that exist, by id, in the order of the ids. They're read from HBase and the
+   * ones missing there, when the _source is enabled, from Elasticsearch. Without HBase the events
+   * are read from Elasticsearch.
+   *
+   * @throws IllegalArgumentException if there are more distinct ids than the max limit
+   */
+  public Map<String, Event> getByIds(List<String> ids) {
+    List<String> distinctIds = BatchResponse.distinctKeys(ids, maxLimit);
+    if (searchRecordsReader != null) {
+      return searchRecordsReader.getById(distinctIds);
+    }
+    Map<String, Event> byId = sourceRecords.get(distinctIds);
+    Map<String, Event> events = new LinkedHashMap<>();
+    for (String id : distinctIds) {
+      Event event = byId.get(id);
+      if (event != null) {
+        events.put(id, event);
+      }
+    }
+    return events;
   }
 
   public Event get(String datasetKey, String eventId) {
