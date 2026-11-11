@@ -26,6 +26,8 @@ import org.gbif.occurrence.search.es.RequestFieldsTranslator;
 import org.gbif.registry.ws.client.DoiInteractionClient;
 import org.gbif.vocabulary.client.ConceptClient;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -89,7 +91,7 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
   public String create(DownloadRequest request, String source) {
     if (request.getChecklistKey() == null) {
       // set default checklistKey
-      request.setChecklistKey(defaultChecklistKey);
+      request.setChecklistKey(UUID.fromString(defaultChecklistKey));
     }
     return super.create(request, source);
   }

@@ -26,6 +26,7 @@ import org.gbif.search.es.event.EventEsField;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class EventEsSearchRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
-  public static final String DEFAULT_CHECKLIST_KEY = "defaultChecklistKey";
+  public static final String DEFAULT_CHECKLIST_KEY = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c";
   public static final int DEFAULT_SHARD_SIZE = 100;
 
   private final EventEsSearchRequestBuilder esSearchRequestBuilder =
@@ -345,13 +346,13 @@ public class EventEsSearchRequestBuilderTest {
             EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY,
             "uk",
             false,
-            DEFAULT_CHECKLIST_KEY);
+            UUID.fromString(DEFAULT_CHECKLIST_KEY));
     Predicate p2 =
         new EqualsPredicate<>(
             EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_TAXON_KEY,
             "tk",
             false,
-            DEFAULT_CHECKLIST_KEY);
+            UUID.fromString(DEFAULT_CHECKLIST_KEY));
     EventPredicateSearchRequest searchRequest = new EventPredicateSearchRequest();
     searchRequest.setPredicate(new ConjunctionPredicate(List.of(p1, p2)));
 

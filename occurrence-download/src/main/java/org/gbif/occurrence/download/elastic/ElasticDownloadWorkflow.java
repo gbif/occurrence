@@ -97,7 +97,7 @@ public class ElasticDownloadWorkflow {
                         workflowConfiguration.getDefaultChecklistKey())))
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
-                    ? download.getRequest().getChecklistKey()
+                    ? download.getRequest().getChecklistKey().toString()
                     : configuration.getDefaultChecklistKey())
             .downloadKey(download.getKey())
             .downloadTableName(DownloadUtils.downloadTableName(download.getKey()))

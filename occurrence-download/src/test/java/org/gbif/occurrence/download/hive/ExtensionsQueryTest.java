@@ -54,7 +54,7 @@ public class ExtensionsQueryTest {
         null,
         Set.of(extension),
         null,
-        Constants.NUB_DATASET_KEY.toString()
+        Constants.NUB_DATASET_KEY
       );
 
       Download download = new Download();
