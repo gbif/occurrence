@@ -33,10 +33,12 @@ import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Executes a Search query and applies a predicate to each result.
  */
+@Slf4j
 public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends SearchParameter> {
 
   // Default page size for queries.
@@ -89,9 +91,20 @@ public class SearchQueryProcessor<T extends VerbatimOccurrence, P extends Search
             downloadFileWork
                 .getEsClient()
                 .search(searchRequest, (Class<Map<String, Object>>) (Class<?>) Map.class);
+        int hits = searchResponse.hits().hits().size();
+        if (hits == 0) {
+          // Avoid looping forever if the index returns fewer records than expected
+          log.warn(
+              "Empty page from index {} at offset {}; got {} of {} expected records",
+              downloadFileWork.getEsIndex(),
+              offset,
+              recordCount,
+              nrOfOutputRecords);
+          break;
+        }
         consume(searchResponse, resultHandler);
 
-        recordCount += searchResponse.hits().hits().size();
+        recordCount += hits;
       }
     } catch (Exception ex) {
       throw Throwables.propagate(ex);
