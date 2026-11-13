@@ -46,6 +46,9 @@ public class EsQueryUtils {
   private static final int DEFAULT_FACET_OFFSET = 0;
   private static final int DEFAULT_FACET_LIMIT = 10;
 
+  /** Maximum number of suggestions returned by the suggest and term endpoints. */
+  public static final int MAX_SUGGEST_LIMIT = 100;
+
   // ES fields for queries
   public static final String SIZE = "size";
   public static final String FROM = "from";
@@ -205,6 +208,12 @@ public class EsQueryUtils {
           // MARINE, BRACKISH, FRESHWATER, TERRESTRIAL
           .put(OccurrenceSearchParameter.ENVIRONMENTS, 4)
           .build();
+
+  /** The requested number of suggestions, or the default, kept between 1 and {@link #MAX_SUGGEST_LIMIT}. */
+  static int suggestLimit(Integer limit, int defaultLimit) {
+    int requested = limit != null ? limit : defaultLimit;
+    return Math.max(1, Math.min(requested, MAX_SUGGEST_LIMIT));
+  }
 
   static <P extends SearchParameter, S extends FacetedSearchRequest<P>> int extractFacetLimit(
       S request, P facet) {

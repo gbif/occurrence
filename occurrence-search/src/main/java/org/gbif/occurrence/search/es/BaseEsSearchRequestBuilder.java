@@ -170,7 +170,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
   SearchRequest buildSuggestQuery(String prefix, P parameter, Integer limit, String index) {
     EsField esField = esFieldMapper.getEsField(parameter);
-    int suggestLimit = limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT;
+    int suggestLimit = suggestLimit(limit, SearchConstants.DEFAULT_SUGGEST_LIMIT);
 
     return SearchRequest.of(
         sr ->
@@ -783,7 +783,7 @@ public abstract class BaseEsSearchRequestBuilder<
     // get the field name based on the taxonomy and the matchCase
     String fieldName = null;
     if (isTaxonomic(param)) {
-      fieldName = esFieldMapper.getChecklistField(checklistKey, param);
+      fieldName = esFieldMapper.getChecklistField(UUID.fromString(checklistKey), param);
     } else {
       fieldName = matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
     }

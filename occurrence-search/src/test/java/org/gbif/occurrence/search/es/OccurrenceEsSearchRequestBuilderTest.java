@@ -56,7 +56,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
           OccurrenceEsField.buildFieldMapper(),
           new ConceptClientMock(),
           null,
-          "defaultChecklistKey",
+          "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c",
           100);
 
   @Test
@@ -78,7 +78,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("classifications.defaultChecklistKey.classificationKeys.KINGDOM")
+            .findValues("classifications.d7dddbf4-2cf0-4f39-9b2a-bb099caae36c.classificationKeys.KINGDOM")
             .get(0)
             .get(VALUE)
             .asInt());

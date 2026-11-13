@@ -18,6 +18,7 @@ import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import lombok.experimental.UtilityClass;
@@ -30,7 +31,7 @@ public class EsPredicateUtil {
     Optional<Query> queryBuilder;
     try {
       queryBuilder =
-          new OccurrenceEsQueryVisitor(esFieldMapper, defaultChecklistKey).getQueryBuilder(predicate);
+          new OccurrenceEsQueryVisitor(esFieldMapper, UUID.fromString(defaultChecklistKey)).getQueryBuilder(predicate);
     } catch (Exception e) {
       throw new IllegalArgumentException("Error building predicate query", e);
     }

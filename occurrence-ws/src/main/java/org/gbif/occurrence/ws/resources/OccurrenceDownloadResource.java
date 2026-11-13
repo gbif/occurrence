@@ -53,9 +53,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
             + "     catalogue numbers, occurrence ids and so on).\n"
             + "   * A download predicate may contain a maximum of 10,000 points in any “within” predicate geometries.\n"
             + "2. Limits on incomplete (preparing, running) downloads:\n"
-            + "   * If the total number of incomplete downloads is fewer than 100, any single user can have no more than 3 "
-            + "     incomplete downloads.\n"
-            + "   * If the total number of downloads is fewer than 1000 any single user may only have 1 download.\n\n"
+            + "   * Any single user can have no more than 3 incomplete downloads.\n"
+            + "   * If the total number of incomplete downloads is 1000 or more, any single user may only have 1 "
+            + "     incomplete download.\n\n"
             + "The number of user downloads currently in progress can be seen on the "
             + "[System Health page](https://www.gbif.org/system-health). Your own downloads can be seen on your "
             + "[My Downloads](https://www.gbif.org/user/download) page.",
@@ -76,7 +76,6 @@ public class OccurrenceDownloadResource extends DownloadResource {
       DownloadRequestService service,
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
-      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
       @Value("${denormalisedTaxonomy: 7ddf754f-d193-4cc9-b351-99906754a03b}") String denormalisedTaxonomy,
       @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructMapJson) {
@@ -86,7 +85,6 @@ public class OccurrenceDownloadResource extends DownloadResource {
         callbackService,
         occurrenceDownloadService,
         DownloadType.OCCURRENCE,
-        downloadsDisabled,
         defaultChecklistKey,
         denormalisedTaxonomy,
         checklistNestedStructMapJson);

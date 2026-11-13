@@ -45,7 +45,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
   private static final String INDEX = "index";
   private final OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder =
       new OccurrenceEsHeatmapRequestBuilder(
-          OccurrenceEsField.buildFieldMapper(), null, null, "defaultChecklistKey", 100);
+          OccurrenceEsField.buildFieldMapper(), null, null, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c", 100);
 
   @Test
   public void heatmapRequestTest() throws IOException {
@@ -131,7 +131,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
         findTermFilter(
             json,
             (ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField(),
-            "defaultChecklistKey");
+            "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c");
 
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));

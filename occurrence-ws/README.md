@@ -58,6 +58,7 @@ To run this project from your machine you have to:
         occurrence.download.downloads_max_predicates
         occurrence.download.downloads_soft_limit
         occurrence.download.downloads_hard_limit
+        occurrence.download.max_global_downloads (optional, -1 for no maximum)
 
 
         occurrence.download.mail.smtp

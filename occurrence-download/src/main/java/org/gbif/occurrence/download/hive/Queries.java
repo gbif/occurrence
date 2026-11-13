@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -38,6 +39,9 @@ import static org.gbif.terms.utils.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
  * Subclasses define the queries needed for generating TSV, Avro etc.
  */
 public abstract class Queries {
+
+  private static final Pattern UUID_PATTERN =
+    Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
   /**
    * @return the gbifID term as an InitializableField
@@ -456,6 +460,11 @@ public abstract class Queries {
     Term term, String checklistKey, String column, String subColumn, String alias) {
     if (checklistKey == null || checklistKey.isEmpty()) {
       throw new IllegalArgumentException("checklistKey must not be null or empty");
+    }
+
+    // The key is formatted into the SQL, so only accept a UUID
+    if (!UUID_PATTERN.matcher(checklistKey).matches()) {
+      throw new IllegalArgumentException("checklistKey must be a UUID");
     }
 
     if (term == DwcTerm.order) {

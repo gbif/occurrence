@@ -14,6 +14,8 @@
 package org.gbif.predicate.query;
 
 import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.model.Constants;
+import org.gbif.api.model.common.search.SearchParameterFormat;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.predicate.ConjunctionPredicate;
@@ -66,7 +68,7 @@ public class EsQueryVisitorTest {
   private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper =
       OccurrenceEsField.buildFieldMapper();
   private final EsQueryVisitor<OccurrenceSearchParameter> occurrenceVisitor =
-      new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, "defaultChecklistKey");
+      new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, Constants.NUB_DATASET_KEY);
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -1786,6 +1788,11 @@ public class EsQueryVisitorTest {
             value = "2023-03-02";
           } else if (param.type().isAssignableFrom(IsoDateInterval.class)) {
             value = "2023-03";
+          } else if (param.format() == SearchParameterFormat.IRI) {
+            value = "http://example.org/1";
+          } else if (param.format() != null) {
+            // codes validated by their format, letters are valid in all of them
+            value = "a";
           } else {
             // String, Integer and Double
             value = "1";
