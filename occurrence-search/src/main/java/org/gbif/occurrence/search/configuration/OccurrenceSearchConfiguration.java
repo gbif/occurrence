@@ -13,6 +13,7 @@
  */
 package org.gbif.occurrence.search.configuration;
 
+import org.gbif.occurrence.search.cache.CachingNameUsageMatchingService;
 import org.gbif.occurrence.search.es.EsConfig;
 import org.gbif.rest.client.RestClientFactory;
 import org.gbif.rest.client.configuration.ClientConfiguration;
@@ -115,6 +116,7 @@ public class OccurrenceSearchConfiguration  {
       ClientConfiguration.builder()
         .withBaseApiUrl(apiUrl)
         .build();
-    return RestClientFactory.createNameMatchService(clientConfiguration);
+    return new CachingNameUsageMatchingService(
+      RestClientFactory.createNameMatchService(clientConfiguration));
   }
 }

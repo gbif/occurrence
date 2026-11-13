@@ -16,6 +16,7 @@ package org.gbif.occurrence.ws.config;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchRequest;
 import org.gbif.api.util.SearchTypeValidator;
+import org.gbif.occurrence.search.SearchParameterLimits;
 import org.gbif.rest.client.species.Metadata;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.ws.server.provider.OccurrenceSearchRequestHandlerMethodArgumentResolver;
@@ -26,6 +27,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.WebRequest;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static org.gbif.ws.server.provider.FacetedSearchRequestProvider.DEFAULT_MAX_FACET_LIMIT;
+import static org.gbif.ws.server.provider.FacetedSearchRequestProvider.DEFAULT_MAX_FACET_OFFSET;
 
 @Component
 @Slf4j
@@ -46,50 +50,27 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     // add support for dynamic facets for ranks ....
     List<OccurrenceSearchParameter> checklistParameters = getChecklistParameters(request);
 
+    // The superclass handles the facet parameters, with limits, but doesn't know the dynamic rank facets
     Map<String, String[]> params = webRequest.getParameterMap();
-    String facetMultiSelectValue = getFirstIgnoringCase("facetMultiselect", params);
-    if (facetMultiSelectValue != null) {
-      searchRequest.setFacetMultiSelect(Boolean.parseBoolean(facetMultiSelectValue));
-    }
-
-    String facetMinCountValue = getFirstIgnoringCase("facetMincount", params);
-    if (facetMinCountValue != null) {
-      searchRequest.setFacetMinCount(Integer.parseInt(facetMinCountValue));
-    }
-
-    String facetLimit = getFirstIgnoringCase("facetLimit", params);
-    if (facetLimit != null) {
-      searchRequest.setFacetLimit(Integer.parseInt(facetLimit));
-    }
-
-    String facetOffset = getFirstIgnoringCase("facetOffset", params);
-    if (facetOffset != null) {
-      searchRequest.setFacetOffset(Integer.parseInt(facetOffset));
-    }
-
     List<String> facets = params.get("facet") != null ? Arrays.asList(params.get("facet"))
       : Collections.emptyList();
-    if (!facets.isEmpty()) {
+    for (String f : facets) {
+      if (this.findSearchParam(f) != null) {
+        continue;
+      }
 
-      for (String f : facets) {
-        OccurrenceSearchParameter p = this.findSearchParam(f);
+      // look for dynamic rank facet names
+      OccurrenceSearchParameter p = getOccurrenceSearchParameter(checklistParameters, f, null);
 
-        // look for dynamic rank facet names
-        p = getOccurrenceSearchParameter(checklistParameters, f, p);
-
-        if (p != null) {
-          searchRequest.addFacets(p);
-          String pFacetOffset = getFirstIgnoringCase(f + ".facetOffset", params);
-          String pFacetLimit = getFirstIgnoringCase(f + ".facetLimit", params);
-          if (pFacetLimit != null) {
-            if (pFacetOffset != null) {
-              searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), Integer.parseInt(pFacetLimit));
-            } else {
-              searchRequest.addFacetPage(p, 0, Integer.parseInt(pFacetLimit));
-            }
-          } else if (pFacetOffset != null) {
-            searchRequest.addFacetPage(p, Integer.parseInt(pFacetOffset), 10);
-          }
+      if (p != null) {
+        searchRequest.addFacets(p);
+        String pFacetOffset = getFirstIgnoringCase(f + ".facetOffset", params);
+        String pFacetLimit = getFirstIgnoringCase(f + ".facetLimit", params);
+        if (pFacetLimit != null || pFacetOffset != null) {
+          searchRequest.addFacetPage(
+            p,
+            pFacetOffset != null ? parseFacetOffset(f + ".facetOffset", pFacetOffset) : 0,
+            pFacetLimit != null ? parseFacetLimit(f + ".facetLimit", pFacetLimit) : 10);
         }
       }
     }
@@ -98,6 +79,19 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     request.getFacets().remove(OccurrenceSearchParameter.GEOLOGICAL_TIME);
 
     return request;
+  }
+
+  private static int parseFacetLimit(String parameter, String value) {
+    return Math.min(parseNonNegativeInt(parameter, value), DEFAULT_MAX_FACET_LIMIT);
+  }
+
+  private static int parseFacetOffset(String parameter, String value) {
+    int offset = parseNonNegativeInt(parameter, value);
+    if (offset > DEFAULT_MAX_FACET_OFFSET) {
+      throw new IllegalArgumentException(
+        "Parameter " + parameter + " must not be greater than " + DEFAULT_MAX_FACET_OFFSET);
+    }
+    return offset;
   }
 
   private List<OccurrenceSearchParameter> getChecklistParameters(Map<String, String[]> params) {
@@ -173,7 +167,10 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       if (p != null) {
         final List<String> list =
           entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
-        for (String val : removeEmptyParameters(list)) {
+        List<String> values = removeEmptyParameters(list);
+        // check limits before the values are parsed
+        SearchParameterLimits.validate(p, values);
+        for (String val : values) {
           // validate value for certain types
           SearchTypeValidator.validate(p, val);
           searchRequest.addParameter(p, val);

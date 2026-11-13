@@ -44,6 +44,10 @@ public abstract class BaseEsHeatmapRequestBuilder<
   public static final String HEATMAP_AGGS = "heatmap";
   public static final String CELL_AGGS = "cell";
 
+  // Every request used to get at least this many buckets (Math.max with bucketLimit), and larger
+  // bucketLimit values let callers ask for unbounded aggregations, so this is now the only size.
+  private static final int MAX_BUCKETS = 50000;
+
   // Mapping of predefined zoom levels
   private static final int[] PRECISION_LOOKUP =
       new int[] {2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10};
@@ -61,12 +65,12 @@ public abstract class BaseEsHeatmapRequestBuilder<
   @VisibleForTesting
   public SearchRequest buildHeatmapRequest(R request, String index) {
     // add the geometry filter
-    String[] coords = request.getGeometry().split(",");
+    double[] coords = parseBoundingBox(request.getGeometry());
 
-    double top = Double.parseDouble(coords[3]);
-    double left = Double.parseDouble(coords[0]);
-    double bottom = Double.parseDouble(coords[1]);
-    double right = Double.parseDouble(coords[2]);
+    double top = coords[3];
+    double left = coords[0];
+    double bottom = coords[1];
+    double right = coords[2];
 
     List<Query> filters = new ArrayList<>();
     filters.add(
@@ -110,6 +114,23 @@ public abstract class BaseEsHeatmapRequestBuilder<
                 .aggregations(buildAggs(request)));
   }
 
+  /** Parses a "left,bottom,right,top" bounding box. */
+  private static double[] parseBoundingBox(String geometry) {
+    String[] parts = geometry != null ? geometry.split(",") : new String[0];
+    if (parts.length != 4) {
+      throw new IllegalArgumentException("geom must be a bounding box: left,bottom,right,top");
+    }
+    double[] coords = new double[4];
+    try {
+      for (int i = 0; i < 4; i++) {
+        coords[i] = Double.parseDouble(parts[i].trim());
+      }
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("geom must be a bounding box: left,bottom,right,top", e);
+    }
+    return coords;
+  }
+
   private Map<String, Aggregation> buildAggs(R request) {
     String geoDistanceField = esFieldMapper.getGeoDistanceField();
     Aggregation cellAggregation =
@@ -127,8 +148,8 @@ public abstract class BaseEsHeatmapRequestBuilder<
                                     p ->
                                         p.geohashLength(
                                             PRECISION_LOOKUP[
-                                                Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1)]))
-                                .size(Math.max(request.getBucketLimit(), 50000)))
+                                                Math.max(0, Math.min(request.getZoom(), PRECISION_LOOKUP.length - 1))]))
+                                .size(MAX_BUCKETS))
                     .aggregations(CELL_AGGS, cellAggregation));
 
     Map<String, Aggregation> aggregations = new LinkedHashMap<>();

@@ -170,7 +170,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
   SearchRequest buildSuggestQuery(String prefix, P parameter, Integer limit, String index) {
     EsField esField = esFieldMapper.getEsField(parameter);
-    int suggestLimit = limit != null ? limit : SearchConstants.DEFAULT_SUGGEST_LIMIT;
+    int suggestLimit = suggestLimit(limit, SearchConstants.DEFAULT_SUGGEST_LIMIT);
 
     return SearchRequest.of(
         sr ->

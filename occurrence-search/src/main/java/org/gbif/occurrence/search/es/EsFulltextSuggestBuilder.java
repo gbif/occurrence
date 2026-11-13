@@ -77,7 +77,7 @@ public class EsFulltextSuggestBuilder {
         .query(buildSuggestQuery(esField, query))
         .aggregations(aggName, a -> a.terms(t -> t
             .field(esField.getExactMatchFieldName())
-            .size(limit != null ? limit : 10))));
+            .size(EsQueryUtils.suggestLimit(limit, 10)))));
   }
 
   public List<String> buildSuggestFullTextResponse(

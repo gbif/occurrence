@@ -30,7 +30,9 @@ import org.gbif.api.service.occurrence.DownloadRequestService;
 import org.gbif.api.service.registry.OccurrenceDownloadService;
 import org.gbif.api.vocabulary.Extension;
 import org.gbif.api.vocabulary.UserRole;
+import org.gbif.occurrence.download.resource.DownloadResource;
 import org.gbif.occurrence.download.service.CallbackService;
+import org.gbif.ws.security.UserRoles;
 
 import java.security.Principal;
 import java.util.Collections;
@@ -40,12 +42,14 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -68,6 +72,31 @@ public class OccurrenceDownloadResourceTest {
     prepareMocks(USER, false);
     ResponseEntity<?> response = resource.airflowCallback(JOB_ID, STATUS);
     assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
+  }
+
+  @Test
+  public void testCallbackRequiresAdmin() throws NoSuchMethodException {
+    Secured secured =
+        DownloadResource.class
+            .getMethod("airflowCallback", String.class, String.class)
+            .getAnnotation(Secured.class);
+    assertArrayEquals(new String[] {UserRoles.ADMIN_ROLE}, secured.value());
+  }
+
+  @Test
+  public void testUnsupportedChecklistKey() {
+    prepareMocks(USER, false);
+    dl.setChecklistKey("x') OR true --");
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+  }
+
+  @Test
+  public void testSupportedChecklistKey() {
+    prepareMocks(USER, false);
+    dl.setChecklistKey("d7dddbf4-2cf0-4f39-9b2a-bb099caae36c");
+    ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
+    assertThat(response.getBody(), equalTo(JOB_ID));
   }
 
   @Test
@@ -204,7 +233,6 @@ public class OccurrenceDownloadResourceTest {
             service,
             callbackService,
             downloadService,
-            false,
             Constants.NUB_DATASET_KEY.toString(),
             "7ddf754f-d193-4cc9-b351-99906754a03b",
           """
