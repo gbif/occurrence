@@ -855,9 +855,12 @@ public class DownloadResource {
    * Checks the checklist key is one downloads support: the denormalised taxonomy, the default or one
    * of the configured nested checklists.
    */
-  private void assertValidChecklistKey(String checklistKey) {
-    if (checklistKey == null
-        || checklistKey.equals(StringUtils.trim(denormalisedTaxonomy))
+  private void assertValidChecklistKey(UUID uuid) {
+    if (uuid == null) {
+      return;
+    }
+    String checklistKey = uuid.toString();
+    if (checklistKey.equals(StringUtils.trim(denormalisedTaxonomy))
         || checklistKey.equals(StringUtils.trim(defaultChecklistKey))
         || checklistNestedStructMap.containsKey(checklistKey)) {
       return;

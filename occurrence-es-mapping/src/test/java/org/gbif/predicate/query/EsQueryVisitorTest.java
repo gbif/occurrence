@@ -14,6 +14,7 @@
 package org.gbif.predicate.query;
 
 import org.gbif.api.exception.QueryBuildingException;
+import org.gbif.api.model.Constants;
 import org.gbif.api.model.common.search.SearchParameterFormat;
 import org.gbif.api.model.occurrence.geo.DistanceUnit;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
@@ -67,7 +68,7 @@ public class EsQueryVisitorTest {
   private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper =
       OccurrenceEsField.buildFieldMapper();
   private final EsQueryVisitor<OccurrenceSearchParameter> occurrenceVisitor =
-      new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, "defaultChecklistKey");
+      new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, Constants.NUB_DATASET_KEY);
 
   private static final ObjectMapper JSON = new ObjectMapper();
 

@@ -121,7 +121,7 @@ public class EventEsSearchRequestBuilderTest {
     EventSearchRequest searchRequest = new EventSearchRequest();
     searchRequest.addParameter(
         EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
-    searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "key2");
+    searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "7ddf754f-d193-4cc9-b351-99906754a03b");
     Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -132,7 +132,7 @@ public class EventEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("event.humboldt.targetTaxonomicScope.key2.usage.key")
+            .findValues("event.humboldt.targetTaxonomicScope.7ddf754f-d193-4cc9-b351-99906754a03b.usage.key")
             .get(0)
             .get(VALUE)
             .asText());

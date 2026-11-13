@@ -783,7 +783,7 @@ public abstract class BaseEsSearchRequestBuilder<
     // get the field name based on the taxonomy and the matchCase
     String fieldName = null;
     if (isTaxonomic(param)) {
-      fieldName = esFieldMapper.getChecklistField(checklistKey, param);
+      fieldName = esFieldMapper.getChecklistField(UUID.fromString(checklistKey), param);
     } else {
       fieldName = matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName();
     }

@@ -37,6 +37,7 @@ import org.gbif.ws.security.UserRoles;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -86,7 +87,7 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testUnsupportedChecklistKey() {
     prepareMocks(USER, false);
-    dl.setChecklistKey("x') OR true --");
+    dl.setChecklistKey(UUID.fromString("00000000-0000-0000-0000-000000000000"));
     ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
   }
@@ -94,7 +95,7 @@ public class OccurrenceDownloadResourceTest {
   @Test
   public void testSupportedChecklistKey() {
     prepareMocks(USER, false);
-    dl.setChecklistKey("d7dddbf4-2cf0-4f39-9b2a-bb099caae36c");
+    dl.setChecklistKey(UUID.fromString("d7dddbf4-2cf0-4f39-9b2a-bb099caae36c"));
     ResponseEntity<String> response = resource.startDownload(dl, null, principal, null);
     assertThat(response.getBody(), equalTo(JOB_ID));
   }

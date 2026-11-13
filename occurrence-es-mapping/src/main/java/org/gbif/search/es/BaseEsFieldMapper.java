@@ -198,7 +198,7 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
    * @return the field name for the checklist field
    */
   @Override
-  public String getChecklistField(@NotNull String checklistKey, P searchParameter) {
+  public String getChecklistField(@NotNull UUID checklistKey, P searchParameter) {
 
     EsField esField = getEsField(searchParameter);
     if (esField == null) {
@@ -213,7 +213,7 @@ public class BaseEsFieldMapper<P extends SearchParameter> implements EsFieldMapp
     }
 
     if (baseEsField instanceof ChecklistEsField checklistEsField) {
-      return checklistEsField.getSearchFieldName(checklistKey);
+      return checklistEsField.getSearchFieldName(checklistKey.toString());
     }
 
     return esField.getSearchFieldName();

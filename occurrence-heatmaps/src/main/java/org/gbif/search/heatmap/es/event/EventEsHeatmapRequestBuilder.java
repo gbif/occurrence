@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
@@ -30,7 +31,7 @@ public class EventEsHeatmapRequestBuilder
         esFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new EventEsQueryVisitor(esFieldMapper, defaultChecklistKey),
+        new EventEsQueryVisitor(esFieldMapper, UUID.fromString(defaultChecklistKey)),
         defaultChecklistKey,
         defaultShardSize);
   }
