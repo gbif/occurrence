@@ -28,6 +28,8 @@ import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -51,6 +53,11 @@ public class PredicateFactory {
 
   private static final String WILDCARD = "*";
 
+  private static final String DNA_TAXON_SEARCH_PARAM = "dnaTaxonSearch";
+
+  // used to know which parameters are taxonomic and therefore support the DNA taxon search
+  private static final OccurrenceEsFieldMapper ES_FIELD_MAPPER = OccurrenceEsField.buildFieldMapper();
+
   /**
    * Making constructor private.
    */
@@ -72,10 +79,15 @@ public class PredicateFactory {
       toEnumParam(p.getKey()).ifPresent(param -> {
         boolean matchCase = Optional.ofNullable(params.get("matchCase"))
           .map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
+        // the DNA taxon search only applies to the taxonomic parameters
+        Boolean dnaTaxonSearch = ES_FIELD_MAPPER.isTaxonomic(param)
+            && Optional.ofNullable(params.get(DNA_TAXON_SEARCH_PARAM))
+              .map(vals -> Boolean.parseBoolean(vals[0].trim())).orElse(false)
+          ? Boolean.TRUE : null;
         String[] values = p.getValue();
         if (values != null && values.length > 0) {
           // valid parameter
-          Predicate predicate = buildParamPredicate(param, matchCase, values);
+          Predicate predicate = buildParamPredicate(param, matchCase, dnaTaxonSearch, values);
           if (predicate != null) {
             groupedByParam.add(predicate);
           }
@@ -107,11 +119,12 @@ public class PredicateFactory {
     }
   }
 
-  private static Predicate buildParamPredicate(OccurrenceSearchParameter param, boolean matchCase, String... values) {
+  private static Predicate buildParamPredicate(
+      OccurrenceSearchParameter param, boolean matchCase, Boolean dnaTaxonSearch, String... values) {
     boolean allEquals = true;
     List<Predicate> predicates = new ArrayList<>();
     for (String v : values) {
-      Predicate p = parsePredicate(param, v, matchCase);
+      Predicate p = parsePredicate(param, v, matchCase, dnaTaxonSearch);
       allEquals &= p instanceof EqualsPredicate;
       if (p != null) {
         predicates.add(p);
@@ -125,7 +138,7 @@ public class PredicateFactory {
       return predicates.get(0);
 
     } else if (allEquals) {
-      return new InPredicate(param, Arrays.asList(values), matchCase);
+      return new InPredicate(param, Arrays.asList(values), matchCase, null, dnaTaxonSearch);
     } else {
       return new DisjunctionPredicate(predicates);
     }
@@ -138,7 +151,8 @@ public class PredicateFactory {
   /**
    * Converts a value with an optional predicate prefix into a real predicate instance, defaulting to EQUALS.
    */
-  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value, boolean matchCase) {
+  private static Predicate parsePredicate(
+      OccurrenceSearchParameter param, String value, boolean matchCase, Boolean dnaTaxonSearch) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
       // validate it here, as this constructor only logs invalid strings.
@@ -180,10 +194,10 @@ public class PredicateFactory {
         "Ranges are only supported for numeric or date parameter types but received " + param);
     } else {
       if (WILDCARD.equals(value)) {
-        return new IsNotNullPredicate(param);
+        return new IsNotNullPredicate(param, null, dnaTaxonSearch);
       } else {
         // defaults to an equals predicate with the original value
-        return new EqualsPredicate(param, value, matchCase);
+        return new EqualsPredicate(param, value, matchCase, null, dnaTaxonSearch);
       }
     }
   }

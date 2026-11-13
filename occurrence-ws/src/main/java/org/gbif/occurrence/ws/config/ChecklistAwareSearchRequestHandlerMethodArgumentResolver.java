@@ -52,6 +52,11 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
       searchRequest.setFacetMultiSelect(Boolean.parseBoolean(facetMultiSelectValue));
     }
 
+    String dnaTaxonSearchValue = getFirstIgnoringCase("dnaTaxonSearch", params);
+    if (dnaTaxonSearchValue != null) {
+      searchRequest.setDnaTaxonSearch(Boolean.parseBoolean(dnaTaxonSearchValue.trim()));
+    }
+
     String facetMinCountValue = getFirstIgnoringCase("facetMincount", params);
     if (facetMinCountValue != null) {
       searchRequest.setFacetMinCount(Integer.parseInt(facetMinCountValue));
