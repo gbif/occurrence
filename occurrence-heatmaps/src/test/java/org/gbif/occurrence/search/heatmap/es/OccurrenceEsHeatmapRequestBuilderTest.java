@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.UUID;
 import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
   private static final String INDEX = "index";
   private final OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder =
       new OccurrenceEsHeatmapRequestBuilder(
-          OccurrenceEsField.buildFieldMapper(), null, null, "defaultChecklistKey", 100);
+          OccurrenceEsField.buildFieldMapper(), null, null, UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b"), 100);
 
   @Test
   public void heatmapRequestTest() throws IOException {
@@ -131,7 +132,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
         findTermFilter(
             json,
             (ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField(),
-            "defaultChecklistKey");
+            "7ddf754f-d193-4cc9-b351-99906754a03b");
 
     if (taxaValue.isPresent()) {
       assertEquals(4, Integer.parseInt(taxaValue.get()));

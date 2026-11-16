@@ -125,7 +125,7 @@ public class OccurrenceSearchResource {
     OccurrenceSearchService searchService,
     SearchTermService searchTermService,
     ConceptClient conceptClient, NameUsageMatchingService nameUsageMatchingService,
-    @Value("${defaultChecklistKey}") String defaultChecklistKey,
+    @Value("${defaultChecklistKey}") UUID defaultChecklistKey,
     @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize) {
     this.searchService = searchService;
     this.searchTermService = searchTermService;

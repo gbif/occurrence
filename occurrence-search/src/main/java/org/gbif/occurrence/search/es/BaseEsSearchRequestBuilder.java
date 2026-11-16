@@ -80,7 +80,7 @@ public abstract class BaseEsSearchRequestBuilder<
   protected final NameUsageMatchingService nameUsageMatchingService;
   protected final ConceptClient conceptClient;
   protected final EsQueryVisitor<P> esQueryVisitor;
-  protected final String defaultChecklistKey;
+  protected final UUID defaultChecklistKey;
   protected final int defaultShardSize;
 
   public BaseEsSearchRequestBuilder(
@@ -88,7 +88,7 @@ public abstract class BaseEsSearchRequestBuilder<
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
       EsQueryVisitor<P> esQueryVisitor,
-      String defaultChecklistKey,
+      UUID defaultChecklistKey,
       int defaultShardSize) {
     this.esFieldMapper = esFieldMapper;
     this.conceptClient = conceptClient;
@@ -111,7 +111,7 @@ public abstract class BaseEsSearchRequestBuilder<
     GroupedParams<P> groupedParams = groupParameters(searchRequest);
 
     // checklistKey to be used later
-    String checklistKey = getChecklistKey(searchRequest.getParameters());
+    UUID checklistKey = getChecklistKey(searchRequest.getParameters());
 
     // add query
     if (searchRequest instanceof PredicateSearchRequest) {
@@ -198,12 +198,13 @@ public abstract class BaseEsSearchRequestBuilder<
    */
   private void addTaxonKeyQuery(String rank, List<Query> filters, Map<P, Set<String>> params) {
 
-    String checklistKey = getChecklistKey(params);
+    UUID checklistKey = getChecklistKey(params);
 
     P dynamicRankParam = createSearchParam(rank.toUpperCase() + "_KEY", String.class);
     if (params.containsKey(dynamicRankParam)) {
       String checklistField =
-          ((ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField()).getSearchFieldName(checklistKey);
+          ((ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField())
+              .getSearchFieldName(checklistKey.toString());
       List<FieldValue> values =
           params.get(dynamicRankParam).stream().map(FieldValue::of).collect(Collectors.toList());
       Query checklistQuery =
@@ -220,7 +221,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
   @VisibleForTesting
   Optional<Query> buildQuery(
-      Map<P, Set<String>> params, String qParam, boolean matchCase, String checklistKey) {
+      Map<P, Set<String>> params, String qParam, boolean matchCase, UUID checklistKey) {
     translateFields(params);
     List<Query> mustQueries = new ArrayList<>();
     List<Query> filterQueries = new ArrayList<>();
@@ -267,7 +268,7 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   private List<Query> createQueries(
-      Map<P, Set<String>> params, boolean matchCase, String checklistKey) {
+      Map<P, Set<String>> params, boolean matchCase, UUID checklistKey) {
     return createQueries(params, matchCase, true, checklistKey);
   }
 
@@ -275,7 +276,7 @@ public abstract class BaseEsSearchRequestBuilder<
       Map<P, Set<String>> params,
       boolean matchCase,
       boolean wrappedChildrenQueries,
-      String checklistKey) {
+      UUID checklistKey) {
     Map<String, List<Query>> queriesByNestedPath = new HashMap<>();
     List<Query> nonNestedQueries = new ArrayList<>();
     for (Map.Entry<P, Set<String>> e : params.entrySet()) {
@@ -327,10 +328,10 @@ public abstract class BaseEsSearchRequestBuilder<
    * @param params
    * @return
    */
-  public String getChecklistKey(Map<P, Set<String>> params) {
+  public UUID getChecklistKey(Map<P, Set<String>> params) {
     return getParam("CHECKLIST_KEY")
         .filter(params::containsKey)
-        .map(p -> params.get(p).iterator().next())
+        .map(p -> UUID.fromString(params.get(p).iterator().next()))
         .orElse(defaultChecklistKey);
   }
 
@@ -343,7 +344,7 @@ public abstract class BaseEsSearchRequestBuilder<
    */
   private void addChecklistDynamicRanks(Map<P, Set<String>> params, List<Query> filters) {
     if (nameUsageMatchingService != null) {
-      Optional.ofNullable(nameUsageMatchingService.getMetadata(getChecklistKey(params)))
+      Optional.ofNullable(nameUsageMatchingService.getMetadata(getChecklistKey(params).toString()))
           .ifPresent(
               metadata ->
                   metadata
@@ -413,7 +414,7 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   private Optional<Query> buildPostFilter(
-      Map<P, Set<String>> postFilterParams, boolean matchCase, String checklistKey) {
+      Map<P, Set<String>> postFilterParams, boolean matchCase, UUID checklistKey) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
     }
@@ -439,7 +440,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
   /** Creates a filter with all the filter in which the facet param is not present. */
   private Query getAggregationPostFilter(
-      Map<P, Set<String>> postFilterParams, P facetParam, boolean matchCase, String checklistKey) {
+      Map<P, Set<String>> postFilterParams, P facetParam, boolean matchCase, UUID checklistKey) {
     Map<P, Set<String>> filteredParams =
         postFilterParams.entrySet().stream()
             .filter(entry -> entry.getKey() != facetParam)
@@ -453,7 +454,7 @@ public abstract class BaseEsSearchRequestBuilder<
       P facetParam,
       boolean matchCase,
       boolean wrappedChildrenQueries,
-      String checklistKey) {
+      UUID checklistKey) {
     return Query.of(
         q ->
             q.bool(
@@ -652,7 +653,7 @@ public abstract class BaseEsSearchRequestBuilder<
     if (esField instanceof ChecklistEsField) {
       fieldName =
           ((ChecklistEsField) esField)
-              .getSearchFieldName(getChecklistKey(searchRequest.getParameters()));
+              .getSearchFieldName(getChecklistKey(searchRequest.getParameters()).toString());
     } else {
       fieldName =
           searchRequest.isMatchCase()
@@ -748,7 +749,7 @@ public abstract class BaseEsSearchRequestBuilder<
       EsField esField,
       boolean matchCase,
       boolean wrappedChildrenQueries,
-      String checklistKey) {
+      UUID checklistKey) {
     List<Query> queries = new ArrayList<>();
 
     // collect queries for each value

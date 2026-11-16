@@ -18,6 +18,8 @@ import org.gbif.predicate.query.SQLQueryVisitor;
 import org.gbif.predicate.query.occurrence.OccurrenceTermsMapper;
 
 import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class QueryVisitorsFactory {
 
@@ -36,11 +38,13 @@ public class QueryVisitorsFactory {
       String defaultChecklistKey,
       String disambiguationTable) {
 
+    // the checklist keys come as strings from the configuration, but they have to be UUIDs
     return new SQLQueryVisitor<>(
         new OccurrenceTermsMapper(),
-        denormalisedTaxonomy,
-        checklistNestedStructMap,
-        defaultChecklistKey,
+        UUID.fromString(denormalisedTaxonomy),
+        checklistNestedStructMap.entrySet().stream()
+            .collect(Collectors.toMap(e -> UUID.fromString(e.getKey()), Map.Entry::getValue)),
+        UUID.fromString(defaultChecklistKey),
         disambiguationTable
     );
   }

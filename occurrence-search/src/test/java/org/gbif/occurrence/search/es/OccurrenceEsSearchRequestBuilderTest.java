@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
           OccurrenceEsField.buildFieldMapper(),
           new ConceptClientMock(),
           null,
-          "defaultChecklistKey",
+          UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b"),
           100);
 
   @Test
@@ -78,7 +79,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("classifications.defaultChecklistKey.classificationKeys.KINGDOM")
+            .findValues("classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM")
             .get(0)
             .get(VALUE)
             .asInt());
@@ -876,10 +877,10 @@ public class OccurrenceEsSearchRequestBuilderTest {
   public void checklistKeyTest() throws Exception {
 
     Map<OccurrenceSearchParameter, Set<String>> params = new java.util.HashMap<>();
-    params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("2d59e5db-57ad-41ff-97d6-11f5fb264527"));
     Query query =
         esSearchRequestBuilder
-            .buildQuery(params, null, false, "1")
+            .buildQuery(params, null, false, UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);

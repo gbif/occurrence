@@ -66,7 +66,7 @@ public class EsQueryVisitorTest {
   private final EsFieldMapper<OccurrenceSearchParameter> occurrenceEsFieldMapper =
       OccurrenceEsField.buildFieldMapper();
   private final EsQueryVisitor<OccurrenceSearchParameter> occurrenceVisitor =
-      new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, "defaultChecklistKey");
+      new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b"));
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
