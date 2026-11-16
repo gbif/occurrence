@@ -130,7 +130,7 @@ public class DownloadJobConfiguration {
         .sourceDir(workflowConfiguration.getHiveDBPath())
         .checklistKey(
             download.getRequest().getChecklistKey() != null
-                ? download.getRequest().getChecklistKey()
+                ? download.getRequest().getChecklistKey().toString()
                 : workflowConfiguration.getDefaultChecklistKey())
         .build();
   }

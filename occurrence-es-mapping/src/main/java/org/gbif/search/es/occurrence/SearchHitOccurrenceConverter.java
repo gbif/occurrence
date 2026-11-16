@@ -517,8 +517,8 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
 
 
   private void setGrscicollFields(Hit<Map<String, Object>> hit, Occurrence occ) {
-    getStringValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.institutionKey)).ifPresent(occ::setInstitutionKey);
-    getStringValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.collectionKey)).ifPresent(occ::setCollectionKey);
+    getValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.institutionKey), UUID::fromString).ifPresent(occ::setInstitutionKey);
+    getValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.collectionKey), UUID::fromString).ifPresent(occ::setCollectionKey);
   }
 
   private void setDatasetFields(Hit<Map<String, Object>> hit, Occurrence occ) {

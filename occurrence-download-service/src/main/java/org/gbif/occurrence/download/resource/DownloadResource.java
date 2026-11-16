@@ -669,7 +669,7 @@ public class DownloadResource {
         machineDescription,
         requestVerbatimExtensions,
         requestInterpretedExtensions,
-        checklistKey
+        checklistKey != null ? UUID.fromString(checklistKey) : null
     );
   }
 
@@ -760,7 +760,7 @@ public class DownloadResource {
             QueryVisitorsFactory.createSqlQueryVisitor(
                 this.denormalisedTaxonomy,
                 this.checklistNestedStructMap,
-                downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey() : defaultChecklistKey,
+                downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey().toString() : defaultChecklistKey,
                 "occurrence"
             )
             .buildQuery(downloadRequest.getPredicate());
@@ -855,7 +855,7 @@ public class DownloadResource {
       machineDescription,
       null,
       null,
-      checklistKey);
+      checklistKey != null ? UUID.fromString(checklistKey) : null);
 
     return downloadSqlPost(request);
   }

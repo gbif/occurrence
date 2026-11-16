@@ -116,7 +116,7 @@ public class DownloadQueryParameters {
 
     builder.checklistKey(
         download.getRequest().getChecklistKey() != null
-            ? download.getRequest().getChecklistKey()
+            ? download.getRequest().getChecklistKey().toString()
             : workflowConfiguration.getDefaultChecklistKey());
 
     return builder.build();

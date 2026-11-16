@@ -1786,8 +1786,11 @@ public class EsQueryVisitorTest {
             value = "2023-03-02";
           } else if (param.type().isAssignableFrom(IsoDateInterval.class)) {
             value = "2023-03";
+          } else if (param.type().isAssignableFrom(String.class)) {
+            // some string parameters only accept letters, e.g. SEX
+            value = "A";
           } else {
-            // String, Integer and Double
+            // Integer and Double
             value = "1";
           }
           p = new EqualsPredicate<>(param, value.toString(), false);
