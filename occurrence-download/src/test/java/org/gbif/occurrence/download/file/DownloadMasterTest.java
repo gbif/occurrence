@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -172,12 +173,11 @@ class DownloadMasterTest {
     doReturn(transport).when(esClient)._transport();
     SearchResponse<Void> hits = searchResponseWithTotalHits(5);
     IOException failure = new IOException("Simulated ES failure");
-    doReturn(hits)
-        .doThrow(failure)
+    // the worker's search fails, while the record count (the builder overload) returns 5 records
+    doThrow(failure)
         .when(esClient)
         .search(any(SearchRequest.class), ArgumentMatchers.<Class<?>>any());
     doReturn(hits)
-        .doThrow(failure)
         .when(esClient)
         .search(
             ArgumentMatchers.<Function<SearchRequest.Builder, ObjectBuilder<SearchRequest>>>any(),
