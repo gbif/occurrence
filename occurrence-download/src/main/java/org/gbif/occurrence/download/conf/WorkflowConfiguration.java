@@ -157,6 +157,26 @@ public class WorkflowConfiguration {
   }
 
   /**
+   * Map of checklist keys to the nested struct columns of their DNA-assisted classifications. Empty if it isn't
+   * configured.
+   */
+  public Map<String, String> getDnaChecklistNestedStructMap() {
+    String dnaChecklistNestedStructConfig = settings.getProperty(
+      DownloadWorkflowModule.DefaultSettings.CHECKLIST_DNA_NESTED_STRUCT_CONFIG
+    );
+    if (StringUtils.isBlank(dnaChecklistNestedStructConfig)) {
+      return Map.of();
+    }
+
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      return mapper.readValue(dnaChecklistNestedStructConfig, new TypeReference<Map<String, String>>() {});
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException("Failed to parse checklist DNA nested struct config", e);
+    }
+  }
+
+  /**
    *
    * @return HDFS temp dir where downloads files are created
    */

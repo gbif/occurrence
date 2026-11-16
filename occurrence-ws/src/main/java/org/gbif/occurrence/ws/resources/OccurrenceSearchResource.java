@@ -297,6 +297,15 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "2d59e5db-57ad-41ff-97d6-11f5fb264527"),
         @Parameter(
+            name = "dnaAssistedChecklistKey",
+            description =
+                "*Experimental.* The checklist key whose DNA-assisted classification is used to search "
+                    + "the taxonomic parameters, instead of the regular classification. It is ignored "
+                    + "when useDnaAssistance is used.",
+            schema = @Schema(implementation = String.class),
+            in = ParameterIn.QUERY,
+            example = "7ddf754f-d193-4cc9-b351-99906754a03b"),
+        @Parameter(
             name = "collectionCode",
             description =
                 "An identifier of any form assigned by the source to identify the physical collection or digital "
@@ -1674,10 +1683,10 @@ public class OccurrenceSearchResource {
             in = ParameterIn.QUERY,
             example = "true"),
         @Parameter(
-            name = "dnaTaxonSearch",
+            name = "useDnaAssistance",
             description =
-                "*Experimental.* Indicates if the taxonomic parameters have to be searched also in the DNA "
-                    + "assisted classification of the checklist",
+                "*Experimental.* Indicates if the taxonomic parameters have to be searched also in the "
+                    + "DNA-assisted classification of the checklist",
             schema = @Schema(implementation = Boolean.class),
             in = ParameterIn.QUERY,
             example = "true"),

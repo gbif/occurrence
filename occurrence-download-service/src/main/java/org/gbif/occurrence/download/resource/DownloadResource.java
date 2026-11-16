@@ -126,6 +126,8 @@ public class DownloadResource {
 
   protected final Map<String, String> checklistNestedStructMap;
 
+  protected final Map<String, String> dnaChecklistNestedStructMap;
+
   @Autowired
   public DownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
@@ -136,7 +138,8 @@ public class DownloadResource {
       @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
       @Value("${denormalisedTaxonomy: 7ddf754f-d193-4cc9-b351-99906754a03b}") String denormalisedTaxonomy,
-      @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
+      @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
+      @Value("${checklist.dna.nested.struct.config:{}}") String dnaChecklistNestedStructMapJson) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
@@ -149,10 +152,16 @@ public class DownloadResource {
       ObjectMapper objectMapper = new ObjectMapper();
       this.checklistNestedStructMap =
         objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
-      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap);
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid checklistNestedStructMap JSON format", e);
     }
+    try {
+      this.dnaChecklistNestedStructMap =
+        new ObjectMapper().readValue(dnaChecklistNestedStructMapJson, Map.class);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid dnaChecklistNestedStructMap JSON format", e);
+    }
+    this.sqlValidation = new SqlValidation(null, checklistNestedStructMap, dnaChecklistNestedStructMap);
   }
 
   private void assertDownloadType(Download download) {
@@ -669,7 +678,7 @@ public class DownloadResource {
         machineDescription,
         requestVerbatimExtensions,
         requestInterpretedExtensions,
-        checklistKey
+        checklistKey != null ? UUID.fromString(checklistKey) : null
     );
   }
 
@@ -760,7 +769,8 @@ public class DownloadResource {
             QueryVisitorsFactory.createSqlQueryVisitor(
                 this.denormalisedTaxonomy,
                 this.checklistNestedStructMap,
-                downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey() : defaultChecklistKey,
+                this.dnaChecklistNestedStructMap,
+                downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey().toString() : defaultChecklistKey,
                 "occurrence"
             )
             .buildQuery(downloadRequest.getPredicate());
@@ -855,7 +865,7 @@ public class DownloadResource {
       machineDescription,
       null,
       null,
-      checklistKey);
+      checklistKey != null ? UUID.fromString(checklistKey) : null);
 
     return downloadSqlPost(request);
   }

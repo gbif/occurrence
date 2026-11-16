@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.gbif.api.model.common.search.FacetedSearchRequest;
 import org.gbif.api.model.common.search.PredicateSearchRequest;
@@ -68,7 +69,6 @@ public abstract class BaseEsSearchRequestBuilder<
 
   private static final int MAX_SIZE_TERMS_AGGS = 1200000;
   private static final int MAX_SHARD_SIZE = 10000;
-  private static final String DNA_ASSISTED_SUFFIX = "_dna_assisted";
 
   public static String[] SOURCE_EXCLUDE =
       new String[] {"all", "notIssues", "*.verbatim", "*.suggest"};
@@ -107,9 +107,8 @@ public abstract class BaseEsSearchRequestBuilder<
     // group params
     GroupedParams<P> groupedParams = groupParameters(searchRequest);
 
-    // checklistKey to be used later
-    String checklistKey = getChecklistKey(searchRequest.getParameters());
-    boolean dnaTaxonSearch = searchRequest.isDnaTaxonSearch();
+    // classifications to search the taxonomic parameters in, to be used later
+    TaxonomyFilter taxonomyFilter = getTaxonomyFilter(searchRequest);
 
     // add query
     if (searchRequest instanceof PredicateSearchRequest) {
@@ -119,8 +118,7 @@ public abstract class BaseEsSearchRequestBuilder<
               groupedParams.queryParams,
               searchRequest.getQ(),
               searchRequest.isMatchCase(),
-              checklistKey,
-              dnaTaxonSearch)
+              taxonomyFilter)
           .ifPresent(searchRequestBuilder::query);
     }
 
@@ -154,7 +152,7 @@ public abstract class BaseEsSearchRequestBuilder<
 
     // post-filter
     buildPostFilter(
-            groupedParams.postFilterParams, searchRequest.isMatchCase(), checklistKey, dnaTaxonSearch)
+            groupedParams.postFilterParams, searchRequest.isMatchCase(), taxonomyFilter)
         .ifPresent(searchRequestBuilder::postFilter);
 
     return searchRequestBuilder.build();
@@ -165,8 +163,7 @@ public abstract class BaseEsSearchRequestBuilder<
         searchRequest.getParameters(),
         searchRequest.getQ(),
         searchRequest.isMatchCase(),
-        getChecklistKey(searchRequest.getParameters()),
-        searchRequest.isDnaTaxonSearch());
+        getTaxonomyFilter(searchRequest));
   }
 
   SearchRequest buildSuggestQuery(String prefix, P parameter, Integer limit, String index) {
@@ -198,20 +195,17 @@ public abstract class BaseEsSearchRequestBuilder<
    * @param params
    */
   private void addTaxonKeyQuery(
-      String rank, List<Query> filters, Map<P, Set<String>> params, boolean dnaTaxonSearch) {
-
-    String checklistKey = getChecklistKey(params);
+      String rank, List<Query> filters, Map<P, Set<String>> params, TaxonomyFilter taxonomyFilter) {
 
     P dynamicRankParam = createSearchParam(rank.toUpperCase() + "_KEY", String.class);
     if (params.containsKey(dynamicRankParam)) {
       ChecklistEsField taxonKeyField = (ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField();
-      List<String> fieldsToSearch = new ArrayList<>();
-      fieldsToSearch.add(taxonKeyField.getSearchFieldName(checklistKey));
-      if (dnaTaxonSearch) {
-        // dna assisted taxon query
-        fieldsToSearch.add(
-            taxonKeyField.getSearchFieldName(getDnaAssistedChecklistKey(checklistKey)));
-      }
+      P taxonKeyParam = getParam(OccurrenceSearchParameter.TAXON_KEY.name()).orElseThrow();
+      List<String> fieldsToSearch =
+          getTaxonFields(
+              taxonomyFilter,
+              taxonKeyField::getSearchFieldName,
+              checklistKey -> esFieldMapper.getDnaChecklistField(checklistKey, taxonKeyParam));
 
       List<FieldValue> values =
           params.get(dynamicRankParam).stream().map(FieldValue::of).collect(Collectors.toList());
@@ -232,8 +226,7 @@ public abstract class BaseEsSearchRequestBuilder<
       Map<P, Set<String>> params,
       String qParam,
       boolean matchCase,
-      String checklistKey,
-      boolean dnaTaxonSearch) {
+      TaxonomyFilter taxonomyFilter) {
     translateFields(params);
     List<Query> mustQueries = new ArrayList<>();
     List<Query> filterQueries = new ArrayList<>();
@@ -246,13 +239,13 @@ public abstract class BaseEsSearchRequestBuilder<
     if (params != null && !params.isEmpty()) {
 
       // check for dynamic ranks e.g. subphylum that will be specific to a checklist
-      addChecklistDynamicRanks(params, filterQueries, dnaTaxonSearch);
+      addChecklistDynamicRanks(params, filterQueries, taxonomyFilter);
 
       // handle the switch from issue -> non-taxonomic issue if checklistKey supplied
       handleIssueQueries(params, filterQueries);
 
       // adding geometry to bool
-      getParam("GEOMETRY")
+      getParam(OccurrenceSearchParameter.GEOMETRY.name())
           .filter(params::containsKey)
           .ifPresent(
               param -> {
@@ -260,7 +253,7 @@ public abstract class BaseEsSearchRequestBuilder<
                 filterQueries.add(Query.of(q -> q.bool(b -> b.should(shouldGeometry))));
               });
 
-      getParam("GEO_DISTANCE")
+      getParam(OccurrenceSearchParameter.GEO_DISTANCE.name())
           .filter(params::containsKey)
           .ifPresent(
               param -> {
@@ -270,7 +263,7 @@ public abstract class BaseEsSearchRequestBuilder<
               });
 
       // adding term queries to bool
-      filterQueries.addAll(createQueries(params, matchCase, checklistKey, dnaTaxonSearch));
+      filterQueries.addAll(createQueries(params, matchCase, taxonomyFilter));
     }
     esFieldMapper.getDefaultFilter().ifPresent(filterQueries::add);
 
@@ -282,17 +275,15 @@ public abstract class BaseEsSearchRequestBuilder<
   private List<Query> createQueries(
       Map<P, Set<String>> params,
       boolean matchCase,
-      String checklistKey,
-      boolean dnaTaxonSearch) {
-    return createQueries(params, matchCase, true, checklistKey, dnaTaxonSearch);
+      TaxonomyFilter taxonomyFilter) {
+    return createQueries(params, matchCase, true, taxonomyFilter);
   }
 
   private List<Query> createQueries(
       Map<P, Set<String>> params,
       boolean matchCase,
       boolean wrappedChildrenQueries,
-      String checklistKey,
-      boolean dnaTaxonSearch) {
+      TaxonomyFilter taxonomyFilter) {
     Map<String, List<Query>> queriesByNestedPath = new HashMap<>();
     List<Query> nonNestedQueries = new ArrayList<>();
     for (Map.Entry<P, Set<String>> e : params.entrySet()) {
@@ -307,8 +298,7 @@ public abstract class BaseEsSearchRequestBuilder<
               esFieldMapper.getEsField(e.getKey()),
               matchCase,
               wrappedChildrenQueries,
-              checklistKey,
-              dnaTaxonSearch);
+              taxonomyFilter);
 
       if (esField.isNestedField()) {
         queriesByNestedPath
@@ -346,10 +336,44 @@ public abstract class BaseEsSearchRequestBuilder<
    * @return
    */
   public String getChecklistKey(Map<P, Set<String>> params) {
-    return getParam("CHECKLIST_KEY")
+    return getParam(OccurrenceSearchParameter.CHECKLIST_KEY.name())
         .filter(params::containsKey)
         .map(p -> params.get(p).iterator().next())
         .orElse(defaultChecklistKey);
+  }
+
+  /** Retrieve the dnaAssistedChecklistKey from the request, or null if it isn't present. */
+  private String getDnaAssistedChecklistKey(Map<P, Set<String>> params) {
+    return getParam(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY.name())
+        .filter(params::containsKey)
+        .map(p -> params.get(p).iterator().next())
+        .orElse(null);
+  }
+
+  TaxonomyFilter getTaxonomyFilter(S searchRequest) {
+    return new TaxonomyFilter(
+        getChecklistKey(searchRequest.getParameters()),
+        searchRequest.isUseDnaAssistance(),
+        getDnaAssistedChecklistKey(searchRequest.getParameters()));
+  }
+
+  /**
+   * The classifications to search the taxonomic parameters in: the classification of the
+   * checklistKey and, with useDnaAssistance, also the DNA-assisted classification of the same
+   * checklist. With a dnaAssistedChecklistKey, and without useDnaAssistance, only the DNA-assisted
+   * classification of that checklist.
+   */
+  record TaxonomyFilter(
+      String checklistKey, boolean useDnaAssistance, String dnaAssistedChecklistKey) {
+
+    boolean useDnaChecklistKeyOnly() {
+      return !useDnaAssistance && dnaAssistedChecklistKey != null;
+    }
+
+    /** The checklist whose classification is searched. */
+    String searchedChecklistKey() {
+      return useDnaChecklistKeyOnly() ? dnaAssistedChecklistKey : checklistKey;
+    }
   }
 
   /**
@@ -358,12 +382,13 @@ public abstract class BaseEsSearchRequestBuilder<
    *
    * @param params
    * @param filters
-   * @param dnaTaxonSearch whether to search also in the DNA assisted classification
+   * @param taxonomyFilter the classifications to search in
    */
   private void addChecklistDynamicRanks(
-      Map<P, Set<String>> params, List<Query> filters, boolean dnaTaxonSearch) {
+      Map<P, Set<String>> params, List<Query> filters, TaxonomyFilter taxonomyFilter) {
     if (nameUsageMatchingService != null) {
-      Optional.ofNullable(nameUsageMatchingService.getMetadata(getChecklistKey(params)))
+      Optional.ofNullable(
+              nameUsageMatchingService.getMetadata(taxonomyFilter.searchedChecklistKey()))
           .ifPresent(
               metadata ->
                   metadata
@@ -372,7 +397,7 @@ public abstract class BaseEsSearchRequestBuilder<
                       .keySet()
                       .forEach(
                           rank -> {
-                            addTaxonKeyQuery(rank, filters, params, dnaTaxonSearch);
+                            addTaxonKeyQuery(rank, filters, params, taxonomyFilter);
                           }));
     }
   }
@@ -435,14 +460,13 @@ public abstract class BaseEsSearchRequestBuilder<
   private Optional<Query> buildPostFilter(
       Map<P, Set<String>> postFilterParams,
       boolean matchCase,
-      String checklistKey,
-      boolean dnaTaxonSearch) {
+      TaxonomyFilter taxonomyFilter) {
     if (postFilterParams == null || postFilterParams.isEmpty()) {
       return Optional.empty();
     }
 
     List<Query> filterQueries =
-        createQueries(postFilterParams, matchCase, checklistKey, dnaTaxonSearch);
+        createQueries(postFilterParams, matchCase, taxonomyFilter);
     return Optional.of(Query.of(q -> q.bool(b -> b.filter(filterQueries))));
   }
 
@@ -466,8 +490,7 @@ public abstract class BaseEsSearchRequestBuilder<
       Map<P, Set<String>> postFilterParams,
       P facetParam,
       boolean matchCase,
-      String checklistKey,
-      boolean dnaTaxonSearch) {
+      TaxonomyFilter taxonomyFilter) {
     Map<P, Set<String>> filteredParams =
         postFilterParams.entrySet().stream()
             .filter(entry -> entry.getKey() != facetParam)
@@ -477,7 +500,7 @@ public abstract class BaseEsSearchRequestBuilder<
             q.bool(
                 b ->
                     b.filter(
-                        createQueries(filteredParams, matchCase, checklistKey, dnaTaxonSearch))));
+                        createQueries(filteredParams, matchCase, taxonomyFilter))));
   }
 
   /** Creates a filter with all the filter in which the facet param is not present. */
@@ -486,8 +509,7 @@ public abstract class BaseEsSearchRequestBuilder<
       P facetParam,
       boolean matchCase,
       boolean wrappedChildrenQueries,
-      String checklistKey,
-      boolean dnaTaxonSearch) {
+      TaxonomyFilter taxonomyFilter) {
     return Query.of(
         q ->
             q.bool(
@@ -500,8 +522,7 @@ public abstract class BaseEsSearchRequestBuilder<
                                     .orElse(Collections.emptySet())),
                             matchCase,
                             wrappedChildrenQueries,
-                            checklistKey,
-                            dnaTaxonSearch))));
+                            taxonomyFilter))));
   }
 
   private Map<String, Aggregation> buildFacetsMultiselect(
@@ -522,8 +543,7 @@ public abstract class BaseEsSearchRequestBuilder<
                       postFilterParams,
                       facetParam,
                       searchRequest.isMatchCase(),
-                      getChecklistKey(searchRequest.getParameters()),
-                      searchRequest.isDnaTaxonSearch());
+                      getTaxonomyFilter(searchRequest));
 
               EsField esField = esFieldMapper.getEsFacetField(facetParam);
               NamedAggregation subAggregation =
@@ -548,12 +568,18 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   boolean isDynamicRankParam(S searchRequest, P p) {
-    // TODO: Use the one from the enum so it doesn't compile if changes
-    return getParam("CHECKLIST_KEY")
-        .filter(param -> searchRequest.getParameters().containsKey(param))
+    // the dynamic ranks are only supported when a checklist is supplied, or when only the
+    // DNA-assisted classification of a checklist is searched
+    TaxonomyFilter taxonomyFilter = getTaxonomyFilter(searchRequest);
+    Optional<String> suppliedChecklistKey =
+        taxonomyFilter.useDnaChecklistKeyOnly()
+            ? Optional.of(taxonomyFilter.dnaAssistedChecklistKey())
+            : getParam(OccurrenceSearchParameter.CHECKLIST_KEY.name())
+                .filter(param -> searchRequest.getParameters().containsKey(param))
+                .map(param -> searchRequest.getParameters().get(param).iterator().next());
+    return suppliedChecklistKey
         .map(
-            param -> {
-              String checklistKey = searchRequest.getParameters().get(param).iterator().next();
+            checklistKey -> {
               if (nameUsageMatchingService != null) {
                 // get the metadata for the checklistKey
                 Metadata metadata = nameUsageMatchingService.getMetadata(checklistKey);
@@ -592,8 +618,8 @@ public abstract class BaseEsSearchRequestBuilder<
               }
 
               // if a checklist has been supplied, then use the non taxonomic issues field
-              if (getParam("ISSUE").map(facetParam::equals).orElse(false)
-                  && getParam("CHECKLIST_KEY")
+              if (getParam(OccurrenceSearchParameter.ISSUE.name()).map(facetParam::equals).orElse(false)
+                  && getParam(OccurrenceSearchParameter.CHECKLIST_KEY.name())
                       .map(p -> searchRequest.getParameters().containsKey(p))
                       .orElse(false)) {
                 aggregation =
@@ -631,10 +657,13 @@ public abstract class BaseEsSearchRequestBuilder<
               }
 
               if (isDynamicRankParam(searchRequest, facetParam)) {
+                TaxonomyFilter taxonomyFilter = getTaxonomyFilter(searchRequest);
                 String esFieldToUse =
                     String.format(
-                        "classifications.%s.classificationKeys.%s",
-                        getChecklistKey(searchRequest.getParameters()),
+                        taxonomyFilter.useDnaChecklistKeyOnly()
+                            ? "dnaClassifications.classifications.%s.classificationKeys.%s"
+                            : "classifications.%s.classificationKeys.%s",
+                        taxonomyFilter.searchedChecklistKey(),
                         facetParam
                             .name()
                             .substring(0, facetParam.name().length() - 4)
@@ -668,8 +697,7 @@ public abstract class BaseEsSearchRequestBuilder<
                 facetParam,
                 searchRequest.isMatchCase(),
                 false,
-                getChecklistKey(searchRequest.getParameters()),
-                searchRequest.isDnaTaxonSearch())
+                getTaxonomyFilter(searchRequest))
             : Query.of(q -> q.matchAll(m -> m));
 
     NamedAggregation termsAggregation =
@@ -695,9 +723,13 @@ public abstract class BaseEsSearchRequestBuilder<
 
     String fieldName = null;
     if (field instanceof ChecklistEsField) {
+      TaxonomyFilter taxonomyFilter = getTaxonomyFilter(searchRequest);
+      // with a dnaAssistedChecklistKey the facet is on the DNA-assisted classification
       fieldName =
-          ((ChecklistEsField) field)
-              .getSearchFieldName(getChecklistKey(searchRequest.getParameters()));
+          taxonomyFilter.useDnaChecklistKeyOnly()
+              ? esFieldMapper.getDnaChecklistField(
+                  taxonomyFilter.dnaAssistedChecklistKey(), facetParam)
+              : ((ChecklistEsField) field).getSearchFieldName(taxonomyFilter.checklistKey());
     } else {
       fieldName =
           searchRequest.isMatchCase()
@@ -793,8 +825,7 @@ public abstract class BaseEsSearchRequestBuilder<
       EsField esField,
       boolean matchCase,
       boolean wrappedChildrenQueries,
-      String checklistKey,
-      boolean dnaTaxonSearch) {
+      TaxonomyFilter taxonomyFilter) {
     List<Query> queries = new ArrayList<>();
 
     // collect queries for each value
@@ -829,16 +860,11 @@ public abstract class BaseEsSearchRequestBuilder<
     // get the field name based on the taxonomy and the matchCase
     List<String> fieldsToSearch = new ArrayList<>();
     if (isTaxonomic(param)) {
-      fieldsToSearch.add(esFieldMapper.getChecklistField(checklistKey, param));
-
-      if (dnaTaxonSearch) {
-        // dna assisted taxon query
-        String dnaChecklistKey = getDnaAssistedChecklistKey(checklistKey);
-        String dnaFieldName = esFieldMapper.getChecklistField(dnaChecklistKey, param);
-        if (!fieldsToSearch.contains(dnaFieldName)) {
-          fieldsToSearch.add(dnaFieldName);
-        }
-      }
+      fieldsToSearch.addAll(
+          getTaxonFields(
+              taxonomyFilter,
+              checklistKey -> esFieldMapper.getChecklistField(checklistKey, param),
+              checklistKey -> esFieldMapper.getDnaChecklistField(checklistKey, param)));
     } else {
       fieldsToSearch.add(matchCase ? esField.getVerbatimFieldName() : esField.getExactMatchFieldName());
     }
@@ -871,8 +897,25 @@ public abstract class BaseEsSearchRequestBuilder<
     return queries;
   }
 
-  private String getDnaAssistedChecklistKey(String checklistKey) {
-    return checklistKey + DNA_ASSISTED_SUFFIX;
+  /**
+   * Returns the fields to search a taxonomic parameter in: the checklist field and, with
+   * useDnaAssistance, also the DNA-assisted field of the same checklist. With a
+   * dnaAssistedChecklistKey, and without useDnaAssistance, only the DNA-assisted field of that
+   * checklist.
+   */
+  private static List<String> getTaxonFields(
+      TaxonomyFilter taxonomyFilter,
+      Function<String, String> checklistField,
+      Function<String, String> dnaChecklistField) {
+    if (taxonomyFilter.useDnaAssistance()) {
+      return List.of(
+          checklistField.apply(taxonomyFilter.checklistKey()),
+          dnaChecklistField.apply(taxonomyFilter.checklistKey()));
+    }
+    if (taxonomyFilter.useDnaChecklistKeyOnly()) {
+      return List.of(dnaChecklistField.apply(taxonomyFilter.dnaAssistedChecklistKey()));
+    }
+    return List.of(checklistField.apply(taxonomyFilter.checklistKey()));
   }
 
   private Query buildRangeQuery(EsField esField, String value) {

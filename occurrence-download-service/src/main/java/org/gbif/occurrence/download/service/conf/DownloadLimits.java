@@ -86,7 +86,8 @@ public class DownloadLimits {
                         @Value("${occurrence.download.downloads_hard_limit}") String hardLimit,
                         @Value("${occurrence.download.downloads_max_points}") int maxPoints,
                         @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates,
-                        @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
+                        @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
+                        @Value("${checklist.dna.nested.struct.config:{}}") String dnaChecklistNestedStructMapJson) {
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
@@ -98,9 +99,11 @@ public class DownloadLimits {
       ObjectMapper objectMapper = new ObjectMapper();
       Map<String, String> checklistNestedStructMap =
         objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
-      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap);
+      Map<String, String> dnaChecklistNestedStructMap =
+        objectMapper.readValue(dnaChecklistNestedStructMapJson, Map.class);
+      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap, dnaChecklistNestedStructMap);
     } catch (Exception e) {
-      throw new RuntimeException("Invalid checklistNestedStructMap JSON format", e);
+      throw new RuntimeException("Invalid checklistNestedStructMap or dnaChecklistNestedStructMap JSON format", e);
     }
   }
 

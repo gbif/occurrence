@@ -1766,39 +1766,60 @@ public class EsQueryVisitorTest {
   }
 
   @Test
-  public void testDnaTaxonSearchEqualsPredicate() throws QueryBuildingException {
+  public void testUseDnaAssistanceEqualsPredicate() throws QueryBuildingException {
+    UUID checklistKey = UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b");
     Predicate p =
-        new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "6", false, "1", true);
+        new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "6", false, checklistKey, true);
     String query = occurrenceVisitor.buildQuery(p);
 
-    assertTrue(query.contains("classifications.1.classificationKeys.KINGDOM"));
-    assertTrue(query.contains("classifications.1_dna_assisted.classificationKeys.KINGDOM"));
+    assertTrue(query.contains("\"classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM\""));
+    assertTrue(
+        query.contains("dnaClassifications.classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM"));
   }
 
   @Test
-  public void testDnaTaxonSearchInPredicate() throws QueryBuildingException {
+  public void testUseDnaAssistanceInPredicate() throws QueryBuildingException {
+    UUID checklistKey = UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b");
     Predicate p =
         new InPredicate<>(
-            OccurrenceSearchParameter.TAXON_KEY, Arrays.asList("6", "7"), false, "1", true);
+            OccurrenceSearchParameter.TAXON_KEY, Arrays.asList("6", "7"), false, checklistKey, true);
     String query = occurrenceVisitor.buildQuery(p);
 
-    assertTrue(query.contains("classifications.1.taxonKeys"));
-    assertTrue(query.contains("classifications.1_dna_assisted.taxonKeys"));
+    assertTrue(query.contains("\"classifications.7ddf754f-d193-4cc9-b351-99906754a03b.taxonKeys\""));
+    assertTrue(query.contains("dnaClassifications.classifications.7ddf754f-d193-4cc9-b351-99906754a03b.taxonKeys"));
   }
 
   @Test
-  public void testWithoutDnaTaxonSearchOnlyUsesChecklist() throws QueryBuildingException {
+  public void testWithoutUseDnaAssistanceOnlyUsesChecklist() throws QueryBuildingException {
+    UUID checklistKey = UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b");
     Predicate p =
-        new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "6", false, "1", false);
+        new EqualsPredicate<>(OccurrenceSearchParameter.KINGDOM_KEY, "6", false, checklistKey, false);
     String query = occurrenceVisitor.buildQuery(p);
 
-    assertTrue(query.contains("classifications.1.classificationKeys.KINGDOM"));
-    assertFalse(query.contains("_dna_assisted"));
+    assertTrue(query.contains("classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM"));
+    assertFalse(query.contains("dnaClassifications"));
+  }
+
+  @Test
+  public void testDnaAssistedChecklistKeyOnlyUsesDnaClassification() throws QueryBuildingException {
+    UUID checklistKey = UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b");
+    Predicate p =
+        new EqualsPredicate<>(
+            OccurrenceSearchParameter.KINGDOM_KEY, "6", false, null, null, checklistKey);
+    String query = occurrenceVisitor.buildQuery(p);
+
+    assertTrue(
+        query.contains("\"dnaClassifications.classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM\""));
+    assertFalse(query.contains("\"classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM\""));
   }
 
   @Test
   public void testAllParametersMapped() {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
+      if (param == OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY) {
+        // it isn't a filter, the predicates use the dnaAssistedChecklistKey field instead
+        continue;
+      }
       try {
         Predicate p;
         Object value;
@@ -1819,8 +1840,11 @@ public class EsQueryVisitorTest {
             value = "2023-03-02";
           } else if (param.type().isAssignableFrom(IsoDateInterval.class)) {
             value = "2023-03";
+          } else if (param.type().isAssignableFrom(String.class)) {
+            // some string parameters only accept letters, e.g. SEX
+            value = "A";
           } else {
-            // String, Integer and Double
+            // Integer and Double
             value = "1";
           }
           p = new EqualsPredicate<>(param, value.toString(), false);

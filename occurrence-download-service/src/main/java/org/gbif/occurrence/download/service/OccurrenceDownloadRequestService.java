@@ -64,7 +64,8 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
       MessagePublisher messagePublisher,
       DoiInteractionClient doiInteractionClient,
       ConceptClient conceptClient,
-      @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson) {
+      @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson,
+      @Value("${checklist.dna.nested.struct.config: {}}") String dnaChecklistNestedStructConfigJson) {
     super(
         portalUrl,
         wsUrl,
@@ -76,7 +77,8 @@ public class OccurrenceDownloadRequestService extends DownloadRequestServiceImpl
         messagePublisher,
         DownloadType.OCCURRENCE,
         doiInteractionClient,
-        checklistNestedStructConfigJson
+        checklistNestedStructConfigJson,
+        dnaChecklistNestedStructConfigJson
     );
     this.occurrenceSearchService = occurrenceSearchService;
     this.conceptClient = conceptClient;

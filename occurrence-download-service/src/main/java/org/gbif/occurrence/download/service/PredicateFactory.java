@@ -39,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Utility for dealing with the decoding of the request parameters to the
@@ -53,9 +54,9 @@ public class PredicateFactory {
 
   private static final String WILDCARD = "*";
 
-  private static final String DNA_TAXON_SEARCH_PARAM = "dnaTaxonSearch";
+  private static final String USE_DNA_ASSISTANCE_PARAM = "useDnaAssistance";
 
-  // used to know which parameters are taxonomic and therefore support the DNA taxon search
+  // used to know which parameters are taxonomic and therefore support the DNA assistance
   private static final OccurrenceEsFieldMapper ES_FIELD_MAPPER = OccurrenceEsField.buildFieldMapper();
 
   /**
@@ -74,20 +75,28 @@ public class PredicateFactory {
   public static Predicate build(Map<String, String[]> params) {
     // predicates for different parameters. If multiple values for the same parameter exist these are in here already
     List<Predicate> groupedByParam = new ArrayList<>();
+    UUID requestDnaAssistedChecklistKey = getDnaAssistedChecklistKey(params);
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
       toEnumParam(p.getKey()).ifPresent(param -> {
+        // it isn't a filter, it is set in the taxonomic predicates
+        if (param == OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY) {
+          return;
+        }
         boolean matchCase = Optional.ofNullable(params.get("matchCase"))
           .map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
-        // the DNA taxon search only applies to the taxonomic parameters
-        Boolean dnaTaxonSearch = ES_FIELD_MAPPER.isTaxonomic(param)
-            && Optional.ofNullable(params.get(DNA_TAXON_SEARCH_PARAM))
+        // the DNA assistance only applies to the taxonomic parameters
+        boolean taxonomic = ES_FIELD_MAPPER.isTaxonomic(param);
+        Boolean useDnaAssistance = taxonomic
+            && Optional.ofNullable(params.get(USE_DNA_ASSISTANCE_PARAM))
               .map(vals -> Boolean.parseBoolean(vals[0].trim())).orElse(false)
           ? Boolean.TRUE : null;
+        UUID dnaAssistedChecklistKey = taxonomic ? requestDnaAssistedChecklistKey : null;
         String[] values = p.getValue();
         if (values != null && values.length > 0) {
           // valid parameter
-          Predicate predicate = buildParamPredicate(param, matchCase, dnaTaxonSearch, values);
+          Predicate predicate =
+            buildParamPredicate(param, matchCase, useDnaAssistance, dnaAssistedChecklistKey, values);
           if (predicate != null) {
             groupedByParam.add(predicate);
           }
@@ -109,22 +118,41 @@ public class PredicateFactory {
   }
 
   /**
-   * @return the search enum or null if it cant be converted
+   * @return the dnaAssistedChecklistKey of the request, or null if it isn't present
+   */
+  private static UUID getDnaAssistedChecklistKey(Map<String, String[]> params) {
+    return params.entrySet().stream()
+      .filter(e -> toEnumParam(e.getKey())
+        .filter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY::equals)
+        .isPresent())
+      .map(Map.Entry::getValue)
+      .filter(values -> values != null && values.length > 0)
+      .map(values -> UUID.fromString(values[0].trim()))
+      .findFirst()
+      .orElse(null);
+  }
+
+  /**
+   * @return the search enum or empty if it cant be converted
    */
   private static Optional<OccurrenceSearchParameter> toEnumParam(String name) {
     try {
       return OccurrenceSearchParameter.lookup(name);
     } catch (IllegalArgumentException e) {
-      return null;
+      return Optional.empty();
     }
   }
 
   private static Predicate buildParamPredicate(
-      OccurrenceSearchParameter param, boolean matchCase, Boolean dnaTaxonSearch, String... values) {
+      OccurrenceSearchParameter param,
+      boolean matchCase,
+      Boolean useDnaAssistance,
+      UUID dnaAssistedChecklistKey,
+      String... values) {
     boolean allEquals = true;
     List<Predicate> predicates = new ArrayList<>();
     for (String v : values) {
-      Predicate p = parsePredicate(param, v, matchCase, dnaTaxonSearch);
+      Predicate p = parsePredicate(param, v, matchCase, useDnaAssistance, dnaAssistedChecklistKey);
       allEquals &= p instanceof EqualsPredicate;
       if (p != null) {
         predicates.add(p);
@@ -138,7 +166,8 @@ public class PredicateFactory {
       return predicates.get(0);
 
     } else if (allEquals) {
-      return new InPredicate(param, Arrays.asList(values), matchCase, null, dnaTaxonSearch);
+      return new InPredicate(
+        param, Arrays.asList(values), matchCase, null, useDnaAssistance, dnaAssistedChecklistKey);
     } else {
       return new DisjunctionPredicate(predicates);
     }
@@ -152,7 +181,11 @@ public class PredicateFactory {
    * Converts a value with an optional predicate prefix into a real predicate instance, defaulting to EQUALS.
    */
   private static Predicate parsePredicate(
-      OccurrenceSearchParameter param, String value, boolean matchCase, Boolean dnaTaxonSearch) {
+      OccurrenceSearchParameter param,
+      String value,
+      boolean matchCase,
+      Boolean useDnaAssistance,
+      UUID dnaAssistedChecklistKey) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
       // validate it here, as this constructor only logs invalid strings.
@@ -194,10 +227,11 @@ public class PredicateFactory {
         "Ranges are only supported for numeric or date parameter types but received " + param);
     } else {
       if (WILDCARD.equals(value)) {
-        return new IsNotNullPredicate(param, null, dnaTaxonSearch);
+        return new IsNotNullPredicate(param, null, useDnaAssistance, dnaAssistedChecklistKey);
       } else {
         // defaults to an equals predicate with the original value
-        return new EqualsPredicate(param, value, matchCase, null, dnaTaxonSearch);
+        return new EqualsPredicate(
+          param, value, matchCase, null, useDnaAssistance, dnaAssistedChecklistKey);
       }
     }
   }

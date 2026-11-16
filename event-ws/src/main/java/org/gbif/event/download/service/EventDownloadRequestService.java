@@ -30,6 +30,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -52,7 +54,8 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
     MessagePublisher messagePublisher,
     DoiInteractionClient doiInteractionClient,
     ConceptClient conceptClient,
-    @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson) {
+    @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson,
+    @Value("${checklist.dna.nested.struct.config: {}}") String dnaChecklistNestedStructConfigJson) {
     super(
         portalUrl,
         wsUrl,
@@ -64,7 +67,8 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
         messagePublisher,
         DownloadType.EVENT,
         doiInteractionClient,
-        checklistNestedStructConfigJson);
+        checklistNestedStructConfigJson,
+        dnaChecklistNestedStructConfigJson);
     this.defaultChecklistKey = defaultChecklistKey;
     this.conceptClient = conceptClient;
   }
@@ -89,7 +93,7 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
   public String create(DownloadRequest request, String source) {
     if (request.getChecklistKey() == null) {
       // set default checklistKey
-      request.setChecklistKey(defaultChecklistKey);
+      request.setChecklistKey(UUID.fromString(defaultChecklistKey));
     }
     return super.create(request, source);
   }

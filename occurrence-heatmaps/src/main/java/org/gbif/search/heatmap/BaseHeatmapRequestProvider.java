@@ -46,7 +46,7 @@ public abstract class BaseHeatmapRequestProvider<
   public static final String MODE_PARAM = "mode";
   public static final String BUCKET_LIMIT_PARAM = "bucketLimit";
   public static final String PARAM_PREDICATE_HASH = "predicateHash";
-  public static final String DNA_TAXON_SEARCH_PARAM = "dnaTaxonSearch";
+  public static final String USE_DNA_ASSISTANCE_PARAM = "useDnaAssistance";
   private static final int DEFAULT_ZOOM_LEVEL = 3;
   public static final int DEFAULT_BUCKET_LIMIT = 15000;
   private static final Logger LOG = LoggerFactory.getLogger(BaseHeatmapRequestProvider.class);
@@ -121,8 +121,8 @@ public abstract class BaseHeatmapRequestProvider<
               });
     }
 
-    Optional.ofNullable(request.getParameter(DNA_TAXON_SEARCH_PARAM))
-        .ifPresent(v -> heatmapSearchRequest.setDnaTaxonSearch(Boolean.parseBoolean(v.trim())));
+    Optional.ofNullable(request.getParameter(USE_DNA_ASSISTANCE_PARAM))
+        .ifPresent(v -> heatmapSearchRequest.setUseDnaAssistance(Boolean.parseBoolean(v.trim())));
 
     heatmapSearchRequest.setZoom(getIntParam(request, ZOOM_PARAM, DEFAULT_ZOOM_LEVEL));
     if (request.getParameterMap().containsKey(GEOM_PARAM)) {

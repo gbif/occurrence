@@ -35,13 +35,32 @@ public class QueryVisitorsFactory {
       Map<String, String> checklistNestedStructMap,
       String defaultChecklistKey,
       String disambiguationTable) {
+    return createSqlQueryVisitor(
+        denormalisedTaxonomy, checklistNestedStructMap, Map.of(), defaultChecklistKey, disambiguationTable);
+  }
+
+  /**
+   * Create a SQL Query visitor that also supports the DNA-assisted classifications
+   *
+   * @param dnaChecklistNestedStructMap map of checklist UUID to the nested struct name of its DNA-assisted
+   *     classification e.g. `col_dna_classification`
+   * @see #createSqlQueryVisitor(String, Map, String, String)
+   */
+  public static SQLQueryVisitor<SearchParameter> createSqlQueryVisitor(
+      String denormalisedTaxonomy,
+      Map<String, String> checklistNestedStructMap,
+      Map<String, String> dnaChecklistNestedStructMap,
+      String defaultChecklistKey,
+      String disambiguationTable) {
 
     return new SQLQueryVisitor<>(
         new OccurrenceTermsMapper(),
         denormalisedTaxonomy,
         checklistNestedStructMap,
         defaultChecklistKey,
-        disambiguationTable
+        disambiguationTable,
+        50,
+        dnaChecklistNestedStructMap
     );
   }
 }

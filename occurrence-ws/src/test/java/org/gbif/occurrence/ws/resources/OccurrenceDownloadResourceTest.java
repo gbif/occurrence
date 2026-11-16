@@ -114,10 +114,10 @@ public class OccurrenceDownloadResourceTest {
       new PredicateDownloadRequest(
         new DisjunctionPredicate(
           List.of(
-            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false, Constants.NUB_DATASET_KEY.toString()),
-            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "A", false, Constants.COL_DATASET_KEY.toString()),
-            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("2", "3"), false, Constants.NUB_DATASET_KEY.toString()),
-            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("F", "N"), false, Constants.COL_DATASET_KEY.toString()),
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false, Constants.NUB_DATASET_KEY),
+            new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "A", false, Constants.COL_DATASET_KEY),
+            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("2", "3"), false, Constants.NUB_DATASET_KEY),
+            new InPredicate(OccurrenceSearchParameter.TAXON_KEY, List.of("F", "N"), false, Constants.COL_DATASET_KEY),
 
             new EqualsPredicate(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, "AGAC", false),
             new InPredicate(OccurrenceSearchParameter.LITHOSTRATIGRAPHY, List.of("AGAC", "CAGA"), false),
@@ -208,7 +208,8 @@ public class OccurrenceDownloadResourceTest {
             Constants.NUB_DATASET_KEY.toString(),
             "7ddf754f-d193-4cc9-b351-99906754a03b",
           """
-            {"d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": "gbif_classification"}""");
+            {"d7dddbf4-2cf0-4f39-9b2a-bb099caae36c": "gbif_classification"}""",
+          "{}");
     dl =
         new PredicateDownloadRequest(
             new EqualsPredicate(OccurrenceSearchParameter.TAXON_KEY, "1", false),

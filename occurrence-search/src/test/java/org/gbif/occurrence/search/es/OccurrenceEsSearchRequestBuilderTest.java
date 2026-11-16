@@ -884,20 +884,20 @@ public class OccurrenceEsSearchRequestBuilderTest {
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
     Query query =
         esSearchRequestBuilder
-            .buildQuery(params, null, false, "1", false)
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter("1", false, null))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);
   }
 
   @Test
-  public void dnaTaxonSearchBuildsTaxonQueryForChecklistAndDnaChecklist() throws Exception {
+  public void useDnaAssistanceBuildsTaxonQueryForChecklistAndDnaChecklist() throws Exception {
     Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
     params.put(OccurrenceSearchParameter.KINGDOM_KEY, Set.of("6"));
 
     Query query =
         esSearchRequestBuilder
-            .buildQuery(params, null, false, "1", true)
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter("1", true, null))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);
@@ -910,15 +910,15 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .size());
   }
 
   @Test
-  public void dnaTaxonSearchFromRequestFlagBuildsTaxonQueryForBothChecklists() throws Exception {
+  public void useDnaAssistanceFromRequestFlagBuildsTaxonQueryForBothChecklists() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(true);
+    searchRequest.setUseDnaAssistance(true);
     searchRequest.addKingdomKeyFilter("6");
 
     Query query =
@@ -940,19 +940,19 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .size());
   }
 
   @Test
-  public void dnaTaxonSearchIgnoresChecklistValuesAndAppendsSuffix() throws Exception {
+  public void useDnaAssistanceIgnoresChecklistValuesAndAppendsSuffix() throws Exception {
     Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
     params.put(OccurrenceSearchParameter.KINGDOM_KEY, Set.of("6"));
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
 
     Query query =
         esSearchRequestBuilder
-            .buildQuery(params, null, false, "1", true)
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter("1", true, null))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);
@@ -965,15 +965,15 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .size());
   }
 
   @Test
-  public void dnaTaxonSearchAppliesToTaxonomicFieldTaxonKey() throws Exception {
+  public void useDnaAssistanceAppliesToTaxonomicFieldTaxonKey() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(true);
+    searchRequest.setUseDnaAssistance(true);
     searchRequest.addParameter(OccurrenceSearchParameter.TAXON_KEY, "212");
 
     Query query =
@@ -983,14 +983,14 @@ public class OccurrenceEsSearchRequestBuilderTest {
     String queryJson = toJson(query);
 
     assertTrue(queryJson.contains("classifications.1.taxonKeys"));
-    assertTrue(queryJson.contains("classifications.1_dna_assisted.taxonKeys"));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.1.taxonKeys"));
   }
 
   @Test
-  public void dnaTaxonSearchDoesNotAffectNonTaxonomicFieldCountry() throws Exception {
+  public void useDnaAssistanceDoesNotAffectNonTaxonomicFieldCountry() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(true);
+    searchRequest.setUseDnaAssistance(true);
     searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
 
     Query query =
@@ -1000,11 +1000,11 @@ public class OccurrenceEsSearchRequestBuilderTest {
     String queryJson = toJson(query);
 
     assertTrue(queryJson.contains(COUNTRY_CODE.getSearchFieldName()));
-    assertFalse(queryJson.contains("1_dna_assisted"));
+    assertFalse(queryJson.contains("dnaClassifications"));
   }
 
   @Test
-  public void dnaTaxonSearchChangesQueryForSameRequest() throws Exception {
+  public void useDnaAssistanceChangesQueryForSameRequest() throws Exception {
     OccurrenceSearchRequest searchRequestWithoutDna = new OccurrenceSearchRequest();
     searchRequestWithoutDna.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
     searchRequestWithoutDna.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, "6");
@@ -1017,7 +1017,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     OccurrenceSearchRequest searchRequestWithDna = new OccurrenceSearchRequest();
     searchRequestWithDna.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequestWithDna.setDnaTaxonSearch(true);
+    searchRequestWithDna.setUseDnaAssistance(true);
     searchRequestWithDna.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, "6");
 
     Query queryWithDna =
@@ -1027,16 +1027,63 @@ public class OccurrenceEsSearchRequestBuilderTest {
     String queryWithDnaJson = toJson(queryWithDna);
 
     assertTrue(queryWithoutDnaJson.contains("classifications.1.classificationKeys.KINGDOM"));
-    assertFalse(queryWithoutDnaJson.contains("classifications.1_dna_assisted.classificationKeys.KINGDOM"));
+    assertFalse(queryWithoutDnaJson.contains("dnaClassifications.classifications.1.classificationKeys.KINGDOM"));
     assertTrue(queryWithDnaJson.contains("classifications.1.classificationKeys.KINGDOM"));
-    assertTrue(queryWithDnaJson.contains("classifications.1_dna_assisted.classificationKeys.KINGDOM"));
+    assertTrue(queryWithDnaJson.contains("dnaClassifications.classifications.1.classificationKeys.KINGDOM"));
   }
 
   @Test
-  public void dnaTaxonSearchWithTaxonAndNonTaxonFieldsOnlyExpandsTaxonField() throws Exception {
+  public void dnaAssistedChecklistKeyOnlySearchesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, "7ddf754f-d193-4cc9-b351-99906754a03b");
+    searchRequest.addKingdomKeyFilter("6");
+    searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(query));
+    LOG.debug("Query: {}", jsonQuery);
+
+    JsonNode filter = jsonQuery.path(BOOL).path(FILTER);
+    assertEquals(
+        1,
+        filter
+            .findValues("dnaClassifications.classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM")
+            .size());
+    // the regular classification isn't searched
+    assertEquals(0, filter.findValues("classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM").size());
+    assertEquals(0, filter.findValues("classifications.1.classificationKeys.KINGDOM").size());
+    // the non taxonomic fields aren't affected and the dnaAssistedChecklistKey isn't a filter
+    assertEquals(1, filter.findValues(COUNTRY_CODE.getSearchFieldName()).size());
+    assertFalse(toJson(query).contains("dnaAssistedChecklistKey"));
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyIgnoredWithUseDnaAssistance() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, "7ddf754f-d193-4cc9-b351-99906754a03b");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addKingdomKeyFilter("6");
+
+    String queryJson =
+        toJson(
+            esSearchRequestBuilder
+                .buildQueryNode(searchRequest)
+                .orElseThrow(IllegalArgumentException::new));
+
+    assertTrue(queryJson.contains("\"classifications.1.classificationKeys.KINGDOM\""));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.1.classificationKeys.KINGDOM"));
+    assertFalse(queryJson.contains("7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys"));
+  }
+
+  @Test
+  public void useDnaAssistanceWithTaxonAndNonTaxonFieldsOnlyExpandsTaxonField() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
+    searchRequest.setUseDnaAssistance(true);
     searchRequest.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, "6");
     searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
 
@@ -1047,17 +1094,17 @@ public class OccurrenceEsSearchRequestBuilderTest {
     String queryJson = toJson(query);
 
     assertTrue(queryJson.contains("classifications.1.classificationKeys.KINGDOM"));
-    assertTrue(queryJson.contains("classifications.1_dna_assisted.classificationKeys.KINGDOM"));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.1.classificationKeys.KINGDOM"));
     assertTrue(queryJson.contains(COUNTRY_CODE.getSearchFieldName()));
-    assertFalse(queryJson.contains("1_dna_assisted.country"));
-    assertFalse(queryJson.contains("1_dna_assisted.countryCode"));
+    assertFalse(queryJson.contains("dnaClassifications.classifications.1.country"));
+    assertFalse(queryJson.contains("dnaClassifications.classifications.1.countryCode"));
   }
 
   @Test
-  public void dnaTaxonSearchAppliesToPostFilterAndMultiselectFacetFilters() throws Exception {
+  public void useDnaAssistanceAppliesToPostFilterAndMultiselectFacetFilters() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(true);
+    searchRequest.setUseDnaAssistance(true);
     searchRequest.addKingdomKeyFilter("6");
     searchRequest.addBasisOfRecordFilter(BasisOfRecord.PRESERVED_SPECIMEN);
     searchRequest.addFacets(
@@ -1073,7 +1120,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertFalse(postFilter.findValues("classifications.1.classificationKeys.KINGDOM").isEmpty());
     assertFalse(
         postFilter
-            .findValues("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .isEmpty());
 
     // the basis of record facet is filtered by the other post-filter params (kingdom)
@@ -1081,15 +1128,15 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getSearchFieldName()).path("filter");
     assertFalse(
         borAggFilter
-            .findValues("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .isEmpty());
   }
 
   @Test
-  public void dnaTaxonSearchFalseDoesNotSearchDnaChecklist() throws Exception {
+  public void useDnaAssistanceFalseDoesNotSearchDnaChecklist() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(false);
+    searchRequest.setUseDnaAssistance(false);
     searchRequest.addKingdomKeyFilter("6");
 
     Query query =
@@ -1099,14 +1146,14 @@ public class OccurrenceEsSearchRequestBuilderTest {
     String queryJson = toJson(query);
 
     assertTrue(queryJson.contains("classifications.1.classificationKeys.KINGDOM"));
-    assertFalse(queryJson.contains("1_dna_assisted"));
+    assertFalse(queryJson.contains("dnaClassifications"));
   }
 
   @Test
-  public void dnaTaxonSearchDoesNotChangeTaxonFacetField() throws Exception {
+  public void useDnaAssistanceDoesNotChangeTaxonFacetField() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(true);
+    searchRequest.setUseDnaAssistance(true);
     searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
 
     SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
@@ -1144,7 +1191,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertFalse(kingdomFilter.findValues("classifications.1.classificationKeys.PHYLUM").isEmpty());
     assertFalse(
         kingdomFilter
-            .findValues("classifications.1_dna_assisted.classificationKeys.PHYLUM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.PHYLUM")
             .isEmpty());
     assertFalse(kingdomFilter.toString().contains("KINGDOM"));
 
@@ -1153,7 +1200,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertFalse(phylumFilter.findValues("classifications.1.classificationKeys.KINGDOM").isEmpty());
     assertFalse(
         phylumFilter
-            .findValues("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .isEmpty());
     assertFalse(phylumFilter.toString().contains("PHYLUM"));
   }
@@ -1168,13 +1215,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertEquals(
         "6",
         postFilter
-            .findValue("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValue("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .path(VALUE)
             .asText());
     assertEquals(
         "7",
         postFilter
-            .findValue("classifications.1_dna_assisted.classificationKeys.PHYLUM")
+            .findValue("dnaClassifications.classifications.1.classificationKeys.PHYLUM")
             .path(VALUE)
             .asText());
 
@@ -1184,21 +1231,21 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
-  public void multiselectWithoutDnaTaxonSearchDoesNotSearchDnaChecklist() throws Exception {
+  public void multiselectWithoutUseDnaAssistanceDoesNotSearchDnaChecklist() throws Exception {
     SearchRequest request =
         esSearchRequestBuilder.buildSearchRequest(multiselectTaxonFacetsRequest(false), INDEX);
     String json = toJson(request);
     LOG.debug("Request: {}", json);
 
     assertTrue(json.contains("classifications.1.classificationKeys.KINGDOM"));
-    assertFalse(json.contains("1_dna_assisted"));
+    assertFalse(json.contains("dnaClassifications"));
   }
 
   @Test
   public void multiselectSingleTaxonFacetExpandsPostFilterOnly() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(true);
+    searchRequest.setUseDnaAssistance(true);
     searchRequest.addKingdomKeyFilter("6");
     searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
     searchRequest.setFacetMultiSelect(true);
@@ -1210,7 +1257,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertFalse(
         jsonQuery
             .path(POST_FILTER)
-            .findValues("classifications.1_dna_assisted.classificationKeys.KINGDOM")
+            .findValues("dnaClassifications.classifications.1.classificationKeys.KINGDOM")
             .isEmpty());
     assertEquals(
         List.of("classifications.1.classificationKeys.KINGDOM"),
@@ -1232,10 +1279,10 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertNull(jsonQuery.path(AGGREGATIONS).findValue(COUNTRY_CODE.getSearchFieldName()));
   }
 
-  private static OccurrenceSearchRequest multiselectTaxonFacetsRequest(boolean dnaTaxonSearch) {
+  private static OccurrenceSearchRequest multiselectTaxonFacetsRequest(boolean useDnaAssistance) {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
-    searchRequest.setDnaTaxonSearch(dnaTaxonSearch);
+    searchRequest.setUseDnaAssistance(useDnaAssistance);
     searchRequest.addKingdomKeyFilter("6");
     searchRequest.addPhylumKeyFilter("7");
     searchRequest.addFacets(
@@ -1245,39 +1292,93 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
-  public void dnaTaxonSearchAppliesToDynamicRanks() throws Exception {
+  public void useDnaAssistanceAppliesToDynamicRanks() throws Exception {
     Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
     params.put(new OccurrenceSearchParameter("SUBPHYLUM_KEY", String.class), Set.of("123"));
 
     Query query =
         dynamicRanksSearchRequestBuilder()
-            .buildQuery(params, null, false, "1", true)
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter("1", true, null))
             .orElseThrow(IllegalArgumentException::new);
     String queryJson = toJson(query);
     LOG.debug("Query: {}", queryJson);
 
     assertTrue(queryJson.contains("classifications.1.taxonKeys"));
-    assertTrue(queryJson.contains("classifications.1_dna_assisted.taxonKeys"));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.1.taxonKeys"));
   }
 
   @Test
-  public void dynamicRanksWithoutDnaTaxonSearchOnlyUseChecklist() throws Exception {
+  public void dynamicRanksWithoutUseDnaAssistanceOnlyUseChecklist() throws Exception {
     Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("1"));
     params.put(new OccurrenceSearchParameter("SUBPHYLUM_KEY", String.class), Set.of("123"));
 
     Query query =
         dynamicRanksSearchRequestBuilder()
-            .buildQuery(params, null, false, "1", false)
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter("1", false, null))
             .orElseThrow(IllegalArgumentException::new);
     String queryJson = toJson(query);
 
     assertTrue(queryJson.contains("classifications.1.taxonKeys"));
-    assertFalse(queryJson.contains("_dna_assisted"));
+    assertFalse(queryJson.contains("dnaClassifications"));
   }
 
-  /** Builder whose checklist "1" has the SUBPHYLUM rank, so SUBPHYLUM_KEY is a dynamic rank. */
+  private static final String DNA_CHECKLIST_KEY = "7ddf754f-d193-4cc9-b351-99906754a03b";
+
+  @Test
+  public void dnaAssistedChecklistKeyFacetUsesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX)));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        "dnaClassifications.classifications." + DNA_CHECKLIST_KEY + ".classificationKeys.KINGDOM",
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  @Test
+  public void useDnaAssistanceFacetUsesChecklistClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "1");
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX)));
+
+    // the facets aren't calculated on both classifications, and the dnaAssistedChecklistKey is
+    // ignored with useDnaAssistance
+    assertEquals(
+        "classifications.1.classificationKeys.KINGDOM",
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyDynamicRankFacetUsesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addFacets(new OccurrenceSearchParameter("SUBPHYLUM_KEY", String.class));
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(
+            toJson(dynamicRanksSearchRequestBuilder().buildSearchRequest(searchRequest, INDEX)));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        "dnaClassifications.classifications." + DNA_CHECKLIST_KEY + ".classificationKeys.SUBPHYLUM",
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  /**
+   * Builder whose checklists "1" and DNA_CHECKLIST_KEY have the SUBPHYLUM rank, so SUBPHYLUM_KEY is a
+   * dynamic rank.
+   */
   private static OccurrenceEsSearchRequestBuilder dynamicRanksSearchRequestBuilder() {
     Metadata.IndexMetadata mainIndex = new Metadata.IndexMetadata();
     mainIndex.setNameUsageByRankCount(Map.of("SUBPHYLUM", 1L));
@@ -1286,6 +1387,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     NameUsageMatchingService nameUsageMatchingService = mock(NameUsageMatchingService.class);
     when(nameUsageMatchingService.getMetadata("1")).thenReturn(metadata);
+    when(nameUsageMatchingService.getMetadata(DNA_CHECKLIST_KEY)).thenReturn(metadata);
 
     return new OccurrenceEsSearchRequestBuilder(
         OccurrenceEsField.buildFieldMapper(),
