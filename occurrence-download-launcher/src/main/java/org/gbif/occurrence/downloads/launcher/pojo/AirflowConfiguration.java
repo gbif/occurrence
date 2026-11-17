@@ -24,6 +24,7 @@ import org.apache.http.message.BasicHeader;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
 public class AirflowConfiguration {
@@ -42,6 +43,7 @@ public class AirflowConfiguration {
 
   public String airflowUser;
 
+  @ToString.Exclude
   public String airflowPass;
 
   public String airflowAddress;

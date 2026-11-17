@@ -361,6 +361,7 @@ public class EventSearchEs
     if (request.getParameters().containsKey(EventSearchParameter.SCIENTIFIC_NAME)) {
       hasValidReplaces = false;
       Collection<String> values = request.getParameters().get(EventSearchParameter.SCIENTIFIC_NAME);
+      List<String> replacedValues = new ArrayList<>();
       for (String value : values) {
         NameUsageMatchResponse nameUsageMatch =
             nameUsageMatchingService.match(
@@ -372,10 +373,11 @@ public class EventSearchEs
         if (nameUsageMatch.getDiagnostics().getMatchType()
             == NameUsageMatchResponse.MatchType.EXACT) {
           hasValidReplaces = true;
-          values.remove(value);
+          replacedValues.add(value);
           request.addParameter(EventSearchParameter.TAXON_KEY, nameUsageMatch.getUsage().getKey());
         }
       }
+      values.removeAll(replacedValues);
     }
     return hasValidReplaces;
   }

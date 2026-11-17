@@ -48,7 +48,7 @@ public class EventEsSearchRequestBuilderTest {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String INDEX = "index";
-  public static final String DEFAULT_CHECKLIST_KEY = "7ddf754f-d193-4cc9-b351-99906754a03b";
+  public static final String DEFAULT_CHECKLIST_KEY = "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c";
   public static final int DEFAULT_SHARD_SIZE = 100;
 
   private final EventEsSearchRequestBuilder esSearchRequestBuilder =
@@ -121,7 +121,7 @@ public class EventEsSearchRequestBuilderTest {
     EventSearchRequest searchRequest = new EventSearchRequest();
     searchRequest.addParameter(
         EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
-    searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c");
+    searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "7ddf754f-d193-4cc9-b351-99906754a03b");
     Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -132,7 +132,7 @@ public class EventEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("event.humboldt.targetTaxonomicScope.d7dddbf4-2cf0-4f39-9b2a-bb099caae36c.usage.key")
+            .findValues("event.humboldt.targetTaxonomicScope.7ddf754f-d193-4cc9-b351-99906754a03b.usage.key")
             .get(0)
             .get(VALUE)
             .asText());

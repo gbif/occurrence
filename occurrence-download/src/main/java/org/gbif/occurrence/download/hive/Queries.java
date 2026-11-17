@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -457,6 +458,10 @@ public abstract class Queries {
     if (checklistKey == null || checklistKey.isEmpty()) {
       throw new IllegalArgumentException("checklistKey must not be null or empty");
     }
+
+    // The key is formatted into the SQL, so only accept a UUID. UUID.fromString throws
+    // IllegalArgumentException for anything else, but is lenient, so use its canonical form.
+    checklistKey = UUID.fromString(checklistKey).toString();
 
     if (term == DwcTerm.order) {
       // Special case for keyword order
