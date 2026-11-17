@@ -663,7 +663,7 @@ public class DownloadResource {
         machineDescription,
         requestVerbatimExtensions,
         requestInterpretedExtensions,
-        checklistKey
+        checklistKey != null ? UUID.fromString(checklistKey) : null
     );
   }
 
@@ -846,7 +846,7 @@ public class DownloadResource {
       machineDescription,
       null,
       null,
-      checklistKey);
+      checklistKey != null ? UUID.fromString(checklistKey) : null);
 
     return downloadSqlPost(request);
   }

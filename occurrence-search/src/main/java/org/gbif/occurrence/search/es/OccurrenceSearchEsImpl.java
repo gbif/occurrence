@@ -78,7 +78,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
   private final OccurrenceEsSearchRequestBuilder esSearchRequestBuilder;
   private final OccurrenceEsResponseParser esResponseParser;
   private final SearchHitOccurrenceConverter searchHitOccurrenceConverter;
-  private final String defaultChecklistKey;
+  private final UUID defaultChecklistKey;
 
   @Autowired
   public OccurrenceSearchEsImpl(
@@ -89,7 +89,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
     @Value("${occurrence.search.es.index}") String esIndex,
     OccurrenceEsFieldMapper esFieldMapper,
     ConceptClient conceptClient,
-    @Value("${defaultChecklistKey}") String defaultChecklistKey,
+    @Value("${defaultChecklistKey}") UUID defaultChecklistKey,
     @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");
     Preconditions.checkArgument(maxLimit > 0, "Max limit must be greater than zero");
@@ -390,7 +390,7 @@ public class OccurrenceSearchEsImpl implements OccurrenceSearchService, Occurren
 
       Collection<String> scientificNames = request.getParameters().get(OccurrenceSearchParameter.SCIENTIFIC_NAME);
       Collection<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
-      String checklistKey = defaultChecklistKey;
+      String checklistKey = defaultChecklistKey.toString();
       if (checklistKeys != null && !checklistKeys.isEmpty()) {
         checklistKey = checklistKeys.iterator().next();
       }

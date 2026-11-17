@@ -27,7 +27,7 @@ import lombok.experimental.UtilityClass;
 public class EsPredicateUtil {
 
   public static Query searchQuery(
-      Predicate predicate, OccurrenceEsFieldMapper esFieldMapper, String defaultChecklistKey) {
+      Predicate predicate, OccurrenceEsFieldMapper esFieldMapper, UUID defaultChecklistKey) {
     Optional<Query> queryBuilder;
     try {
       queryBuilder =

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.Closeable;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.common.search.SearchParameter;
@@ -66,7 +67,7 @@ public class DownloadEsClient implements Closeable {
                   c.index(esIndex)
                       .query(
                           EsPredicateUtil.searchQuery(
-                              predicate, esFieldMapper, defaultChecklistKey)));
+                              predicate, esFieldMapper, UUID.fromString(defaultChecklistKey))));
       log.info("Download record count {}", response.count());
       return response.count();
     } catch (Exception ex) {

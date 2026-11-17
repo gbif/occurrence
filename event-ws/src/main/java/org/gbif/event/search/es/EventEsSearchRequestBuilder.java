@@ -25,7 +25,7 @@ public class EventEsSearchRequestBuilder
       EventEsFieldMapper eventEsFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      String defaultChecklistKey,
+      UUID defaultChecklistKey,
       int defaultShardSize) {
     super(
         eventEsFieldMapper,

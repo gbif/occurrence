@@ -23,7 +23,7 @@ public class OccurrenceEsSearchRequestBuilder
       OccurrenceEsFieldMapper occurrenceEsFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      String defaultChecklistKey,
+      UUID defaultChecklistKey,
       int defaultShardSize) {
     super(
         occurrenceEsFieldMapper,

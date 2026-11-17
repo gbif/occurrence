@@ -56,7 +56,7 @@ public class EventEsSearchRequestBuilderTest {
           EventEsField.buildFieldMapper(),
           new ConceptClientMock(),
           null,
-          DEFAULT_CHECKLIST_KEY,
+          UUID.fromString(DEFAULT_CHECKLIST_KEY),
           DEFAULT_SHARD_SIZE);
 
   @Test

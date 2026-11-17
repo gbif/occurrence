@@ -25,7 +25,7 @@ public class EventEsHeatmapRequestBuilder
       EsFieldMapper<EventSearchParameter> esFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      String defaultChecklistKey,
+      UUID defaultChecklistKey,
       int defaultShardSize) {
     super(
         esFieldMapper,

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.UUID;
 import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
   private static final String INDEX = "index";
   private final OccurrenceEsHeatmapRequestBuilder esHeatmapRequestBuilder =
       new OccurrenceEsHeatmapRequestBuilder(
-          OccurrenceEsField.buildFieldMapper(), null, null, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c", 100);
+          OccurrenceEsField.buildFieldMapper(), null, null, UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b"), 100);
 
   @Test
   public void heatmapRequestTest() throws IOException {
