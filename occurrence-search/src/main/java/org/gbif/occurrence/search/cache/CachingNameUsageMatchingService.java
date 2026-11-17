@@ -19,12 +19,10 @@ import org.gbif.rest.client.species.NameUsageMatchResponse;
 import org.gbif.rest.client.species.NameUsageMatchingService;
 
 import java.time.Duration;
-import java.util.Optional;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.cache2k.io.CacheLoaderException;
 
 /**
  * Caches the checklist metadata, which changes rarely but is read several times for each search
@@ -37,21 +35,17 @@ public class CachingNameUsageMatchingService implements NameUsageMatchingService
   private static final Duration EXPIRY = Duration.ofHours(1);
 
   private final NameUsageMatchingService delegate;
-  private final LoadingCache<String, Optional<Metadata>> metadataCache;
+  private final Cache<String, Metadata> metadataCache;
 
   public CachingNameUsageMatchingService(NameUsageMatchingService delegate) {
     this.delegate = delegate;
     this.metadataCache =
-        CacheBuilder.newBuilder()
-            .maximumSize(MAX_CHECKLISTS)
+        Cache2kBuilder.of(String.class, Metadata.class)
+            .entryCapacity(MAX_CHECKLISTS)
             .expireAfterWrite(EXPIRY)
-            .build(
-                new CacheLoader<>() {
-                  @Override
-                  public Optional<Metadata> load(String checklistKey) {
-                    return Optional.ofNullable(delegate.getMetadata(checklistKey));
-                  }
-                });
+            .permitNullValues(true)
+            .loader(delegate::getMetadata)
+            .build();
   }
 
   @Override
@@ -65,8 +59,8 @@ public class CachingNameUsageMatchingService implements NameUsageMatchingService
       return delegate.getMetadata(null);
     }
     try {
-      return metadataCache.getUnchecked(checklistKey).orElse(null);
-    } catch (UncheckedExecutionException e) {
+      return metadataCache.get(checklistKey);
+    } catch (CacheLoaderException e) {
       // keep the client's exception, e.g. for an unknown checklist
       if (e.getCause() instanceof RuntimeException cause) {
         throw cause;
