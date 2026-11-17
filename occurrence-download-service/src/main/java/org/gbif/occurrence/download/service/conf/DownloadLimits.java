@@ -34,7 +34,8 @@ import com.google.common.base.Splitter;
 public class DownloadLimits {
 
   /**
-   * Amount of downloads that an user can execute simultaneously under certain amount of global downloads.
+   * Amount of downloads that a user can execute simultaneously once a certain amount of global downloads
+   * are executing.
    */
   public static class Limit {
 
@@ -68,14 +69,17 @@ public class DownloadLimits {
   private final int maxUserDownloads;
   private final Limit softLimit;
   private final Limit hardLimit;
+  private final int maxGlobalDownloads;
 
   private final int maxPoints;
   private final int maxPredicates;
 
-  public DownloadLimits(int maxUserDownloads, Limit softLimit, Limit hardLimit, int maxPoints, int maxPredicates) {
+  public DownloadLimits(int maxUserDownloads, Limit softLimit, Limit hardLimit, int maxGlobalDownloads,
+                        int maxPoints, int maxPredicates) {
     this.maxUserDownloads = maxUserDownloads;
     this.softLimit = softLimit;
     this.hardLimit = hardLimit;
+    this.maxGlobalDownloads = maxGlobalDownloads;
     this.maxPoints = maxPoints;
     this.maxPredicates = maxPredicates;
   }
@@ -84,6 +88,7 @@ public class DownloadLimits {
   public DownloadLimits(@Value("${occurrence.download.max_user_downloads}") int maxUserDownloads,
                         @Value("${occurrence.download.downloads_soft_limit}") String softLimit,
                         @Value("${occurrence.download.downloads_hard_limit}") String hardLimit,
+                        @Value("${occurrence.download.max_global_downloads:-1}") int maxGlobalDownloads,
                         @Value("${occurrence.download.downloads_max_points}") int maxPoints,
                         @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates,
                         @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
@@ -92,6 +97,7 @@ public class DownloadLimits {
     this.maxUserDownloads = maxUserDownloads;
     this.softLimit = new Limit(Integer.parseInt(softLimits.next()), Integer.parseInt(softLimits.next()));
     this.hardLimit = new Limit(Integer.parseInt(hardLimits.next()), Integer.parseInt(hardLimits.next()));
+    this.maxGlobalDownloads = maxGlobalDownloads;
     this.maxPoints = maxPoints;
     this.maxPredicates = maxPredicates;
     try {
@@ -116,9 +122,19 @@ public class DownloadLimits {
     return hardLimit;
   }
 
+  /** The maximum number of executing downloads of all users, or -1 for no maximum. */
+  public int getMaxGlobalDownloads() {
+    return maxGlobalDownloads;
+  }
+
+  /**
+   * A user may not start a download if either the soft or the hard limit applies, or if the global maximum has been
+   * reached.
+   */
   public boolean violatesLimits(int userDownloads, int globalDownloads) {
-    return getSoftLimit().violatesLimit(userDownloads, globalDownloads)
-           && getHardLimit().violatesLimit(userDownloads, globalDownloads);
+    return (maxGlobalDownloads >= 0 && globalDownloads >= maxGlobalDownloads)
+           || getSoftLimit().violatesLimit(userDownloads, globalDownloads)
+           || getHardLimit().violatesLimit(userDownloads, globalDownloads);
   }
 
   public String violatesFilterRules(Predicate p) {

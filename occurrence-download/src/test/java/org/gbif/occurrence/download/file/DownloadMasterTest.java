@@ -173,10 +173,10 @@ class DownloadMasterTest {
     doReturn(transport).when(esClient)._transport();
     SearchResponse<Void> hits = searchResponseWithTotalHits(5);
     IOException failure = new IOException("Simulated ES failure");
-    // the worker's search fails, while the record count (the builder overload) returns 5 records
+    // the master counts with the builder overload, the workers page with the request overload
     doThrow(failure)
-        .when(esClient)
-        .search(any(SearchRequest.class), ArgumentMatchers.<Class<?>>any());
+      .when(esClient)
+      .search(any(SearchRequest.class), ArgumentMatchers.<Class<?>>any());
     doReturn(hits)
         .when(esClient)
         .search(

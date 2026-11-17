@@ -17,6 +17,7 @@ import static java.lang.annotation.ElementType.*;
 import static org.gbif.api.model.occurrence.Download.Status.*;
 import static org.gbif.api.vocabulary.UserRole.REGISTRY_ADMIN;
 import static org.gbif.occurrence.download.service.DownloadSecurityUtil.*;
+import static org.gbif.ws.security.UserRoles.ADMIN_ROLE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,8 +41,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -118,13 +117,16 @@ public class DownloadResource {
 
   private final DownloadType downloadType;
 
-  private final Boolean downloadsDisabled;
-
   protected final String defaultChecklistKey;
 
   protected final String denormalisedTaxonomy;
 
   protected final Map<String, String> checklistNestedStructMap;
+
+  // Parsed once, to compare with the checklist keys of requests
+  private final UUID defaultChecklistUuid;
+
+  private final UUID denormalisedTaxonomyUuid;
 
   @Autowired
   public DownloadResource(
@@ -133,7 +135,6 @@ public class DownloadResource {
       CallbackService callbackService,
       OccurrenceDownloadService occurrenceDownloadService,
       DownloadType downloadType,
-      @Value("${occurrence.download.disabled:false}") Boolean downloadsDisabled,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
       @Value("${denormalisedTaxonomy: 7ddf754f-d193-4cc9-b351-99906754a03b}") String denormalisedTaxonomy,
       @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
@@ -142,9 +143,10 @@ public class DownloadResource {
     this.callbackService = callbackService;
     this.occurrenceDownloadService = occurrenceDownloadService;
     this.downloadType = downloadType;
-    this.downloadsDisabled = downloadsDisabled;
     this.defaultChecklistKey = defaultChecklistKey;
     this.denormalisedTaxonomy = denormalisedTaxonomy;
+    this.defaultChecklistUuid = UUID.fromString(StringUtils.trim(defaultChecklistKey));
+    this.denormalisedTaxonomyUuid = UUID.fromString(StringUtils.trim(denormalisedTaxonomy));
     try {
       ObjectMapper objectMapper = new ObjectMapper();
       this.checklistNestedStructMap =
@@ -273,11 +275,21 @@ public class DownloadResource {
         .body(location);
   }
 
+  /** Status updates from the Airflow download DAGs. */
   @Hidden
-  @GetMapping("callback")
+  @RequestMapping(
+      value = "callback",
+      method = {RequestMethod.GET, RequestMethod.POST})
+  @Secured(ADMIN_ROLE)
   public ResponseEntity<Object> airflowCallback(
       @RequestParam("job_id") String jobId, @RequestParam("status") String status) {
-    LOG.debug("Received callback from Airflow for Job [{}] with status [{}]", jobId, status);
+    LOG.debug(
+        "Received callback from Airflow for Job [{}] with status [{}]",
+        forLog(jobId),
+        forLog(status));
+    if (jobId.indexOf('\r') >= 0 || jobId.indexOf('\n') >= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid job_id");
+    }
     callbackService.processCallback(jobId, status);
     return ResponseEntity.ok().build();
   }
@@ -354,11 +366,6 @@ public class DownloadResource {
       @Parameter(hidden = true) @RequestParam(name = "source", required = false) String source,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
-    if (Boolean.TRUE.equals(downloadsDisabled)) {
-      return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-          .body("Service disabled for maintenance reasons");
-    }
-
     try {
       request.setType(downloadType);
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -403,6 +410,7 @@ public class DownloadResource {
     LOG.info("New download request: [{}]", downloadRequest);
     // User matches (or admin user)
     assertLoginMatches(downloadRequest, authentication, userAuthenticated);
+    assertValidChecklistKey(downloadRequest.getChecklistKey());
 
     if (downloadRequest.getFormat() == DownloadFormat.FASTA_ARCHIVE
         && downloadRequest instanceof PredicateDownloadRequest predicateDownloadRequest) {
@@ -553,10 +561,6 @@ public class DownloadResource {
         Map<String, Object> body = new HashMap<>();
         body.put("status", "INVALID");
         body.put("reason", e.getMessage());
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        body.put("trace", sw.toString());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
       }
     } else {
@@ -579,7 +583,7 @@ public class DownloadResource {
       @RequestParam(name = "source", required = false) String source,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
-      @RequestParam(name = "checklistKey", required = false) String checklistKey,
+      @RequestParam(name = "checklistKey", required = false) UUID checklistKey,
       @Autowired Principal principal,
       @RequestHeader(value = "User-Agent") String userAgent) {
     Preconditions.checkArgument(!Strings.isNullOrEmpty(format), "Format can't be null");
@@ -638,7 +642,7 @@ public class DownloadResource {
       @RequestParam(name = "interpretedExtensions", required = false) String interpretedExtensions,
       @RequestParam(name = "description", required = false) String description,
       @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
-      @RequestParam(name = "checklistKey", required = false) String checklistKey,
+      @RequestParam(name = "checklistKey", required = false) UUID checklistKey,
       @Autowired Principal principal) {
     DownloadFormat downloadFormat = VocabularyUtils.lookupEnum(format, DownloadFormat.class);
     Preconditions.checkArgument(Objects.nonNull(downloadFormat), "Format param is not present");
@@ -669,7 +673,7 @@ public class DownloadResource {
         machineDescription,
         requestVerbatimExtensions,
         requestInterpretedExtensions,
-        checklistKey != null ? UUID.fromString(checklistKey) : null
+        checklistKey
     );
   }
 
@@ -733,6 +737,7 @@ public class DownloadResource {
     produces = {MediaType.APPLICATION_JSON_VALUE},
     consumes = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<Object> downloadSqlPost(@NotNull @Valid @RequestBody PredicateDownloadRequest downloadRequest) {
+    assertValidChecklistKey(downloadRequest.getChecklistKey());
     try {
       // SELECT column list is the same as a SIMPLE_CSV download by default, or a DWCA download if specified.
       StringBuilder generatedSql = new StringBuilder("SELECT ");
@@ -800,10 +805,6 @@ public class DownloadResource {
       Map<String, Object> body = new HashMap<>();
       body.put("status", "INVALID");
       body.put("reason", e.getMessage());
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
-      body.put("trace", sw.toString());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
   }
@@ -827,7 +828,7 @@ public class DownloadResource {
     @RequestParam(name = "send_notification", required = false) Boolean sendNotification,
     @RequestParam(name = "description", required = false) String description,
     @RequestParam(name = "machineDescription", required = false) String machineDescriptionJson,
-    @RequestParam(name = "checklistKey", required = false) String checklistKey,
+    @RequestParam(name = "checklistKey", required = false) UUID checklistKey,
     @Autowired Principal principal) {
     String creator = principal != null ? principal.getName() : null;
 
@@ -855,9 +856,31 @@ public class DownloadResource {
       machineDescription,
       null,
       null,
-      checklistKey != null ? UUID.fromString(checklistKey) : null);
+      checklistKey);
 
     return downloadSqlPost(request);
+  }
+
+  /**
+   * Checks the checklist key is one downloads support: the denormalised taxonomy, the default or one
+   * of the configured nested checklists.
+   */
+  private void assertValidChecklistKey(UUID uuid) {
+    if (uuid == null) {
+      return;
+    }
+    if (uuid.equals(denormalisedTaxonomyUuid)
+        || uuid.equals(defaultChecklistUuid)
+        || checklistNestedStructMap.containsKey(uuid.toString())) {
+      return;
+    }
+    throw new ResponseStatusException(
+        HttpStatus.BAD_REQUEST, "checklistKey is not supported for downloads");
+  }
+
+  /** Removes line breaks from user-supplied values so they can't forge log lines. */
+  private static String forLog(String value) {
+    return value == null ? null : value.replaceAll("[\\r\\n]", "_");
   }
 
   /**
@@ -913,7 +936,7 @@ public class DownloadResource {
 
   private String parseSource(String source, String userAgent) {
     if (source != null && !source.isEmpty()) {
-      LOG.info("Source: {}", source);
+      LOG.info("Source: {}", forLog(source));
       return source;
     }
 
@@ -921,16 +944,16 @@ public class DownloadResource {
       LOG.info("No user agent received for source");
       return null;
     } else if (userAgent.toLowerCase().contains("rgbif")) {
-      LOG.info("Using rgbif as source from user agent {}", userAgent);
+      LOG.info("Using rgbif as source from user agent {}", forLog(userAgent));
       return "rgbif";
     } else if (userAgent.toLowerCase().contains("pygbif")) {
-      LOG.info("Using pygbif as source from user agent {}", userAgent);
+      LOG.info("Using pygbif as source from user agent {}", forLog(userAgent));
       return "pygbif";
     } else if (userAgent.toLowerCase().contains("python")) {
-      LOG.info("Using python as source from user agent {}", userAgent);
+      LOG.info("Using python as source from user agent {}", forLog(userAgent));
       return "python";
     } else {
-      LOG.info("Using user agent as source: {}", userAgent);
+      LOG.info("Using user agent as source: {}", forLog(userAgent));
       return userAgent;
     }
   }

@@ -31,23 +31,31 @@ import org.gbif.occurrence.mail.EmailSender;
 import org.gbif.occurrence.mail.OccurrenceEmailManager;
 import org.gbif.registry.ws.client.DoiInteractionClient;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -72,6 +80,8 @@ class CallbackServiceTest {
   private DownloadLimitsService downloadLimitsService;
   private MessagePublisher messagePublisher;
   private DoiInteractionClient doiInteractionClient;
+
+  @TempDir Path downloadMount;
 
   /** Creates a mock download object. */
   private static Download mockDownload() {
@@ -118,7 +128,7 @@ class CallbackServiceTest {
         new OccurrenceDownloadRequestService(
             "http://gbif-dev.org/occurrence",
             "http://localhost:8080/",
-            "",
+            downloadMount.toString(),
             occurrenceDownloadService,
             occurrenceSearchService,
             downloadLimitsService,
@@ -147,7 +157,8 @@ class CallbackServiceTest {
   }
 
   @Test
-  void testNotificationSent() {
+  void testNotificationSent() throws IOException {
+    Files.createFile(downloadMount.resolve(DOWNLOAD_ID + ".zip"));
     // set DOI for successful download
     Download download = mockDownload();
     download.setDoi(new DOI("10.21373/uvzgpk"));
@@ -155,6 +166,16 @@ class CallbackServiceTest {
     service.processCallback(JOB_ID, SUCCEEDED);
 
     verify(emailSender).send(any());
+  }
+
+  @Test
+  void testSucceededWithoutFileRejected() {
+    ResponseStatusException e =
+        assertThrows(
+            ResponseStatusException.class, () -> service.processCallback(JOB_ID, SUCCEEDED));
+    assertEquals(HttpStatus.CONFLICT, e.getStatusCode());
+    verify(occurrenceDownloadService, never()).update(any());
+    verifyNoMoreInteractions(emailSender);
   }
 
   @Test

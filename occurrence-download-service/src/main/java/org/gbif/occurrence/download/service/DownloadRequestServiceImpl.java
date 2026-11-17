@@ -165,6 +165,24 @@ public abstract class DownloadRequestServiceImpl
     log.debug("Trying to create download from request [{}]", request);
     Objects.requireNonNull(request);
 
+    // The cheap per-user check comes before validation and counting
+    String exceedSimultaneousLimit;
+    try {
+      exceedSimultaneousLimit =
+          downloadLimitsService.exceedsSimultaneousDownloadLimit(
+              request.getCreator());
+    } catch (Exception e) {
+      throw new ServiceUnavailableException(
+          "Failed to create download job while checking simultaneous download limit", e);
+    }
+    if (exceedSimultaneousLimit != null) {
+      log.info("Download request refused as it would exceed simultaneous limits");
+      // Keep HTTP 420 ("Enhance your calm") here.
+      throw new ResponseStatusException(
+          HttpStatus.METHOD_FAILURE,
+          "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
+    }
+
     if (request instanceof PredicateDownloadRequest) {
       PredicateDownloadRequest predicateRequest = (PredicateDownloadRequest) request;
       PredicateValidator.validate(predicateRequest.getPredicate());
@@ -193,23 +211,6 @@ public abstract class DownloadRequestServiceImpl
       throw new ResponseStatusException(
           HttpStatus.PAYLOAD_TOO_LARGE,
           "A download limitation is exceeded:\n" + exceedComplexityLimit + "\n");
-    }
-
-    String exceedSimultaneousLimit;
-    try {
-      exceedSimultaneousLimit =
-          downloadLimitsService.exceedsSimultaneousDownloadLimit(
-              request.getCreator());
-    } catch (Exception e) {
-      throw new ServiceUnavailableException(
-          "Failed to create download job while checking simultaneous download limit", e);
-    }
-    if (exceedSimultaneousLimit != null) {
-      log.info("Download request refused as it would exceed simultaneous limits");
-      // Keep HTTP 420 ("Enhance your calm") here.
-      throw new ResponseStatusException(
-          HttpStatus.METHOD_FAILURE,
-          "A download limitation is exceeded:\n" + exceedSimultaneousLimit + "\n");
     }
 
     try {
@@ -284,8 +285,8 @@ public abstract class DownloadRequestServiceImpl
     if (localFile.canRead()) {
       return localFile;
     } else {
-      throw new IllegalStateException(
-          "Unable to read download " + downloadKey + " from " + localFile.getAbsolutePath());
+      log.error("Unable to read download {} from {}", downloadKey, localFile.getAbsolutePath());
+      throw new IllegalStateException("Unable to read download " + downloadKey);
     }
   }
 
@@ -296,8 +297,8 @@ public abstract class DownloadRequestServiceImpl
     try {
       return Files.newInputStream(localFile.toPath());
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Failed to read download " + downloadKey + " from " + localFile.getAbsolutePath(), e);
+      log.error("Failed to read download {} from {}", downloadKey, localFile.getAbsolutePath(), e);
+      throw new IllegalStateException("Failed to read download " + downloadKey, e);
     }
   }
 
@@ -375,6 +376,14 @@ public abstract class DownloadRequestServiceImpl
         break;
 
       case SUCCEEDED:
+        if (!new File(downloadMount, getDownloadFilename(download)).canRead()) {
+          log.error(
+              NOTIFY_ADMIN,
+              "Got SUCCEEDED callback for download {}, but its file can't be read. Ignoring it.",
+              downloadId);
+          throw new ResponseStatusException(
+              HttpStatus.CONFLICT, "Download " + downloadId + " has no file");
+        }
         SUCCESSFUL_DOWNLOADS.increment();
         download = updateDownloadStatus(download, newStatus, getDownloadSize(download));
         // notify about download

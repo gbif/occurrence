@@ -125,7 +125,7 @@ public class PredicateValidator {
    * handles not predicate
    */
   public void visit(NotPredicate predicate) {
-    return;
+    visit(predicate.getPredicate());
   }
 
   /**
