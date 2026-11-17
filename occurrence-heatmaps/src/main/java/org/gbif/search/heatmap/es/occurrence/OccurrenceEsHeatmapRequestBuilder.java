@@ -32,7 +32,7 @@ public class OccurrenceEsHeatmapRequestBuilder
         esFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new OccurrenceEsQueryVisitor(esFieldMapper, UUID.fromString(defaultChecklistKey)),
+        new OccurrenceEsQueryVisitor(esFieldMapper, defaultChecklistKey),
         defaultChecklistKey,
         defaultShardSize);
   }

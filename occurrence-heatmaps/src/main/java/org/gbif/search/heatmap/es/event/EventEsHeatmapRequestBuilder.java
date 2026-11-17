@@ -31,7 +31,7 @@ public class EventEsHeatmapRequestBuilder
         esFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new EventEsQueryVisitor(esFieldMapper, UUID.fromString(defaultChecklistKey)),
+        new EventEsQueryVisitor(esFieldMapper, defaultChecklistKey),
         defaultChecklistKey,
         defaultShardSize);
   }

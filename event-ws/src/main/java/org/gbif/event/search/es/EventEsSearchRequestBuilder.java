@@ -31,7 +31,7 @@ public class EventEsSearchRequestBuilder
         eventEsFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new EventEsQueryVisitor(eventEsFieldMapper, UUID.fromString(defaultChecklistKey)),
+        new EventEsQueryVisitor(eventEsFieldMapper, defaultChecklistKey),
         defaultChecklistKey,
         defaultShardSize);
   }

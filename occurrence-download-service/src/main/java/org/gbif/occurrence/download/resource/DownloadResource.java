@@ -280,6 +280,9 @@ public class DownloadResource {
         "Received callback from Airflow for Job [{}] with status [{}]",
         forLog(jobId),
         forLog(status));
+    if (jobId.indexOf('\r') >= 0 || jobId.indexOf('\n') >= 0) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid job_id");
+    }
     callbackService.processCallback(jobId, status);
     return ResponseEntity.ok().build();
   }
@@ -550,7 +553,7 @@ public class DownloadResource {
         LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
         Map<String, Object> body = new HashMap<>();
         body.put("status", "INVALID");
-        body.put("reason", e.getMessage());
+        body.put("reason", "Unexpected error validating the SQL query");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
       }
     } else {
@@ -663,7 +666,7 @@ public class DownloadResource {
         machineDescription,
         requestVerbatimExtensions,
         requestInterpretedExtensions,
-        checklistKey != null ? UUID.fromString(checklistKey) : null
+        checklistKey
     );
   }
 
@@ -794,7 +797,7 @@ public class DownloadResource {
       LOG.error("SQL generated from predicates is invalid: "+e.getMessage(), e);
       Map<String, Object> body = new HashMap<>();
       body.put("status", "INVALID");
-      body.put("reason", e.getMessage());
+      body.put("reason", "Unexpected error generating SQL from the predicate");
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
   }
@@ -846,7 +849,7 @@ public class DownloadResource {
       machineDescription,
       null,
       null,
-      checklistKey != null ? UUID.fromString(checklistKey) : null);
+      checklistKey);
 
     return downloadSqlPost(request);
   }

@@ -79,7 +79,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("classifications.d7dddbf4-2cf0-4f39-9b2a-bb099caae36c.classificationKeys.KINGDOM")
+            .findValues("classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM")
             .get(0)
             .get(VALUE)
             .asInt());

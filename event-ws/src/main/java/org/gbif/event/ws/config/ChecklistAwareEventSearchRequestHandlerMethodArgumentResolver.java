@@ -176,8 +176,13 @@ public class ChecklistAwareEventSearchRequestHandlerMethodArgumentResolver
         final List<String> list =
             entry.getValue() != null ? Arrays.asList(entry.getValue()) : Collections.emptyList();
         List<String> values = removeEmptyParameters(list);
-        // check limits before the values are parsed
-        SearchParameterLimits.validate(p, values);
+        // check limits before the values are parsed, counting values already added under other
+        // spellings of the same parameter (e.g. scientificName and SCIENTIFIC_NAME)
+        Set<String> combined =
+            new LinkedHashSet<>(
+                searchRequest.getParameters().getOrDefault(p, Collections.emptySet()));
+        combined.addAll(values);
+        SearchParameterLimits.validate(p, combined);
         for (String val : values) {
           // validate value for certain types
           SearchTypeValidator.validate(p, val);
