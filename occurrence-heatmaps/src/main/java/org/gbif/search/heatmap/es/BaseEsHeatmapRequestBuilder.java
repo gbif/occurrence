@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -53,7 +54,7 @@ public abstract class BaseEsHeatmapRequestBuilder<
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
       EsQueryVisitor<P> esQueryVisitor,
-      String defaultChecklistKey,
+      UUID defaultChecklistKey,
       int defaultShardSize) {
     super(esFieldMapper, conceptClient, nameUsageMatchingService, esQueryVisitor, defaultChecklistKey, defaultShardSize);
   }

@@ -16,6 +16,7 @@ package org.gbif.occurrence.download.elastic;
 import static org.gbif.occurrence.download.util.VocabularyUtils.translateOccurrencePredicateFields;
 
 import java.util.Properties;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +93,7 @@ public class ElasticDownloadWorkflow {
                     EsPredicateUtil.searchQuery(
                         ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
                         OccurrenceEsField.buildFieldMapper(),
-                        workflowConfiguration.getDefaultChecklistKey())))
+                        UUID.fromString(workflowConfiguration.getDefaultChecklistKey()))))
             .checklistKey(
                 download.getRequest().getChecklistKey() != null
                     ? download.getRequest().getChecklistKey().toString()

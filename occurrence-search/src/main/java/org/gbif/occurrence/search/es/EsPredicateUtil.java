@@ -18,6 +18,7 @@ import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import lombok.experimental.UtilityClass;
@@ -26,7 +27,7 @@ import lombok.experimental.UtilityClass;
 public class EsPredicateUtil {
 
   public static Query searchQuery(
-      Predicate predicate, OccurrenceEsFieldMapper esFieldMapper, String defaultChecklistKey) {
+      Predicate predicate, OccurrenceEsFieldMapper esFieldMapper, UUID defaultChecklistKey) {
     Optional<Query> queryBuilder;
     try {
       queryBuilder =

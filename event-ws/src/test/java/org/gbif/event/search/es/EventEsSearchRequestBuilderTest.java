@@ -56,7 +56,7 @@ public class EventEsSearchRequestBuilderTest {
           EventEsField.buildFieldMapper(),
           new ConceptClientMock(),
           null,
-          DEFAULT_CHECKLIST_KEY,
+          UUID.fromString(DEFAULT_CHECKLIST_KEY),
           DEFAULT_SHARD_SIZE);
 
   @Test
@@ -121,7 +121,7 @@ public class EventEsSearchRequestBuilderTest {
     EventSearchRequest searchRequest = new EventSearchRequest();
     searchRequest.addParameter(
         EventSearchParameter.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY, "uk");
-    searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "key2");
+    searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c");
     Query query =
         esSearchRequestBuilder
             .buildQueryNode(searchRequest)
@@ -132,7 +132,7 @@ public class EventEsSearchRequestBuilderTest {
         jsonQuery
             .path(BOOL)
             .path(FILTER)
-            .findValues("event.humboldt.targetTaxonomicScope.key2.usage.key")
+            .findValues("event.humboldt.targetTaxonomicScope.d7dddbf4-2cf0-4f39-9b2a-bb099caae36c.usage.key")
             .get(0)
             .get(VALUE)
             .asText());

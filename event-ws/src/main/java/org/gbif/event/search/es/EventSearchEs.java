@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -94,7 +95,7 @@ public class EventSearchEs
       @Value("${occurrence.search.max.limit}") int maxLimit,
       @Value("${occurrence.search.es.index}") String esIndex,
       ConceptClient conceptClient,
-      @Value("${defaultChecklistKey}") String defaultChecklistKey,
+      @Value("${defaultChecklistKey}") UUID defaultChecklistKey,
       @Value("${occurrence.search.es.defaultShardSize:100}") int defaultShardSize,
       @Qualifier("occurrenceWsSearchClient") OccurrenceSearchService occurrenceSearchService) {
     Preconditions.checkArgument(maxOffset > 0, "Max offset must be greater than zero");

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 
@@ -24,7 +25,7 @@ public class EventEsSearchRequestBuilder
       EventEsFieldMapper eventEsFieldMapper,
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
-      String defaultChecklistKey,
+      UUID defaultChecklistKey,
       int defaultShardSize) {
     super(
         eventEsFieldMapper,

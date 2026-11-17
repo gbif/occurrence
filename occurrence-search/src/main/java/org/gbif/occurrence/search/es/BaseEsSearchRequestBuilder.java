@@ -77,7 +77,7 @@ public abstract class BaseEsSearchRequestBuilder<
   protected final NameUsageMatchingService nameUsageMatchingService;
   protected final ConceptClient conceptClient;
   protected final EsQueryVisitor<P> esQueryVisitor;
-  protected final String defaultChecklistKey;
+  protected final UUID defaultChecklistKey;
   protected final int defaultShardSize;
 
   public BaseEsSearchRequestBuilder(
@@ -85,7 +85,7 @@ public abstract class BaseEsSearchRequestBuilder<
       ConceptClient conceptClient,
       NameUsageMatchingService nameUsageMatchingService,
       EsQueryVisitor<P> esQueryVisitor,
-      String defaultChecklistKey,
+      UUID defaultChecklistKey,
       int defaultShardSize) {
     this.esFieldMapper = esFieldMapper;
     this.conceptClient = conceptClient;
@@ -204,7 +204,7 @@ public abstract class BaseEsSearchRequestBuilder<
       List<String> fieldsToSearch =
           getTaxonFields(
               taxonomyFilter,
-              taxonKeyField::getSearchFieldName,
+              checklistKey -> taxonKeyField.getSearchFieldName(checklistKey.toString()),
               checklistKey -> esFieldMapper.getDnaChecklistField(checklistKey, taxonKeyParam));
 
       List<FieldValue> values =
@@ -335,18 +335,18 @@ public abstract class BaseEsSearchRequestBuilder<
    * @param params
    * @return
    */
-  public String getChecklistKey(Map<P, Set<String>> params) {
+  public UUID getChecklistKey(Map<P, Set<String>> params) {
     return getParam(OccurrenceSearchParameter.CHECKLIST_KEY.name())
         .filter(params::containsKey)
-        .map(p -> params.get(p).iterator().next())
+        .map(p -> UUID.fromString(params.get(p).iterator().next()))
         .orElse(defaultChecklistKey);
   }
 
   /** Retrieve the dnaAssistedChecklistKey from the request, or null if it isn't present. */
-  private String getDnaAssistedChecklistKey(Map<P, Set<String>> params) {
+  private UUID getDnaAssistedChecklistKey(Map<P, Set<String>> params) {
     return getParam(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY.name())
         .filter(params::containsKey)
-        .map(p -> params.get(p).iterator().next())
+        .map(p -> UUID.fromString(params.get(p).iterator().next()))
         .orElse(null);
   }
 
@@ -364,14 +364,14 @@ public abstract class BaseEsSearchRequestBuilder<
    * classification of that checklist.
    */
   record TaxonomyFilter(
-      String checklistKey, boolean useDnaAssistance, String dnaAssistedChecklistKey) {
+      UUID checklistKey, boolean useDnaAssistance, UUID dnaAssistedChecklistKey) {
 
     boolean useDnaChecklistKeyOnly() {
       return !useDnaAssistance && dnaAssistedChecklistKey != null;
     }
 
     /** The checklist whose classification is searched. */
-    String searchedChecklistKey() {
+    UUID searchedChecklistKey() {
       return useDnaChecklistKeyOnly() ? dnaAssistedChecklistKey : checklistKey;
     }
   }
@@ -388,7 +388,8 @@ public abstract class BaseEsSearchRequestBuilder<
       Map<P, Set<String>> params, List<Query> filters, TaxonomyFilter taxonomyFilter) {
     if (nameUsageMatchingService != null) {
       Optional.ofNullable(
-              nameUsageMatchingService.getMetadata(taxonomyFilter.searchedChecklistKey()))
+              nameUsageMatchingService.getMetadata(
+                  taxonomyFilter.searchedChecklistKey().toString()))
           .ifPresent(
               metadata ->
                   metadata
@@ -573,7 +574,7 @@ public abstract class BaseEsSearchRequestBuilder<
     TaxonomyFilter taxonomyFilter = getTaxonomyFilter(searchRequest);
     Optional<String> suppliedChecklistKey =
         taxonomyFilter.useDnaChecklistKeyOnly()
-            ? Optional.of(taxonomyFilter.dnaAssistedChecklistKey())
+            ? Optional.of(taxonomyFilter.dnaAssistedChecklistKey().toString())
             : getParam(OccurrenceSearchParameter.CHECKLIST_KEY.name())
                 .filter(param -> searchRequest.getParameters().containsKey(param))
                 .map(param -> searchRequest.getParameters().get(param).iterator().next());
@@ -729,7 +730,7 @@ public abstract class BaseEsSearchRequestBuilder<
           taxonomyFilter.useDnaChecklistKeyOnly()
               ? esFieldMapper.getDnaChecklistField(
                   taxonomyFilter.dnaAssistedChecklistKey(), facetParam)
-              : ((ChecklistEsField) field).getSearchFieldName(taxonomyFilter.checklistKey());
+              : ((ChecklistEsField) field).getSearchFieldName(taxonomyFilter.checklistKey().toString());
     } else {
       fieldName =
           searchRequest.isMatchCase()
@@ -905,8 +906,8 @@ public abstract class BaseEsSearchRequestBuilder<
    */
   private static List<String> getTaxonFields(
       TaxonomyFilter taxonomyFilter,
-      Function<String, String> checklistField,
-      Function<String, String> dnaChecklistField) {
+      Function<UUID, String> checklistField,
+      Function<UUID, String> dnaChecklistField) {
     if (taxonomyFilter.useDnaAssistance()) {
       return List.of(
           checklistField.apply(taxonomyFilter.checklistKey()),
