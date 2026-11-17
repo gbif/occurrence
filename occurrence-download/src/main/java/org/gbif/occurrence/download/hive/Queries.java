@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
+import java.util.UUID;
 
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -39,9 +39,6 @@ import static org.gbif.terms.utils.TermUtils.DOWNLOAD_HUMBOLDT_TERMS;
  * Subclasses define the queries needed for generating TSV, Avro etc.
  */
 public abstract class Queries {
-
-  private static final Pattern UUID_PATTERN =
-    Pattern.compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
   /**
    * @return the gbifID term as an InitializableField
@@ -462,10 +459,9 @@ public abstract class Queries {
       throw new IllegalArgumentException("checklistKey must not be null or empty");
     }
 
-    // The key is formatted into the SQL, so only accept a UUID
-    if (!UUID_PATTERN.matcher(checklistKey).matches()) {
-      throw new IllegalArgumentException("checklistKey must be a UUID");
-    }
+    // The key is formatted into the SQL, so only accept a UUID. UUID.fromString throws
+    // IllegalArgumentException for anything else, but is lenient, so use its canonical form.
+    checklistKey = UUID.fromString(checklistKey).toString();
 
     if (term == DwcTerm.order) {
       // Special case for keyword order

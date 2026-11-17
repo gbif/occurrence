@@ -123,6 +123,11 @@ public class DownloadResource {
 
   protected final Map<String, String> checklistNestedStructMap;
 
+  // Parsed once, to compare with the checklist keys of requests
+  private final UUID defaultChecklistUuid;
+
+  private final UUID denormalisedTaxonomyUuid;
+
   @Autowired
   public DownloadResource(
       @Value("${occurrence.download.archive_server.url}") String archiveServerUrl,
@@ -140,6 +145,8 @@ public class DownloadResource {
     this.downloadType = downloadType;
     this.defaultChecklistKey = defaultChecklistKey;
     this.denormalisedTaxonomy = denormalisedTaxonomy;
+    this.defaultChecklistUuid = UUID.fromString(StringUtils.trim(defaultChecklistKey));
+    this.denormalisedTaxonomyUuid = UUID.fromString(StringUtils.trim(denormalisedTaxonomy));
     try {
       ObjectMapper objectMapper = new ObjectMapper();
       this.checklistNestedStructMap =
@@ -473,7 +480,7 @@ public class DownloadResource {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, qbe.getMessage(), qbe);
       } catch (Exception e) {
         LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SQL is invalid", e);
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
       }
     }
 
@@ -553,7 +560,7 @@ public class DownloadResource {
         LOG.error("SQL is invalid with unexpected exception: "+e.getMessage(), e);
         Map<String, Object> body = new HashMap<>();
         body.put("status", "INVALID");
-        body.put("reason", "Unexpected error validating the SQL query");
+        body.put("reason", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
       }
     } else {
@@ -797,7 +804,7 @@ public class DownloadResource {
       LOG.error("SQL generated from predicates is invalid: "+e.getMessage(), e);
       Map<String, Object> body = new HashMap<>();
       body.put("status", "INVALID");
-      body.put("reason", "Unexpected error generating SQL from the predicate");
+      body.put("reason", e.getMessage());
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
   }
@@ -862,10 +869,9 @@ public class DownloadResource {
     if (uuid == null) {
       return;
     }
-    String checklistKey = uuid.toString();
-    if (checklistKey.equals(StringUtils.trim(denormalisedTaxonomy))
-        || checklistKey.equals(StringUtils.trim(defaultChecklistKey))
-        || checklistNestedStructMap.containsKey(checklistKey)) {
+    if (uuid.equals(denormalisedTaxonomyUuid)
+        || uuid.equals(defaultChecklistUuid)
+        || checklistNestedStructMap.containsKey(uuid.toString())) {
       return;
     }
     throw new ResponseStatusException(

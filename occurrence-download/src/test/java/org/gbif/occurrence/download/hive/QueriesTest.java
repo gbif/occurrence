@@ -28,6 +28,12 @@ class QueriesTest {
             DwcTerm.kingdom, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c", "classifications", "kingdom", "kingdom");
     assertTrue(sql.contains("'d7dddbf4-2cf0-4f39-9b2a-bb099caae36c'"));
 
+    // lenient forms accepted by UUID.fromString are written in canonical form
+    assertTrue(
+        Queries.toTaxonomicHiveInitializer(
+                DwcTerm.kingdom, "D7DDDBF4-2CF0-4F39-9B2A-BB099CAAE36C", "classifications", "kingdom", "kingdom")
+            .contains("'d7dddbf4-2cf0-4f39-9b2a-bb099caae36c'"));
+
     assertThrows(
         IllegalArgumentException.class,
         () ->

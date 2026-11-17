@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.gbif.api.model.event.search.EventSearchParameter;
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 import org.junit.jupiter.api.Test;
 
@@ -66,6 +67,16 @@ class SearchParameterLimitsTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> SearchParameterLimits.validate(OccurrenceSearchParameter.GEOLOGICAL_TIME, tooMany));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> SearchParameterLimits.validate(EventSearchParameter.SCIENTIFIC_NAME, tooMany));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            SearchParameterLimits.validate(
+                EventSearchParameter.GEOMETRY,
+                List.of(polygon(SearchParameterLimits.MAX_GEOMETRY_POINTS + 1))));
 
     // other parameters aren't limited here
     SearchParameterLimits.validate(OccurrenceSearchParameter.TAXON_KEY, tooMany);

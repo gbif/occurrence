@@ -14,6 +14,8 @@
 package org.gbif.occurrence.search;
 
 import org.gbif.api.model.common.search.SearchParameter;
+import org.gbif.api.model.event.search.EventSearchParameter;
+import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
 
 import java.util.Collection;
 import java.util.Set;
@@ -31,7 +33,14 @@ public final class SearchParameterLimits {
   public static final int MAX_LOOKUP_VALUES = 100;
 
   // Each value is matched against a checklist or a vocabulary
-  private static final Set<String> LOOKUP_PARAMETERS = Set.of("SCIENTIFIC_NAME", "GEOLOGICAL_TIME");
+  private static final Set<SearchParameter> LOOKUP_PARAMETERS =
+      Set.of(
+          OccurrenceSearchParameter.SCIENTIFIC_NAME,
+          OccurrenceSearchParameter.GEOLOGICAL_TIME,
+          EventSearchParameter.SCIENTIFIC_NAME);
+
+  private static final Set<SearchParameter> GEOMETRY_PARAMETERS =
+      Set.of(OccurrenceSearchParameter.GEOMETRY, EventSearchParameter.GEOMETRY);
 
   private SearchParameterLimits() {}
 
@@ -41,13 +50,12 @@ public final class SearchParameterLimits {
    * @throws IllegalArgumentException if a limit is exceeded
    */
   public static void validate(SearchParameter parameter, Collection<String> values) {
-    String name = parameter.name();
-    if (LOOKUP_PARAMETERS.contains(name) && values.size() > MAX_LOOKUP_VALUES) {
+    if (LOOKUP_PARAMETERS.contains(parameter) && values.size() > MAX_LOOKUP_VALUES) {
       throw new IllegalArgumentException(
-          "Parameter " + name + " may have at most " + MAX_LOOKUP_VALUES + " values");
+          "Parameter " + parameter.name() + " may have at most " + MAX_LOOKUP_VALUES + " values");
     }
 
-    if ("GEOMETRY".equals(name)) {
+    if (GEOMETRY_PARAMETERS.contains(parameter)) {
       long points = values.stream().mapToLong(SearchParameterLimits::countPoints).sum();
       if (points > MAX_GEOMETRY_POINTS) {
         throw new IllegalArgumentException(
