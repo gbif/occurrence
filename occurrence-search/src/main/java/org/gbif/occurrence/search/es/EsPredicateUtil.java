@@ -31,7 +31,7 @@ public class EsPredicateUtil {
     Optional<Query> queryBuilder;
     try {
       queryBuilder =
-          new OccurrenceEsQueryVisitor(esFieldMapper, UUID.fromString(defaultChecklistKey)).getQueryBuilder(predicate);
+          new OccurrenceEsQueryVisitor(esFieldMapper, defaultChecklistKey).getQueryBuilder(predicate);
     } catch (Exception e) {
       throw new IllegalArgumentException("Error building predicate query", e);
     }

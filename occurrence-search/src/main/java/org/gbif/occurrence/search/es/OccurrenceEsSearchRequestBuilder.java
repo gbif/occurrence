@@ -29,7 +29,7 @@ public class OccurrenceEsSearchRequestBuilder
         occurrenceEsFieldMapper,
         conceptClient,
         nameUsageMatchingService,
-        new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, UUID.fromString(defaultChecklistKey)),
+        new OccurrenceEsQueryVisitor(occurrenceEsFieldMapper, defaultChecklistKey),
         defaultChecklistKey,
         defaultShardSize);
   }
