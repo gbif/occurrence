@@ -889,7 +889,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
                 params,
                 null,
                 false,
-                new BaseEsSearchRequestBuilder.TaxonomyFilter(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), false, null))
+                new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), false, null))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);
@@ -902,7 +902,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     Query query =
         esSearchRequestBuilder
-            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);
@@ -957,7 +957,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     Query query =
         esSearchRequestBuilder
-            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);
@@ -1035,6 +1035,73 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertFalse(queryWithoutDnaJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
     assertTrue(queryWithDnaJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
     assertTrue(queryWithDnaJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyFiltersNonTaxonomicIssues() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addParameter(OccurrenceSearchParameter.ISSUE, "COORDINATE_ROUNDED");
+
+    JsonNode filter =
+        MAPPER
+            .readTree(
+                toJson(
+                    esSearchRequestBuilder
+                        .buildQueryNode(searchRequest)
+                        .orElseThrow(IllegalArgumentException::new)))
+            .path(BOOL)
+            .path(FILTER);
+
+    // the taxonomic issues of the default classification aren't used in DNA-only mode
+    assertEquals(1, filter.findValues(NON_TAXONOMIC_ISSUE.getSearchFieldName()).size());
+    assertEquals(0, filter.findValues(ISSUE.getSearchFieldName()).size());
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyRejectsTaxonomicIssues() {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addParameter(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_FUZZY");
+
+    // the TAXONOMIC_ISSUE parameter has to be used instead
+    assertThrows(
+        IllegalArgumentException.class, () -> esSearchRequestBuilder.buildQueryNode(searchRequest));
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyIssueFacetUsesNonTaxonomicIssues() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addFacets(OccurrenceSearchParameter.ISSUE);
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX)));
+
+    assertEquals(
+        NON_TAXONOMIC_ISSUE.getSearchFieldName(),
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  @Test
+  public void useDnaAssistanceKeepsIssueFilter() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_FUZZY");
+
+    JsonNode filter =
+        MAPPER
+            .readTree(
+                toJson(
+                    esSearchRequestBuilder
+                        .buildQueryNode(searchRequest)
+                        .orElseThrow(IllegalArgumentException::new)))
+            .path(BOOL)
+            .path(FILTER);
+
+    // the request still uses its regular classification, so ISSUE isn't switched
+    assertEquals(1, filter.findValues(ISSUE.getSearchFieldName()).size());
+    assertEquals(0, filter.findValues(NON_TAXONOMIC_ISSUE.getSearchFieldName()).size());
   }
 
   @Test
@@ -1304,7 +1371,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     Query query =
         dynamicRanksSearchRequestBuilder()
-            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
             .orElseThrow(IllegalArgumentException::new);
     String queryJson = toJson(query);
     LOG.debug("Query: {}", queryJson);
@@ -1321,7 +1388,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
 
     Query query =
         dynamicRanksSearchRequestBuilder()
-            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.TaxonomyFilter(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), false, null))
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), false, null))
             .orElseThrow(IllegalArgumentException::new);
     String queryJson = toJson(query);
 
