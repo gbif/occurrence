@@ -18,22 +18,19 @@ import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * Parses the checklist nested struct configs, which map checklist keys to the names of their
  * nested struct columns.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class NestedStructConfigUtil {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
   private static final TypeReference<Map<String, String>> STRING_MAP = new TypeReference<>() {};
-
-  /**
-   * Private constructor.
-   */
-  private NestedStructConfigUtil() {
-    //empty constructor
-  }
 
   /** Parses a checklist nested struct config, failing on an invalid JSON or a non string value. */
   public static Map<String, String> parse(String json, String name) {
