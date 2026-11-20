@@ -1005,7 +1005,13 @@ public class OccurrenceEsSearchRequestBuilderTest {
     String queryJson = toJson(query);
 
     assertTrue(queryJson.contains(COUNTRY_CODE.getSearchFieldName()));
-    assertFalse(queryJson.contains("dnaClassifications"));
+    // the only DNA-assisted field is the one of the checklistKey filter
+    assertEquals(
+        List.of("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"),
+        MAPPER.readTree(queryJson).findValues("exists").stream()
+            .map(exists -> exists.path(FIELD).asText())
+            .toList());
+    assertEquals(1, queryJson.split("dnaClassifications", -1).length - 1, queryJson);
   }
 
   @Test
@@ -1035,6 +1041,60 @@ public class OccurrenceEsSearchRequestBuilderTest {
     assertFalse(queryWithoutDnaJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
     assertTrue(queryWithDnaJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
     assertTrue(queryWithDnaJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+  }
+
+  private static final String COL_KEY = "2d59e5db-57ad-41ff-97d6-11f5fb264527";
+
+  private JsonNode checklistKeyFilter(OccurrenceSearchRequest searchRequest) throws Exception {
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, COL_KEY);
+    return MAPPER
+        .readTree(
+            toJson(
+                esSearchRequestBuilder
+                    .buildQueryNode(searchRequest)
+                    .orElseThrow(IllegalArgumentException::new)))
+        .path(BOOL)
+        .path(FILTER);
+  }
+
+  @Test
+  public void checklistKeyWithoutDnaOnlyUsesChecklistKeyField() throws Exception {
+    JsonNode filter = checklistKeyFilter(new OccurrenceSearchRequest());
+
+    assertEquals(COL_KEY, filter.findValue("checklistKey").path(VALUE).asText());
+    assertFalse(filter.toString().contains("dnaClassifications"), filter.toString());
+  }
+
+  @Test
+  public void checklistKeyWithUseDnaAssistanceIncludesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.setUseDnaAssistance(true);
+
+    JsonNode filter = checklistKeyFilter(searchRequest);
+
+    // a record without a regular match in the checklist, but with a DNA-assisted one, is in it
+    JsonNode should = filter.findValue(SHOULD);
+    assertEquals(2, should.size(), filter.toString());
+    assertEquals(COL_KEY, should.findValue("checklistKey").path(VALUE).asText());
+    assertEquals(
+        "dnaClassifications.classifications." + COL_KEY + ".taxonKeys",
+        should.findValue("exists").path(FIELD).asText());
+  }
+
+  @Test
+  public void checklistKeyWithDnaAssistedChecklistKeyIncludesItsDnaClassification()
+      throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+
+    JsonNode filter = checklistKeyFilter(searchRequest);
+
+    // in DNA-only mode it's the DNA-assisted classification of the dnaAssistedChecklistKey
+    JsonNode should = filter.findValue(SHOULD);
+    assertEquals(COL_KEY, should.findValue("checklistKey").path(VALUE).asText());
+    assertEquals(
+        "dnaClassifications.classifications." + DNA_CHECKLIST_KEY + ".taxonKeys",
+        should.findValue("exists").path(FIELD).asText());
   }
 
   @Test
