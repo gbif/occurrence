@@ -19,11 +19,13 @@ import org.gbif.search.heatmap.occurrence.OccurrenceHeatmapRequestProvider;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -59,5 +61,19 @@ public class OccurrenceHeatmapRequestProviderTest {
     params.put("taxonKey", new String[] {"212"});
 
     assertFalse(provider.buildOccurrenceHeatmapRequest(httpRequest(params)).isUseDnaAssistance());
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyIsASearchParameter() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put("taxonKey", new String[] {"212"});
+    params.put("dnaAssistedChecklistKey", new String[] {"7ddf754f-d193-4cc9-b351-99906754a03b"});
+
+    OccurrenceHeatmapRequest request = provider.buildOccurrenceHeatmapRequest(httpRequest(params));
+
+    assertEquals(
+        Set.of("7ddf754f-d193-4cc9-b351-99906754a03b"),
+        request.getParameters().get(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY));
+    assertFalse(request.isUseDnaAssistance());
   }
 }
