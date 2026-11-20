@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PredicateFactoryTest {
 
@@ -150,5 +151,18 @@ public class PredicateFactoryTest {
         assertNull(equals.getDnaAssistedChecklistKey());
       }
     }
+  }
+
+  @Test
+  public void testTaxonomicRangeIsRejectedWithUseDnaAssistance() {
+    // the taxonomic parameters aren't numeric, so a range never becomes a (DNA-unaware)
+    // range predicate
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.KINGDOM_KEY.name(), new String[] {"1,6"});
+    params.put("useDnaAssistance", new String[] {"true"});
+
+    IllegalArgumentException e =
+        assertThrows(IllegalArgumentException.class, () -> PredicateFactory.build(params));
+    assertTrue(e.getMessage().startsWith("Ranges are only supported"));
   }
 }
