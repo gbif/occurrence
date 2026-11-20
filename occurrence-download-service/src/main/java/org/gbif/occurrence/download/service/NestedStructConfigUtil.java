@@ -15,6 +15,7 @@ package org.gbif.occurrence.download.service;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -25,6 +26,8 @@ public class NestedStructConfigUtil {
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
 
+  private static final TypeReference<Map<String, String>> STRING_MAP = new TypeReference<>() {};
+
   /**
    * Private constructor.
    */
@@ -32,11 +35,10 @@ public class NestedStructConfigUtil {
     //empty constructor
   }
 
-  /** Parses a checklist nested struct config, failing on an invalid JSON. */
-  @SuppressWarnings("unchecked")
+  /** Parses a checklist nested struct config, failing on an invalid JSON or a non string value. */
   public static Map<String, String> parse(String json, String name) {
     try {
-      return MAPPER.readValue(json, Map.class);
+      return MAPPER.readValue(json, STRING_MAP);
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid " + name + " JSON format", e);
     }

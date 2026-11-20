@@ -13,16 +13,15 @@
  */
 package org.gbif.occurrence.download.service.conf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.occurrence.download.service.NestedStructConfigUtil;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.PredicateCounter;
 import org.gbif.occurrence.query.PredicateGeometryPointCounter;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 import java.util.Iterator;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -101,16 +100,11 @@ public class DownloadLimits {
     this.maxGlobalDownloads = maxGlobalDownloads;
     this.maxPoints = maxPoints;
     this.maxPredicates = maxPredicates;
-    try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      Map<String, String> checklistNestedStructMap =
-        objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
-      Map<String, String> dnaChecklistNestedStructMap =
-        objectMapper.readValue(dnaChecklistNestedStructMapJson, Map.class);
-      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap, dnaChecklistNestedStructMap);
-    } catch (Exception e) {
-      throw new RuntimeException("Invalid checklistNestedStructMap or dnaChecklistNestedStructMap JSON format", e);
-    }
+    this.sqlValidation =
+      new SqlValidation(
+        null,
+        NestedStructConfigUtil.parse(checklistNestedStructMapJson, "checklistNestedStructMap"),
+        NestedStructConfigUtil.parse(dnaChecklistNestedStructMapJson, "dnaChecklistNestedStructMap"));
   }
 
   public int getMaxUserDownloads() {
