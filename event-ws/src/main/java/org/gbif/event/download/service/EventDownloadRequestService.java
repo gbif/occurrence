@@ -57,7 +57,7 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
     DoiInteractionClient doiInteractionClient,
     ConceptClient conceptClient,
     @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson,
-    @Value("${checklist.dna.nested.struct.config: {}}") String dnaChecklistNestedStructConfigJson) {
+    @Value("${checklist.nested.struct.dna.config: {}}") String dnaChecklistNestedStructConfigJson) {
     super(
         portalUrl,
         wsUrl,

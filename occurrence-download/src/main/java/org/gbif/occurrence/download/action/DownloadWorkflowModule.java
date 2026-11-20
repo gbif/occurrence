@@ -360,7 +360,7 @@ public class DownloadWorkflowModule {
      * e.g. {"<COL UUID>": "col_dna_classification"}
      */
     public static final String CHECKLIST_DNA_NESTED_STRUCT_CONFIG =
-      PROPERTIES_PREFIX + "checklist.dna.nested.struct.config";
+      PROPERTIES_PREFIX + "checklist.nested.struct.dna.config";
 
     public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";

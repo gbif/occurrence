@@ -141,7 +141,7 @@ public class DownloadResource {
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
       @Value("${denormalisedTaxonomy: 7ddf754f-d193-4cc9-b351-99906754a03b}") String denormalisedTaxonomy,
       @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
-      @Value("${checklist.dna.nested.struct.config:{}}") String dnaChecklistNestedStructMapJson) {
+      @Value("${checklist.nested.struct.dna.config:{}}") String dnaChecklistNestedStructMapJson) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;

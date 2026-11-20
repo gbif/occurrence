@@ -91,7 +91,7 @@ public class DownloadLimits {
                         @Value("${occurrence.download.downloads_max_points}") int maxPoints,
                         @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates,
                         @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
-                        @Value("${checklist.dna.nested.struct.config:{}}") String dnaChecklistNestedStructMapJson) {
+                        @Value("${checklist.nested.struct.dna.config:{}}") String dnaChecklistNestedStructMapJson) {
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
