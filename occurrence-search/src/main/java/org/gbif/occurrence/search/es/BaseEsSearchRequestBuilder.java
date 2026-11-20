@@ -202,7 +202,7 @@ public abstract class BaseEsSearchRequestBuilder<
       ChecklistEsField taxonKeyField = (ChecklistEsField) OccurrenceEsField.TAXON_KEY.getEsField();
       P taxonKeyParam = getParam(OccurrenceSearchParameter.TAXON_KEY.name()).orElseThrow();
       List<String> fieldsToSearch =
-          getTaxonFields(
+          getTaxonFieldsToSearch(
               dnaAssistedSearch,
               checklistKey -> taxonKeyField.getSearchFieldName(checklistKey.toString()),
               checklistKey -> esFieldMapper.getDnaChecklistField(checklistKey, taxonKeyParam));
@@ -904,7 +904,7 @@ public abstract class BaseEsSearchRequestBuilder<
     List<String> fieldsToSearch = new ArrayList<>();
     if (isTaxonomic(param)) {
       fieldsToSearch.addAll(
-          getTaxonFields(
+          getTaxonFieldsToSearch(
               dnaAssistedSearch,
               checklistKey -> esFieldMapper.getChecklistField(checklistKey, param),
               checklistKey -> esFieldMapper.getDnaChecklistField(checklistKey, param)));
@@ -946,7 +946,7 @@ public abstract class BaseEsSearchRequestBuilder<
    * dnaAssistedChecklistKey, and without useDnaAssistance, only the DNA-assisted field of that
    * checklist.
    */
-  private static List<String> getTaxonFields(
+  private static List<String> getTaxonFieldsToSearch(
       DnaAssistedSearch dnaAssistedSearch,
       Function<UUID, String> checklistField,
       Function<UUID, String> dnaChecklistField) {
