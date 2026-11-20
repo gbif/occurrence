@@ -406,7 +406,8 @@ public abstract class BaseEsSearchRequestBuilder<
 
     /** The checklist whose classification is searched. */
     UUID searchedChecklistKey() {
-      return useDnaChecklistKeyOnly() ? dnaAssistedChecklistKey : checklistKey;
+      UUID dnaChecklistKey = dnaChecklistKey();
+      return dnaChecklistKey != null ? dnaChecklistKey : checklistKey;
     }
 
     /** The checklist whose DNA-assisted classification is searched, or null without DNA. */
