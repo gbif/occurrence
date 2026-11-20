@@ -58,9 +58,20 @@ public class SqlValidation {
   private final HiveSqlValidator hiveSqlValidator;
 
   public SqlValidation(String database, Map<String, String> nestedStructConfig) {
+    this(database, nestedStructConfig, Map.of());
+  }
+
+  /**
+   * @param nestedStructConfig map of checklist keys to the nested struct columns of their classifications
+   * @param dnaNestedStructConfig map of checklist keys to the nested struct columns of their DNA-assisted
+   *     classifications
+   */
+  public SqlValidation(
+      String database, Map<String, String> nestedStructConfig, Map<String, String> dnaNestedStructConfig) {
     this.database = database;
     SchemaPlus rootSchema = Frameworks.createRootSchema(true);
-    OccurrenceTable occurrenceTable = new OccurrenceTable("occurrence", nestedStructConfig);
+    OccurrenceTable occurrenceTable =
+      new OccurrenceTable("occurrence", nestedStructConfig, dnaNestedStructConfig);
     rootSchema.add(occurrenceTable.getTableName(), occurrenceTable);
     if (database != null) {
       rootSchema.add(CATALOG + "." + database, new AbstractSchema() {
@@ -228,10 +239,15 @@ public class SqlValidation {
     @Getter
     private final String tableName;
     private final Map<String, String> nestedStructConfig;
+    private final Map<String, String> dnaNestedStructConfig;
 
-    public OccurrenceTable(String tableName, Map<String, String> nestedStructConfig) {
+    public OccurrenceTable(
+        String tableName,
+        Map<String, String> nestedStructConfig,
+        Map<String, String> dnaNestedStructConfig) {
       this.tableName = tableName;
       this.nestedStructConfig = nestedStructConfig;
+      this.dnaNestedStructConfig = dnaNestedStructConfig != null ? dnaNestedStructConfig : Map.of();
     }
 
     @Override
@@ -406,6 +422,11 @@ public class SqlValidation {
       );
 
       for (String fieldName : nestedStructConfig.values()) {
+        builder.add(fieldName, classification);
+      }
+
+      // the DNA-assisted classifications have the same struct
+      for (String fieldName : dnaNestedStructConfig.values()) {
         builder.add(fieldName, classification);
       }
 

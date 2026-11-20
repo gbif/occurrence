@@ -37,15 +37,38 @@ public class QueryVisitorsFactory {
       Map<String, String> checklistNestedStructMap,
       String defaultChecklistKey,
       String disambiguationTable) {
+    return createSqlQueryVisitor(
+        denormalisedTaxonomy, checklistNestedStructMap, Map.of(), defaultChecklistKey, disambiguationTable);
+  }
+
+  /**
+   * Create a SQL Query visitor that also supports the DNA-assisted classifications
+   *
+   * @param dnaChecklistNestedStructMap map of checklist UUID to the nested struct name of its DNA-assisted
+   *     classification e.g. `col_dna_classification`
+   * @see #createSqlQueryVisitor(String, Map, String, String)
+   */
+  public static SQLQueryVisitor<SearchParameter> createSqlQueryVisitor(
+      String denormalisedTaxonomy,
+      Map<String, String> checklistNestedStructMap,
+      Map<String, String> dnaChecklistNestedStructMap,
+      String defaultChecklistKey,
+      String disambiguationTable) {
 
     // the checklist keys come as strings from the configuration, but they have to be UUIDs
     return new SQLQueryVisitor<>(
         new OccurrenceTermsMapper(),
         UUID.fromString(denormalisedTaxonomy),
-        checklistNestedStructMap.entrySet().stream()
-            .collect(Collectors.toMap(e -> UUID.fromString(e.getKey()), Map.Entry::getValue)),
+        toUuidKeys(checklistNestedStructMap),
         UUID.fromString(defaultChecklistKey),
-        disambiguationTable
+        disambiguationTable,
+        50,
+        toUuidKeys(dnaChecklistNestedStructMap)
     );
+  }
+
+  private static Map<UUID, String> toUuidKeys(Map<String, String> checklistKeyMap) {
+    return checklistKeyMap.entrySet().stream()
+        .collect(Collectors.toMap(e -> UUID.fromString(e.getKey()), Map.Entry::getValue));
   }
 }

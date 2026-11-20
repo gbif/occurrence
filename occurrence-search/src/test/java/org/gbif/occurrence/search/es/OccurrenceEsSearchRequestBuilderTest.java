@@ -19,11 +19,14 @@ import org.gbif.api.vocabulary.BasisOfRecord;
 import org.gbif.api.vocabulary.Country;
 import org.gbif.api.vocabulary.MediaType;
 import org.gbif.predicate.query.EsField;
+import org.gbif.rest.client.species.Metadata;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.occurrence.OccurrenceEsField;
 import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +46,8 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.search.es.occurrence.OccurrenceEsField.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class OccurrenceEsSearchRequestBuilderTest {
 
@@ -876,14 +881,652 @@ public class OccurrenceEsSearchRequestBuilderTest {
   @Test
   public void checklistKeyTest() throws Exception {
 
-    Map<OccurrenceSearchParameter, Set<String>> params = new java.util.HashMap<>();
+    Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
     params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("2d59e5db-57ad-41ff-97d6-11f5fb264527"));
     Query query =
         esSearchRequestBuilder
-            .buildQuery(params, null, false, UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"))
+            .buildQuery(
+                params,
+                null,
+                false,
+                new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), false, null))
             .orElseThrow(IllegalArgumentException::new);
     JsonNode jsonQuery = MAPPER.readTree(toJson(query));
     LOG.debug("Query: {}", jsonQuery);
+  }
+
+  @Test
+  public void useDnaAssistanceBuildsTaxonQueryForChecklistAndDnaChecklist() throws Exception {
+    Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.KINGDOM_KEY, Set.of("6"));
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(query));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        1,
+        jsonQuery.path(BOOL).path(FILTER).findValues("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM").size());
+    assertEquals(
+        1,
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .size());
+  }
+
+  @Test
+  public void useDnaAssistanceFromRequestFlagBuildsTaxonQueryForBothChecklists() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addKingdomKeyFilter("6");
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(query));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        1,
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValues("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .size());
+    assertEquals(
+        1,
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .size());
+  }
+
+  @Test
+  public void useDnaAssistanceIgnoresChecklistValuesAndAppendsSuffix() throws Exception {
+    Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.KINGDOM_KEY, Set.of("6"));
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("2d59e5db-57ad-41ff-97d6-11f5fb264527"));
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(query));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        1,
+        jsonQuery.path(BOOL).path(FILTER).findValues("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM").size());
+    assertEquals(
+        1,
+        jsonQuery
+            .path(BOOL)
+            .path(FILTER)
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .size());
+  }
+
+  @Test
+  public void useDnaAssistanceAppliesToTaxonomicFieldTaxonKey() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.TAXON_KEY, "212");
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    String queryJson = toJson(query);
+
+    assertTrue(queryJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"));
+  }
+
+  @Test
+  public void useDnaAssistanceDoesNotAffectNonTaxonomicFieldCountry() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    String queryJson = toJson(query);
+
+    assertTrue(queryJson.contains(COUNTRY_CODE.getSearchFieldName()));
+    // the only DNA-assisted field is the one of the checklistKey filter
+    assertEquals(
+        List.of("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"),
+        MAPPER.readTree(queryJson).findValues("exists").stream()
+            .map(exists -> exists.path(FIELD).asText())
+            .toList());
+    assertEquals(1, queryJson.split("dnaClassifications", -1).length - 1, queryJson);
+  }
+
+  @Test
+  public void useDnaAssistanceChangesQueryForSameRequest() throws Exception {
+    OccurrenceSearchRequest searchRequestWithoutDna = new OccurrenceSearchRequest();
+    searchRequestWithoutDna.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequestWithoutDna.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, "6");
+
+    Query queryWithoutDna =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequestWithoutDna)
+            .orElseThrow(IllegalArgumentException::new);
+    String queryWithoutDnaJson = toJson(queryWithoutDna);
+
+    OccurrenceSearchRequest searchRequestWithDna = new OccurrenceSearchRequest();
+    searchRequestWithDna.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequestWithDna.setUseDnaAssistance(true);
+    searchRequestWithDna.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, "6");
+
+    Query queryWithDna =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequestWithDna)
+            .orElseThrow(IllegalArgumentException::new);
+    String queryWithDnaJson = toJson(queryWithDna);
+
+    assertTrue(queryWithoutDnaJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertFalse(queryWithoutDnaJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertTrue(queryWithDnaJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertTrue(queryWithDnaJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+  }
+
+  private static final String COL_KEY = "2d59e5db-57ad-41ff-97d6-11f5fb264527";
+
+  private JsonNode checklistKeyFilter(OccurrenceSearchRequest searchRequest) throws Exception {
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, COL_KEY);
+    return MAPPER
+        .readTree(
+            toJson(
+                esSearchRequestBuilder
+                    .buildQueryNode(searchRequest)
+                    .orElseThrow(IllegalArgumentException::new)))
+        .path(BOOL)
+        .path(FILTER);
+  }
+
+  @Test
+  public void checklistKeyWithoutDnaOnlyUsesChecklistKeyField() throws Exception {
+    JsonNode filter = checklistKeyFilter(new OccurrenceSearchRequest());
+
+    assertEquals(COL_KEY, filter.findValue("checklistKey").path(VALUE).asText());
+    assertFalse(filter.toString().contains("dnaClassifications"), filter.toString());
+  }
+
+  @Test
+  public void checklistKeyWithUseDnaAssistanceIncludesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.setUseDnaAssistance(true);
+
+    JsonNode filter = checklistKeyFilter(searchRequest);
+
+    // a record without a regular match in the checklist, but with a DNA-assisted one, is in it
+    JsonNode should = filter.findValue(SHOULD);
+    assertEquals(2, should.size(), filter.toString());
+    assertEquals(COL_KEY, should.findValue("checklistKey").path(VALUE).asText());
+    assertEquals(
+        "dnaClassifications.classifications." + COL_KEY + ".taxonKeys",
+        should.findValue("exists").path(FIELD).asText());
+  }
+
+  @Test
+  public void checklistKeyWithDnaAssistedChecklistKeyIncludesItsDnaClassification()
+      throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+
+    JsonNode filter = checklistKeyFilter(searchRequest);
+
+    // in DNA-only mode it's the DNA-assisted classification of the dnaAssistedChecklistKey
+    JsonNode should = filter.findValue(SHOULD);
+    assertEquals(COL_KEY, should.findValue("checklistKey").path(VALUE).asText());
+    assertEquals(
+        "dnaClassifications.classifications." + DNA_CHECKLIST_KEY + ".taxonKeys",
+        should.findValue("exists").path(FIELD).asText());
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyFiltersNonTaxonomicIssues() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addParameter(OccurrenceSearchParameter.ISSUE, "COORDINATE_ROUNDED");
+
+    JsonNode filter =
+        MAPPER
+            .readTree(
+                toJson(
+                    esSearchRequestBuilder
+                        .buildQueryNode(searchRequest)
+                        .orElseThrow(IllegalArgumentException::new)))
+            .path(BOOL)
+            .path(FILTER);
+
+    // the taxonomic issues of the default classification aren't used in DNA-only mode
+    assertEquals(1, filter.findValues(NON_TAXONOMIC_ISSUE.getSearchFieldName()).size());
+    assertEquals(0, filter.findValues(ISSUE.getSearchFieldName()).size());
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyRejectsTaxonomicIssues() {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addParameter(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_FUZZY");
+
+    // the TAXONOMIC_ISSUE parameter has to be used instead
+    assertThrows(
+        IllegalArgumentException.class, () -> esSearchRequestBuilder.buildQueryNode(searchRequest));
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyIssueFacetUsesNonTaxonomicIssues() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addFacets(OccurrenceSearchParameter.ISSUE);
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX)));
+
+    assertEquals(
+        NON_TAXONOMIC_ISSUE.getSearchFieldName(),
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  @Test
+  public void useDnaAssistanceKeepsIssueFilter() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.ISSUE, "TAXON_MATCH_FUZZY");
+
+    JsonNode filter =
+        MAPPER
+            .readTree(
+                toJson(
+                    esSearchRequestBuilder
+                        .buildQueryNode(searchRequest)
+                        .orElseThrow(IllegalArgumentException::new)))
+            .path(BOOL)
+            .path(FILTER);
+
+    // the request still uses its regular classification, so ISSUE isn't switched
+    assertEquals(1, filter.findValues(ISSUE.getSearchFieldName()).size());
+    assertEquals(0, filter.findValues(NON_TAXONOMIC_ISSUE.getSearchFieldName()).size());
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyOnlySearchesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, "7ddf754f-d193-4cc9-b351-99906754a03b");
+    searchRequest.addKingdomKeyFilter("6");
+    searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(query));
+    LOG.debug("Query: {}", jsonQuery);
+
+    JsonNode filter = jsonQuery.path(BOOL).path(FILTER);
+    assertEquals(
+        1,
+        filter
+            .findValues("dnaClassifications.classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM")
+            .size());
+    // the regular classification isn't searched
+    assertEquals(0, filter.findValues("classifications.7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys.KINGDOM").size());
+    assertEquals(0, filter.findValues("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM").size());
+    // the non taxonomic fields aren't affected and the dnaAssistedChecklistKey isn't a filter
+    assertEquals(1, filter.findValues(COUNTRY_CODE.getSearchFieldName()).size());
+    assertFalse(toJson(query).contains("dnaAssistedChecklistKey"));
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyIgnoredWithUseDnaAssistance() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, "7ddf754f-d193-4cc9-b351-99906754a03b");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addKingdomKeyFilter("6");
+
+    String queryJson =
+        toJson(
+            esSearchRequestBuilder
+                .buildQueryNode(searchRequest)
+                .orElseThrow(IllegalArgumentException::new));
+
+    assertTrue(queryJson.contains("\"classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM\""));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertFalse(queryJson.contains("7ddf754f-d193-4cc9-b351-99906754a03b.classificationKeys"));
+  }
+
+  @Test
+  public void useDnaAssistanceWithTaxonAndNonTaxonFieldsOnlyExpandsTaxonField() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.KINGDOM_KEY, "6");
+    searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    String queryJson = toJson(query);
+
+    assertTrue(queryJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertTrue(queryJson.contains(COUNTRY_CODE.getSearchFieldName()));
+    assertFalse(queryJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.country"));
+    assertFalse(queryJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.countryCode"));
+  }
+
+  @Test
+  public void useDnaAssistanceAppliesToPostFilterAndMultiselectFacetFilters() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addKingdomKeyFilter("6");
+    searchRequest.addBasisOfRecordFilter(BasisOfRecord.PRESERVED_SPECIMEN);
+    searchRequest.addFacets(
+        OccurrenceSearchParameter.KINGDOM_KEY, OccurrenceSearchParameter.BASIS_OF_RECORD);
+    searchRequest.setFacetMultiSelect(true);
+
+    SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(request));
+    LOG.debug("Query: {}", jsonQuery);
+
+    // the faceted taxon param goes to the post-filter, which must search both checklists
+    JsonNode postFilter = jsonQuery.path(POST_FILTER);
+    assertFalse(postFilter.findValues("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM").isEmpty());
+    assertFalse(
+        postFilter
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .isEmpty());
+
+    // the basis of record facet is filtered by the other post-filter params (kingdom)
+    JsonNode borAggFilter =
+        jsonQuery.path(AGGREGATIONS).path(BASIS_OF_RECORD.getSearchFieldName()).path("filter");
+    assertFalse(
+        borAggFilter
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .isEmpty());
+  }
+
+  @Test
+  public void useDnaAssistanceFalseDoesNotSearchDnaChecklist() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(false);
+    searchRequest.addKingdomKeyFilter("6");
+
+    Query query =
+        esSearchRequestBuilder
+            .buildQueryNode(searchRequest)
+            .orElseThrow(IllegalArgumentException::new);
+    String queryJson = toJson(query);
+
+    assertTrue(queryJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertFalse(queryJson.contains("dnaClassifications"));
+  }
+
+  @Test
+  public void useDnaAssistanceDoesNotChangeTaxonFacetField() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
+
+    SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
+    JsonNode aggs = MAPPER.readTree(toJson(request)).path(AGGREGATIONS);
+    LOG.debug("Aggs: {}", aggs);
+
+    assertEquals(
+        List.of("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"),
+        aggs.findValuesAsText("field"));
+  }
+
+  @Test
+  public void multiselectTaxonFacetsUseMainChecklistField() throws Exception {
+    SearchRequest request =
+        esSearchRequestBuilder.buildSearchRequest(multiselectTaxonFacetsRequest(true), INDEX);
+    JsonNode aggs = MAPPER.readTree(toJson(request)).path(AGGREGATIONS);
+    LOG.debug("Aggs: {}", aggs);
+
+    assertEquals(
+        List.of("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"),
+        aggs.path(KINGDOM_KEY.getSearchFieldName()).findValuesAsText("field"));
+    assertEquals(
+        List.of("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.PHYLUM"),
+        aggs.path(PHYLUM_KEY.getSearchFieldName()).findValuesAsText("field"));
+  }
+
+  @Test
+  public void multiselectTaxonFacetFilterExcludesOwnParamAndExpandsOthers() throws Exception {
+    SearchRequest request =
+        esSearchRequestBuilder.buildSearchRequest(multiselectTaxonFacetsRequest(true), INDEX);
+    JsonNode aggs = MAPPER.readTree(toJson(request)).path(AGGREGATIONS);
+
+    // the kingdom facet is filtered by phylum (both checklists), but not by kingdom
+    JsonNode kingdomFilter = aggs.path(KINGDOM_KEY.getSearchFieldName()).path("filter");
+    assertFalse(kingdomFilter.findValues("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.PHYLUM").isEmpty());
+    assertFalse(
+        kingdomFilter
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.PHYLUM")
+            .isEmpty());
+    assertFalse(kingdomFilter.toString().contains("KINGDOM"));
+
+    // and the other way round for the phylum facet
+    JsonNode phylumFilter = aggs.path(PHYLUM_KEY.getSearchFieldName()).path("filter");
+    assertFalse(phylumFilter.findValues("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM").isEmpty());
+    assertFalse(
+        phylumFilter
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .isEmpty());
+    assertFalse(phylumFilter.toString().contains("PHYLUM"));
+  }
+
+  @Test
+  public void multiselectPostFilterExpandsAllTaxonParams() throws Exception {
+    SearchRequest request =
+        esSearchRequestBuilder.buildSearchRequest(multiselectTaxonFacetsRequest(true), INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(request));
+    JsonNode postFilter = jsonQuery.path(POST_FILTER);
+
+    assertEquals(
+        "6",
+        postFilter
+            .findValue("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .path(VALUE)
+            .asText());
+    assertEquals(
+        "7",
+        postFilter
+            .findValue("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.PHYLUM")
+            .path(VALUE)
+            .asText());
+
+    // faceted params are only applied in the post-filter, not in the main query
+    assertFalse(jsonQuery.path(QUERY).toString().contains("KINGDOM"));
+    assertFalse(jsonQuery.path(QUERY).toString().contains("PHYLUM"));
+  }
+
+  @Test
+  public void multiselectWithoutUseDnaAssistanceDoesNotSearchDnaChecklist() throws Exception {
+    SearchRequest request =
+        esSearchRequestBuilder.buildSearchRequest(multiselectTaxonFacetsRequest(false), INDEX);
+    String json = toJson(request);
+    LOG.debug("Request: {}", json);
+
+    assertTrue(json.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"));
+    assertFalse(json.contains("dnaClassifications"));
+  }
+
+  @Test
+  public void multiselectSingleTaxonFacetExpandsPostFilterOnly() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addKingdomKeyFilter("6");
+    searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
+    searchRequest.setFacetMultiSelect(true);
+
+    SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(request));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertFalse(
+        jsonQuery
+            .path(POST_FILTER)
+            .findValues("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM")
+            .isEmpty());
+    assertEquals(
+        List.of("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM"),
+        jsonQuery.path(AGGREGATIONS).findValuesAsText("field"));
+  }
+
+  @Test
+  public void multiselectNonFacetedParamsStayInQuery() throws Exception {
+    OccurrenceSearchRequest searchRequest = multiselectTaxonFacetsRequest(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
+
+    SearchRequest request = esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX);
+    JsonNode jsonQuery = MAPPER.readTree(toJson(request));
+
+    assertEquals(
+        "AF",
+        jsonQuery.path(QUERY).findValue(COUNTRY_CODE.getSearchFieldName()).path(VALUE).asText());
+    assertNull(jsonQuery.path(POST_FILTER).findValue(COUNTRY_CODE.getSearchFieldName()));
+    assertNull(jsonQuery.path(AGGREGATIONS).findValue(COUNTRY_CODE.getSearchFieldName()));
+  }
+
+  private static OccurrenceSearchRequest multiselectTaxonFacetsRequest(boolean useDnaAssistance) {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.setUseDnaAssistance(useDnaAssistance);
+    searchRequest.addKingdomKeyFilter("6");
+    searchRequest.addPhylumKeyFilter("7");
+    searchRequest.addFacets(
+        OccurrenceSearchParameter.KINGDOM_KEY, OccurrenceSearchParameter.PHYLUM_KEY);
+    searchRequest.setFacetMultiSelect(true);
+    return searchRequest;
+  }
+
+  @Test
+  public void useDnaAssistanceAppliesToDynamicRanks() throws Exception {
+    Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("2d59e5db-57ad-41ff-97d6-11f5fb264527"));
+    params.put(new OccurrenceSearchParameter("SUBPHYLUM_KEY", String.class), Set.of("123"));
+
+    Query query =
+        dynamicRanksSearchRequestBuilder()
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), true, null))
+            .orElseThrow(IllegalArgumentException::new);
+    String queryJson = toJson(query);
+    LOG.debug("Query: {}", queryJson);
+
+    assertTrue(queryJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"));
+    assertTrue(queryJson.contains("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"));
+  }
+
+  @Test
+  public void dynamicRanksWithoutUseDnaAssistanceOnlyUseChecklist() throws Exception {
+    Map<OccurrenceSearchParameter, Set<String>> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY, Set.of("2d59e5db-57ad-41ff-97d6-11f5fb264527"));
+    params.put(new OccurrenceSearchParameter("SUBPHYLUM_KEY", String.class), Set.of("123"));
+
+    Query query =
+        dynamicRanksSearchRequestBuilder()
+            .buildQuery(params, null, false, new BaseEsSearchRequestBuilder.DnaAssistedSearch(UUID.fromString("2d59e5db-57ad-41ff-97d6-11f5fb264527"), false, null))
+            .orElseThrow(IllegalArgumentException::new);
+    String queryJson = toJson(query);
+
+    assertTrue(queryJson.contains("classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"));
+    assertFalse(queryJson.contains("dnaClassifications"));
+  }
+
+  private static final String DNA_CHECKLIST_KEY = "7ddf754f-d193-4cc9-b351-99906754a03b";
+
+  @Test
+  public void dnaAssistedChecklistKeyFacetUsesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX)));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        "dnaClassifications.classifications." + DNA_CHECKLIST_KEY + ".classificationKeys.KINGDOM",
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  @Test
+  public void useDnaAssistanceFacetUsesChecklistClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.CHECKLIST_KEY, "2d59e5db-57ad-41ff-97d6-11f5fb264527");
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addFacets(OccurrenceSearchParameter.KINGDOM_KEY);
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(toJson(esSearchRequestBuilder.buildSearchRequest(searchRequest, INDEX)));
+
+    // the facets aren't calculated on both classifications, and the dnaAssistedChecklistKey is
+    // ignored with useDnaAssistance
+    assertEquals(
+        "classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.classificationKeys.KINGDOM",
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyDynamicRankFacetUsesDnaClassification() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addFacets(new OccurrenceSearchParameter("SUBPHYLUM_KEY", String.class));
+
+    JsonNode jsonQuery =
+        MAPPER.readTree(
+            toJson(dynamicRanksSearchRequestBuilder().buildSearchRequest(searchRequest, INDEX)));
+    LOG.debug("Query: {}", jsonQuery);
+
+    assertEquals(
+        "dnaClassifications.classifications." + DNA_CHECKLIST_KEY + ".classificationKeys.SUBPHYLUM",
+        jsonQuery.path(AGGREGATIONS).findValue(TERMS).path(FIELD).asText());
+  }
+
+  /**
+   * Builder whose checklists "2d59e5db-57ad-41ff-97d6-11f5fb264527" and DNA_CHECKLIST_KEY have the SUBPHYLUM rank, so SUBPHYLUM_KEY is a
+   * dynamic rank.
+   */
+  private static OccurrenceEsSearchRequestBuilder dynamicRanksSearchRequestBuilder() {
+    Metadata.IndexMetadata mainIndex = new Metadata.IndexMetadata();
+    mainIndex.setNameUsageByRankCount(Map.of("SUBPHYLUM", 1L));
+    Metadata metadata = new Metadata();
+    metadata.setMainIndex(mainIndex);
+
+    NameUsageMatchingService nameUsageMatchingService = mock(NameUsageMatchingService.class);
+    when(nameUsageMatchingService.getMetadata("2d59e5db-57ad-41ff-97d6-11f5fb264527")).thenReturn(metadata);
+    when(nameUsageMatchingService.getMetadata(DNA_CHECKLIST_KEY)).thenReturn(metadata);
+
+    return new OccurrenceEsSearchRequestBuilder(
+        OccurrenceEsField.buildFieldMapper(),
+        new ConceptClientMock(),
+        nameUsageMatchingService,
+        UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b"),
+        100);
   }
 
   @Test

@@ -15,6 +15,7 @@ package org.gbif.search.es.occurrence;
 
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.common.Classification;
+import org.gbif.api.model.common.DnaClassifications;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.AgentIdentifier;
@@ -98,6 +99,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setDatasetFields(hit, occ);
     setTaxonFields(hit, occ);
     setClassifications(hit, occ);
+    setDnaClassifications(hit, occ);
     setGrscicollFields(hit, occ);
     setDnaFields(hit, occ);
 
@@ -472,6 +474,28 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
         Map.Entry::getKey,
         mapEntry -> createClassification((Map<String, Object>) mapEntry.getValue()))))
       .ifPresent(occ::setClassifications);
+  }
+
+  private void setDnaClassifications(Hit<Map<String, Object>> hit, Occurrence occ) {
+    getMapValue(hit, "dnaClassifications")
+        .map(
+            dnaClassifications -> {
+              DnaClassifications dc = new DnaClassifications();
+              dc.setRemarks((String) dnaClassifications.get("remarks"));
+              Optional.ofNullable((Map<String, Object>) dnaClassifications.get("classifications"))
+                  .map(
+                      classifications ->
+                          classifications.entrySet().stream()
+                              .collect(
+                                  Collectors.toMap(
+                                      Map.Entry::getKey,
+                                      mapEntry ->
+                                          createClassification(
+                                              (Map<String, Object>) mapEntry.getValue()))))
+                  .ifPresent(dc::setClassifications);
+              return dc;
+            })
+        .ifPresent(occ::setDnaClassifications);
   }
 
   private Classification createClassification(Map<String, Object> value) {

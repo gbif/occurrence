@@ -14,15 +14,27 @@
 package org.gbif.occurrence.download.service;
 
 import org.gbif.api.model.occurrence.search.OccurrenceSearchParameter;
+import org.gbif.api.model.predicate.ConjunctionPredicate;
+import org.gbif.api.model.predicate.DisjunctionPredicate;
+import org.gbif.api.model.predicate.EqualsPredicate;
+import org.gbif.api.model.predicate.InPredicate;
+import org.gbif.api.model.predicate.IsNotNullPredicate;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.predicate.query.OccurrenceEsQueryVisitor;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PredicateFactoryTest {
 
@@ -82,5 +94,141 @@ public class PredicateFactoryTest {
     Predicate predicate = PredicateFactory.build(params);
 
     assertNotNull(predicate);
+  }
+
+  @Test
+  public void testUseDnaAssistanceOnTaxonomicPredicates() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.TAXON_KEY.name(), new String[] {"212"});
+    params.put(OccurrenceSearchParameter.KINGDOM_KEY.name(), new String[] {"1", "6"});
+    params.put(OccurrenceSearchParameter.COUNTRY.name(), new String[] {"DK"});
+    params.put("useDnaAssistance", new String[] {"true"});
+
+    ConjunctionPredicate predicate = (ConjunctionPredicate) PredicateFactory.build(params);
+
+    for (Predicate p : predicate.getPredicates()) {
+      if (p instanceof EqualsPredicate<?> equals) {
+        if (equals.getKey() == OccurrenceSearchParameter.TAXON_KEY) {
+          assertEquals(Boolean.TRUE, equals.getUseDnaAssistance());
+        } else {
+          // it only applies to the taxonomic parameters
+          assertEquals(OccurrenceSearchParameter.COUNTRY, equals.getKey());
+          assertNull(equals.getUseDnaAssistance());
+        }
+      } else {
+        InPredicate<?> in = (InPredicate<?>) p;
+        assertEquals(OccurrenceSearchParameter.KINGDOM_KEY, in.getKey());
+        assertEquals(Boolean.TRUE, in.getUseDnaAssistance());
+      }
+    }
+  }
+
+  @Test
+  public void testWithoutUseDnaAssistance() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.TAXON_KEY.name(), new String[] {"212"});
+    params.put("useDnaAssistance", new String[] {"false"});
+
+    EqualsPredicate<?> predicate = (EqualsPredicate<?>) PredicateFactory.build(params);
+
+    assertNull(predicate.getUseDnaAssistance());
+  }
+
+  @Test
+  public void testDnaAssistedChecklistKey() {
+    UUID dnaChecklistKey = UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b");
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.TAXON_KEY.name(), new String[] {"212"});
+    params.put(OccurrenceSearchParameter.COUNTRY.name(), new String[] {"DK"});
+    params.put("dnaAssistedChecklistKey", new String[] {dnaChecklistKey.toString()});
+
+    ConjunctionPredicate predicate = (ConjunctionPredicate) PredicateFactory.build(params);
+
+    // the dnaAssistedChecklistKey isn't a filter, only the taxon key and country predicates
+    assertEquals(2, predicate.getPredicates().size());
+    for (Predicate p : predicate.getPredicates()) {
+      EqualsPredicate<?> equals = (EqualsPredicate<?>) p;
+      if (equals.getKey() == OccurrenceSearchParameter.TAXON_KEY) {
+        assertEquals(dnaChecklistKey, equals.getDnaAssistedChecklistKey());
+      } else {
+        // it only applies to the taxonomic parameters
+        assertEquals(OccurrenceSearchParameter.COUNTRY, equals.getKey());
+        assertNull(equals.getDnaAssistedChecklistKey());
+      }
+    }
+  }
+
+  @Test
+  public void testTaxonomicRangeIsRejectedWithUseDnaAssistance() {
+    // the taxonomic parameters aren't numeric, so a range never becomes a (DNA-unaware)
+    // range predicate
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.KINGDOM_KEY.name(), new String[] {"1,6"});
+    params.put("useDnaAssistance", new String[] {"true"});
+
+    IllegalArgumentException e =
+        assertThrows(IllegalArgumentException.class, () -> PredicateFactory.build(params));
+    assertTrue(e.getMessage().startsWith("Ranges are only supported"));
+  }
+
+  private static final String COL_KEY = "2d59e5db-57ad-41ff-97d6-11f5fb264527";
+
+  @Test
+  public void testChecklistKeyWithoutDna() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY.name(), new String[] {COL_KEY});
+
+    // unchanged, only the checklists of the regular classifications
+    EqualsPredicate<?> predicate = (EqualsPredicate<?>) PredicateFactory.build(params);
+    assertEquals(OccurrenceSearchParameter.CHECKLIST_KEY, predicate.getKey());
+  }
+
+  @Test
+  public void testChecklistKeyWithUseDnaAssistance() throws Exception {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY.name(), new String[] {COL_KEY});
+    params.put("useDnaAssistance", new String[] {"true"});
+
+    Predicate predicate = PredicateFactory.build(params);
+
+    // a record without a regular match in the checklist, but with a DNA-assisted one, is in it
+    assertDnaClassificationAlternative(predicate, UUID.fromString(COL_KEY));
+    String query =
+        new OccurrenceEsQueryVisitor(OccurrenceEsField.buildFieldMapper(), UUID.fromString(COL_KEY))
+            .buildQuery(predicate);
+    assertTrue(query.contains("\"checklistKey\""), query);
+    assertTrue(query.contains("\"dnaClassifications.classifications." + COL_KEY + ".taxonKeys\""), query);
+  }
+
+  @Test
+  public void testChecklistKeyWithDnaAssistedChecklistKey() {
+    UUID dnaChecklistKey = UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b");
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY.name(), new String[] {COL_KEY});
+    params.put("dnaAssistedChecklistKey", new String[] {dnaChecklistKey.toString()});
+
+    // in DNA-only mode it's the DNA-assisted classification of the dnaAssistedChecklistKey
+    assertDnaClassificationAlternative(PredicateFactory.build(params), dnaChecklistKey);
+  }
+
+  private static void assertDnaClassificationAlternative(Predicate predicate, UUID dnaChecklistKey) {
+    DisjunctionPredicate or = (DisjunctionPredicate) predicate;
+    assertEquals(2, or.getPredicates().size());
+    EqualsPredicate<?> checklistKey =
+        or.getPredicates().stream()
+            .filter(EqualsPredicate.class::isInstance)
+            .map(p -> (EqualsPredicate<?>) p)
+            .findFirst()
+            .orElseThrow();
+    assertEquals(OccurrenceSearchParameter.CHECKLIST_KEY, checklistKey.getKey());
+    IsNotNullPredicate<?> dnaClassification =
+        or.getPredicates().stream()
+            .filter(IsNotNullPredicate.class::isInstance)
+            .map(p -> (IsNotNullPredicate<?>) p)
+            .findFirst()
+            .orElseThrow();
+    assertEquals(OccurrenceSearchParameter.TAXON_KEY, dnaClassification.getParameter());
+    assertEquals(dnaChecklistKey, dnaClassification.getDnaAssistedChecklistKey());
+    assertFalse(Boolean.TRUE.equals(dnaClassification.getUseDnaAssistance()));
   }
 }

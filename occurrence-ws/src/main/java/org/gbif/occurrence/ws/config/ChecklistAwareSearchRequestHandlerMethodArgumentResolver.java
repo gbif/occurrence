@@ -47,11 +47,15 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
   protected OccurrenceSearchRequest getSearchRequest(WebRequest webRequest, OccurrenceSearchRequest searchRequest) {
     OccurrenceSearchRequest request = super.getSearchRequest(webRequest, searchRequest);
 
+    // The superclass handles the facet parameters, with limits, but doesn't know the dynamic rank facets
+    Map<String, String[]> params = webRequest.getParameterMap();
+
+    // set before loading the checklist ranks, as it decides which checklist supplies them
+    request.setUseDnaAssistance(isUseDnaAssistance(params));
+
     // add support for dynamic facets for ranks ....
     List<OccurrenceSearchParameter> checklistParameters = getChecklistParameters(request);
 
-    // The superclass handles the facet parameters, with limits, but doesn't know the dynamic rank facets
-    Map<String, String[]> params = webRequest.getParameterMap();
     List<String> facets = params.get("facet") != null ? Arrays.asList(params.get("facet"))
       : Collections.emptyList();
     for (String f : facets) {
@@ -94,23 +98,44 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     return offset;
   }
 
+  private boolean isUseDnaAssistance(Map<String, String[]> params) {
+    String useDnaAssistanceValue = getFirstIgnoringCase("useDnaAssistance", params);
+    return useDnaAssistanceValue != null && Boolean.parseBoolean(useDnaAssistanceValue.trim());
+  }
+
+  private static String getFirstValue(Map<String, String[]> params, OccurrenceSearchParameter parameter) {
+    String normedName = parameter.name().replaceAll("[. _-]", "");
+    for (Map.Entry<String, String[]> entry : params.entrySet()) {
+      String normedType = entry.getKey().toUpperCase().replaceAll("[. _-]", "");
+      if (normedName.equalsIgnoreCase(normedType)
+          && entry.getValue() != null
+          && entry.getValue().length > 0) {
+        return entry.getValue()[0];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The checklist that supplies the dynamic ranks: the DNA-assisted checklist when only its
+   * classification is searched, otherwise the checklistKey. Same rule as the ES search builder.
+   */
+  private static String getRanksChecklistKey(
+      boolean useDnaAssistance, String dnaAssistedChecklistKey, String checklistKey) {
+    return !useDnaAssistance && dnaAssistedChecklistKey != null ? dnaAssistedChecklistKey : checklistKey;
+  }
+
   private List<OccurrenceSearchParameter> getChecklistParameters(Map<String, String[]> params) {
 
     List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
 
-    // find the checklist key parameter
-    String checklistKey = null;
-    for (Map.Entry<String, String[]> entry : params.entrySet()) {
-      String normedType = entry.getKey().toUpperCase().replaceAll("[. _-]", "");
-      // check if this is a checklist parameter
-      if (OccurrenceSearchParameter.CHECKLIST_KEY.name().replaceAll("[. _-]", "").equalsIgnoreCase(normedType)) {
-        checklistKey = entry.getValue()[0];
-        break;
-      }
-    }
-
     // get a list of recognised ranks for this checklist
-    loadChecklistRankParams(checklistKey, checklistParameters);
+    loadChecklistRankParams(
+        getRanksChecklistKey(
+            isUseDnaAssistance(params),
+            getFirstValue(params, OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY),
+            getFirstValue(params, OccurrenceSearchParameter.CHECKLIST_KEY)),
+        checklistParameters);
     return checklistParameters;
   }
 
@@ -134,14 +159,18 @@ public class ChecklistAwareSearchRequestHandlerMethodArgumentResolver
     List<OccurrenceSearchParameter> checklistParameters = new ArrayList<>();
 
     // add support for dynamic facets for ranks
-    if (request.getParameters().containsKey(OccurrenceSearchParameter.CHECKLIST_KEY)){
-      // get a list of recognised ranks for this checklist
-      Set<String> checklistKeys = request.getParameters().get(OccurrenceSearchParameter.CHECKLIST_KEY);
-      if (!checklistKeys.isEmpty()) {
-        loadChecklistRankParams(checklistKeys.iterator().next(), checklistParameters);
-      }
-    }
+    loadChecklistRankParams(
+        getRanksChecklistKey(
+            request.isUseDnaAssistance(),
+            getFirstValue(request, OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY),
+            getFirstValue(request, OccurrenceSearchParameter.CHECKLIST_KEY)),
+        checklistParameters);
     return checklistParameters;
+  }
+
+  private static String getFirstValue(OccurrenceSearchRequest request, OccurrenceSearchParameter parameter) {
+    Set<String> values = request.getParameters().get(parameter);
+    return values != null && !values.isEmpty() ? values.iterator().next() : null;
   }
 
   /**

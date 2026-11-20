@@ -39,8 +39,10 @@ public class OccurrenceEsHeatmapRequestBuilder
 
   @Override
   protected void handleIssueQueries(
-      Map<OccurrenceSearchParameter, Set<String>> params, List<Query> filters) {
-    super.handleOccurrenceIssueQueries(params, filters);
+      Map<OccurrenceSearchParameter, Set<String>> params,
+      List<Query> filters,
+      boolean useNonTaxonomicIssues) {
+    super.handleOccurrenceIssueQueries(params, filters, useNonTaxonomicIssues);
   }
 
   @Override

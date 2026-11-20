@@ -37,7 +37,10 @@ public class EventEsHeatmapRequestBuilder
   }
 
   @Override
-  protected void handleIssueQueries(Map<EventSearchParameter, Set<String>> params, List<Query> filters) {
+  protected void handleIssueQueries(
+      Map<EventSearchParameter, Set<String>> params,
+      List<Query> filters,
+      boolean useNonTaxonomicIssues) {
     // do nothing
   }
 

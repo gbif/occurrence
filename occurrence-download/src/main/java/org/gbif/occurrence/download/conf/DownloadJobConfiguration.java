@@ -120,6 +120,7 @@ public class DownloadJobConfiguration {
                 download,
                 workflowConfiguration.getDenormalisedTaxonomy(),
                 workflowConfiguration.getChecklistNestedStructMap(),
+                workflowConfiguration.getDnaChecklistNestedStructMap(),
                 workflowConfiguration.getDefaultChecklistKey(),
                 "iceberg."
                     + workflowConfiguration.getHiveDb()
@@ -143,6 +144,7 @@ public class DownloadJobConfiguration {
       Download download,
       String denormalisedTaxonomy,
       Map<String, String> checklistNestedStructMap,
+      Map<String, String> dnaChecklistNestedStructMap,
       String defaultChecklistKey, String disambiguationTable) {
     return download.getRequest().getFormat() == DownloadFormat.SQL_TSV_ZIP
         ? ((SqlDownloadRequest) download.getRequest()).getSql()
@@ -150,6 +152,7 @@ public class DownloadJobConfiguration {
             ((PredicateDownloadRequest) download.getRequest()).getPredicate(),
             denormalisedTaxonomy,
             checklistNestedStructMap,
+            dnaChecklistNestedStructMap,
             defaultChecklistKey,
             disambiguationTable);
   }
@@ -302,9 +305,15 @@ public class DownloadJobConfiguration {
       Predicate predicate,
       String denormalisedTaxonomy,
       Map<String, String> checklistNestedStructMap,
+      Map<String, String> dnaChecklistNestedStructMap,
       String defaultChecklistKey,
       String disambiguationTable) {
-    return QueryVisitorsFactory.createSqlQueryVisitor(denormalisedTaxonomy, checklistNestedStructMap, defaultChecklistKey, disambiguationTable)
+    return QueryVisitorsFactory.createSqlQueryVisitor(
+            denormalisedTaxonomy,
+            checklistNestedStructMap,
+            dnaChecklistNestedStructMap,
+            defaultChecklistKey,
+            disambiguationTable)
         .buildQuery(predicate);
   }
 }
