@@ -22,10 +22,13 @@ import org.gbif.api.model.predicate.EqualsPredicate;
 import org.gbif.api.model.predicate.InPredicate;
 import org.gbif.api.model.predicate.NotPredicate;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.rest.client.species.Metadata;
+import org.gbif.rest.client.species.NameUsageMatchingService;
 import org.gbif.search.es.event.EventEsField;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -41,6 +44,8 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import static org.gbif.occurrence.search.es.EsQueryUtils.*;
 import static org.gbif.search.es.event.EventEsField.HUMBOLDT_TARGET_TAXONOMIC_SCOPE_USAGE_KEY;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class EventEsSearchRequestBuilderTest {
 
@@ -377,5 +382,35 @@ public class EventEsSearchRequestBuilderTest {
             .get(0)
             .get(VALUE)
             .asText());
+  }
+
+  /** The dynamic ranks build a query for events too, also with DNA assistance. */
+  @Test
+  public void dynamicRankTest() throws Exception {
+    Metadata.IndexMetadata mainIndex = new Metadata.IndexMetadata();
+    mainIndex.setNameUsageByRankCount(Map.of("SUBPHYLUM", 1L));
+    Metadata metadata = new Metadata();
+    metadata.setMainIndex(mainIndex);
+    NameUsageMatchingService nameUsageMatchingService = mock(NameUsageMatchingService.class);
+    when(nameUsageMatchingService.getMetadata(DEFAULT_CHECKLIST_KEY)).thenReturn(metadata);
+
+    EventEsSearchRequestBuilder builder =
+        new EventEsSearchRequestBuilder(
+            EventEsField.buildFieldMapper(),
+            new ConceptClientMock(),
+            nameUsageMatchingService,
+            UUID.fromString(DEFAULT_CHECKLIST_KEY),
+            DEFAULT_SHARD_SIZE);
+
+    for (boolean useDnaAssistance : List.of(false, true)) {
+      EventSearchRequest searchRequest = new EventSearchRequest();
+      searchRequest.addParameter(EventSearchParameter.CHECKLIST_KEY, DEFAULT_CHECKLIST_KEY);
+      searchRequest.addParameter(new EventSearchParameter("SUBPHYLUM_KEY", String.class), "123");
+      searchRequest.setUseDnaAssistance(useDnaAssistance);
+
+      Query query = builder.buildQueryNode(searchRequest).orElseThrow(IllegalArgumentException::new);
+      String json = toJson(query);
+      assertTrue(json.contains("\"123\""), json);
+    }
   }
 }
