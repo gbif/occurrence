@@ -150,6 +150,7 @@ public class ElasticDownloadWorkflow {
         .esIndex(
             workflowConfiguration.getSetting(DownloadWorkflowModule.DefaultSettings.ES_INDEX_KEY))
         .esFieldMapper(OccurrenceEsField.buildFieldMapper())
+        .defaultChecklistKey(workflowConfiguration.getDefaultChecklistKey())
         .build();
   }
 
