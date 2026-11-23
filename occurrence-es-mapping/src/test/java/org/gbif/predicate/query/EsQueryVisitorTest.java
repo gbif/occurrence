@@ -1818,10 +1818,6 @@ public class EsQueryVisitorTest {
   @Test
   public void testAllParametersMapped() {
     for (OccurrenceSearchParameter param : OccurrenceSearchParameter.values()) {
-      if (param == OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY) {
-        // it isn't a filter, the predicates use the dnaAssistedChecklistKey field instead
-        continue;
-      }
       try {
         Predicate p;
         Object value;

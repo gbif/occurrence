@@ -291,6 +291,10 @@ public abstract class BaseEsSearchRequestBuilder<
       if (esField == null) {
         continue;
       }
+      // the dnaAssistedChecklistKey is ignored with useDnaAssistance
+      if (isDnaAssistedChecklistKeyParam(e.getKey()) && dnaAssistedSearch.useDnaAssistance()) {
+        continue;
+      }
       List<Query> queryBuilders =
           buildTermQuery(
               e.getValue(),
@@ -334,18 +338,42 @@ public abstract class BaseEsSearchRequestBuilder<
     return getParam(OccurrenceSearchParameter.CHECKLIST_KEY.name()).map(param::equals).orElse(false);
   }
 
+  private boolean isDnaAssistedChecklistKeyParam(P param) {
+    return getParam(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY.name())
+        .map(param::equals)
+        .orElse(false);
+  }
+
   /**
-   * With DNA, a record is also in a checklist when it has a DNA-assisted classification of it, as
-   * the checklistKey field only has the checklists of the regular classifications.
+   * With DNA, a record is also in a checklist when it has a DNA-assisted match in it, as the
+   * checklistKey field only has the checklists of the regular classifications.
    */
   private Query orDnaClassification(List<Query> checklistKeyQueries, UUID dnaChecklistKey) {
+    List<Query> shouldQueries = new ArrayList<>(checklistKeyQueries);
+    shouldQueries.add(
+        getParam(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY.name())
+            .map(esFieldMapper::getEsField)
+            .map(
+                field ->
+                    Query.of(
+                        q ->
+                            q.term(
+                                t ->
+                                    t.field(field.getExactMatchFieldName())
+                                        .value(dnaChecklistKey.toString()))))
+            .orElseGet(() -> dnaClassificationExists(dnaChecklistKey)));
+    return Query.of(q -> q.bool(b -> b.should(shouldQueries)));
+  }
+
+  /**
+   * For events, which have no dnaChecklistKey field: the DNA-assisted classification exists, as an
+   * empty taxonKeys, i.e. without a match, doesn't exist.
+   */
+  private Query dnaClassificationExists(UUID dnaChecklistKey) {
     String dnaTaxonKeysField =
         esFieldMapper.getDnaChecklistField(
             dnaChecklistKey, getParam(OccurrenceSearchParameter.TAXON_KEY.name()).orElseThrow());
-    List<Query> shouldQueries = new ArrayList<>(checklistKeyQueries);
-    // an empty taxonKeys, i.e. without a match, doesn't exist
-    shouldQueries.add(Query.of(q -> q.exists(ex -> ex.field(dnaTaxonKeysField))));
-    return Query.of(q -> q.bool(b -> b.should(shouldQueries)));
+    return Query.of(q -> q.exists(ex -> ex.field(dnaTaxonKeysField)));
   }
 
   protected abstract void handleIssueQueries(

@@ -216,7 +216,7 @@ public class OccurrenceEsHeatmapRequestBuilderTest {
     List<String> fields = termFields(json);
     assertTrue(fields.contains(dnaTaxonKeyField(DNA_CHECKLIST_KEY)), json.toString());
     assertFalse(fields.contains(TAXON_KEY_FIELD), json.toString());
-    // it isn't a filter itself
-    assertFalse(json.toString().contains("dnaAssistedChecklistKey"), json.toString());
+    // and only the records with a DNA-assisted match in that checklist
+    assertTrue(fields.contains("dnaChecklistKey"), json.toString());
   }
 }

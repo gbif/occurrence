@@ -1005,13 +1005,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
     String queryJson = toJson(query);
 
     assertTrue(queryJson.contains(COUNTRY_CODE.getSearchFieldName()));
-    // the only DNA-assisted field is the one of the checklistKey filter
-    assertEquals(
-        List.of("dnaClassifications.classifications.2d59e5db-57ad-41ff-97d6-11f5fb264527.taxonKeys"),
-        MAPPER.readTree(queryJson).findValues("exists").stream()
-            .map(exists -> exists.path(FIELD).asText())
-            .toList());
-    assertEquals(1, queryJson.split("dnaClassifications", -1).length - 1, queryJson);
+    assertFalse(queryJson.contains("dnaClassifications"));
   }
 
   @Test
@@ -1066,7 +1060,7 @@ public class OccurrenceEsSearchRequestBuilderTest {
   }
 
   @Test
-  public void checklistKeyWithUseDnaAssistanceIncludesDnaClassification() throws Exception {
+  public void checklistKeyWithUseDnaAssistanceIncludesDnaChecklistKey() throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.setUseDnaAssistance(true);
 
@@ -1076,25 +1070,57 @@ public class OccurrenceEsSearchRequestBuilderTest {
     JsonNode should = filter.findValue(SHOULD);
     assertEquals(2, should.size(), filter.toString());
     assertEquals(COL_KEY, should.findValue("checklistKey").path(VALUE).asText());
-    assertEquals(
-        "dnaClassifications.classifications." + COL_KEY + ".taxonKeys",
-        should.findValue("exists").path(FIELD).asText());
+    assertEquals(COL_KEY, should.findValue("dnaChecklistKey").path(VALUE).asText());
   }
 
   @Test
-  public void checklistKeyWithDnaAssistedChecklistKeyIncludesItsDnaClassification()
+  public void checklistKeyWithDnaAssistedChecklistKeyIncludesItsDnaChecklistKey()
       throws Exception {
     OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
     searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
 
     JsonNode filter = checklistKeyFilter(searchRequest);
 
-    // in DNA-only mode it's the DNA-assisted classification of the dnaAssistedChecklistKey
+    // in DNA-only mode it's the DNA-assisted match in the dnaAssistedChecklistKey
     JsonNode should = filter.findValue(SHOULD);
     assertEquals(COL_KEY, should.findValue("checklistKey").path(VALUE).asText());
-    assertEquals(
-        "dnaClassifications.classifications." + DNA_CHECKLIST_KEY + ".taxonKeys",
-        should.findValue("exists").path(FIELD).asText());
+    assertEquals(DNA_CHECKLIST_KEY, should.findValue("dnaChecklistKey").path(VALUE).asText());
+    // plus the filter of the dnaAssistedChecklistKey itself
+    assertEquals(2, filter.findValues("dnaChecklistKey").size(), filter.toString());
+  }
+
+  private JsonNode filter(OccurrenceSearchRequest searchRequest) throws Exception {
+    return MAPPER
+        .readTree(
+            toJson(
+                esSearchRequestBuilder
+                    .buildQueryNode(searchRequest)
+                    .orElseThrow(IllegalArgumentException::new)))
+        .path(BOOL)
+        .path(FILTER);
+  }
+
+  @Test
+  public void dnaAssistedChecklistKeyFiltersDnaMatches() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+
+    JsonNode filter = filter(searchRequest);
+
+    // as checklistKey, only the records with a DNA-assisted match in the checklist
+    assertEquals(DNA_CHECKLIST_KEY, filter.findValue("dnaChecklistKey").path(VALUE).asText());
+  }
+
+  @Test
+  public void useDnaAssistanceIgnoresDnaAssistedChecklistKeyFilter() throws Exception {
+    OccurrenceSearchRequest searchRequest = new OccurrenceSearchRequest();
+    searchRequest.setUseDnaAssistance(true);
+    searchRequest.addParameter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY);
+    searchRequest.addParameter(OccurrenceSearchParameter.COUNTRY, "AF");
+
+    JsonNode filter = filter(searchRequest);
+
+    assertFalse(filter.toString().contains("dnaChecklistKey"), filter.toString());
   }
 
   @Test

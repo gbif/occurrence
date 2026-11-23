@@ -76,22 +76,22 @@ public class PredicateFactory {
     // predicates for different parameters. If multiple values for the same parameter exist these are in here already
     List<Predicate> groupedByParam = new ArrayList<>();
     UUID requestDnaAssistedChecklistKey = getDnaAssistedChecklistKey(params);
-    UUID dnaChecklistKey = getDnaChecklistKey(params, requestDnaAssistedChecklistKey);
+    boolean requestUseDnaAssistance = Optional.ofNullable(params.get(USE_DNA_ASSISTANCE_PARAM))
+      .map(vals -> Boolean.parseBoolean(vals[0].trim())).orElse(false);
+    UUID dnaChecklistKey =
+      getDnaChecklistKey(params, requestUseDnaAssistance, requestDnaAssistedChecklistKey);
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
       toEnumParam(p.getKey()).ifPresent(param -> {
-        // it isn't a filter, it is set in the taxonomic predicates
-        if (param == OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY) {
+        // the dnaAssistedChecklistKey is ignored with useDnaAssistance
+        if (param == OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY && requestUseDnaAssistance) {
           return;
         }
         boolean matchCase = Optional.ofNullable(params.get("matchCase"))
           .map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
         // the DNA assistance only applies to the taxonomic parameters
         boolean taxonomic = ES_FIELD_MAPPER.isTaxonomic(param);
-        Boolean useDnaAssistance = taxonomic
-            && Optional.ofNullable(params.get(USE_DNA_ASSISTANCE_PARAM))
-              .map(vals -> Boolean.parseBoolean(vals[0].trim())).orElse(false)
-          ? Boolean.TRUE : null;
+        Boolean useDnaAssistance = taxonomic && requestUseDnaAssistance ? Boolean.TRUE : null;
         UUID dnaAssistedChecklistKey = taxonomic ? requestDnaAssistedChecklistKey : null;
         String[] values = p.getValue();
         if (values != null && values.length > 0) {
@@ -127,11 +127,8 @@ public class PredicateFactory {
    * The checklist whose DNA-assisted classification is searched: the checklistKey with
    * useDnaAssistance, otherwise the dnaAssistedChecklistKey. Null without DNA.
    */
-  private static UUID getDnaChecklistKey(Map<String, String[]> params, UUID dnaAssistedChecklistKey) {
-    boolean useDnaAssistance =
-        Optional.ofNullable(params.get(USE_DNA_ASSISTANCE_PARAM))
-            .map(vals -> Boolean.parseBoolean(vals[0].trim()))
-            .orElse(false);
+  private static UUID getDnaChecklistKey(
+      Map<String, String[]> params, boolean useDnaAssistance, UUID dnaAssistedChecklistKey) {
     if (!useDnaAssistance) {
       return dnaAssistedChecklistKey;
     }
@@ -147,14 +144,15 @@ public class PredicateFactory {
   }
 
   /**
-   * With DNA, a record is also in a checklist when it has a DNA-assisted classification of it, as
-   * the checklistKey field only has the checklists of the regular classifications.
+   * With DNA, a record is also in a checklist when it has a DNA-assisted match in it, as the
+   * checklistKey field only has the checklists of the regular classifications.
    */
   private static Predicate orDnaClassification(Predicate checklistKeyPredicate, UUID dnaChecklistKey) {
     return new DisjunctionPredicate(
         List.of(
             checklistKeyPredicate,
-            new IsNotNullPredicate<>(OccurrenceSearchParameter.TAXON_KEY, null, null, dnaChecklistKey)));
+            new EqualsPredicate<>(
+                OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, dnaChecklistKey.toString(), false)));
   }
 
   /**

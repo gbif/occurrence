@@ -131,6 +131,8 @@ public enum OccurrenceEsField implements EsField {
   CLASSIFICATIONS(new BaseEsField("classifications", null)),
   //checklist key is an array of identifiers for checklists which have a matched taxon i.e. not incertae sedis
   CHECKLIST_KEY(new BaseEsField("checklistKey", GbifTerm.checklistKey)),
+  //the same for the checklists which have a DNA-assisted matched taxon
+  DNA_CHECKLIST_KEY(new BaseEsField("dnaChecklistKey", GbifInternalTerm.dnaChecklistKey)),
 
   // Taxonomic classification
   USAGE_TAXON_KEY(new ChecklistEsField("classifications.%s.usage.key", GbifTerm.taxonKey)),
@@ -360,6 +362,7 @@ public enum OccurrenceEsField implements EsField {
       .put(OccurrenceSearchParameter.PUBLISHED_BY_GBIF_REGION, PUBLISHED_BY_GBIF_REGION)
       .put(OccurrenceSearchParameter.CONTINENT, CONTINENT)
       .put(OccurrenceSearchParameter.CHECKLIST_KEY,CHECKLIST_KEY)
+      .put(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, DNA_CHECKLIST_KEY)
       .put(OccurrenceSearchParameter.TAXON_KEY, TAXON_KEY)
       .put(OccurrenceSearchParameter.ACCEPTED_TAXON_KEY, ACCEPTED_TAXON_KEY)
       .put(OccurrenceSearchParameter.KINGDOM_KEY, KINGDOM_KEY)
