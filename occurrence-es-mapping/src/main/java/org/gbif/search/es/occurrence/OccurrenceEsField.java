@@ -129,9 +129,9 @@ public enum OccurrenceEsField implements EsField {
 
   //classifications is the array containing the multiple matched classifications
   CLASSIFICATIONS(new BaseEsField("classifications", null)),
-  //checklist key is an array of identifiers for checklists which have a matched taxon i.e. not incertae sedis
+  //checklist key is an array of identifiers for the checklists the record was interpreted against, with or without a match
   CHECKLIST_KEY(new BaseEsField("checklistKey", GbifTerm.checklistKey)),
-  //the same for the checklists which have a DNA-assisted matched taxon
+  //the same for the checklists of the DNA-assisted interpretation
   DNA_CHECKLIST_KEY(new BaseEsField("dnaChecklistKey", GbifInternalTerm.dnaChecklistKey)),
 
   // Taxonomic classification

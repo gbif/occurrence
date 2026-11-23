@@ -141,8 +141,9 @@ public class OccurrenceMapReader {
     interpretedOccurrence.put(DwcTerm.endDayOfYear.simpleName(), getSimpleValue(occurrence.getEndDayOfYear()));
 
     // Taxonomy terms
-    if (occurrence.getClassifications() != null && occurrence.getClassifications().containsKey(checklistKey)){
-      Classification classification = occurrence.getClassifications().get(checklistKey);
+    Classification classification =
+      occurrence.getClassifications() != null ? occurrence.getClassifications().get(checklistKey) : null;
+    if (classification != null && classification.getUsage() != null) {
       interpretedOccurrence.put(GbifTerm.taxonKey.simpleName(),
         getSimpleValue(classification.getUsage().getKey()));
 
@@ -167,16 +168,11 @@ public class OccurrenceMapReader {
       interpretedOccurrence.put(IucnTerm.iucnRedListCategory.simpleName(), getSimpleValue(occurrence.getIucnRedListCategory()));
       interpretedOccurrence.put(GbifTerm.environments.simpleName(), joinStrings(classification.getEnvironments()));
 
-      // combine taxonomic issues for this classification, with non-taxonomic issues
-      List<String> nonTaxonomicIssues = occurrence.getIssues().stream()
-        .filter(oi -> !OccurrenceIssue.TAXONOMIC_RULES.contains(oi)).map(OccurrenceIssue::name)
-        .toList();
+      interpretedOccurrence.put(GbifTerm.issue.simpleName(), combineIssues(occurrence, classification));
 
-      List<String> taxonIssues = classification.getIssues() != null ? classification.getIssues() : List.of();
-      List<String> combinedIssues = Stream.concat(nonTaxonomicIssues.stream(), taxonIssues.stream())
-        .toList();
-
-      interpretedOccurrence.put(GbifTerm.issue.simpleName(), String.join(";", combinedIssues));
+    } else if (classification != null) {
+      // without a match in the checklist only its issues are kept, e.g. TAXON_MATCH_NONE
+      interpretedOccurrence.put(GbifTerm.issue.simpleName(), combineIssues(occurrence, classification));
 
     } else {
 
@@ -370,6 +366,17 @@ public class OccurrenceMapReader {
   /**
    * Extract the Iso2LetterCode from the country.
    */
+  /** The taxonomic issues of the classification, combined with the non-taxonomic issues. */
+  private static String combineIssues(Occurrence occurrence, Classification classification) {
+    List<String> nonTaxonomicIssues = occurrence.getIssues().stream()
+      .filter(oi -> !OccurrenceIssue.TAXONOMIC_RULES.contains(oi)).map(OccurrenceIssue::name)
+      .toList();
+
+    List<String> taxonIssues = classification.getIssues() != null ? classification.getIssues() : List.of();
+    return Stream.concat(nonTaxonomicIssues.stream(), taxonIssues.stream())
+      .collect(Collectors.joining(";"));
+  }
+
   private static String getCountryCode(Country country) {
     if (country != null) {
       return country.getIso2LetterCode();

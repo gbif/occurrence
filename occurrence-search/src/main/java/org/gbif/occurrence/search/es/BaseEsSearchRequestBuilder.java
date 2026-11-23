@@ -345,8 +345,9 @@ public abstract class BaseEsSearchRequestBuilder<
   }
 
   /**
-   * With DNA, a record is also in a checklist when it has a DNA-assisted match in it, as the
-   * checklistKey field only has the checklists of the regular classifications.
+   * With DNA, a record is also in a checklist when it was interpreted against it with DNA
+   * assistance, with or without a match, as the checklistKey field only has the checklists of the
+   * regular interpretation.
    */
   private Query orDnaClassification(List<Query> checklistKeyQueries, UUID dnaChecklistKey) {
     List<Query> shouldQueries = new ArrayList<>(checklistKeyQueries);
