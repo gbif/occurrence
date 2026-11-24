@@ -215,6 +215,45 @@ public class PredicateFactoryTest {
   }
 
   @Test
+  public void testUseDnaAssistanceUsesTheChecklistKeyOfTheRequest() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.CHECKLIST_KEY.name(), new String[] {COL_KEY});
+    params.put(OccurrenceSearchParameter.TAXON_KEY.name(), new String[] {"KV2FZ"});
+    params.put(OccurrenceSearchParameter.TAXONOMIC_ISSUE.name(), new String[] {"TAXON_MATCH_NONE"});
+    params.put(OccurrenceSearchParameter.KINGDOM_KEY.name(), new String[] {"1", "6"});
+    params.put(OccurrenceSearchParameter.COUNTRY.name(), new String[] {"DK"});
+    params.put("useDnaAssistance", new String[] {"true"});
+
+    ConjunctionPredicate predicate = (ConjunctionPredicate) PredicateFactory.build(params);
+
+    // the taxonomic predicates search the classifications of the checklist of the request, not the
+    // default one of the download job
+    UUID colKey = UUID.fromString(COL_KEY);
+    for (Predicate p : predicate.getPredicates()) {
+      if (p instanceof EqualsPredicate<?> equals) {
+        if (equals.getKey() == OccurrenceSearchParameter.COUNTRY) {
+          assertNull(equals.getChecklistKey());
+        } else {
+          assertEquals(colKey, equals.getChecklistKey());
+        }
+      } else if (p instanceof InPredicate<?> in) {
+        assertEquals(colKey, in.getChecklistKey());
+      }
+    }
+  }
+
+  @Test
+  public void testUseDnaAssistanceWithoutChecklistKeyUsesTheDefaultChecklist() {
+    Map<String, String[]> params = new HashMap<>();
+    params.put(OccurrenceSearchParameter.TAXON_KEY.name(), new String[] {"212"});
+    params.put("useDnaAssistance", new String[] {"true"});
+
+    EqualsPredicate<?> predicate = (EqualsPredicate<?>) PredicateFactory.build(params);
+
+    assertNull(predicate.getChecklistKey());
+  }
+
+  @Test
   public void testChecklistKeyWithDnaAssistedChecklistKey() {
     UUID dnaChecklistKey = UUID.fromString("7ddf754f-d193-4cc9-b351-99906754a03b");
     Map<String, String[]> params = new HashMap<>();
