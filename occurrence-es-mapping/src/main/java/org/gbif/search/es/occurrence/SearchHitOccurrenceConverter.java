@@ -15,6 +15,7 @@ package org.gbif.search.es.occurrence;
 
 import org.gbif.api.model.Constants;
 import org.gbif.api.model.common.Classification;
+import org.gbif.api.model.common.DnaClassifications;
 import org.gbif.api.model.common.Identifier;
 import org.gbif.api.model.common.MediaObject;
 import org.gbif.api.model.occurrence.AgentIdentifier;
@@ -98,6 +99,7 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     setDatasetFields(hit, occ);
     setTaxonFields(hit, occ);
     setClassifications(hit, occ);
+    setDnaClassifications(hit, occ);
     setGrscicollFields(hit, occ);
     setDnaFields(hit, occ);
 
@@ -474,6 +476,28 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       .ifPresent(occ::setClassifications);
   }
 
+  private void setDnaClassifications(Hit<Map<String, Object>> hit, Occurrence occ) {
+    getMapValue(hit, "dnaClassifications")
+        .map(
+            dnaClassifications -> {
+              DnaClassifications dc = new DnaClassifications();
+              dc.setRemarks((String) dnaClassifications.get("remarks"));
+              Optional.ofNullable((Map<String, Object>) dnaClassifications.get("classifications"))
+                  .map(
+                      classifications ->
+                          classifications.entrySet().stream()
+                              .collect(
+                                  Collectors.toMap(
+                                      Map.Entry::getKey,
+                                      mapEntry ->
+                                          createClassification(
+                                              (Map<String, Object>) mapEntry.getValue()))))
+                  .ifPresent(dc::setClassifications);
+              return dc;
+            })
+        .ifPresent(occ::setDnaClassifications);
+  }
+
   private Classification createClassification(Map<String, Object> value) {
     if (value == null) return null;
 
@@ -487,12 +511,12 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
       .map(this::createUsage)
       .ifPresent(cl::setAcceptedUsage);
 
-    //set the classification depth
-    Map<String, String> depth = (Map<String, String>) value.get("classificationDepth");
+    //set the classification depth, absent without a match as only the issues are kept
+    Map<String, String> depth = getMapOrEmpty(value, "classificationDepth");
     Collection<String> keysSorted = depth.entrySet().stream().collect(Collectors.toMap(e -> Integer.parseInt(e.getKey()), Map.Entry::getValue)).values();
 
-    Map<String, String> tree = (Map<String, String>) value.get("classification");
-    Map<String, String> keyToRank = ((Map<String, String>) value.get("classificationKeys"))
+    Map<String, String> tree = getMapOrEmpty(value, "classification");
+    Map<String, String> keyToRank = getMapOrEmpty(value, "classificationKeys")
       .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
     cl.setIucnRedListCategoryCode((String) value.get("iucnRedListCategoryCode"));
@@ -515,6 +539,10 @@ public class SearchHitOccurrenceConverter extends SearchHitConverter<Occurrence>
     return cl;
   }
 
+
+  private static Map<String, String> getMapOrEmpty(Map<String, Object> value, String key) {
+    return Optional.ofNullable((Map<String, String>) value.get(key)).orElse(Collections.emptyMap());
+  }
 
   private void setGrscicollFields(Hit<Map<String, Object>> hit, Occurrence occ) {
     getValue(hit, occurrenceEsFieldMapper.getEsField(GbifInternalTerm.institutionKey), UUID::fromString).ifPresent(occ::setInstitutionKey);

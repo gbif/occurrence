@@ -103,6 +103,7 @@ class DownloadServiceImplTest {
             messagePublisher,
             doiInteractionClient,
             conceptClient,
+          "{}",
           "{}");
   }
 

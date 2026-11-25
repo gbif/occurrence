@@ -355,6 +355,13 @@ public class DownloadWorkflowModule {
     /** A mapping of checklist keys to nested struct iceberg columns. e.g. {"<gbif backbone UUID>": "gbif_classification"} */
     public static final String CHECKLIST_NESTED_STRUCT_CONFIG = PROPERTIES_PREFIX + "checklist.nested.struct.config";
 
+    /**
+     * A mapping of checklist keys to the nested struct iceberg columns of their DNA-assisted classifications.
+     * e.g. {"<COL UUID>": "col_dna_classification"}
+     */
+    public static final String CHECKLIST_DNA_NESTED_STRUCT_CONFIG =
+      PROPERTIES_PREFIX + "checklist.nested.struct.dna.config";
+
     public static final String MAX_THREADS_KEY = PROPERTIES_PREFIX + "job.max_threads";
     public static final String JOB_MIN_RECORDS_KEY = PROPERTIES_PREFIX + "job.min_records";
     public static final String MAX_RECORDS_KEY = PROPERTIES_PREFIX + "file.max_records";

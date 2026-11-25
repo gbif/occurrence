@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SqlValidationTest {
 
@@ -46,6 +47,29 @@ public class SqlValidationTest {
     HiveSqlQuery q = v.validateAndParse("SELECT occurrence.gbif_classification.species,  occurrence.gbif_classification.taxonomicissue from occurrence " +
       "WHERE NOT GBIF_STRINGARRAYCONTAINS(occurrence.gbif_classification.taxonomicissue, 'TAXON_MATCH_FUZZY', TRUE)", false);
     assertNotNull(q);
+  }
+
+  @Test
+  public void testDnaNestedStruct() throws Exception {
+    SqlValidation v =
+      new SqlValidation(
+        "test",
+        Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"),
+        Map.of(Constants.COL_DATASET_KEY.toString(), "col_dna_classification"));
+    HiveSqlQuery q = v.validateAndParse(
+      "SELECT occurrence.col_dna_classification.species, occurrence.dnaclassifications FROM occurrence "
+        + "WHERE occurrence.col_dna_classification.specieskey = '5219404'", false);
+    assertNotNull(q);
+  }
+
+  @Test
+  public void testDnaNestedStructNotConfigured() {
+    SqlValidation v =
+      new SqlValidation("test", Map.of(Constants.NUB_DATASET_KEY.toString(), "gbif_classification"));
+    assertThrows(
+      Exception.class,
+      () -> v.validateAndParse(
+        "SELECT occurrence.col_dna_classification.species FROM occurrence", false));
   }
 
   @Test

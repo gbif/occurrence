@@ -28,6 +28,8 @@ import org.gbif.api.model.predicate.WithinPredicate;
 import org.gbif.api.util.IsoDateInterval;
 import org.gbif.api.util.Range;
 import org.gbif.api.util.SearchTypeValidator;
+import org.gbif.search.es.occurrence.OccurrenceEsField;
+import org.gbif.search.es.occurrence.OccurrenceEsFieldMapper;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -37,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Utility for dealing with the decoding of the request parameters to the
@@ -50,6 +53,11 @@ import java.util.Optional;
 public class PredicateFactory {
 
   private static final String WILDCARD = "*";
+
+  private static final String USE_DNA_ASSISTANCE_PARAM = "useDnaAssistance";
+
+  // used to know which parameters are taxonomic and therefore support the DNA assistance
+  private static final OccurrenceEsFieldMapper ES_FIELD_MAPPER = OccurrenceEsField.buildFieldMapper();
 
   /**
    * Making constructor private.
@@ -67,15 +75,38 @@ public class PredicateFactory {
   public static Predicate build(Map<String, String[]> params) {
     // predicates for different parameters. If multiple values for the same parameter exist these are in here already
     List<Predicate> groupedByParam = new ArrayList<>();
+    UUID requestDnaAssistedChecklistKey = getDnaAssistedChecklistKey(params);
+    boolean requestUseDnaAssistance = Optional.ofNullable(params.get(USE_DNA_ASSISTANCE_PARAM))
+      .map(vals -> Boolean.parseBoolean(vals[0].trim())).orElse(false);
+    UUID dnaChecklistKey =
+      getDnaChecklistKey(params, requestUseDnaAssistance, requestDnaAssistedChecklistKey);
     for (Map.Entry<String,String[]> p : params.entrySet()) {
       // recognize valid params by enum name, ignore others
       toEnumParam(p.getKey()).ifPresent(param -> {
+        // the dnaAssistedChecklistKey is ignored with useDnaAssistance
+        if (param == OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY && requestUseDnaAssistance) {
+          return;
+        }
         boolean matchCase = Optional.ofNullable(params.get("matchCase"))
           .map(vals -> Boolean.parseBoolean(vals[0])).orElse(false);
+        // the DNA assistance only applies to the taxonomic parameters
+        boolean taxonomic = ES_FIELD_MAPPER.isTaxonomic(param);
+        Boolean useDnaAssistance = taxonomic && requestUseDnaAssistance ? Boolean.TRUE : null;
+        // the useDnaAssistance flag searches the DNA-assisted classification of the checklist of the
+        // predicate, so it has to be the one of the request, not the default of the download job
+        UUID checklistKey = useDnaAssistance != null ? dnaChecklistKey : null;
+        UUID dnaAssistedChecklistKey = taxonomic ? requestDnaAssistedChecklistKey : null;
         String[] values = p.getValue();
         if (values != null && values.length > 0) {
           // valid parameter
-          Predicate predicate = buildParamPredicate(param, matchCase, values);
+          Predicate predicate =
+            buildParamPredicate(
+              param, matchCase, checklistKey, useDnaAssistance, dnaAssistedChecklistKey, values);
+          if (predicate != null
+              && param == OccurrenceSearchParameter.CHECKLIST_KEY
+              && dnaChecklistKey != null) {
+            predicate = orDnaClassification(predicate, dnaChecklistKey);
+          }
           if (predicate != null) {
             groupedByParam.add(predicate);
           }
@@ -97,21 +128,76 @@ public class PredicateFactory {
   }
 
   /**
-   * @return the search enum or null if it cant be converted
+   * The checklist whose DNA-assisted classification is searched: the checklistKey with
+   * useDnaAssistance, otherwise the dnaAssistedChecklistKey. Null without DNA.
+   */
+  private static UUID getDnaChecklistKey(
+      Map<String, String[]> params, boolean useDnaAssistance, UUID dnaAssistedChecklistKey) {
+    if (!useDnaAssistance) {
+      return dnaAssistedChecklistKey;
+    }
+    return params.entrySet().stream()
+        .filter(e -> toEnumParam(e.getKey())
+            .filter(OccurrenceSearchParameter.CHECKLIST_KEY::equals)
+            .isPresent())
+        .map(Map.Entry::getValue)
+        .filter(values -> values != null && values.length > 0)
+        .map(values -> UUID.fromString(values[0].trim()))
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * With DNA, a record is also in a checklist when it was interpreted against it with DNA
+   * assistance, with or without a match, as the checklistKey field only has the checklists of the
+   * regular interpretation.
+   */
+  private static Predicate orDnaClassification(Predicate checklistKeyPredicate, UUID dnaChecklistKey) {
+    return new DisjunctionPredicate(
+        List.of(
+            checklistKeyPredicate,
+            new EqualsPredicate<>(
+                OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY, dnaChecklistKey.toString(), false)));
+  }
+
+  /**
+   * @return the dnaAssistedChecklistKey of the request, or null if it isn't present
+   */
+  private static UUID getDnaAssistedChecklistKey(Map<String, String[]> params) {
+    return params.entrySet().stream()
+      .filter(e -> toEnumParam(e.getKey())
+        .filter(OccurrenceSearchParameter.DNA_ASSISTED_CHECKLIST_KEY::equals)
+        .isPresent())
+      .map(Map.Entry::getValue)
+      .filter(values -> values != null && values.length > 0)
+      .map(values -> UUID.fromString(values[0].trim()))
+      .findFirst()
+      .orElse(null);
+  }
+
+  /**
+   * @return the search enum or empty if it cant be converted
    */
   private static Optional<OccurrenceSearchParameter> toEnumParam(String name) {
     try {
       return OccurrenceSearchParameter.lookup(name);
     } catch (IllegalArgumentException e) {
-      return null;
+      return Optional.empty();
     }
   }
 
-  private static Predicate buildParamPredicate(OccurrenceSearchParameter param, boolean matchCase, String... values) {
+  private static Predicate buildParamPredicate(
+      OccurrenceSearchParameter param,
+      boolean matchCase,
+      UUID checklistKey,
+      Boolean useDnaAssistance,
+      UUID dnaAssistedChecklistKey,
+      String... values) {
     boolean allEquals = true;
     List<Predicate> predicates = new ArrayList<>();
     for (String v : values) {
-      Predicate p = parsePredicate(param, v, matchCase);
+      Predicate p =
+        parsePredicate(param, v, matchCase, checklistKey, useDnaAssistance, dnaAssistedChecklistKey);
       allEquals &= p instanceof EqualsPredicate;
       if (p != null) {
         predicates.add(p);
@@ -125,7 +211,8 @@ public class PredicateFactory {
       return predicates.get(0);
 
     } else if (allEquals) {
-      return new InPredicate(param, Arrays.asList(values), matchCase);
+      return new InPredicate(
+        param, Arrays.asList(values), matchCase, checklistKey, useDnaAssistance, dnaAssistedChecklistKey);
     } else {
       return new DisjunctionPredicate(predicates);
     }
@@ -138,7 +225,13 @@ public class PredicateFactory {
   /**
    * Converts a value with an optional predicate prefix into a real predicate instance, defaulting to EQUALS.
    */
-  private static Predicate parsePredicate(OccurrenceSearchParameter param, String value, boolean matchCase) {
+  private static Predicate parsePredicate(
+      OccurrenceSearchParameter param,
+      String value,
+      boolean matchCase,
+      UUID checklistKey,
+      Boolean useDnaAssistance,
+      UUID dnaAssistedChecklistKey) {
     // geometry filters are special
     if (OccurrenceSearchParameter.GEOMETRY == param) {
       // validate it here, as this constructor only logs invalid strings.
@@ -180,10 +273,11 @@ public class PredicateFactory {
         "Ranges are only supported for numeric or date parameter types but received " + param);
     } else {
       if (WILDCARD.equals(value)) {
-        return new IsNotNullPredicate(param);
+        return new IsNotNullPredicate(param, checklistKey, useDnaAssistance, dnaAssistedChecklistKey);
       } else {
         // defaults to an equals predicate with the original value
-        return new EqualsPredicate(param, value, matchCase);
+        return new EqualsPredicate(
+          param, value, matchCase, checklistKey, useDnaAssistance, dnaAssistedChecklistKey);
       }
     }
   }

@@ -71,6 +71,7 @@ import org.gbif.occurrence.download.hive.DownloadTerms;
 import org.gbif.occurrence.download.hive.HiveColumns;
 import org.gbif.occurrence.download.query.QueryVisitorsFactory;
 import org.gbif.occurrence.download.service.CallbackService;
+import org.gbif.occurrence.download.service.NestedStructConfigUtil;
 import org.gbif.occurrence.download.service.PredicateFactory;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
@@ -123,6 +124,8 @@ public class DownloadResource {
 
   protected final Map<String, String> checklistNestedStructMap;
 
+  protected final Map<String, String> dnaChecklistNestedStructMap;
+
   // Parsed once, to compare with the checklist keys of requests
   private final UUID defaultChecklistUuid;
 
@@ -137,7 +140,8 @@ public class DownloadResource {
       DownloadType downloadType,
       @Value("${defaultChecklistKey}") String defaultChecklistKey,
       @Value("${denormalisedTaxonomy: 7ddf754f-d193-4cc9-b351-99906754a03b}") String denormalisedTaxonomy,
-      @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
+      @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
+      @Value("${checklist.nested.struct.dna.config:{}}") String dnaChecklistNestedStructMapJson) {
     this.archiveServerUrl = archiveServerUrl;
     this.requestService = service;
     this.callbackService = callbackService;
@@ -147,14 +151,11 @@ public class DownloadResource {
     this.denormalisedTaxonomy = denormalisedTaxonomy;
     this.defaultChecklistUuid = UUID.fromString(StringUtils.trim(defaultChecklistKey));
     this.denormalisedTaxonomyUuid = UUID.fromString(StringUtils.trim(denormalisedTaxonomy));
-    try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      this.checklistNestedStructMap =
-        objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
-      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid checklistNestedStructMap JSON format", e);
-    }
+    this.checklistNestedStructMap =
+        NestedStructConfigUtil.parse(checklistNestedStructMapJson, "checklistNestedStructMap");
+    this.dnaChecklistNestedStructMap =
+        NestedStructConfigUtil.parse(dnaChecklistNestedStructMapJson, "dnaChecklistNestedStructMap");
+    this.sqlValidation = new SqlValidation(null, checklistNestedStructMap, dnaChecklistNestedStructMap);
   }
 
   private void assertDownloadType(Download download) {
@@ -765,6 +766,7 @@ public class DownloadResource {
             QueryVisitorsFactory.createSqlQueryVisitor(
                 this.denormalisedTaxonomy,
                 this.checklistNestedStructMap,
+                this.dnaChecklistNestedStructMap,
                 downloadRequest.getChecklistKey() != null ? downloadRequest.getChecklistKey().toString() : defaultChecklistKey,
                 "occurrence"
             )

@@ -39,6 +39,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -170,5 +171,25 @@ public class OccurrenceMapReaderTest {
 
     assertEquals(datasetKey.toString(), occurrenceMap.get(GbifTerm.datasetKey.simpleName()));
     assertEquals(Continent.AFRICA.name(), occurrenceMap.get(DwcTerm.continent.simpleName()));
+  }
+
+  /** Without a match in the checklist only its issues are kept, and they are downloaded. */
+  @Test
+  public void noMatchClassificationIssuesTest() {
+    Classification noMatch = new Classification();
+    noMatch.setIssues(List.of(OccurrenceIssue.TAXON_MATCH_NONE.name()));
+
+    Occurrence occurrence = new Occurrence();
+    occurrence.setClassifications(Map.of(Constants.NUB_DATASET_KEY.toString(), noMatch));
+    occurrence.addIssue(OccurrenceIssue.COORDINATE_ROUNDED);
+
+    Map<String, String> occurrenceMap =
+        OccurrenceMapReader.buildInterpretedOccurrenceMap(
+            occurrence, Constants.NUB_DATASET_KEY.toString());
+
+    assertEquals(
+        OccurrenceIssue.COORDINATE_ROUNDED.name() + ";" + OccurrenceIssue.TAXON_MATCH_NONE.name(),
+        occurrenceMap.get(GbifTerm.issue.simpleName()));
+    assertNull(occurrenceMap.get(GbifTerm.taxonKey.simpleName()));
   }
 }

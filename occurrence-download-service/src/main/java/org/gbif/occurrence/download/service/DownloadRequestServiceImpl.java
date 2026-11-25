@@ -13,7 +13,6 @@
  */
 package org.gbif.occurrence.download.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.exception.ServiceUnavailableException;
 import org.gbif.api.model.occurrence.Download;
@@ -117,7 +116,8 @@ public abstract class DownloadRequestServiceImpl
       MessagePublisher messagePublisher,
       DownloadType downloadType,
       DoiInteractionClient doiInteractionClient,
-      @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson
+      @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson,
+      @Value("${checklist.nested.struct.dna.config: {}}") String dnaChecklistNestedStructConfigJson
   )  {
     this.downloadIdService = new DownloadIdService();
     this.portalUrl = portalUrl;
@@ -130,13 +130,12 @@ public abstract class DownloadRequestServiceImpl
     this.messagePublisher = messagePublisher;
     this.downloadType = downloadType;
     this.doiInteractionClient = doiInteractionClient;
-    ObjectMapper mapper = new ObjectMapper();
-    try {
-      Map<String, String> checklistNestedStructConfig = mapper.readValue(checklistNestedStructConfigJson, Map.class);
-      this.sqlValidation = new SqlValidation("occurrence", checklistNestedStructConfig);
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to parse checklist nested struct config JSON", e);
-    }
+    this.sqlValidation =
+      new SqlValidation(
+        "occurrence",
+        NestedStructConfigUtil.parse(checklistNestedStructConfigJson, "checklistNestedStructConfig"),
+        NestedStructConfigUtil.parse(
+          dnaChecklistNestedStructConfigJson, "dnaChecklistNestedStructConfig"));
   }
 
   @Override

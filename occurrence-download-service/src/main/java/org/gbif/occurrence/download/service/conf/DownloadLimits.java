@@ -13,16 +13,15 @@
  */
 package org.gbif.occurrence.download.service.conf;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.gbif.api.exception.QueryBuildingException;
 import org.gbif.api.model.predicate.Predicate;
+import org.gbif.occurrence.download.service.NestedStructConfigUtil;
 import org.gbif.occurrence.download.util.SqlValidation;
 import org.gbif.occurrence.query.PredicateCounter;
 import org.gbif.occurrence.query.PredicateGeometryPointCounter;
 import org.gbif.occurrence.query.sql.HiveSqlQuery;
 
 import java.util.Iterator;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,7 +90,8 @@ public class DownloadLimits {
                         @Value("${occurrence.download.max_global_downloads:-1}") int maxGlobalDownloads,
                         @Value("${occurrence.download.downloads_max_points}") int maxPoints,
                         @Value("${occurrence.download.downloads_max_predicates}") int maxPredicates,
-                        @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson) {
+                        @Value("${checklist.nested.struct.config:{}}") String checklistNestedStructMapJson,
+                        @Value("${checklist.nested.struct.dna.config:{}}") String dnaChecklistNestedStructMapJson) {
     Iterator<String> softLimits = COMMA_SPLITTER.split(softLimit).iterator();
     Iterator<String> hardLimits = COMMA_SPLITTER.split(hardLimit).iterator();
     this.maxUserDownloads = maxUserDownloads;
@@ -100,14 +100,11 @@ public class DownloadLimits {
     this.maxGlobalDownloads = maxGlobalDownloads;
     this.maxPoints = maxPoints;
     this.maxPredicates = maxPredicates;
-    try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      Map<String, String> checklistNestedStructMap =
-        objectMapper.readValue(checklistNestedStructMapJson, Map.class); // Validate JSON format
-      this.sqlValidation = new SqlValidation(null, checklistNestedStructMap);
-    } catch (Exception e) {
-      throw new RuntimeException("Invalid checklistNestedStructMap JSON format", e);
-    }
+    this.sqlValidation =
+      new SqlValidation(
+        null,
+        NestedStructConfigUtil.parse(checklistNestedStructMapJson, "checklistNestedStructMap"),
+        NestedStructConfigUtil.parse(dnaChecklistNestedStructMapJson, "dnaChecklistNestedStructMap"));
   }
 
   public int getMaxUserDownloads() {

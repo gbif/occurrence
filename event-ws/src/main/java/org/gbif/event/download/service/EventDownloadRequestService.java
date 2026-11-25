@@ -56,7 +56,8 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
     MessagePublisher messagePublisher,
     DoiInteractionClient doiInteractionClient,
     ConceptClient conceptClient,
-    @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson) {
+    @Value("${checklist.nested.struct.config: {}}") String checklistNestedStructConfigJson,
+    @Value("${checklist.nested.struct.dna.config: {}}") String dnaChecklistNestedStructConfigJson) {
     super(
         portalUrl,
         wsUrl,
@@ -68,7 +69,8 @@ public class EventDownloadRequestService extends DownloadRequestServiceImpl {
         messagePublisher,
         DownloadType.EVENT,
         doiInteractionClient,
-        checklistNestedStructConfigJson);
+        checklistNestedStructConfigJson,
+        dnaChecklistNestedStructConfigJson);
     this.defaultChecklistKey = defaultChecklistKey;
     this.conceptClient = conceptClient;
   }

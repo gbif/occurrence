@@ -44,11 +44,23 @@ pipeline {
           // Branch-qualified version for feature branches: workspace only, never committed.
           // dev/master keep the version as checked in, so this never touches those pom.xml files.
           if (env.BRANCH_NAME != 'dev' && env.BRANCH_NAME != 'master') {
-            def suffix = env.BRANCH_NAME.replaceAll('[^a-zA-Z0-9.-]', '-').toUpperCase()
-            sh """
-              BASE_VERSION=\$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | sed 's/-SNAPSHOT//')
-              mvn versions:set -DnewVersion=\${BASE_VERSION}-${suffix}-SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true
-            """
+            // For PR builds BRANCH_NAME is "PR-<n>"; CHANGE_BRANCH holds the real source branch name.
+            def branch = env.CHANGE_BRANCH ?: env.BRANCH_NAME
+            def suffix = branch.replaceAll('[^a-zA-Z0-9.-]', '-').toUpperCase()
+
+            // PR builds check out the PR merged into the target branch, so the workspace pom may carry
+            // the target's version. Take the base version from the PR head commit instead: the second
+            // parent of the merge commit, or HEAD itself when the merge was a fast-forward.
+            def baseVersion = POM_VERSION
+            if (env.CHANGE_ID) {
+              def headRef = sh(returnStdout: true, script: 'git rev-parse -q --verify HEAD^2 || git rev-parse HEAD').trim()
+              sh "git show ${headRef}:pom.xml > .branch-head-pom.xml"
+              baseVersion = readMavenPom(file: '.branch-head-pom.xml').getVersion()
+              sh 'rm -f .branch-head-pom.xml'
+            }
+            baseVersion = baseVersion.replace('-SNAPSHOT', '')
+
+            sh "mvn versions:set -DnewVersion=${baseVersion}-${suffix}-SNAPSHOT -DgenerateBackupPoms=false -DprocessAllModules=true"
             env.VERSION = sh(returnStdout: true, script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout').trim()
           } else {
             env.VERSION = POM_VERSION
